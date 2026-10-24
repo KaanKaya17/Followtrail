@@ -15,7 +15,13 @@ Kullanıcının `C:\Downloads\instagram.apk` dosyası önceki analizle aynı SHA
 
 ## Deney ve sınırları
 
-İlk deney, kendi uygulamamızdaki WebView oturumuyla aynı-origin web profil okumasıdır. Resmî Instagram Android oturumunu devralmaz, resmî geliştirici API'si değildir ve web frontend'in bütün durumunu uyguladığı iddia edilmez. Mobil başlık isimlerinden sahte oturum üretilmez. Sonucu kontrollü canlı test belirleyecek.
+İlk deney, kendi uygulamamızdaki WebView oturumuyla aynı-origin web profil okumasıdır. Resmî Instagram Android oturumunu devralmaz, resmî geliştirici API'si değildir ve web frontend'in bütün durumunu uyguladığı iddia edilmez. Mobil başlık isimlerinden sahte oturum üretilmez. 0.1.5'te tek kontrollü canlı okuma HTTP 429 döndürdü; sayılar alınamadı ve tekrar yapılmadı. Ayrıntılar doğrulama kaydındadır.
+
+### Windows başarısı ile Android denemesi arasındaki fark
+
+Yerel Windows v0.3 kaynağı (`InstagramCounter/app.py`, `read_counts`) instagrapi 3.2.0 `Client.private_request` ile `https://i.instagram.com/api/v1/users/{own_id}/info/` yolunu kullanır; `is_prefetch`, `entry_point`, `from_module`, `is_app_start` parametrelerini gönderir. Kütüphanenin mobil istemci/Authorization durumu ve `get_settings`/`set_settings` ile saklanan oturum bağlamı kullanılır. Windows doğrulama kaydı ilk girişte ve yeni süreçte oturumdan okumada başarı bildirir; ağ paket kaydı yoktur.
+
+Android'in mevcut ana okuyucusu `www.instagram.com` üzerinde seçilmiş WebView çerezlerini ayrı HttpsURLConnection'a taşır; kendi hesap özeti için `users/{id}/info/`, kişi için `users/web_profile_info/` kullanır. 0.1.5 deneyi ise aynı WebView bağlamında yalnız web_profile_info çağrısını sınar. Bunlar Windows'ta başarılı olan taşımanın birebir Android aktarımı değildir. İstemci, oturum durumu, host ve bazı sorgular değiştiği için eldeki sonuç bir işletim sistemi karşılaştırması sayılmaz. HTTP 429'un yalnız Android'den kaynaklandığı veya mobil yolu aktarmanın kesin çözüm olacağı sonucu çıkarılamaz. Sonraki karşılaştırma çalışan Windows taşımasının sözleşmesini temel almalıdır; yeni canlı deneme yapılmadan önce yerel mola korunur.
 
 Ana ekrandaki **Bağlantı prototipini aç**, dışarıya açık olmayan ayrı Activity'yi açar. Önceki sürüm etiketi korunur; güncelleme aynı kalıcı RequestGate'i kullanır ve eski 429'u silmez.
 

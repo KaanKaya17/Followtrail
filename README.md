@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.5**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; son emülatör girişinde kullanıcı HTTP 429 bildirdi ve canlı test durduruldu. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.5**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; 0.1.5 prototipindeki tek kontrollü canlı web profil okuması da HTTP 429 döndürdü ve test durduruldu. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
 
 ## Kullanım
 
