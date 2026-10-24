@@ -29,6 +29,7 @@ object RetryPolicy {
 }
 
 class RequestGate(context: Context, name: String = "request_gate") {
+    internal val context: Context = context.applicationContext
     // Activity recreation can create multiple owners of the same preferences.
     // Reserve requests across those instances, not only within one instance.
     companion object { private val lock = Any(); private val active = mutableSetOf<String>(); const val AUTO_INTERVAL_MS = 15 * 60 * 1000L }
@@ -41,6 +42,14 @@ class RequestGate(context: Context, name: String = "request_gate") {
     fun limitReason(): String = synchronized(lock) { preferences.getString("limit_reason", null) ?: "Önceki sürümde kaydedilen sınırlama" }
     fun requiresConnection(): Boolean = synchronized(lock) { preferences.getBoolean("requires_connection", false) }
     fun prototypeActive(): Boolean = synchronized(lock) { preferences.getBoolean("prototype_active", false) }
+    fun mobileLinkActive(): Boolean = synchronized(lock) { preferences.getBoolean("mobile_link_active", false) }
+    fun automationHeld(): Boolean = prototypeActive() || mobileLinkActive()
+    fun setMobileLinkActive(active: Boolean) = synchronized(lock) {
+        if (!preferences.edit().putBoolean("mobile_link_active", active).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
+    fun pauseAutomatic() = synchronized(lock) {
+        if (!preferences.edit().putBoolean("manual_only", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
     fun setPrototypeActive(active: Boolean) = synchronized(lock) {
         if (!preferences.edit().putBoolean("prototype_active", active).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
@@ -60,11 +69,11 @@ class RequestGate(context: Context, name: String = "request_gate") {
         AutoCloseable { synchronized(lock) { if (!closed) { active.remove(identity); closed = true }; Unit } }
     }
     fun autoAllowed(profile: Profile, now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        !prototypeActive() && !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && nextAllowedAt() <= now &&
+        !automationHeld() && !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && nextAllowedAt() <= now &&
             preferences.getLong("auto_after", 0) <= now
     }
     fun reserveAutomatic(now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        if (prototypeActive() || manualOnly() || requiresConnection() || nextAllowedAt() > now || preferences.getLong("auto_after", 0) > now) return false
+        if (automationHeld() || manualOnly() || requiresConnection() || nextAllowedAt() > now || preferences.getLong("auto_after", 0) > now) return false
         if (!preferences.edit().putLong("auto_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
         true
     }

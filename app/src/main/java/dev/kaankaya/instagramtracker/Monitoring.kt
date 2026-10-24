@@ -43,7 +43,7 @@ object Observations {
 class MonitorEngine(private val vault: SessionVault, private val gate: RequestGate, private val api: InstagramApi,
     private val canNotify: () -> Boolean, private val notify: (CountChange) -> Unit) {
     fun tick(now: Long = System.currentTimeMillis(), cancelled: () -> Boolean = { false }) {
-        if (cancelled() || !canNotify() || gate.prototypeActive() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now) return
+        if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now) return
         val saved = vault.read() ?: return
         val selected = MonitorPolicy.due(saved.people, now) ?: return
         if (!gate.reserveAutomatic(now)) return

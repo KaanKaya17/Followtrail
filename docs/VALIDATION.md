@@ -2,6 +2,14 @@
 
 24 Ekim 2026. Sürümler ayrı değerlendirilir; Windows prototipinin canlı başarısı Android başarısı olarak sayılmaz.
 
+## 0.1.6 — mobil oturum taşıması
+
+- 27 JVM testi geçti: mobil kimlik/başlık sınırı, v4 hesap dönüşümü, kayıtlı USDID anahtarıyla doğrulanabilir imza; gerçek yerel TLS/HTTP2 sunucusunda 429 ve 503 sonrası tek iletim, HTTP/1'de kimlik doğrulamalı istek öncesi durma ve yönlendirmeme. Dış Instagram bağlantısı yok.
+- API 35 emülatöründe tam 43 cihaz testi geçti; 0 başarısız, 0 hata, 0 atlanan. Gerçek Keystore RSA-OAEP/AES-GCM, iki banka, şifreli disk kaydı, eski 429'un korunması, geç yanıt iptali ve 15 dakika bağlantı testi bütçesi dahil. Bekleyen bağlantının yeniden açılışta bulunması ve ana hesap bağlanmadan otomasyonun açılmaması değişikliklerinden sonra 9 odaklı mobil test ayrıca geçti.
+- Windows ortamında dört Python zarf/projeksiyon testi ve 13 tarayıcı JS testi geçti. Bunlar yalnız sentetik veri kullanır. Lint sıfır hata; üç bağımlılık güncellik uyarısı: seçilen OkHttp 5.4.0 SDK 36 ile uyumludur, incelenen 5.5.x AAR'ları SDK 37 gerektirir.
+- Derlenmiş üretim paketinde dört izin, dışarıya açık olmayan DesktopLinkActivity ve ConnectionLabActivity, kapalı backup/debug/cleartext, native kütüphane ve debug fixture bulunmaması kontrol edildi. Son imzalı paket ve CI kanıtı ayrıca kaydedilir.
+- Bu kayıt gerçek Instagram kabulünü, bütün üretici telefonlarını veya Windows curl/TLS iziyle birebir eşleşmeyi doğrulamaz. İlk bağlantı mevcut Windows oturumunun yerel aktarımıdır; Android'de yeni mobil parola/CAA girişi uygulanmadı. Önceki canlı web 429 molası sıfırlanmaz.
+
 ## 0.1.0
 
 - `:app:assembleDebug :app:assembleRelease :app:testDebugUnitTest :app:assembleDebugAndroidTest :app:lintRelease` geçti. Dört JVM testi: sıfır/eksik/bozuk sayaç ve hesap kimliği, çerez başlık sınırı, HTTPS alan sınırları. Lint hata yok; Türkçe sabit metinlerle ilgili yerelleştirme uyarıları var.

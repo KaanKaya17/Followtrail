@@ -228,7 +228,7 @@ class MainActivity : Activity() {
         }
         if (saved == null || needsConnection) {
             page.addView(button(if (saved == null) "Instagram ile bağlan" else "Bağlantıyı yenile", networkAction = true) { startLogin() }, LinearLayout.LayoutParams(-1, -2))
-            if (saved == null && vault.exists()) {
+            if (saved == null && (vault.exists() || (!preview && MobileSessions(this).exists()))) {
                 page.gap(10); page.addView(button("Kayıtlı bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
             }
         } else if (!peopleScreen) page.addView(button("Sayıları yenile", networkAction = true) { refresh() }, LinearLayout.LayoutParams(-1, -2))
@@ -237,6 +237,12 @@ class MainActivity : Activity() {
             page.addView(button("Bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
         }
         page.gap(16)
+        if (!preview) {
+            if (gate.mobileLinkActive()) { page.addView(text("Bilgisayardan bağlantı aktarımı açık; otomatik kontroller bekliyor.", 13f, lilac)); page.gap(8) }
+            page.addView(button("Bilgisayardaki bağlantıyı aktar", false) {
+                startActivity(Intent(this, DesktopLinkActivity::class.java))
+            }, LinearLayout.LayoutParams(-1, -2)); page.gap(12)
+        }
         if (gate.prototypeActive()) {
             page.addView(text("Bağlantı prototipi açık bırakılmış; otomatik kontroller duraklatıldı. Prototipi açıp denemeyi bitirebilirsin.", 13f, lilac)); page.gap(8)
         }
@@ -560,7 +566,7 @@ class MainActivity : Activity() {
 
     private fun privacy() {
         AlertDialog.Builder(this).setTitle("Gizlilik, sade haliyle")
-            .setMessage("Şifren Instagram'ın kendi giriş sayfasına gider; uygulama şifre alanını okumaz.\n\n" +
+            .setMessage("Web bağlantısında giriş Instagram'ın kendi sayfasındadır; uygulama şifre alanını okumaz. Bilgisayardan aktarımda parola istenmez; mevcut mobil oturum bu cihazın anahtarına şifrelenerek ADB'den gelir.\n\n" +
                 "Oturum, seçtiğin kişiler, geçmiş ve notların Android Keystore ile şifrelenir. Giriş sırasında WebView kendi geçici tarayıcı verilerini oluşturabilir; bağlantı tamamlanınca veya iptal edilince temizlenir.\n\n" +
                 "İstekler Instagram'a gider. Kendi sunucumuz, reklam, analitik veya veri toplama SDK'mız yok. Bulut yedekleme ve cihaz aktarımı kapalıdır.\n\n" +
                 "Bu bağımsız bir uygulamadır. Instagram giriş veya doğrulama isteyebilir; kesintisiz çalışma garantisi yoktur.")
@@ -576,6 +582,7 @@ class MainActivity : Activity() {
                 worker.execute {
                     val ok = try {
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
+                        if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear() }
                         vault.clear(); ChangeNotifications(this, preview).clear(); true
                     } catch (_: Exception) { false }
                     main.post {

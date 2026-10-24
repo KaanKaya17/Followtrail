@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.5**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; 0.1.5 prototipindeki tek kontrollü canlı web profil okuması da HTTP 429 döndürdü ve test durduruldu. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.6**. Windows'ta çalışan kayıtlı mobil oturumun Android'e şifreli aktarımı ve mobil profil okuyucusu eklendi. Android'de gerçek sayaç okuması henüz doğrulanmadı; önceki web denemesi HTTP 429 döndürdü. Yerel mola korunur. Çevrimdışı testler canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
 
 ## Kullanım
 
@@ -16,6 +16,19 @@ Geliştirme önizlemesi **0.1.5**. Gerçek Instagram hesabıyla Android sayaç o
 - Tek kişiyi kaldırma o kişinin geçmiş ve notunu siler. **Bağlantıyı kaldır** bu uygulamadaki oturumu ve bütün kişileri siler; diğer Instagram oturumlarını kapatmaz.
 
 ## Bağlantı prototipi
+
+### Windows'taki mobil bağlantıyı APK'ya taşıma
+
+**Bilgisayardaki bağlantıyı aktar**, Windows prototipinde kurulmuş oturumu Android'e taşır. İlk eşleştirme bilgisayar/ADB gerektirir; başarılı okumadan sonra APK bağımsız çalışır. Bu sürüm Android içinde yeni mobil parola/CAA girişi uygulamaz; WebView girişi ayrı seçenek olarak kalır.
+
+1. APK'da **USB aktarımını hazırla**. Cihaza özel anahtar ve 10 dakikalık aktarım isteği oluşturulur.
+2. Aynı Windows kullanıcısında `scripts/link-desktop.ps1` çalıştır. Önceden çalışan `InstagramCounter` ortamı ve DPAPI oturumu gerekir. Script oturumu yalnız bellekte açar, bu cihaza özel anahtarla şifreler ve ADB'den aktarır. Giriş/profil isteği, sunucu, parola/kod kopyalama yoktur. Birden fazla cihaz varsa `-Serial`; debug paket için `-DebugApp` kullanılır.
+3. APK'da **Şifreli aktarımı al**. Bu adım Instagram'a bağlanmaz ve mevcut hesabı değiştirmez. Aktarım dosyası ve tek kullanımlık anahtar temizlenir; oturum Keystore ile şifreli kasaya alınır.
+4. Yerel mola dolunca **Bir kez sayıları oku**. Yeni oturumdan kimliği doğrulanmış başarılı yanıt gelirse ana hesap bağlanır; aynı hesabın kişi/geçmiş kayıtları korunur. Özet, kişiler ve arka plan kontrolleri bu oturumu kullanır. İlk bağlantı denemeleri kalıcı en az 15 dakika aralıklıdır.
+
+Aktarım ekranı açıkken otomatik kontroller bekler. Süreç kapanırsa bu ekranı yeniden açıp **Bitir ve ana ekrana dön** ile bekletmeyi kaldır. Aktarım manuel moda alır; başarısız deneme sonrası eski bağlantıdan gizli yenileme yapılmaz. Başarılı açık okuma normal önbellekli akışı yeniden açar. [Sözleşme ve sınırlar](docs/MOBILE-PORT.md).
+
+### Önceki web deneyi
 
 Ana ekrandaki **Bağlantı prototipini aç**, eski 429 kaydını koruyarak farklı bir erişim hipotezini sınar: giriş ve tek web profil okuması aynı WebView oturumunda kalır. Giriş/doğrulama sonrası kullanıcı adını girip **Tek okumayı başlat** seçilir. Sayfa açma ve profil okuma otomatik başlamaz; her deneme tek açık okuma ve en az 15 dakika aralığıyla sınırlıdır. Sonuç ana hesaba/izlenen kişilere aktarılmaz ve arka plan bildirimlerine bağlanmaz. Çalışacağı veya 429'u kaldıracağı garanti edilmez.
 
