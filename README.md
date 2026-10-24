@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması. İlk sürüm yalnız kendi hesabının takipçi ve takip edilen sayılarını gösterir.
 
-Geliştirme sürümü 0.1.1. Android 13 telefona 0.1.0 kuruldu ve giriş denendi. Kullanıcı sayı ekranına ulaşmadan Instagram sınırlaması gördü; canlı Android sayaç okuması ve otomatik yeniden açılış henüz doğrulanmadı. 0.1.1 tekrarlı istekleri engeller. [Doğrulama](docs/VALIDATION.md).
+Geliştirme sürümü 0.1.2. Android 13 telefona 0.1.0 kuruldu ve giriş denendi. Kullanıcı sayı ekranına ulaşmadan Instagram sınırlaması gördü; canlı Android sayaç okuması ve otomatik yeniden açılış henüz doğrulanmadı. Son sürümlerde tekrarlı istek koruması, iptal akışı ve otomatik kontroller geliştirildi. [Doğrulama](docs/VALIDATION.md).
 
 ## Temel kararlar
 - Native Kotlin/Android arayüzü; Python, sunucu, reklam, analitik veya çökme toplama servisi yok.
@@ -35,3 +35,11 @@ Windows: `gradlew.bat`. Release imzalama için `scripts/sign-release.ps1`, `%LOC
 ## Tasarım ve gizlilik
 
 [Canva arayüz taslağı](https://canva.link/g4rw1g4hoiufg4m) · [Gizlilik ve sınırlar](docs/PRIVACY.md) · [Sürümler](CHANGELOG.md)
+
+## Kalite kapıları
+
+5 JVM testi, Android 15 emülatörde 14 instrumentasyon testi ve lint yerelde geçti. Ağ testleri Instagram yerine sahte taşıma kullanır. CI aynı kontrolleri ve Android 7/15 emülatör işlerini çalıştırır; yeşil durum gerçek hesap desteğini kanıtlamaz. Test paketi `.debug` son ekiyle üretim oturumundan ayrıdır.
+
+Action sürümleri commit SHA ile, Gradle dağıtımı SHA-256 ile, Android bağımlılıkları lockfile ile sabitlenmiştir. CI raporları 14 gün saklanır; kullanıcı oturumu veya imza anahtarı yüklenmez.
+
+[Katkı](CONTRIBUTING.md) · [Güvenlik bildirimi](SECURITY.md) · [Yayın süreci](docs/RELEASING.md) · [CI](https://github.com/KaanKaya17/InstagramTracker/actions/workflows/android.yml)

@@ -14,11 +14,14 @@ class DevicePrivacyTest {
             val session = SessionCookies.fromHeader("ds_user_id=123; sessionid=synthetic-private-token", "test-UA")!!
             val account = SavedAccount(session, Profile("123", "synthetic", 0, 7, 1000))
             vault.write(account)
-            assertEquals(account, vault.read())
+            assertEquals(account, SessionVault(context, "testvault").read())
             assertFalse(String(file.readBytes(), Charsets.ISO_8859_1).contains("synthetic-private-token"))
+            val firstWrite = file.readBytes()
+            vault.write(account)
+            assertFalse(firstWrite.contentEquals(file.readBytes()))
             val data = file.readBytes(); data[data.lastIndex] = (data.last().toInt() xor 1).toByte(); file.writeBytes(data)
             try { vault.read(); fail("Tampered data must fail") } catch (_: java.security.GeneralSecurityException) { }
-            vault.clear(); assertFalse(vault.exists())
+            vault.clear(); assertFalse(vault.exists()); assertNull(SessionVault(context, "testvault").read())
         } finally { vault.clear() }
     }
     @Test fun productionManifestHasNoBackupOrExtraPermissions() {
