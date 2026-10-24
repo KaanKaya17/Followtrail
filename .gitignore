@@ -11,3 +11,5 @@ signing.properties
 *.hprof
 .DS_Store
 artifacts/
+__pycache__/
+*.pyc
