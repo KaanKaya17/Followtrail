@@ -28,6 +28,8 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.EditText
+import android.text.InputFilter
 import java.io.ByteArrayInputStream
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -59,6 +61,11 @@ class MainActivity : Activity() {
     private var loginChecking = false
     private var loginAttempted = false
     private var loginLoaded = false
+    private var peopleScreen = false
+    private var selectedPersonId: String? = null
+    private var rangeDays = 0
+    private var chartFollowers = true
+    private var preview = false
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,15 +82,19 @@ class MainActivity : Activity() {
         root.requestApplyInsets()
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             onBackInvokedDispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) {
-                if (web != null) leaveLogin() else finish()
+                navigateBack()
             }
         }
-        vault = SessionVault(this)
-        gate = RequestGate(this)
-        api = InstagramApi(gate)
+        preview = PreviewMode.enabled(this)
+        peopleScreen = savedInstanceState?.getBoolean("people") ?: false
+        selectedPersonId = savedInstanceState?.getString("person")
+        rangeDays = savedInstanceState?.getInt("range") ?: 0
+        vault = SessionVault(this, if (preview) "previewaccount" else "account")
+        gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
+        api = PreviewMode.api(gate, preview)
         render()
         worker.execute {
-            val saved = try { vault.read() } catch (_: Exception) {
+            val saved = try { vault.read() ?: PreviewMode.seed(preview)?.also { vault.write(it) } } catch (_: Exception) {
                 main.post { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(); needsConnection = true }
                 null
             }
@@ -91,7 +102,7 @@ class MainActivity : Activity() {
                 if (isDestroyed) return@post
                 account = saved; loading = false; render()
                 // An outstanding pause is restored without issuing a network request.
-                if (saved != null && gate.nextAllowedAt() <= System.currentTimeMillis()) refresh()
+                if (saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
             }
         }
     }
@@ -99,7 +110,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         if (!::gate.isInitialized || web != null || loading) return
-        if (account != null && !needsConnection && gate.nextAllowedAt() <= System.currentTimeMillis()) refresh()
+        if (account != null && !peopleScreen && !needsConnection && gate.autoAllowed(account!!.profile)) refresh(automatic = true)
         else render()
     }
 
@@ -137,13 +148,29 @@ class MainActivity : Activity() {
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         header.addView(text("it", 25f, mint, true).apply { contentDescription = "InstagramTracker" }, LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(badge("BU CİHAZDA"))
-        page.addView(header); page.gap(34)
+        page.addView(header); page.gap(24)
+        if (preview) {
+            page.addView(badge("DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK", lilac)); page.gap(18)
+        }
         val saved = account
+        if (saved != null) {
+            val navigation = LinearLayout(this)
+            navigation.addView(button("Özet", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
+            navigation.addView(button("Kişiler", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f))
+            page.addView(navigation); page.gap(26)
+        }
         if (saved == null) {
             page.addView(text("Hesabın,\nbir bakışta.", 38f, white, true).apply { setLineSpacing(dp(3).toFloat(), 1f) })
             page.gap(14)
-            page.addView(text("Takipçi ve takip edilen sayıların.\nHepsi bu.", 17f, muted).apply { setLineSpacing(dp(5).toFloat(), 1f) })
+            page.addView(text("Kendi hesabın ve seçtiğin kişiler.\nDeğişimleri bu cihazda takip et.", 17f, muted).apply { setLineSpacing(dp(5).toFloat(), 1f) })
             page.addView(OrbitView(this), LinearLayout.LayoutParams(-1, dp(230)))
+            if (BuildConfig.DEBUG && !preview) {
+                page.addView(button("Çevrimdışı demoyu aç", false) {
+                    startActivity(android.content.Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
+                }); page.gap(12)
+            }
+        } else if (peopleScreen) {
+            renderPeople(page, saved)
         } else {
             page.addView(text("HESAP ÖZETİ", 11f, muted, true).apply { letterSpacing = .18f })
             page.gap(12)
@@ -179,13 +206,15 @@ class MainActivity : Activity() {
             page.addView(progress); page.gap(16)
         }
         val pause = pauseMessage()
-        (pause ?: message)?.let { page.addView(text(it, 14f, lilac).apply { setLineSpacing(dp(4).toFloat(), 1f) }); page.gap(16) }
+        listOfNotNull(pause, message?.takeIf { it != pause }).forEach {
+            page.addView(text(it, 14f, lilac).apply { setLineSpacing(dp(4).toFloat(), 1f) }); page.gap(16)
+        }
         if (saved == null || needsConnection) {
             page.addView(button(if (saved == null) "Instagram ile bağlan" else "Bağlantıyı yenile", networkAction = true) { startLogin() }, LinearLayout.LayoutParams(-1, -2))
             if (saved == null && vault.exists()) {
                 page.gap(10); page.addView(button("Kayıtlı bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
             }
-        } else page.addView(button("Sayıları yenile", networkAction = true) { refresh() }, LinearLayout.LayoutParams(-1, -2))
+        } else if (!peopleScreen) page.addView(button("Sayıları yenile", networkAction = true) { refresh() }, LinearLayout.LayoutParams(-1, -2))
         if (saved != null) {
             page.gap(12)
             page.addView(button("Bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
@@ -200,11 +229,168 @@ class MainActivity : Activity() {
         scheduleGateWake()
     }
 
+    private fun date(time: Long) = SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
+    private fun number(value: Long) = NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR")).format(value)
+    private fun delta(value: Long) = (if (value > 0) "+" else "") + number(value)
+
+    private fun renderPeople(page: LinearLayout, saved: SavedAccount) {
+        val person = saved.people.firstOrNull { it.latest.userId == selectedPersonId }
+        if (person == null) {
+            selectedPersonId = null
+            page.addView(text("Seçtiğin kişiler", 29f, white, true)); page.gap(10)
+            page.addView(text("Bir profil ekle. Sonraki okumaları karşılaştır, değişimleri gör.", 15f, muted)); page.gap(20)
+            page.addView(button("Kişi ekle", networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-1, -2))
+            page.gap(12)
+            page.addView(text("${saved.people.size}/${PeoplePolicy.MAX_PEOPLE} kişi · Yalnız sen yenileyince okunur.\nListeyi açmak Instagram isteği göndermez.", 12f, muted)); page.gap(22)
+            if (saved.people.isEmpty()) {
+                page.addView(text("İlk kişini eklemeye hazırsın.", 20f, lilac, true)); page.gap(8)
+                page.addView(text("@kullanıcıadı veya Instagram profil bağlantısını kullanabilirsin. Tüm takipçilerin taranmaz.", 14f, muted))
+            }
+            for (entry in saved.people) {
+                val p = entry.latest
+                val card = stack().apply { background = shape(panel); setPadding(dp(18), dp(18), dp(18), dp(18)) }
+                card.addView(text("@${p.username}", 20f, white, true)); card.gap(8)
+                card.addView(text("${number(p.followers)} takipçi · ${number(p.following)} takip edilen", 14f, mint))
+                card.gap(8); card.addView(text("${date(p.observedAt)}${entry.group.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()}", 12f, muted))
+                card.gap(12)
+                card.addView(button("Analizi aç · @${p.username}", false) { selectedPersonId = p.userId; rangeDays = 0; message = null; render() }, LinearLayout.LayoutParams(-1, -2))
+                page.addView(card); page.gap(12)
+            }
+            return
+        }
+        val p = person.latest
+        page.addView(button("Tüm kişiler", false) { selectedPersonId = null; message = null; render() }); page.gap(18)
+        page.addView(text("@${p.username}", 29f, white, true)); page.gap(8)
+        page.addView(text(person.group.ifBlank { "KİŞİ ANALİZİ" }, 12f, lilac, true)); page.gap(22)
+        val stats = stack().apply { background = shape(panel); setPadding(dp(20), dp(20), dp(20), dp(20)) }
+        for ((label, value) in listOf("Takipçi" to number(p.followers), "Takip edilen" to number(p.following), "Gönderi" to (p.posts?.let { number(it) } ?: "Bilgi yok"))) {
+            val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+            row.addView(text(label, 14f, muted), LinearLayout.LayoutParams(0, -2, 1f)); row.addView(text(value, 25f, mint, true))
+            stats.addView(row); stats.gap(12)
+        }
+        page.addView(stats); page.gap(12)
+        page.addView(text("Son başarılı okuma: ${date(p.observedAt)}", 12f, muted)); page.gap(16)
+        if (person.history.size >= 2) {
+            val previous = person.history[person.history.lastIndex - 1]
+            page.addView(text("Son kayda göre", 12f, muted)); page.gap(6)
+            page.addView(text("${delta(p.followers - previous.followers)} takipçi · ${delta(p.following - previous.following)} takip edilen", 17f, white, true))
+            page.gap(6); page.addView(text("${date(previous.observedAt)} → ${date(p.observedAt)}\nNet farktır; gelen/giden kişilerin kimliğini göstermez.", 12f, muted))
+        } else page.addView(text("İlk kayıt alındı. Değişim, sonraki başarılı okumadan sonra görünür.", 14f, muted))
+        page.gap(20)
+        page.addView(button("Kişiyi yenile", networkAction = true) { readPerson(person = person) }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        page.addView(text("Gözlem geçmişi", 22f, white, true)); page.gap(10)
+        val filters = LinearLayout(this)
+        for ((label, days) in listOf("7 gün" to 7, "30 gün" to 30, "Tümü" to 0)) {
+            filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
+        }
+        page.addView(filters); page.gap(10)
+        val observations = person.history.filter { rangeDays == 0 || it.observedAt >= System.currentTimeMillis() - rangeDays * 86400000L }
+        if (observations.isNotEmpty()) {
+            val metric = LinearLayout(this)
+            metric.addView(button("Takipçi grafiği", chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
+            metric.addView(button("Takip edilen grafiği", !chartFollowers) { chartFollowers = false; render() }, LinearLayout.LayoutParams(0, -2, 1f))
+            page.addView(metric); page.gap(12)
+            if (observations.size >= 2) {
+                page.addView(HistoryChartView(this, observations, chartFollowers, mint, muted), LinearLayout.LayoutParams(-1, dp(210)))
+                val first = observations.first(); val last = observations.last()
+                page.addView(text("Dönem net farkı: ${delta(last.followers - first.followers)} takipçi, ${delta(last.following - first.following)} takip edilen", 13f, lilac)); page.gap(10)
+            }
+            page.addView(text("Gerçek gözlem zamanları · kişi sayısı\nEn son ${PeoplePolicy.MAX_HISTORY} kayıt saklanır; son 10 kayıt aşağıda.", 12f, muted)); page.gap(12)
+            for (observation in observations.takeLast(10).asReversed()) {
+                page.addView(text("${date(observation.observedAt)}\n${number(observation.followers)} takipçi · ${number(observation.following)} takip edilen · ${observation.posts?.let { number(it) } ?: "?"} gönderi", 13f, white))
+                page.gap(12)
+            }
+        } else page.addView(text("Bu tarih aralığında kayıt yok. Tümü ile önceki gözlemleri görebilirsin.", 14f, muted))
+        page.gap(12)
+        page.addView(text("Özel notun", 18f, white, true)); page.gap(8)
+        page.addView(text(person.note.ifBlank { "Bu kişiyle ilgili bir not ekleyebilirsin." }, 14f, muted)); page.gap(10)
+        page.addView(button("Not ve grup düzenle", false) { editPerson(person) }, LinearLayout.LayoutParams(-1, -2)); page.gap(10)
+        page.addView(button("Kişiyi kaldır", false) {
+            AlertDialog.Builder(this).setTitle("Kişi kaldırılsın mı?").setMessage("Bu kişinin kayıtlı geçmişi ve notu bu cihazdan silinir.")
+                .setNegativeButton("Vazgeç", null).setPositiveButton("Kaldır") { _, _ ->
+                    savePeople(saved.people.filterNot { it.latest.userId == p.userId }); selectedPersonId = null; render()
+                }.show()
+        }, LinearLayout.LayoutParams(-1, -2)); page.gap(20)
+    }
+
+    private fun input(hintValue: String, limit: Int) = EditText(this).apply {
+        hint = hintValue; setTextColor(white); setHintTextColor(muted); textSize = 16f
+        filters = arrayOf(InputFilter.LengthFilter(limit))
+        inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        if (android.os.Build.VERSION.SDK_INT >= 26) importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+    }
+    private fun addPerson() {
+        val saved = account ?: return
+        if (saved.people.size >= PeoplePolicy.MAX_PEOPLE) { message = "Bu sürümde en fazla ${PeoplePolicy.MAX_PEOPLE} kişi saklanır. Önce bir kişiyi kaldırabilirsin."; render(); return }
+        val field = input("@kullanıcıadı veya profil bağlantısı", 256).apply { setSingleLine(true) }
+        val box = stack().apply { setPadding(dp(24), dp(10), dp(24), 0); addView(field) }
+        val dialog = AlertDialog.Builder(this).setTitle("Kişi ekle")
+            .setMessage("Profil bir kez sorgulanır. Sonraki yenilemeler senin kontrolünde.")
+            .setView(box).setNegativeButton("Vazgeç", null).setPositiveButton("Profili getir", null).create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val username = ProfileInput.username(field.text.toString())
+                if (username == null) { field.error = "Geçerli bir kullanıcı adı veya Instagram profil bağlantısı gir."; return@setOnClickListener }
+                val existing = saved.people.firstOrNull { it.latest.username.equals(username, ignoreCase = true) }
+                dialog.dismiss()
+                if (existing != null) { selectedPersonId = existing.latest.userId; render() }
+                else readPerson(username = username)
+            }
+        }
+        dialog.show()
+    }
+    private fun readPerson(username: String? = null, person: TrackedPerson? = null) {
+        val saved = account ?: return
+        if (loading) return
+        if (needsConnection) { message = "Önce Instagram bağlantısını yenilemelisin."; render(); return }
+        if (gate.nextAllowedAt() > System.currentTimeMillis()) { message = ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return }
+        loading = true; message = null; render()
+        val ticket = ++generation
+        worker.execute {
+            val result = try {
+                Result.success(if (person != null) api.readId(saved.session, person.latest.userId) else api.readUsername(saved.session, requireNotNull(username)))
+            } catch (failure: ApiFailure) { Result.failure(failure) }
+            catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)) }
+            main.post {
+                if (isDestroyed || ticket != generation) return@post
+                loading = false
+                result.onSuccess { profile ->
+                    try {
+                        val people = PeoplePolicy.record(saved.people, profile)
+                        if (savePeople(people)) { selectedPersonId = profile.userId; message = "Yeni gözlem bu cihazda kaydedildi." }
+                    } catch (_: Exception) { message = "Gözlem kaydedilemedi. Önceki kayıtlar korunuyor." }
+                }.onFailure { failure ->
+                    val error = failure as ApiFailure
+                    if (error.kind in setOf(ApiFailure.Kind.SESSION_EXPIRED, ApiFailure.Kind.VERIFICATION)) showFailure(error)
+                    else message = if (error.kind == ApiFailure.Kind.WRONG_ACCOUNT) "Yanıt istenen profille eşleşmedi. Kayıt değiştirilmedi." else error.userMessage()
+                }
+                render()
+            }
+        }
+    }
+    private fun savePeople(people: List<TrackedPerson>): Boolean {
+        val saved = account ?: return false
+        return try { val updated = saved.copy(people = people); vault.write(updated); account = updated; true }
+        catch (_: Exception) { message = "Kişiler kaydedilemedi. Önceki kayıtlar korunuyor."; false }
+    }
+    private fun editPerson(person: TrackedPerson) {
+        val group = input("Grup (isteğe bağlı)", 40).apply { setSingleLine(true); setText(person.group) }
+        val note = input("Yalnız bu cihazda saklanan notun", 500).apply { minLines = 3; setText(person.note); inputType = inputType or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE }
+        val box = stack().apply { setPadding(dp(24), dp(12), dp(24), 0); addView(group); gap(12); addView(note) }
+        AlertDialog.Builder(this).setTitle("Not ve grup").setView(box).setNegativeButton("Vazgeç", null)
+            .setPositiveButton("Kaydet") { _, _ ->
+                savePeople(account!!.people.map { if (it.latest.userId == person.latest.userId) it.copy(note = note.text.toString(), group = group.text.toString()) else it }); render()
+            }.show()
+    }
+
     private fun pauseMessage(): String? {
-        if (gate.blockedUntil() <= System.currentTimeMillis()) return null
-        val until = SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.blockedUntil()))
-        return "Instagram isteği sınırladı. Uygulama $until saatine kadar yeni istek göndermeyecek. " +
-            "Bu bekleme, Instagram'ın kısıtlamayı o saatte kaldıracağını garanti etmez."
+        if (!gate.manualOnly()) return null
+        val last = gate.lastLimitedAt().takeIf { it > 0 }?.let { "Son sınırlama yanıtı: ${date(it)} (${gate.limitReason()}). " }
+            ?: "Önceki sınırlama kaydı korunuyor. "
+        return last + if (gate.blockedUntil() > System.currentTimeMillis()) {
+            "Uygulama ${date(gate.blockedUntil())} zamanına kadar yeni istek göndermeyecek. " +
+                "Bu yerel mola, Instagram kısıtlamasının bitiş zamanı değildir. Otomatik deneme kapalı."
+        } else "Yerel mola doldu; Instagram kısıtlamasının kalktığı doğrulanmadı. Otomatik deneme kapalı; yenileme yalnız düğmeyle yapılır."
     }
     private val gateWake = Runnable {
         if (!isDestroyed) {
@@ -223,17 +409,21 @@ class MainActivity : Activity() {
         if (wait > 0) main.postDelayed(gateWake, wait)
     }
 
-    private fun refresh() {
+    private fun refresh(automatic: Boolean = false) {
         val saved = account ?: return
         if (loading) return
         if (gate.nextAllowedAt() > System.currentTimeMillis()) {
             message = pauseMessage() ?: ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return
         }
+        if (automatic) {
+            try { if (!gate.reserveAutomatic()) return }
+            catch (failure: ApiFailure) { showFailure(failure); render(); return }
+        }
         loading = true; message = null; render()
         val ticket = ++generation
         worker.execute {
             val result = try {
-                val updated = SavedAccount(saved.session, api.read(saved.session))
+                val updated = saved.copy(profile = api.read(saved.session))
                 Result.success(updated)
             } catch (failure: ApiFailure) { Result.failure(failure) }
             main.post {
@@ -258,7 +448,7 @@ class MainActivity : Activity() {
     private fun privacy() {
         AlertDialog.Builder(this).setTitle("Gizlilik, sade haliyle")
             .setMessage("Şifren Instagram'ın kendi giriş sayfasına gider; uygulama şifre alanını okumaz.\n\n" +
-                "Oturum ve son sayılar Android Keystore ile şifrelenir. Giriş sırasında WebView kendi geçici tarayıcı verilerini oluşturabilir; bağlantı tamamlanınca veya iptal edilince temizlenir.\n\n" +
+                "Oturum, seçtiğin kişiler, geçmiş ve notların Android Keystore ile şifrelenir. Giriş sırasında WebView kendi geçici tarayıcı verilerini oluşturabilir; bağlantı tamamlanınca veya iptal edilince temizlenir.\n\n" +
                 "İstekler Instagram'a gider. Kendi sunucumuz, reklam, analitik veya veri toplama SDK'mız yok. Bulut yedekleme ve cihaz aktarımı kapalıdır.\n\n" +
                 "Bu bağımsız bir uygulamadır. Instagram giriş veya doğrulama isteyebilir; kesintisiz çalışma garantisi yoktur.")
             .setPositiveButton("Anladım", null).show()
@@ -267,7 +457,7 @@ class MainActivity : Activity() {
     private fun confirmRemove() {
         if (loading) return
         AlertDialog.Builder(this).setTitle("Bağlantı kaldırılsın mı?")
-            .setMessage("Bu uygulamadaki kayıtlı oturum ve son sayılar silinir.")
+            .setMessage("Bu uygulamadaki oturum, kişiler, geçmiş ve notların silinir.")
             .setNegativeButton("Vazgeç", null).setPositiveButton("Kaldır") { _, _ ->
                 loading = true; render()
                 worker.execute {
@@ -275,7 +465,7 @@ class MainActivity : Activity() {
                     main.post {
                         if (isDestroyed) return@post
                         loading = false
-                        if (ok) { account = null; needsConnection = false; message = "Bu cihazdaki bağlantı kaldırıldı." }
+                        if (ok) { account = null; peopleScreen = false; selectedPersonId = null; needsConnection = false; message = "Bu cihazdaki bağlantı kaldırıldı." }
                         else message = "Bağlantı silinemedi. Lütfen tekrar dene."
                         render()
                     }
@@ -285,6 +475,7 @@ class MainActivity : Activity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun startLogin() {
+        if (preview) { message = "Demo modunda gerçek hesap bağlantısı yok."; render(); return }
         if (loading || web != null) return
         if (gate.nextAllowedAt() > System.currentTimeMillis()) { render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -361,7 +552,7 @@ class MainActivity : Activity() {
         val ticket = ++generation
         worker.execute {
             val result = try {
-                val linked = SavedAccount(session, api.read(session))
+                val linked = SavedAccount(session, api.read(session), account?.takeIf { it.session.userId == session.userId }?.people.orEmpty())
                 Result.success(linked)
             } catch (failure: ApiFailure) { Result.failure(failure) }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.STORAGE)) }
@@ -402,7 +593,18 @@ class MainActivity : Activity() {
     @Deprecated("Back handling retained for API 24-32 compatibility")
     @SuppressLint("GestureBackNavigation") // API 33+ uses the registered platform callback; this is the legacy path.
     @Suppress("DEPRECATION")
-    override fun onBackPressed() { if (web != null) leaveLogin() else super.onBackPressed() }
+    override fun onBackPressed() { navigateBack() }
+
+    private fun navigateBack() {
+        if (web != null) leaveLogin()
+        else if (peopleScreen && selectedPersonId != null) { selectedPersonId = null; message = null; render() }
+        else if (peopleScreen) { peopleScreen = false; message = null; render() }
+        else finish()
+    }
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
+        super.onSaveInstanceState(outState)
+    }
 
     override fun onDestroy() {
         ++generation; main.removeCallbacksAndMessages(null); api.cancel()

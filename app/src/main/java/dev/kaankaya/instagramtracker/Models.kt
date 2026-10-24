@@ -2,10 +2,45 @@ package dev.kaankaya.instagramtracker
 
 import org.json.JSONObject
 import java.net.URI
+import java.util.Locale
 
 data class Session(val userId: String, val cookie: String, val userAgent: String)
-data class Profile(val userId: String, val username: String, val followers: Long, val following: Long, val observedAt: Long)
-data class SavedAccount(val session: Session, val profile: Profile)
+data class Profile(val userId: String, val username: String, val followers: Long, val following: Long, val observedAt: Long,
+    val posts: Long? = null)
+data class SavedAccount(val session: Session, val profile: Profile, val people: List<TrackedPerson> = emptyList())
+
+data class TrackedPerson(val history: List<Profile>, val note: String = "", val group: String = "") {
+    val latest: Profile get() = history.last()
+}
+
+object PeoplePolicy {
+    const val MAX_PEOPLE = 20
+    const val MAX_HISTORY = 90
+    const val FRESH_MS = 15 * 60 * 1000L
+    fun needsRefresh(profile: Profile, now: Long): Boolean = now >= profile.observedAt && now - profile.observedAt >= FRESH_MS
+    fun record(people: List<TrackedPerson>, profile: Profile): List<TrackedPerson> {
+        val existing = people.firstOrNull { it.latest.userId == profile.userId }
+        require(existing != null || people.size < MAX_PEOPLE)
+        require(existing == null || profile.observedAt > existing.latest.observedAt)
+        val updated = (existing ?: TrackedPerson(emptyList())).copy(
+            history = (existing?.history.orEmpty() + profile).takeLast(MAX_HISTORY))
+        return if (existing == null) people + updated else people.map { if (it === existing) updated else it }
+    }
+}
+
+object ProfileInput {
+    fun validUsername(value: String) = value.matches(Regex("[A-Za-z0-9._]{1,30}"))
+    fun username(input: String): String? = try {
+        val value = input.trim()
+        val name = if (value.startsWith("https://")) {
+            val uri = URI(value)
+            if (!NavigationPolicy.isInstagram(value) || uri.host?.lowercase(Locale.ROOT) !in setOf("instagram.com", "www.instagram.com")) null
+            else uri.path.trim('/').takeIf { !it.contains('/') && !uri.rawPath.contains('%') }
+        } else value.removePrefix("@")
+        name?.takeIf { validUsername(it) && it.lowercase(Locale.ROOT) !in setOf("accounts", "explore", "reels", "stories", "direct", "p") }
+            ?.lowercase(Locale.ROOT)
+    } catch (_: Exception) { null }
+}
 
 object SessionCookies {
     private val names = setOf("sessionid", "ds_user_id", "csrftoken", "mid", "ig_did", "rur")
@@ -43,22 +78,37 @@ object ProfileParser {
         val body = JSONObject(text)
         if (body.optString("status") != "ok") throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
         val user = body.optJSONObject("user") ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
-        val pk = user.opt("pk")
-        val id = when (pk) { is String -> pk; is Int -> pk.toString(); is Long -> pk.toString(); else -> "" }
-        if (id != expectedId) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT)
-        val username = user.opt("username") as? String ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
-        if (username.isBlank()) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
-        fun count(key: String): Long = when (val value = user.opt(key)) {
-            is Int -> value.toLong()
-            is Long -> value
-            else -> throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
-        }.also { if (it < 0) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE) }
-        return Profile(id, username, count("follower_count"), count("following_count"), time)
+        return user(user, time).also { if (it.userId != expectedId) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT) }
     }
+    fun byUsername(text: String, expectedUsername: String, time: Long): Profile {
+        val body = JSONObject(text)
+        if (body.optString("status") != "ok") throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
+        val user = body.optJSONObject("data")?.optJSONObject("user") ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
+        val id = id(user.opt("id"))
+        val profile = Profile(id, username(user), count(user.optJSONObject("edge_followed_by")?.opt("count")),
+            count(user.optJSONObject("edge_follow")?.opt("count")), time,
+            optionalCount(user.optJSONObject("edge_owner_to_timeline_media")?.opt("count")))
+        if (!profile.username.equals(expectedUsername, ignoreCase = true)) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT)
+        return profile
+    }
+    fun user(user: JSONObject, time: Long): Profile = Profile(id(user.opt("pk")), username(user),
+        count(user.opt("follower_count")), count(user.opt("following_count")), time, optionalCount(user.opt("media_count")))
+    private fun id(pk: Any?): String {
+        val id = when (pk) { is String -> pk; is Int -> pk.toString(); is Long -> pk.toString(); else -> "" }
+        if (!id.matches(Regex("[1-9][0-9]{0,29}"))) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
+        return id
+    }
+    private fun username(user: JSONObject): String = (user.opt("username") as? String)
+        ?.takeIf { ProfileInput.validUsername(it) } ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
+    private fun count(value: Any?): Long = when (value) {
+        is Int -> value.toLong(); is Long -> value
+        else -> throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
+    }.also { if (it < 0) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE) }
+    private fun optionalCount(value: Any?): Long? = if (value == null || value === JSONObject.NULL) null else count(value)
 }
 
 class ApiFailure(val kind: Kind) : Exception(kind.name) {
-    enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, TOO_SOON, CONNECTION, CANCELLED, INVALID_RESPONSE, WRONG_ACCOUNT, STORAGE }
+    enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, TOO_SOON, CONNECTION, CANCELLED, INVALID_RESPONSE, WRONG_ACCOUNT, NOT_FOUND, STORAGE }
     fun userMessage(): String = when (kind) {
         Kind.SESSION_EXPIRED -> "Bağlantının süresi dolmuş. Hesabını yeniden bağla."
         Kind.VERIFICATION -> "Instagram ek doğrulama istiyor. Bağlantıyı yenileyerek tamamlayabilirsin."
@@ -68,6 +118,7 @@ class ApiFailure(val kind: Kind) : Exception(kind.name) {
         Kind.CANCELLED -> "İşlem iptal edildi. Otomatik tekrar yapılmadı."
         Kind.INVALID_RESPONSE -> "Instagram sayıları beklenen biçimde döndürmedi. Daha sonra tekrar dene."
         Kind.WRONG_ACCOUNT -> "Hesap kimliği eşleşmedi. Bağlantıyı kaldırıp yeniden bağla."
+        Kind.NOT_FOUND -> "Profil bulunamadı veya bu oturumdan erişilemiyor. Kayıtlı veriler korunuyor."
         Kind.STORAGE -> "Bu cihazda güvenli kayıt açılamadı. Bağlantıyı kaldırıp yeniden bağla."
     }
 }

@@ -31,12 +31,15 @@ def verify(apk: Path, sdk: Path) -> dict:
     with zipfile.ZipFile(apk) as archive:
         if any(name.startswith('lib/') for name in archive.namelist()):
             raise ValueError('Unexpected native architecture dependency')
+        for name in archive.namelist():
+            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection')):
+                raise ValueError('Debug preview transport must not be in the production APK')
     with apk.open('rb') as stream:
         digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     return {'package': package[1], 'versionCode': int(package[2]), 'version': package[3],
             'bytes': apk.stat().st_size, 'sha256': digest,
             'permissions': ['INTERNET'], 'debuggable': False, 'backup': False,
-            'cleartext': False, 'nativeLibraries': 0,
+            'cleartext': False, 'nativeLibraries': 0, 'debugPreviewTransport': False,
             'scope': 'Packaged manifest and architecture check; not live account or penetration testing.'}
 
 

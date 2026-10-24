@@ -36,3 +36,16 @@
 - Dağıtılan imzalı 0.1.2 APK'sı `d78ba8d408c459d285e774265ae99fc3c09c5d86` kaynağından üretildi. CI düzeltmesi olan `4335637` ile uygulama (`app/`) Git ağacı aynıdır. APK içindeki VCS metadata'sı d78ba8d ile eşleştiği için dağıtılmış dosya yeniden paketlenmedi. Boyut 685613 bayt; SHA-256 `81813347aaa03175092cb9e526324ad84cd8cebc8fc717a7bb184fca10b4c9d7`.
 - İmzalı APK yayın kontrolünü geçti; debug APK aynı kontrol tarafından reddedildi. 0.1.0/0.1.1/0.1.2 sertifika SHA-256 değeri aynı: `51f1412a8c037617d98df7b0e1dce84a3e825765d4cdc442b9b59a8d8f00fb75`. Telefonun İndirilenler klasöründeki 0.1.2 dosyasının SHA-256 değeri bilgisayardakiyle eşleşti; otomatik kurulum yapılmadı. Son okunan kurulu sürüm 0.1.1 idi.
 - Yerel test emülatörü kapatıldı. Bu geliştirme/test çalışması sırasında gerçek Instagram hesabına yeni istek gönderilmedi. Gerçek iki sayaç, oturumun uzun vadeli geçerliliği ve fiziksel telefonda yeniden açılış testi açık kalıyor.
+
+
+## 0.1.3
+
+- 11 JVM testi geçti: önceki beş sınır testi ve altı kişi/girdi/web profil/v1 geçişi/geçmiş kimliği/sınır/önbellek testi.
+- Debug/release/test APK derlemeleri ve lint geçti; son raporda hata veya uyarı yok.
+- API 35 / Android 15 x86_64 yerel emülatörde son kaynaklarla 21 instrumentasyon testi geçti: 10 API sözleşmesi, 4 Keystore/manifest/kalıcı istek politikası, 4 kişi ekranı/diyalog akışı ve 3 önceki ekran akışı. Son koşu 17.07 saniye (derleme/kurulum hariç).
+- Cihaz testleri 720×1280, 320 dpi ve %130 yazı ölçeğinde çalıştı. Kişi ekleme → not/grup kaydı → Activity yeniden oluşturma → kişi silme gerçek Android diyalogları ve şifreli kayıtla geçti. Kişi/geçmiş ekranlarında gezinme ağ rezervasyonu yapmadı; açık yenileme tek gözlem ekledi. Tüm profil yanıtları sentetik taşıma üzerinden verildi.
+- İlk ek diyalog testi, erişilebilirlik aramasının hint alanını ve büyük harfli diyalog düğmelerini bulamaması nedeniyle başarısız oldu. Test kontrol bulucusu gerçek pencere ağacını ve harf farklarını kullanacak şekilde düzeltildi; başarısız koşular başarı sayılmadı.
+- Release paket kontrolü geçti: üretim kimliği, yalnız INTERNET, debug/backup/cleartext kapalı, API 24/36, native kütüphane yok. Debug sentetik taşıma işaretleri release DEX içinde bulunmadı. Bu statik kontrol bağımsız güvenlik denetimi değildir.
+- Gerçek hesaba yeni profil isteği gönderilmedi. Fiziksel telefon bu çalışma sırasında ADB'de bağlı görünmedi; cihazın mevcut sınırlama kaydı okunmadı. Eski uyarının yeni sunucu reddi mi yoksa saklanan mola mı olduğu mevcut kanıtla belirlenemedi.
+- Bilgisayar önizlemesi gerçek APK ana kodunu kullanır; demo taşıması ve örnek veriler debug varyantına özgüdür. Canlı kendi hesap/başka profil erişimi, oturum sürekliliği ve farklı ARM/üretici cihazları hâlâ doğrulanmadı.
+- Bu commit için GitHub API 24/35 kontrolleri ayrıca izlenecek; yerel sonuç CI başarısı olarak sunulmaz.
