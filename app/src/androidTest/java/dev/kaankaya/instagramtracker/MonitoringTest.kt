@@ -118,10 +118,10 @@ class MonitoringTest {
     private fun shell(command: String): String = instrumentation.uiAutomation.executeShellCommand(command).use {
         android.os.ParcelFileDescriptor.AutoCloseInputStream(it).bufferedReader().readText()
     }
-    private fun await(check: () -> Boolean) {
+    private fun await(message: String = "Background job did not complete", check: () -> Boolean) {
         val deadline = SystemClock.elapsedRealtime() + 10000
         while (SystemClock.elapsedRealtime() < deadline) { if (check()) return; Thread.sleep(50) }
-        fail("Background job did not complete")
+        fail(message)
     }
     @Test fun realAndroidJobPostsPrivateDemoNotificationWithNoActivityOpen() {
         if (Build.VERSION.SDK_INT >= 33) shell("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")
@@ -146,6 +146,10 @@ class MonitoringTest {
         previewVault.update(seeded.session) { it.copy(people = it.people.map { p -> p.copy(watching = false) }) }
         assertFalse(PreviewMode.sync(context, previewVault.read(), previewGate))
         assertNull(context.getSystemService(JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))
-        notices.cancel("100", "200"); assertFalse(manager.activeNotifications.any { it.tag == "profile:100:200" })
+        notices.cancel("100", "200")
+        // NotificationManager queues cancellation in the system service; verify its observable completion.
+        await("System did not remove the cancelled demo notification") {
+            manager.activeNotifications.none { it.tag == "profile:100:200" }
+        }
     }
 }
