@@ -41,6 +41,7 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 class MainActivity : Activity() {
+    private data class ProfileRead(val profile: Profile, val fetched: Boolean)
     private val bg = Color.rgb(16, 19, 27)
     private val panel = Color.rgb(28, 33, 43)
     private val mint = Color.rgb(186, 243, 213)
@@ -69,6 +70,7 @@ class MainActivity : Activity() {
     private var rangeDays = 0
     private var chartFollowers = true
     private var preview = false
+    private var pendingMobile = false
     private var pendingWatchId: String? = null
     private var pendingWatchOwner: String? = null
     private var pendingWatchHours = 1
@@ -111,9 +113,10 @@ class MainActivity : Activity() {
                 main.post { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(); needsConnection = true }
                 null
             }
+            val pendingConnection = try { !preview && MobileSessions(this).pending() != null } catch (_: Exception) { false }
             main.post {
                 if (isDestroyed) return@post
-                account = saved; loading = false; needsConnection = needsConnection || gate.requiresConnection()
+                account = saved; pendingMobile = pendingConnection; loading = false; needsConnection = needsConnection || gate.requiresConnection()
                 openNotification(saved); syncMonitoring(); render()
                 // An outstanding pause is restored without issuing a network request.
                 if (saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
@@ -124,7 +127,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         if (!::gate.isInitialized || web != null || loading) return
-        try { account = vault.read(); needsConnection = gate.requiresConnection() }
+        try { account = vault.read(); pendingMobile = !preview && MobileSessions(this).pending() != null; needsConnection = gate.requiresConnection() }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(); needsConnection = true }
         syncMonitoring()
         if (account != null && !peopleScreen && !needsConnection && gate.autoAllowed(account!!.profile)) refresh(automatic = true)
@@ -156,110 +159,167 @@ class MainActivity : Activity() {
         letterSpacing = .10f; setPadding(dp(12), dp(8), dp(12), dp(8))
         background = shape(panel, 20)
     }
+    private var visibleScroll: ScrollView? = null
+    private var screenIdentity = ""
     private fun render() {
         if (web != null || isDestroyed) return
+        val identity = if (peopleScreen) "people:$selectedPersonId" else "overview"
+        val position = if (identity == screenIdentity) visibleScroll?.scrollY ?: 0 else 0
+        screenIdentity = identity
         root.removeAllViews()
+        val saved = account
         val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false }
-        val page = stack().apply { setPadding(dp(24), dp(24), dp(24), dp(24)) }
+        visibleScroll = scroll
+        val page = stack().apply { setPadding(dp(24), dp(20), dp(24), dp(if (saved != null && !peopleScreen) 184 else if (saved != null) 96 else 28)) }
         scroll.addView(page, ViewGroup.LayoutParams(-1, -2)); root.addView(scroll)
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        header.addView(text("it", 25f, mint, true).apply { contentDescription = "InstagramTracker" }, LinearLayout.LayoutParams(0, -2, 1f))
-        header.addView(badge("BU CİHAZDA"))
-        page.addView(header); page.gap(24)
-        if (preview) {
-            page.addView(badge("DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK", lilac)); page.gap(18)
-        }
-        val saved = account
-        if (saved != null) {
-            val navigation = LinearLayout(this)
-            navigation.addView(button("Özet", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
-            navigation.addView(button("Kişiler", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f))
-            page.addView(navigation); page.gap(26)
-        }
+        header.addView(text("it", 25f, bg, true).apply {
+            background = shape(mint, 16); gravity = Gravity.CENTER; contentDescription = "InstagramTracker"
+        }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        header.addView(text("  Tracker", 20f, white, true), LinearLayout.LayoutParams(0, -2, 1f))
+        header.addView(button("⋯", false) { options() }.apply {
+            contentDescription = "Seçenekler"; background = null; textSize = 26f; minimumWidth = dp(48)
+        }, LinearLayout.LayoutParams(dp(52), dp(52)))
+        page.addView(header); page.gap(22)
+        if (preview) { page.addView(badge("DEMO · ÖRNEK VERİ", lilac).apply { contentDescription = "Çevrimdışı demo. Veriler örnektir; Instagram isteği yok." }); page.gap(16) }
         if (saved == null) {
-            page.addView(text("Hesabın,\nbir bakışta.", 38f, white, true).apply { setLineSpacing(dp(3).toFloat(), 1f) })
-            page.gap(14)
-            page.addView(text("Kendi hesabın ve seçtiğin kişiler.\nDeğişimleri bu cihazda takip et.", 17f, muted).apply { setLineSpacing(dp(5).toFloat(), 1f) })
-            page.addView(OrbitView(this), LinearLayout.LayoutParams(-1, dp(230)))
-            if (BuildConfig.DEBUG && !preview) {
-                page.addView(button("Çevrimdışı demoyu aç", false) {
-                    startActivity(android.content.Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
-                }); page.gap(12)
-            }
-        } else if (peopleScreen) {
-            renderPeople(page, saved)
-        } else {
-            page.addView(text("HESAP ÖZETİ", 11f, muted, true).apply { letterSpacing = .18f })
-            page.gap(12)
-            page.addView(text("@${saved.profile.username}", 29f, white, true).apply {
+            page.addView(text("Hesabın,\nbir bakışta.", 36f, white, true)); page.gap(12)
+            page.addView(text("Takipçilerin ve takip ettiklerin. Tek yerde.", 16f, muted))
+            page.addView(OrbitView(this), LinearLayout.LayoutParams(-1, dp(140)))
+        } else if (peopleScreen) renderPeople(page, saved)
+        else {
+            page.addView(text("@${saved.profile.username}", 30f, white, true).apply {
                 maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END
-            })
-            page.gap(10)
-            page.addView(text("Sayıların burada.\nKontrol sende.", 17f, muted))
-            page.gap(28)
+            }); page.gap(22)
             val row = LinearLayout(this)
-            fun stat(label: String, value: Long, color: Int): LinearLayout = stack().apply {
-                background = shape(color); minimumHeight = dp(155); setPadding(dp(18), dp(22), dp(18), dp(22))
-                addView(text(label, 13f, bg, true)); gap(26)
-                addView(text(NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR")).format(value), 30f, bg, true).apply {
+            fun stat(label: String, value: Long, color: Int) = stack().apply {
+                background = shape(color, 26); minimumHeight = dp(148); setPadding(dp(18), dp(23), dp(18), dp(22))
+                addView(text(label, 13f, bg, true)); gap(30)
+                addView(text(number(value), if (number(value).length > 10) 22f else 32f, bg, true).apply {
                     maxLines = 1
-                    if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 30, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+                    if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 32, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
                 })
             }
-            row.addView(stat("Takipçi", saved.profile.followers, mint), LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(10) })
+            row.addView(stat("Takipçi", saved.profile.followers, mint), LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(12) })
             row.addView(stat("Takip edilen", saved.profile.following, lilac), LinearLayout.LayoutParams(0, -2, 1f))
-            page.addView(row); page.gap(22)
-            page.addView(text("SON BAŞARILI OKUMA", 10f, muted, true).apply { letterSpacing = .12f })
-            page.gap(7)
-            page.addView(text(SimpleDateFormat("d MMMM · HH:mm:ss", Locale.forLanguageTag("tr-TR")).format(Date(saved.profile.observedAt)), 14f))
-            page.gap(8)
-            page.addView(text(if (loading) "Kayıtlı sayılar gösteriliyor; güncel yanıt bekleniyor." else "Son başarılı gözlemin. Yenile ile güncelleyebilirsin.", 12f, muted))
-            page.gap(26)
+            page.addView(row); page.gap(16)
+            page.addView(text("Son kayıt · ${date(saved.profile.observedAt)}", 12f, muted)); page.gap(18)
         }
         if (loading) {
             val progress = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-            progress.addView(ProgressBar(this).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(mint) }, LinearLayout.LayoutParams(dp(22), dp(22)))
-            progress.addView(text(if (saved == null) "Bağlantı hazırlanıyor…" else "Güncel sayılar alınıyor…", 14f, muted), LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(12) })
-            page.addView(progress); page.gap(16)
+            progress.addView(ProgressBar(this).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(mint) }, LinearLayout.LayoutParams(dp(20), dp(20)))
+            progress.addView(text("  Güncelleniyor…", 14f, muted)); page.addView(progress); page.gap(16)
         }
         val pause = pauseMessage()
-        listOfNotNull(pause, message?.takeIf { it != pause }).forEach {
-            page.addView(text(it, 14f, lilac).apply { setLineSpacing(dp(4).toFloat(), 1f) }); page.gap(16)
+        if (pause != null && (saved == null || peopleScreen)) {
+            val notice = stack().apply { background = shape(panel, 20); setPadding(dp(18), dp(16), dp(18), dp(16)) }
+            notice.addView(text(if (gate.blockedUntil() > System.currentTimeMillis()) "Biraz ara verelim" else "Yalnız sen yenilediğinde", 16f, lilac, true))
+            notice.gap(6); notice.addView(text(pause, 13f, muted))
+            notice.contentDescription = "Sınırlama bilgisi"; notice.setOnClickListener { requestInfo() }
+            page.addView(notice); page.gap(18)
+        }
+        message?.takeIf { it != pause }?.let { page.addView(text(it, 14f, lilac)); page.gap(14) }
+        val primaryHost = if (saved != null && !peopleScreen) stack().apply {
+            setBackgroundColor(bg); setPadding(dp(24), dp(12), dp(24), dp(8))
+        } else page
+        if (pause != null && saved != null && !peopleScreen) {
+            primaryHost.addView(text(pause, 13f, lilac).apply {
+                gravity = Gravity.CENTER; minimumHeight = dp(40); setOnClickListener { requestInfo() }
+                contentDescription = "Sınırlama bilgisi. $pause"
+            })
         }
         if (saved == null || needsConnection) {
-            page.addView(button(if (saved == null) "Instagram ile bağlan" else "Bağlantıyı yenile", networkAction = true) { startLogin() }, LinearLayout.LayoutParams(-1, -2))
-            if (saved == null && (vault.exists() || (!preview && MobileSessions(this).exists()))) {
-                page.gap(10); page.addView(button("Kayıtlı bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
+            primaryHost.addView(button(if (needsConnection) "Bağlantıyı yenile" else if (pendingMobile) "Bağlantıyı tamamla" else "Hesap bağla") {
+                if (pendingMobile && !needsConnection) startActivity(Intent(this, DesktopLinkActivity::class.java)) else connectionOptions()
+            }, LinearLayout.LayoutParams(-1, -2))
+        } else if (!peopleScreen) {
+            val freshUntil = saved.profile.observedAt + PeoplePolicy.FRESH_MS
+            val allowed = maxOf(gate.nextAllowedAt(), freshUntil)
+            primaryHost.addView(button("Yenile", networkAction = true) { refresh() }.apply {
+                isEnabled = !loading && allowed <= System.currentTimeMillis(); alpha = if (isEnabled) 1f else .5f
+            }, LinearLayout.LayoutParams(-1, -2))
+            if (allowed > System.currentTimeMillis() && pause == null) {
+                primaryHost.gap(8); primaryHost.addView(text("Yeniden yenileme · ${clock(allowed)}", 12f, muted).apply { gravity = Gravity.CENTER })
             }
-        } else if (!peopleScreen) page.addView(button("Sayıları yenile", networkAction = true) { refresh() }, LinearLayout.LayoutParams(-1, -2))
+        }
+        if (gate.mobileLinkActive() || gate.prototypeActive()) {
+            page.gap(16)
+            page.addView(button("Yarım kalan bağlantıyı tamamla", false) {
+                if (gate.mobileLinkActive()) startActivity(Intent(this, DesktopLinkActivity::class.java))
+                else openLab()
+            }, LinearLayout.LayoutParams(-1, -2))
+        }
+        if (saved == null) { page.gap(24); page.addView(text("Verilerin bu cihazda şifrelenir.", 12f, muted).apply { gravity = Gravity.CENTER; setOnClickListener { privacy() } }) }
         if (saved != null) {
-            page.gap(12)
-            page.addView(button("Bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
+            if (!peopleScreen) root.addView(primaryHost, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM).apply { bottomMargin = dp(72) })
+            val navigation = LinearLayout(this).apply { background = shape(bg, 0); setPadding(dp(20), dp(8), dp(20), dp(8)); elevation = dp(8).toFloat() }
+            fun tab(label: String, selected: Boolean, action: () -> Unit) = button(label, false, action = action).apply {
+                background = shape(if (selected) panel else bg, 16); setTextColor(if (selected) mint else muted); isSelected = selected
+            }
+            navigation.addView(tab("Özet", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f).apply { marginEnd = dp(10) })
+            navigation.addView(tab("Kişiler", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f))
+            root.addView(navigation, FrameLayout.LayoutParams(-1, dp(72), Gravity.BOTTOM))
         }
-        page.gap(16)
-        if (!preview) {
-            if (gate.mobileLinkActive()) { page.addView(text("Bilgisayardan bağlantı aktarımı açık; otomatik kontroller bekliyor.", 13f, lilac)); page.gap(8) }
-            page.addView(button("Bilgisayardaki bağlantıyı aktar", false) {
-                startActivity(Intent(this, DesktopLinkActivity::class.java))
-            }, LinearLayout.LayoutParams(-1, -2)); page.gap(12)
-        }
-        if (gate.prototypeActive()) {
-            page.addView(text("Bağlantı prototipi açık bırakılmış; otomatik kontroller duraklatıldı. Prototipi açıp denemeyi bitirebilirsin.", 13f, lilac)); page.gap(8)
-        }
-        page.addView(button(if (preview) "Bağlantı prototipi · çevrimdışı" else "Bağlantı prototipini aç", false) {
-            try {
-                if (!preview) { gate.setPrototypeActive(true); syncMonitoring() }
-                startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", preview))
-            } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render() }
-        }, LinearLayout.LayoutParams(-1, -2))
-        page.gap(24)
-        page.addView(text("Oturumun yalnızca bu cihazda saklanır.", 12f, muted).apply {
-            gravity = Gravity.CENTER
-            setPadding(0, dp(8), 0, dp(8))
-            setOnClickListener { privacy() }; contentDescription = "Gizlilik bilgilerini aç"
-        })
-        page.addView(text("INSTAGRAMTRACKER  /  ${BuildConfig.VERSION_NAME}", 9f, muted).apply { gravity = Gravity.CENTER; letterSpacing = .14f })
+        scroll.post { scroll.scrollTo(0, position) }
         scheduleGateWake()
+    }
+
+    private fun clock(time: Long) = SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
+    private fun connectionOptions(replacePending: Boolean = false) {
+        if (preview) { android.widget.Toast.makeText(this, "Demo modunda hesap bağlantısı yok.", android.widget.Toast.LENGTH_SHORT).show(); return }
+        val labels = arrayOf("Bilgisayardan bağlan", "Instagram ile giriş")
+        AlertDialog.Builder(this).setTitle("Hesabını bağla").setItems(labels) { _, index ->
+            if (replacePending) {
+                try { MobileSessions(this).discardPending(); DesktopLink(this).clear(); pendingMobile = false }
+                catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return@setItems }
+            }
+            if (index == 0) startActivity(Intent(this, DesktopLinkActivity::class.java)) else startLogin()
+        }.setNegativeButton("Vazgeç", null).show()
+    }
+    private fun options() {
+        val labels = mutableListOf("Bağlantıyı yönet", "Yenileme ayarları", "İstek bilgileri", "Gizlilik", "Gelişmiş")
+        if (BuildConfig.DEBUG && !preview) labels.add("Çevrimdışı demoyu aç")
+        AlertDialog.Builder(this).setTitle("Seçenekler").setItems(labels.toTypedArray()) { _, index ->
+            when (index) {
+                0 -> {
+                    val exists = account != null || vault.exists() || (!preview && MobileSessions(this).exists())
+                    val actions = if (exists) arrayOf("Başka hesap bağla", "Bağlantıyı kaldır") else arrayOf("Hesap bağla")
+                    AlertDialog.Builder(this).setTitle("Bağlantı").setItems(actions) { _, item ->
+                        if (item == 0) connectionOptions(replacePending = true) else confirmRemove()
+                    }.setNegativeButton("Kapat", null).show()
+                }
+                1 -> AlertDialog.Builder(this).setTitle("Yenileme ayarları")
+                    .setMultiChoiceItems(arrayOf("Açılışta otomatik yenile"), booleanArrayOf(gate.ownAutoRefresh())) { _, _, enabled ->
+                        try { gate.setOwnAutoRefresh(enabled) } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
+                    }
+                    .setPositiveButton("Tamam", null).show()
+                2 -> requestInfo()
+                3 -> privacy()
+                4 -> AlertDialog.Builder(this).setTitle("Gelişmiş").setItems(arrayOf("Web bağlantı deneyi")) { _, _ -> openLab() }.setNegativeButton("Kapat", null).show()
+                5 -> startActivity(Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
+            }
+        }.setNegativeButton("Kapat", null).show()
+    }
+    private fun requestInfo() {
+        val now = System.currentTimeMillis()
+        val lines = mutableListOf("Başlatılan okuma denemesi: ${number(gate.attempts())}",
+            "Son HTTP yanıtı: ${gate.lastHttpStatus()?.toString() ?: "Henüz yanıt yok"}")
+        if (gate.lastAttemptAt() > 0) lines += "Son deneme: ${date(gate.lastAttemptAt())}"
+        if (gate.restrictionPending()) {
+            lines += "Sinyal: ${gate.limitReason()}"
+            lines += "Son sınırlama: ${date(gate.lastLimitedAt())}"
+            lines += "Sunucu bekleme bilgisi: ${gate.serverRetryAt()?.let { date(it) } ?: "Belirtilmedi"}"
+            lines += if (gate.blockedUntil() > now) "Uygulamanın yerel molası: ${date(gate.blockedUntil())}" else "Yerel mola doldu."
+            lines += "Bu saat, Instagram erişiminin açılacağını garanti etmez. Süre dolunca otomatik deneme yapılmaz."
+        }
+        lines += "Sayaç bu sürümden itibaren profil okuma girişimlerini kapsar. Giriş sayfasının ve Windows uygulamasının kendi trafiği dahil değildir. Instagram'ın toplam sayacı değildir; sunucunun isteği aldığına dair kanıt da değildir. Parola, çerez ve ham yanıt kaydedilmez."
+        AlertDialog.Builder(this).setTitle("İstek bilgileri").setMessage(lines.joinToString("\n\n")).setPositiveButton("Tamam", null).show()
+    }
+    private fun openLab() {
+        try {
+            if (!preview) { gate.setPrototypeActive(true); syncMonitoring() }
+            startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", preview))
+        } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render() }
     }
 
     private fun date(time: Long) = SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
@@ -271,13 +331,13 @@ class MainActivity : Activity() {
         if (person == null) {
             selectedPersonId = null
             page.addView(text("Seçtiğin kişiler", 29f, white, true)); page.gap(10)
-            page.addView(text("Bir profil ekle. Sonraki okumaları karşılaştır, değişimleri gör.", 15f, muted)); page.gap(20)
+            page.gap(10)
             page.addView(button("Kişi ekle", networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-1, -2))
             page.gap(12)
-            page.addView(text("${saved.people.size}/${PeoplePolicy.MAX_PEOPLE} kişi · Seçtiğin kişiler için değişiklik bildirimi açabilirsin.\nListeyi açmak Instagram isteği göndermez.", 12f, muted)); page.gap(22)
+            page.addView(text("${saved.people.size} kişi", 12f, muted)); page.gap(22)
             if (saved.people.isEmpty()) {
                 page.addView(text("İlk kişini eklemeye hazırsın.", 20f, lilac, true)); page.gap(8)
-                page.addView(text("@kullanıcıadı veya Instagram profil bağlantısını kullanabilirsin. Tüm takipçilerin taranmaz.", 14f, muted))
+                page.addView(text("İzlemek istediğin profili seç.", 14f, muted))
             }
             for (entry in saved.people) {
                 val p = entry.latest
@@ -308,21 +368,28 @@ class MainActivity : Activity() {
             val previous = person.history[person.history.lastIndex - 1]
             page.addView(text("Son kayda göre", 12f, muted)); page.gap(6)
             page.addView(text("${delta(p.followers - previous.followers)} takipçi · ${delta(p.following - previous.following)} takip edilen", 17f, white, true))
-            page.gap(6); page.addView(text("${date(previous.observedAt)} → ${date(p.observedAt)}\nNet farktır; gelen/giden kişilerin kimliğini göstermez.", 12f, muted))
-        } else page.addView(text("İlk kayıt alındı. Değişim, sonraki başarılı okumadan sonra görünür.", 14f, muted))
+            page.gap(6); page.addView(text("${date(previous.observedAt)} → ${date(p.observedAt)}", 12f, muted))
+        } else page.addView(text("Henüz karşılaştırma yok.", 14f, muted))
         page.gap(20)
-        page.addView(button("Kişiyi yenile", networkAction = true) { readPerson(person = person) }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
-        page.addView(text("Değişiklik bildirimi", 22f, white, true)); page.gap(10)
-        val notices = ChangeNotifications(this, preview)
-        page.addView(text(if (person.watching) "Açık · En az ${person.intervalHours} saat arayla kontrol edilir." else "Kapalı · Bu kişi arka planda sorgulanmaz.", 14f, lilac))
-        page.gap(8)
-        page.addView(text("Uygulama kapalıyken sayılardaki net farkı bildirir. Android ve kontrol sırası süreyi uzatabilir; anlık değildir. Kilit ekranında gizlilik için genel metin kullanılır; görünüm sistem ayarlarına bağlıdır.", 12f, muted))
-        if (person.watching && !notices.allowed()) { page.gap(8); page.addView(text("Sistem bildirim izni kapalı; arka plan okumaları duruyor.", 13f, lilac)) }
-        if (preview) { page.gap(8); page.addView(text("Demo izleme yalnız örnek veriler kullanır. Instagram'a istek gönderilmez.", 12f, muted)) }
-        page.gap(12)
-        page.addView(button(if (person.watching) "Bildirim ayarlarını değiştir" else "Değişiklik bildirimini aç", false) { watchSettings(person) }, LinearLayout.LayoutParams(-1, -2))
-        if (person.watching) {
-            page.gap(8); page.addView(button("Bu kişide izlemeyi kapat", false) { setWatch(p.userId, saved.session.userId, person.intervalHours, false) }, LinearLayout.LayoutParams(-1, -2))
+        page.addView(button("Kişiyi yenile", networkAction = true) { readPerson(person = person) }.apply {
+            isEnabled = !loading && gate.nextAllowedAt() <= System.currentTimeMillis() && PeoplePolicy.needsRefresh(p, System.currentTimeMillis())
+            alpha = if (isEnabled) 1f else .5f
+        }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        val watch = android.widget.Switch(this).apply {
+            setText(R.string.watch_toggle); textSize = 16f; setTextColor(white)
+            isChecked = person.watching; minimumHeight = dp(56)
+            setOnClickListener {
+                isChecked = person.watching
+                if (person.watching) { setWatch(p.userId, saved.session.userId, person.intervalHours, false); render() }
+                else watchSettings(person)
+            }
+        }
+        page.addView(watch, LinearLayout.LayoutParams(-1, -2))
+        if (person.watching) page.addView(text("${person.intervalHours} saatte bir", 13f, lilac).apply {
+            minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL; setOnClickListener { watchSettings(person) }
+        })
+        if (person.watching && !ChangeNotifications(this, preview).allowed()) {
+            page.addView(text("Bildirim izni kapalı.", 13f, lilac))
         }
         page.gap(24)
         page.addView(text("Gözlem geçmişi", 22f, white, true)); page.gap(10)
@@ -342,15 +409,16 @@ class MainActivity : Activity() {
                 val first = observations.first(); val last = observations.last()
                 page.addView(text("Dönem net farkı: ${delta(last.followers - first.followers)} takipçi, ${delta(last.following - first.following)} takip edilen", 13f, lilac)); page.gap(10)
             }
-            page.addView(text("Gerçek gözlem zamanları · kişi sayısı\nEn son ${PeoplePolicy.MAX_HISTORY} kayıt saklanır; son 10 kayıt aşağıda.", 12f, muted)); page.gap(12)
-            for (observation in observations.takeLast(10).asReversed()) {
-                page.addView(text("${date(observation.observedAt)}\n${number(observation.followers)} takipçi · ${number(observation.following)} takip edilen · ${observation.posts?.let { number(it) } ?: "?"} gönderi", 13f, white))
-                page.gap(12)
-            }
+            page.addView(button("Kayıtları gör", false) {
+                val records = observations.takeLast(10).asReversed().joinToString("\n\n") {
+                    "${date(it.observedAt)}\n${number(it.followers)} takipçi · ${number(it.following)} takip edilen"
+                }
+                AlertDialog.Builder(this).setTitle("Son kayıtlar").setMessage(records).setPositiveButton("Kapat", null).show()
+            })
         } else page.addView(text("Bu tarih aralığında kayıt yok. Tümü ile önceki gözlemleri görebilirsin.", 14f, muted))
         page.gap(12)
         page.addView(text("Özel notun", 18f, white, true)); page.gap(8)
-        page.addView(text(person.note.ifBlank { "Bu kişiyle ilgili bir not ekleyebilirsin." }, 14f, muted)); page.gap(10)
+        if (person.note.isNotBlank()) { page.addView(text(person.note, 14f, muted)); page.gap(10) }
         page.addView(button("Not ve grup düzenle", false) { editPerson(person) }, LinearLayout.LayoutParams(-1, -2)); page.gap(10)
         page.addView(button("Kişiyi kaldır", false) {
             AlertDialog.Builder(this).setTitle("Kişi kaldırılsın mı?").setMessage("Bu kişinin kayıtlı geçmişi ve notu bu cihazdan silinir.")
@@ -392,24 +460,34 @@ class MainActivity : Activity() {
     private fun readPerson(username: String? = null, person: TrackedPerson? = null) {
         val saved = account ?: return
         if (loading) return
-        if (needsConnection) { message = "Önce Instagram bağlantısını yenilemelisin."; render(); return }
+        if (needsConnection) { message = "Önce hesabını yeniden bağla."; render(); return }
+        if (person != null && !PeoplePolicy.needsRefresh(person.latest, System.currentTimeMillis())) return
         if (gate.nextAllowedAt() > System.currentTimeMillis()) { message = ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return }
         loading = true; message = null; render()
         val ticket = ++generation
         worker.execute {
             val result = try {
-                Result.success(if (person != null) api.readId(saved.session, person.latest.userId) else api.readUsername(saved.session, requireNotNull(username)))
+                val latest = vault.read()?.takeIf { it.session == saved.session } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                val cached = if (person != null) latest.people.firstOrNull { it.latest.userId == person.latest.userId }?.latest
+                    ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                    else latest.people.firstOrNull { it.latest.username.equals(username, true) }?.latest
+                Result.success(if (cached != null && !PeoplePolicy.needsRefresh(cached, System.currentTimeMillis())) ProfileRead(cached, false)
+                    else ProfileRead(if (person != null) api.readId(saved.session, person.latest.userId)
+                        else api.readUsername(saved.session, requireNotNull(username)), true))
             } catch (failure: ApiFailure) { Result.failure(failure) }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)) }
             main.post {
                 if (isDestroyed || ticket != generation) return@post
                 loading = false
-                result.onSuccess { profile ->
+                result.onSuccess { read ->
                     try {
-                        val committed = Observations.person(vault, saved.session, profile, existingRequired = person != null)
-                        account = committed.account; syncMonitoring()
-                        committed.change?.let { change -> notifyCurrent(saved.session, change) }
-                        selectedPersonId = profile.userId; message = "Yeni gözlem bu cihazda kaydedildi."
+                        if (read.fetched) {
+                            val committed = Observations.person(vault, saved.session, read.profile, existingRequired = person != null)
+                            account = committed.account; syncMonitoring()
+                            committed.change?.let { change -> notifyCurrent(saved.session, change) }
+                            message = "Yeni gözlem bu cihazda kaydedildi."
+                        } else { account = vault.read(); message = null }
+                        selectedPersonId = read.profile.userId
                     } catch (_: Exception) { message = "Gözlem kaydedilemedi. Önceki kayıtlar korunuyor." }
                 }.onFailure { failure ->
                     val error = failure as ApiFailure
@@ -499,34 +577,34 @@ class MainActivity : Activity() {
     }
 
     private fun pauseMessage(): String? {
-        if (!gate.manualOnly()) return null
-        val last = gate.lastLimitedAt().takeIf { it > 0 }?.let { "Son sınırlama yanıtı: ${date(it)} (${gate.limitReason()}). " }
-            ?: "Önceki sınırlama kaydı korunuyor. "
-        return last + if (gate.blockedUntil() > System.currentTimeMillis()) {
-            "Uygulama ${date(gate.blockedUntil())} zamanına kadar yeni istek göndermeyecek. " +
-                "Bu yerel mola, Instagram kısıtlamasının bitiş zamanı değildir. Otomatik deneme kapalı."
-        } else "Yerel mola doldu; Instagram kısıtlamasının kalktığı doğrulanmadı. Otomatik deneme kapalı; yenileme yalnız düğmeyle yapılır."
+        if (!gate.restrictionPending()) return null
+        return if (gate.blockedUntil() > System.currentTimeMillis()) "Yeni deneme · ${clock(gate.blockedUntil())}"
+        else "Otomatik deneme kapalı. Hazır olduğunda yenileyebilirsin."
     }
     private val gateWake = Runnable {
         if (!isDestroyed) {
             if (web == null) render()
             else {
-                completionButton?.isEnabled = !loginChecking && gate.nextAllowedAt() <= System.currentTimeMillis()
+                completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
                 completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 // No automatic retry when a pause expires.
-                loginStatus?.text = pauseMessage() ?: getString(R.string.connection_ready)
+                if (!loginAttempted) loginStatus?.text = pauseMessage() ?: getString(R.string.connection_ready)
             }
         }
     }
     private fun scheduleGateWake() {
         main.removeCallbacks(gateWake)
-        val wait = gate.nextAllowedAt() - System.currentTimeMillis()
+        val displayed = if (peopleScreen) account?.people?.firstOrNull { it.latest.userId == selectedPersonId }?.latest else account?.profile
+        val freshUntil = displayed?.observedAt?.plus(PeoplePolicy.FRESH_MS) ?: 0L
+        val next = if (web != null) gate.nextPrototypeAt() else maxOf(gate.nextAllowedAt(), freshUntil)
+        val wait = next - System.currentTimeMillis()
         if (wait > 0) main.postDelayed(gateWake, wait)
     }
 
     private fun refresh(automatic: Boolean = false) {
         val saved = account ?: return
         if (loading) return
+        if (!PeoplePolicy.needsRefresh(saved.profile, System.currentTimeMillis())) return
         if (gate.nextAllowedAt() > System.currentTimeMillis()) {
             message = pauseMessage() ?: ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return
         }
@@ -538,16 +616,17 @@ class MainActivity : Activity() {
         val ticket = ++generation
         worker.execute {
             val result = try {
-                val updated = saved.copy(profile = api.read(saved.session))
-                Result.success(updated)
+                val latest = vault.read()?.takeIf { it.session == saved.session } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                Result.success(if (!PeoplePolicy.needsRefresh(latest.profile, System.currentTimeMillis())) ProfileRead(latest.profile, false)
+                    else ProfileRead(api.read(saved.session), true))
             } catch (failure: ApiFailure) { Result.failure(failure) }
             main.post {
                 if (isDestroyed || ticket != generation) return@post
                 loading = false
                 result.onSuccess {
                     try {
-                        account = vault.update(saved.session) { current -> current.copy(profile = it.profile) }
-                        needsConnection = false; syncMonitoring()
+                        account = if (it.fetched) vault.update(saved.session) { current -> current.copy(profile = it.profile) } else vault.read()
+                        needsConnection = gate.requiresConnection(); syncMonitoring()
                     }
                     catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
                 }
@@ -600,7 +679,8 @@ class MainActivity : Activity() {
     private fun startLogin() {
         if (preview) { message = "Demo modunda gerçek hesap bağlantısı yok."; render(); return }
         if (loading || web != null) return
-        if (gate.nextAllowedAt() > System.currentTimeMillis()) { render(); return }
+        if (gate.nextPrototypeAt() > System.currentTimeMillis()) { message = "Yeni bağlantı denemesi · ${clock(gate.nextPrototypeAt())}"; render(); return }
+        try { gate.pauseAutomatic(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         loading = false; loginChecking = false; loginAttempted = false; loginLoaded = false
         val page = stack().apply { setBackgroundColor(bg) }
@@ -608,7 +688,7 @@ class MainActivity : Activity() {
         header.addView(button("Vazgeç", false) { leaveLogin() }, LinearLayout.LayoutParams(-2, dp(48)))
         header.addView(text("  instagram.com", 16f, mint, true))
         page.addView(header)
-        loginStatus = text("Instagram'ın kendi giriş sayfası. Giriş tamamlanınca otomatik döneceksin.", 12f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
+        loginStatus = text("Girişini tamamla, sonra Devam et'e dokun.", 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
         page.addView(loginStatus)
         val browser = try { WebView(this) } catch (_: Exception) {
             message = "Android System WebView açılamadı. WebView'i güncelleyip tekrar dene."
@@ -638,35 +718,36 @@ class MainActivity : Activity() {
                 main.post { loginStatus?.setText(R.string.connection_tls_error) }
             }
             override fun onPageFinished(view: WebView, url: String) {
-                if (NavigationPolicy.isInstagram(url)) { loginLoaded = true; checkLogin() }
+                if (NavigationPolicy.isInstagram(url)) {
+                    loginLoaded = true
+                    completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
+                    completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
+                }
             }
         }
         page.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
-        completionButton = button("Giriş yaptım, bağlantıyı tamamla", false, networkAction = true) { checkLogin(manual = true) }
+        completionButton = button("Devam et", false, networkAction = true) { checkLogin() }
+        completionButton?.isEnabled = false
         page.addView(completionButton, LinearLayout.LayoutParams(-1, dp(54)))
         root.removeAllViews(); root.addView(page)
         CookieManager.getInstance().removeAllCookies {
             if (web === browser) {
                 WebStorage.getInstance().deleteAllData(); browser.clearCache(true)
                 browser.loadUrl("https://www.instagram.com/accounts/login/")
-                main.postDelayed(loginPoll, 1500)
             }
         }
     }
 
-    private val loginPoll = object : Runnable {
-        override fun run() { if (web != null) { checkLogin(); main.postDelayed(this, 1500) } }
-    }
-    private fun checkLogin(manual: Boolean = false) {
+    private fun checkLogin() {
         val browser = web ?: return
-        if (!loginLoaded || loginChecking || (!manual && loginAttempted)) return
-        if (gate.nextAllowedAt() > System.currentTimeMillis()) {
-            if (manual) loginStatus?.text = pauseMessage() ?: ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage()
+        if (!loginLoaded || loginChecking || loginAttempted) return
+        if (gate.nextPrototypeAt() > System.currentTimeMillis()) {
+            loginStatus?.text = getString(R.string.connection_next_try, clock(gate.nextPrototypeAt()))
             scheduleGateWake(); return
         }
         val session = SessionCookies.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"), browser.settings.userAgentString)
         if (session == null) {
-            if (manual) loginStatus?.setText(R.string.connection_incomplete)
+            loginStatus?.setText(R.string.connection_incomplete)
             return
         }
         loginChecking = true; loginAttempted = true
@@ -675,7 +756,7 @@ class MainActivity : Activity() {
         val ticket = ++generation
         worker.execute {
             val result = try {
-                val linked = SavedAccount(session, api.read(session), account?.takeIf { it.session.userId == session.userId }?.people.orEmpty())
+                val linked = SavedAccount(session, api.testWebConnection(session), account?.takeIf { it.session.userId == session.userId }?.people.orEmpty())
                 Result.success(linked)
             } catch (failure: ApiFailure) { Result.failure(failure) }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.STORAGE)) }
@@ -687,11 +768,12 @@ class MainActivity : Activity() {
                     // A cancelled WebView result must never save a new session later.
                     try {
                         account = vault.link(it.session, it.profile)
-                        message = "Bağlandı. Sonraki açılışta sayılar otomatik yenilenecek."
+                        gate.succeeded()
+                        message = null
                         needsConnection = false; syncMonitoring(); leaveLogin()
                     } catch (_: Exception) { loginStatus?.text = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
                 }.onFailure { loginStatus?.text = pauseMessage() ?: (it as ApiFailure).userMessage() }
-                completionButton?.isEnabled = !loginChecking && gate.nextAllowedAt() <= System.currentTimeMillis()
+                completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
                 completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 scheduleGateWake()
             }
@@ -700,7 +782,6 @@ class MainActivity : Activity() {
 
     private fun leaveLogin() {
         ++generation; api.cancel()
-        main.removeCallbacks(loginPoll)
         val browser = web
         web = null; loginStatus = null; completionButton = null; loginChecking = false
         browser?.apply {

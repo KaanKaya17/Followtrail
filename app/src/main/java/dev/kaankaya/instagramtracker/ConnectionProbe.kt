@@ -51,7 +51,7 @@ object ProbePolicy {
         val status = result.optInt("status", 0)
         val reason = result.optString("reason")
         return when {
-            status == 429 || reason == "limited" -> ApiFailure.Kind.LIMITED
+            status == 429 || reason in setOf("limited", "feedback", "wait") -> ApiFailure.Kind.LIMITED
             status == 401 || reason == "login_required" -> ApiFailure.Kind.SESSION_EXPIRED
             status == 403 || reason == "verification" -> ApiFailure.Kind.VERIFICATION
             status == 404 -> ApiFailure.Kind.NOT_FOUND
@@ -77,11 +77,17 @@ class ProbeAttempt(private val gate: RequestGate, private val diagnostics: Probe
     fun complete(result: JSONObject, username: String): Profile? {
         if (!running) return null
         try {
+            result.optInt("status", 0).takeIf { it in 100..599 }?.let(gate::observedStatus)
             val failure = ProbePolicy.failure(result)
             if (failure != null) {
                 when (failure) {
                     ApiFailure.Kind.LIMITED -> {
-                        gate.limited(result.optString("retryAfter").takeIf { it.length <= 160 }, reason = "HTTP 429 / tarayıcı prototipi")
+                        val signal = when {
+                            result.optInt("status") == 429 -> InstagramResponsePolicy.Restriction.HTTP_429
+                            result.optString("reason") == "feedback" -> InstagramResponsePolicy.Restriction.FEEDBACK
+                            else -> InstagramResponsePolicy.Restriction.WAIT
+                        }
+                        gate.limited(result.optString("retryAfter").takeIf { it.length <= 160 }, reason = signal.label)
                         diagnostics.record(ProbeDiagnostics.Event.LIMITED, result.optInt("status").takeIf { it in 100..599 })
                     }
                     ApiFailure.Kind.SESSION_EXPIRED, ApiFailure.Kind.VERIFICATION -> {

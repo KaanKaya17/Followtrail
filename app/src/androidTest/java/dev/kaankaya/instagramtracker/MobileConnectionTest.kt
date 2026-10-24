@@ -151,6 +151,15 @@ class MobileConnectionTest {
         assertEquals(1, transport.calls)
         assertTrue(gate().nextPrototypeAt() >= System.currentTimeMillis() + 890000)
     }
+    @Test fun switchingPendingAccountPreservesActiveBankAndRateRestriction() {
+        val original = sessions.stage(state()); vault.link(original, Profile("123", "synthetic", 1, 2, 1000))
+        val pending = sessions.stage(state("b".repeat(32)))
+        gate().limited("7200"); val until = gate().blockedUntil()
+        sessions.discardPending()
+        assertNull(sessions.pending()); assertEquals(original, sessions.read(original).reference())
+        failure(ApiFailure.Kind.SESSION_EXPIRED) { sessions.read(pending) }
+        assertEquals(until, gate().blockedUntil()); assertEquals(original, vault.read()!!.session)
+    }
     private fun envelope(request: JSONObject, payload: String): String {
         val public = KeyFactory.getInstance("RSA").generatePublic(X509EncodedKeySpec(request.getString("publicKey").decodeBase64()!!.toByteArray()))
         val key = ByteArray(32).also { SecureRandom().nextBytes(it) }; val iv = ByteArray(12).also { SecureRandom().nextBytes(it) }

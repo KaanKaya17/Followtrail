@@ -2,6 +2,14 @@
 
 24 Ekim 2026. Sürümler ayrı değerlendirilir; Windows prototipinin canlı başarısı Android başarısı olarak sayılmaz.
 
+## 0.1.7 — sade arayüz ve istek denetimi
+
+- 29 JVM testi geçti: HTTP/TLS tek gönderim sözleşmesi dahil; yeni ortak yanıt sınıflandırması HTTP 429/bekleme/feedback ile oturum/doğrulama hatalarını ayırır. Retry-After sıfır, saniye, HTTP tarihi, eksik/bozuk/taşan veri sınırları kapsanır.
+- Yerel API 35 emülatöründe tam 51 cihaz testi geçti; sonrasında yeni aktarım ekranı/karşılama için 5 odaklı test geçti. Hata/atlama yok. Yeni ekran testleri hazırlığın dönmede bulunmasını, bekleyen aktarımın molayı değiştirmemesini ve ağ çağrısı başlatmamasını sınar. Önbellek testleri, eski ekrandan tıklanırken kasada yeni gözlem varsa GET yapılmamasını ve geçmişin çoğaltılmamasını doğrular. CI'da toplam 53 cihaz testi beklenir; sonuç ayrıca kaydedilir.
+- 13 ağsız JS tarayıcı senaryosu geçti; feedback projeksiyonu 429 gibi etiketlenmiyor. Lint sıfır hata; aynı SDK 36 / OkHttp 5.4.0 sürüm seçimi için üç yeni sürüm uyarısı devam ediyor. Başarılı release derlemesi ve paket denetimi ayrıca yapılır.
+- Emülatör bu tur başında kapalıydı; mevcut TrackerQA AVD tekrar açıldı. Görsel kontrol yalnız işaretli, sentetik debug demoda yapıldı: 720×1280, font ölçeği 1.3. Ana ekranda sayaçlar ve sabit yenile/alt gezinme aynı görünümde; teknik metinler menüde. Görüntü yerel `artifacts/ui-0.1.7-overview.png` altında; gerçek hesap ekran görüntüsü alınmadı.
+- Yeni test hesabıyla giriş/profil okuması yapılmadı, eski kısıtlama silinmedi. Yerel test/CI başarısı canlı Instagram kabulü sayılmaz. Kaynaklı politika [REQUEST-POLICY.md](REQUEST-POLICY.md) belgesindedir.
+
 ## 0.1.6 — mobil oturum taşıması
 
 - 27 JVM testi geçti: mobil kimlik/başlık sınırı, v4 hesap dönüşümü, kayıtlı USDID anahtarıyla doğrulanabilir imza; gerçek yerel TLS/HTTP2 sunucusunda 429 ve 503 sonrası tek iletim, HTTP/1'de kimlik doğrulamalı istek öncesi durma ve yönlendirmeme. Dış Instagram bağlantısı yok.

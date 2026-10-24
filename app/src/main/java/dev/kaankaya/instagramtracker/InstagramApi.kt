@@ -22,6 +22,12 @@ class InstagramApi(
         require(session.mobileBinding != null)
         return mobile.read(session, session.userId, null, connectionTest = true)
     }
+    fun testWebConnection(session: Session): Profile {
+        require(session.mobileBinding == null && session.userId.matches(Regex("[1-9][0-9]{0,29}")))
+        return request(session, "https://www.instagram.com/api/v1/users/${session.userId}/info/", connectionTest = true) {
+            ProfileParser.parse(it, session.userId, System.currentTimeMillis())
+        }
+    }
     fun readId(session: Session, userId: String): Profile {
         require(userId.matches(Regex("[1-9][0-9]{0,29}")))
         if (session.mobileBinding != null) return mobile.read(session, userId, null)
@@ -36,7 +42,7 @@ class InstagramApi(
             ProfileParser.byUsername(it, username, System.currentTimeMillis())
         }
     }
-    private fun request(session: Session, address: String, parse: (String) -> Profile): Profile {
+    private fun request(session: Session, address: String, connectionTest: Boolean = false, parse: (String) -> Profile): Profile {
         val ticket = synchronized(lock) { generation }
         fun ensureCurrent() {
             if (Thread.currentThread().isInterrupted || synchronized(lock) { ticket != generation }) {
@@ -48,7 +54,7 @@ class InstagramApi(
         try {
             ensureCurrent()
             lease = gate.claim()
-            gate.begin()
+            if (connectionTest) gate.beginPrototype() else gate.begin()
             val connection = openConnection(URL(address))
             ownedConnection = connection
             synchronized(lock) {
@@ -70,28 +76,16 @@ class InstagramApi(
             ensureCurrent()
             val status = connection.responseCode
             ensureCurrent()
-            fun limited(): Nothing {
-                gate.limited(connection.getHeaderField("Retry-After"), reason = if (status == 429) "HTTP 429" else "Instagram bekleme yanıtı")
-                throw ApiFailure(ApiFailure.Kind.LIMITED)
-            }
-            if (status == 429) limited()
-            if (status in 300..399 || status == 401) throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
+            gate.observedStatus(status)
+            InstagramResponsePolicy.checkHeaders(gate, status, connection.getHeaderField("Retry-After"))
             val input = if (status in 200..299) connection.inputStream else connection.errorStream
             val data = input?.use { it.readNBytesBounded(1024 * 1024) } ?: byteArrayOf()
             val text = String(data, Charsets.UTF_8)
             val json = try { JSONObject(text) } catch (_: Exception) { null }
-            when (json?.optString("message")) {
-                "login_required" -> throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
-                "challenge_required", "checkpoint_required", "consent_required" -> throw ApiFailure(ApiFailure.Kind.VERIFICATION)
-                "feedback_required", "please_wait_a_few_minutes",
-                "Please wait a few minutes before you try again." -> limited()
-            }
-            if (status == 403) throw ApiFailure(ApiFailure.Kind.VERIFICATION)
-            if (status == 404) throw ApiFailure(ApiFailure.Kind.NOT_FOUND)
-            if (status !in 200..299) throw ApiFailure(ApiFailure.Kind.CONNECTION)
+            InstagramResponsePolicy.checkBody(gate, status, json, connection.getHeaderField("Retry-After"))
             val profile = parse(text)
             ensureCurrent()
-            gate.succeeded()
+            if (!connectionTest) gate.succeeded()
             return profile
         } catch (failure: ApiFailure) {
             if (failure.kind in setOf(ApiFailure.Kind.SESSION_EXPIRED, ApiFailure.Kind.VERIFICATION)) gate.pauseForConnection()

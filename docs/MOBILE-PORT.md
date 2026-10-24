@@ -1,5 +1,7 @@
 # Windows mobil oturumunun Android'e taşınması — 0.1.6
 
+Bu belge 0.1.6 taşıma sözleşmesini kaydeder. 0.1.7'de menü/düğmeler sadeleşti; güncel adımlar [README.md](../README.md), güncel istek denetimi [REQUEST-POLICY.md](REQUEST-POLICY.md) içindedir.
+
 Windows v0.3'te çalışan instagrapi 3.2.0 oturumunu yeni web girişine çevirmeden Android'de sınar. İlk yerel eşleştirme mevcut Windows oturumuyla yapılır; sonraki profil okumaları Android'dedir. APK içinde yeni CAA/parola girişi bu sürümde yoktur.
 
 ## Sözleşme ve farklar

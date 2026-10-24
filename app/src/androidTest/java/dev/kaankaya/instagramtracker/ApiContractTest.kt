@@ -61,6 +61,17 @@ class ApiContractTest {
         assertEquals(1, connection.responseReads)
         assertTrue(connection.disconnected)
     }
+    @Test fun webConnectionReadIsSingleAndCannotResumeOldAccountBeforeUiCommit() {
+        val connection = Connection()
+        val gate = gate(); gate.pauseAutomatic()
+        val api = InstagramApi(gate) { connection }
+        api.testWebConnection(session)
+        assertTrue(gate.manualOnly())
+        assertEquals(1L, gate.attempts()); assertEquals(200, gate.lastHttpStatus())
+        failure(ApiFailure.Kind.TOO_SOON) { InstagramApi(gate()) { connection }.testWebConnection(session) }
+        assertEquals(1, connection.responseReads)
+        assertTrue(gate.nextPrototypeAt() >= System.currentTimeMillis() + 890000)
+    }
     @Test fun selectedPersonLookupIsSingleRequestAndRefreshPinsStableIdentity() {
         val web = Connection(body = """{"status":"ok","data":{"user":{"id":"456","username":"deniz","edge_followed_by":{"count":12},"edge_follow":{"count":7}}}}""")
         var opened: URL? = null

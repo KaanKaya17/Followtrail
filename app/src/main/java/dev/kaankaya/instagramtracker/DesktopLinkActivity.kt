@@ -30,6 +30,8 @@ class DesktopLinkActivity : Activity() {
     private var generation = 0
     private var pending: Future<*>? = null
     private var status = ""
+    private var prepared = false
+    private var visibleScroll: ScrollView? = null
     private val mint = Color.rgb(186, 243, 213)
     private val gateWake = Runnable { if (!isDestroyed && !busy) render() }
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
@@ -43,69 +45,97 @@ class DesktopLinkActivity : Activity() {
             staged = Session(savedInstanceState.getString("owner")!!, "", savedInstanceState.getString("ua")!!, binding)
         }
         if (staged == null) staged = try { MobileSessions(this).pending() } catch (_: Exception) { null }
-        status = getString(if (staged == null) R.string.desktop_link_idle else R.string.desktop_link_imported)
+        prepared = link.isPrepared()
         if (android.os.Build.VERSION.SDK_INT >= 33) onBackInvokedDispatcher.registerOnBackInvokedCallback(0) { close() }
         render()
     }
     private fun render() {
+        if (isDestroyed || isFinishing) return
         main.removeCallbacks(gateWake)
+        if (prepared && !link.isPrepared()) prepared = false
+        val position = visibleScroll?.scrollY ?: 0
         val page = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; setPadding(dp(24), dp(36), dp(24), dp(32))
+            orientation = LinearLayout.VERTICAL; setPadding(dp(24), dp(20), dp(24), dp(28))
             setBackgroundColor(Color.rgb(16, 19, 27))
         }
         fun label(value: String, size: Float, color: Int = Color.rgb(242, 244, 235)) {
-            page.addView(TextView(this).apply { text = value; textSize = size; setTextColor(color); setPadding(0, dp(10), 0, dp(18)) })
+            page.addView(TextView(this).apply { text = value; textSize = size; setTextColor(color); setPadding(0, dp(8), 0, dp(12)) })
         }
-        fun action(resource: Int, enabled: Boolean = true, allowDuringWork: Boolean = false, run: () -> Unit) {
+        fun action(resource: Int, enabled: Boolean = true, primary: Boolean = true, allowDuringWork: Boolean = false, run: () -> Unit) {
             page.addView(Button(this).apply {
-                setText(resource); isAllCaps = false; textSize = 16f; setTextColor(Color.rgb(16, 19, 27))
+                setText(resource); isAllCaps = false; textSize = 16f
+                setTextColor(if (primary) Color.rgb(16, 19, 27) else Color.rgb(216, 204, 250))
                 typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                background = GradientDrawable().apply { setColor(mint); cornerRadius = dp(18).toFloat() }
+                background = if (primary) GradientDrawable().apply { setColor(mint); cornerRadius = dp(18).toFloat() } else null
                 isEnabled = enabled && (!busy || allowDuringWork); alpha = if (isEnabled) 1f else .45f
-                setPadding(dp(16), dp(14), dp(16), dp(14)); setOnClickListener { run() }
-            }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
+                minimumHeight = dp(56); setPadding(dp(16), dp(12), dp(16), dp(12)); setOnClickListener { run() }
+            }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         }
-        label(getString(R.string.desktop_link_title), 32f, mint)
-        label(getString(R.string.desktop_link_intro), 17f)
-        label(status, 15f)
+        val header = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
+        header.addView(Button(this).apply {
+            text = "‹"; contentDescription = getString(R.string.desktop_link_close); textSize = 30f
+            setTextColor(mint); background = null; minimumWidth = dp(48); setOnClickListener { close() }
+        }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        header.addView(TextView(this).apply { setText(R.string.desktop_link_header); textSize = 16f; setTextColor(Color.rgb(164, 174, 181)) })
+        page.addView(header, LinearLayout.LayoutParams(-1, dp(56)).apply { bottomMargin = dp(16) })
+        label(if (staged != null) "Aktarım hazır." else if (prepared) "Sıra bilgisayarında." else getString(R.string.desktop_link_title), 32f, mint)
+        label(if (staged != null) "Hazır olduğunda sayılarını al." else if (prepared) "Aktarımı çalıştır, sonra buradan devam et." else getString(R.string.desktop_link_intro), 16f)
+        val mark = TextView(this).apply {
+            text = if (staged != null) "✓" else "↔"; textSize = 64f; setTextColor(mint)
+            gravity = android.view.Gravity.CENTER
+            importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            background = GradientDrawable().apply { setColor(Color.rgb(28, 33, 43)); cornerRadius = dp(28).toFloat() }
+        }
+        page.addView(mark, LinearLayout.LayoutParams(-1, dp(120)).apply { topMargin = dp(16); bottomMargin = dp(24) })
+        if (busy) label(getString(R.string.desktop_link_busy), 14f)
+        else if (status.isNotEmpty()) label(status, 14f, Color.rgb(216, 204, 250))
         val remaining = gate.nextPrototypeAt() - System.currentTimeMillis()
-        if (remaining > 0) label(getString(R.string.desktop_link_pause,
-            SimpleDateFormat("d MMM · HH:mm:ss", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextPrototypeAt()))), 14f, Color.rgb(216, 204, 250))
-        action(R.string.desktop_link_prepare, staged == null) {
-            execute({ link.prepare() }) { getString(R.string.desktop_link_ready) }
-        }
-        action(R.string.desktop_link_import, staged == null) {
-            execute({
-                val state = link.importBundle()
-                gate.pauseAutomatic()
-                val reference = MobileSessions(this).stage(state)
-                link.clear()
-                reference
-            }) { reference ->
-                staged = reference
-                getString(R.string.desktop_link_imported)
+        if (staged != null && remaining > 0) label(getString(R.string.desktop_link_pause,
+            SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextPrototypeAt()))), 14f, Color.rgb(216, 204, 250))
+        when {
+            staged != null -> action(R.string.desktop_link_read, !attempted && remaining <= 0) {
+                val reference = staged ?: return@action
+                attempted = true
+                execute({ api.testMobileConnection(reference) }) { profile ->
+                    SessionVault(this).link(reference, profile); gate.succeeded()
+                    android.widget.Toast.makeText(this, R.string.desktop_link_success, android.widget.Toast.LENGTH_SHORT).show()
+                    close(); ""
+                }
+            }
+            prepared -> action(R.string.desktop_link_import) {
+                execute({
+                    val state = link.importBundle(); gate.pauseAutomatic()
+                    val reference = MobileSessions(this).stage(state); link.clear(); reference
+                }) { reference -> staged = reference; prepared = false; "" }
+            }
+            else -> action(R.string.desktop_link_prepare) {
+                execute({ link.prepare() }) { prepared = true; "" }
             }
         }
-        action(R.string.desktop_link_read, staged != null && !attempted && remaining <= 0) {
-            val reference = staged ?: return@action
-            attempted = true
-            status = getString(R.string.desktop_link_busy)
-            execute({ api.testMobileConnection(reference) }) { profile ->
-                SessionVault(this).link(reference, profile)
-                gate.succeeded()
-                getString(R.string.desktop_link_success)
-            }
+        if (staged != null) action(R.string.desktop_link_switch, primary = false) {
+            android.app.AlertDialog.Builder(this).setTitle("Başka hesap bağlansın mı?")
+                .setMessage("Bekleyen aktarım kaldırılır. Bağlı hesabın ve bekleme süren korunur.")
+                .setNegativeButton("Vazgeç", null).setPositiveButton("Devam et") { _, _ ->
+                    execute({ MobileSessions(this).discardPending(); link.clear() }) {
+                        staged = null; prepared = false; attempted = false; ""
+                    }
+                }.show()
         }
-        action(R.string.desktop_link_close, allowDuringWork = true) { close() }
-        setContentView(ScrollView(this).apply {
+        action(R.string.desktop_link_help, primary = false) {
+            android.app.AlertDialog.Builder(this).setTitle("Bilgisayardan bağlan")
+                .setMessage("1. Bilgisayardaki InstagramCounter uygulamasında test hesabını bağla.\n\n2. InstagramTracker klasöründe scripts/link-desktop.ps1 dosyasını çalıştır.\n\n3. Burada Aktarımı al'a dokun. Parola veya oturum bilgisi kopyalaman gerekmez.")
+                .setPositiveButton("Anladım", null).show()
+        }
+        val scroll = ScrollView(this).apply {
             setBackgroundColor(Color.rgb(16, 19, 27)); isFillViewport = true
             setOnApplyWindowInsetsListener { view, insets ->
                 @Suppress("DEPRECATION")
                 view.setPadding(insets.systemWindowInsetLeft, insets.systemWindowInsetTop, insets.systemWindowInsetRight, insets.systemWindowInsetBottom)
                 insets
             }; addView(page)
-        })
-        if (remaining > 0 && !attempted) main.postDelayed(gateWake, minOf(remaining, 60000))
+        }
+        visibleScroll = scroll; setContentView(scroll); scroll.post { scroll.scrollTo(0, position) }
+        if (staged != null && remaining > 0 && !attempted) main.postDelayed(gateWake, remaining)
     }
     private fun <T> execute(action: () -> T, success: (T) -> String) {
         if (busy) return
@@ -120,7 +150,7 @@ class DesktopLinkActivity : Activity() {
                     busy = false
                     status = result.fold(onSuccess = { value ->
                         try { success(value) } catch (_: Exception) { ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
-                    }, onFailure = { failure -> (failure as? ApiFailure)?.userMessage() ?: getString(R.string.desktop_link_error) })
+                    }, onFailure = { failure -> if ((failure as? ApiFailure)?.kind == ApiFailure.Kind.LIMITED) "" else (failure as? ApiFailure)?.userMessage() ?: getString(R.string.desktop_link_error) })
                     render()
                 }
             }

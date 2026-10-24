@@ -40,7 +40,7 @@ for(const mutate of [u=>delete u.edge_followed_by,u=>u.edge_follow.count='7',u=>
 }
 {
  const p=await run({body:{message:'feedback_required',private_value:'not-to-return'}});const r=await p.done();
- assert.equal(r.reason,'limited');assert.equal(JSON.stringify(r).includes('private_value'),false);passed++;
+ assert.equal(r.reason,'feedback');assert.equal(JSON.stringify(r).includes('private_value'),false);passed++;
 }
 {
  const p=await run({bytes:new Uint8Array(1048577)});assert.equal((await p.done()).reason,'oversized');passed++;

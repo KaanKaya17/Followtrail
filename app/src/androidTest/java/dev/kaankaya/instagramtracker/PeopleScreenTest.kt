@@ -45,7 +45,7 @@ class PeopleScreenTest {
         fail("Label not found: $label")
     }
     private fun click(label: String) = scenario!!.onActivity { activity ->
-        val button = all(activity.window.decorView).filterIsInstance<Button>().single { it.text == label }
+        val button = all(activity.window.decorView).filterIsInstance<TextView>().single { it.text == label && it.isClickable }
         assertTrue("Disabled: $label", button.isEnabled); button.performClick()
     }
     private fun launch() {
@@ -57,7 +57,7 @@ class PeopleScreenTest {
         awaitLabel("@deniz.demo"); click("7 gün"); click("Takip edilen grafiği")
         scenario!!.onActivity { activity ->
             val labels = all(activity.window.decorView).filterIsInstance<TextView>().map { it.text.toString() }
-            assertTrue(labels.contains("DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK"))
+            assertTrue(labels.contains("DEMO · ÖRNEK VERİ"))
             assertTrue(labels.contains("Özel notun"))
             assertTrue(labels.any { it.startsWith("Dönem net farkı:") })
             assertTrue(all(activity.window.decorView).any { it is HistoryChartView })
@@ -80,6 +80,38 @@ class PeopleScreenTest {
         launch(); scenario!!.recreate(); awaitLabel("@benim.demo")
         assertEquals(0L, RequestGate(context, "preview_gate").nextAllowedAt())
         assertEquals(875L, SessionVault(context, "previewaccount").read()!!.profile.followers)
+    }
+    @Test fun staleOwnPreviewWaitsForTapAndRepeatedTapUsesFreshCache() {
+        val seed = PreviewMode.seed(true)!!
+        SessionVault(context, "previewaccount").write(seed.copy(profile = seed.profile.copy(observedAt = System.currentTimeMillis() - 3600000)))
+        launch()
+        val gate = RequestGate(context, "preview_gate")
+        assertFalse(gate.ownAutoRefresh()); assertEquals(0L, gate.attempts())
+        scenario!!.recreate(); awaitLabel("@benim.demo"); assertEquals(0L, gate.attempts())
+        click("Yenile"); awaitLabel("988")
+        assertEquals(1L, gate.attempts())
+        scenario!!.onActivity { activity ->
+            val refresh = all(activity.window.decorView).filterIsInstance<Button>().single { it.text == "Yenile" }
+            assertFalse(refresh.isEnabled); refresh.performClick()
+        }
+        assertEquals(1L, gate.attempts())
+    }
+    @Test fun newerVaultObservationWinsOverStaleScreenWithoutAnotherRequest() {
+        val seed = PreviewMode.seed(true)!!
+        val vault = SessionVault(context, "previewaccount")
+        vault.write(seed.copy(profile = seed.profile.copy(observedAt = System.currentTimeMillis() - 3600000)))
+        launch()
+        vault.update(seed.session) { it.copy(profile = it.profile.copy(followers = 876, observedAt = System.currentTimeMillis())) }
+        click("Yenile"); awaitLabel("876")
+        assertEquals(0L, RequestGate(context, "preview_gate").attempts())
+        click("Kişiler"); click("Analizi aç · @deniz.demo")
+        vault.update(seed.session) { current ->
+            val previous = current.people.first().latest
+            current.copy(people = PeoplePolicy.record(current.people, previous.copy(followers = 1400, observedAt = System.currentTimeMillis())))
+        }
+        click("Kişiyi yenile"); awaitLabel("1.400")
+        assertEquals(0L, RequestGate(context, "preview_gate").attempts())
+        assertEquals(13, vault.read()!!.people.first().history.size)
     }
     private fun dialogNode(text: String): android.view.accessibility.AccessibilityNodeInfo {
         val deadline = android.os.SystemClock.elapsedRealtime() + 5000
@@ -111,12 +143,13 @@ class PeopleScreenTest {
             instrumentation.waitForIdleSync()
         }
         launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
-        click("Değişiklik bildirimini aç"); dialogClick("En az 6 saat arayla"); dialogClick("İzlemeyi aç")
-        awaitLabel("Açık · En az 6 saat arayla kontrol edilir.")
+        click("Değişiklik bildirimi"); dialogClick("En az 6 saat arayla"); dialogClick("İzlemeyi aç")
+        awaitLabel("6 saatte bir")
         val person = SessionVault(context, "previewaccount").read()!!.people.first()
         assertTrue(person.watching); assertEquals(6, person.intervalHours)
-        scenario!!.recreate(); awaitLabel("Açık · En az 6 saat arayla kontrol edilir.")
-        click("Bu kişide izlemeyi kapat"); awaitLabel("Kapalı · Bu kişi arka planda sorgulanmaz.")
+        scenario!!.recreate(); awaitLabel("6 saatte bir")
+        click("Değişiklik bildirimi")
+        scenario!!.onActivity { activity -> assertFalse(all(activity.window.decorView).filterIsInstance<android.widget.Switch>().single().isChecked) }
         assertFalse(SessionVault(context, "previewaccount").read()!!.people.first().watching)
         assertNull(context.getSystemService(android.app.job.JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))
         assertEquals(0L, RequestGate(context, "preview_gate").nextAllowedAt())
