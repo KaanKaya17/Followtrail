@@ -101,6 +101,10 @@ class MainActivity : Activity() {
         vault = SessionVault(this, if (preview) "previewaccount" else "account")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
         api = PreviewMode.api(gate, preview)
+        if (BuildConfig.DEBUG && intent.getBooleanExtra("connection_lab_preview", false)) {
+            intent.removeExtra("connection_lab_preview")
+            startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", true))
+        }
         render()
         worker.execute {
             val saved = try { vault.read() ?: PreviewMode.seed(preview)?.also { vault.write(it) } } catch (_: Exception) {
@@ -232,6 +236,16 @@ class MainActivity : Activity() {
             page.gap(12)
             page.addView(button("Bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
         }
+        page.gap(16)
+        if (gate.prototypeActive()) {
+            page.addView(text("Bağlantı prototipi açık bırakılmış; otomatik kontroller duraklatıldı. Prototipi açıp denemeyi bitirebilirsin.", 13f, lilac)); page.gap(8)
+        }
+        page.addView(button(if (preview) "Bağlantı prototipi · çevrimdışı" else "Bağlantı prototipini aç", false) {
+            try {
+                if (!preview) { gate.setPrototypeActive(true); syncMonitoring() }
+                startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", preview))
+            } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render() }
+        }, LinearLayout.LayoutParams(-1, -2))
         page.gap(24)
         page.addView(text("Oturumun yalnızca bu cihazda saklanır.", 12f, muted).apply {
             gravity = Gravity.CENTER

@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.4**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; son emülatör girişinde kullanıcı HTTP 429 bildirdi ve canlı test durduruldu. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.5**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; son emülatör girişinde kullanıcı HTTP 429 bildirdi ve canlı test durduruldu. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
 
 ## Kullanım
 
@@ -14,6 +14,12 @@ Geliştirme önizlemesi **0.1.4**. Gerçek Instagram hesabıyla Android sayaç o
 - **Bildirim:** kişi analizinde izlemeyi aç; en az 1, 6 veya 24 saat aralığı seç. Takipçi/takip edilen sayısında gözlemlenen net değişim için yerel Android bildirimi gelir. İlk kayıt ve yalnız gönderi değişimi bildirim üretmez. Uygulama ekranı kapalıyken de JobScheduler çalışabilir; anlık bildirim değildir. Pil tasarrufu, Doze, üretici ayarları ve çok sayıda izlenen kişi gecikme yaratır. Zorla durdurma sonrası uygulamayı yeniden açmak gerekir.
 - Bu önizlemede cihaz kaydını sınırlamak için en fazla **20 kişi**, kişi başına son **90 başarılı gözlem**, 500 karakter not ve 40 karakter grup saklanır. Bunlar Instagram'ın güvenli istek limitleri değildir.
 - Tek kişiyi kaldırma o kişinin geçmiş ve notunu siler. **Bağlantıyı kaldır** bu uygulamadaki oturumu ve bütün kişileri siler; diğer Instagram oturumlarını kapatmaz.
+
+## Bağlantı prototipi
+
+Ana ekrandaki **Bağlantı prototipini aç**, eski 429 kaydını koruyarak farklı bir erişim hipotezini sınar: giriş ve tek web profil okuması aynı WebView oturumunda kalır. Giriş/doğrulama sonrası kullanıcı adını girip **Tek okumayı başlat** seçilir. Sayfa açma ve profil okuma otomatik başlamaz; her deneme tek açık okuma ve en az 15 dakika aralığıyla sınırlıdır. Sonuç ana hesaba/izlenen kişilere aktarılmaz ve arka plan bildirimlerine bağlanmaz. Çalışacağı veya 429'u kaldıracağı garanti edilmez.
+
+Prototip açıkken otomatik kontroller duraklar. **Denemeyi bitir** tarayıcı verilerini temizleyip bu bekletmeyi kaldırır; önceki 429'u kaldırmaz. Süreç kapanıp bekletme kalırsa prototipi yeniden açıp bitir. Debug demoda **Bağlantı prototipi · çevrimdışı** aynı JS/WebView akışını sentetik yanıtta sınar. [REA bulguları, yöntem ve sınırlar](docs/CONNECTION-PROTOTYPE.md).
 
 ## İstekler ve sınırlama
 
@@ -45,6 +51,7 @@ Android 7.0+ / API 24; compile/target 36. JDK 21 ve build-tools 36.0.0 kullanıl
 ```sh
 ./gradlew :app:testDebugUnitTest :app:lintRelease :app:assembleRelease
 ./gradlew :app:connectedDebugAndroidTest
+node scripts/test-connection-probe.mjs
 ```
 
 Windows: `gradlew.bat`. [Yayın hazırlama](docs/RELEASING.md), [katkı](CONTRIBUTING.md), [CI](https://github.com/KaanKaya17/InstagramTracker/actions/workflows/android.yml). Gradle dağıtımı SHA-256, action sürümleri commit SHA, bağımlılıklar lockfile ile sabittir. Test uygulaması `.debug` paketinde üretim verisinden ayrıdır. CI testleri gerçek Instagram oturumu kullanmaz.

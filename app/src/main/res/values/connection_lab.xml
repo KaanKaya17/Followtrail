@@ -1,0 +1,15 @@
+<resources>
+    <string name="lab_limited">Instagram HTTP 429 döndürdü. Yeni deneme durduruldu.</string>
+    <string name="lab_tls_failure">Güvenli bağlantı doğrulanamadı. İşlem durduruldu.</string>
+    <string name="lab_summary">Bu cihazda başlatılan prototip okuması: %1$d\nTarayıcıda gözlenen profil kaynağı: %2$d\nSon olay: %3$s%4$s</string>
+    <string name="lab_wait">\nYeni deneme için en erken: %1$s. Bu yerel moladır.</string>
+    <string name="lab_start_failure">Deneme güvenle başlatılamadı.</string>
+    <string name="lab_waiting">Tek profil isteği bekleniyor…</string>
+    <string name="lab_counts">@%1$s\n%2$s takipçi · %3$s takip edilen</string>
+    <string name="lab_success">HTTP 200 · Profil sayıları okundu. Ana uygulamaya aktarılmadı.</string>
+    <string name="lab_invalid">Yanıt doğrulanamadı; sayı gösterilmedi.</string>
+    <string name="lab_update_webview">Android System WebView bu denemeyi desteklemiyor. Güncel WebView gerekir; profil isteği gönderilmedi.</string>
+    <string name="lab_browser_closed">Tarayıcı arka planda kapatıldı. Denemeyi bitirip yeniden açabilirsin.</string>
+    <string name="lab_login_instruction">Instagram girişini ve varsa doğrulamayı tamamla.</string>
+    <string name="lab_ready">Sayfa hazır. Giriş/doğrulama bittiyse tek okumayı başlatabilirsin.</string>
+</resources>
