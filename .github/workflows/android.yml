@@ -55,6 +55,22 @@ jobs:
       - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
         with:
           packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+      - name: Release unused Android NDK space on the disposable runner
+        shell: bash
+        run: |
+          test "$GITHUB_ACTIONS" = true
+          tracker_sdk="$(realpath "$ANDROID_HOME")"
+          df -h "$tracker_sdk"
+          # This application has no native libraries or NDK build steps.
+          # Use the SDK package manager, restricted to installed numeric NDK versions.
+          for tracker_ndk in "$tracker_sdk"/ndk/*; do
+            test -d "$tracker_ndk" || continue
+            tracker_version="${tracker_ndk##*/}"
+            if [[ "$tracker_version" =~ ^[0-9]+(\.[0-9]+)+$ ]]; then
+              sdkmanager --uninstall "ndk;$tracker_version"
+            fi
+          done
+          df -h "$tracker_sdk"
       - name: Enable KVM for the disposable emulator
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
