@@ -4,10 +4,11 @@ import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class InstagramApi {
+class InstagramApi(private val gate: RequestGate) {
     @Volatile private var active: HttpsURLConnection? = null
     fun cancel() { active?.disconnect() }
     fun read(session: Session): Profile {
+        gate.begin()
         val connection = URL("https://www.instagram.com/api/v1/users/${session.userId}/info/")
             .openConnection() as HttpsURLConnection
         active = connection
@@ -25,7 +26,11 @@ class InstagramApi {
             connection.setRequestProperty("Referer", "https://www.instagram.com/")
             SessionCookies.csrf(session)?.let { connection.setRequestProperty("X-CSRFToken", it) }
             val status = connection.responseCode
-            if (status == 429) throw ApiFailure(ApiFailure.Kind.LIMITED)
+            fun limited(): Nothing {
+                gate.limited(connection.getHeaderField("Retry-After"))
+                throw ApiFailure(ApiFailure.Kind.LIMITED)
+            }
+            if (status == 429) limited()
             if (status in 300..399 || status == 401) throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
             val input = if (status in 200..299) connection.inputStream else connection.errorStream
             val data = input?.use { it.readNBytesBounded(1024 * 1024) } ?: byteArrayOf()
@@ -34,7 +39,8 @@ class InstagramApi {
             when (json?.optString("message")) {
                 "login_required" -> throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
                 "challenge_required", "checkpoint_required", "consent_required" -> throw ApiFailure(ApiFailure.Kind.VERIFICATION)
-                "feedback_required", "please_wait_a_few_minutes" -> throw ApiFailure(ApiFailure.Kind.LIMITED)
+                "feedback_required", "please_wait_a_few_minutes",
+                "Please wait a few minutes before you try again." -> limited()
             }
             if (status == 403) throw ApiFailure(ApiFailure.Kind.VERIFICATION)
             if (status !in 200..299) throw ApiFailure(ApiFailure.Kind.CONNECTION)

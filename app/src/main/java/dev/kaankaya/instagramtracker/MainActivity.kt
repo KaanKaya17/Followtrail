@@ -3,7 +3,6 @@ package dev.kaankaya.instagramtracker
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -45,7 +44,8 @@ class MainActivity : Activity() {
     private val muted = Color.rgb(164, 174, 181)
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
-    private val api = InstagramApi()
+    private lateinit var api: InstagramApi
+    private lateinit var gate: RequestGate
     private lateinit var vault: SessionVault
     private lateinit var root: FrameLayout
     private var account: SavedAccount? = null
@@ -54,11 +54,11 @@ class MainActivity : Activity() {
     private var needsConnection = false
     private var web: WebView? = null
     private var loginStatus: TextView? = null
+    private var completionButton: Button? = null
     private var generation = 0
     private var loginChecking = false
     private var loginAttempted = false
     private var loginLoaded = false
-    private var lastRefreshElapsed = 0L
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +79,8 @@ class MainActivity : Activity() {
             }
         }
         vault = SessionVault(this)
+        gate = RequestGate(this)
+        api = InstagramApi(gate)
         render()
         worker.execute {
             val saved = try { vault.read() } catch (_: Exception) {
@@ -88,9 +90,17 @@ class MainActivity : Activity() {
             main.post {
                 if (isDestroyed) return@post
                 account = saved; loading = false; render()
-                if (saved != null) refresh()
+                // An outstanding pause is restored without issuing a network request.
+                if (saved != null && gate.nextAllowedAt() <= System.currentTimeMillis()) refresh()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!::gate.isInitialized || web != null || loading) return
+        if (account != null && !needsConnection && gate.nextAllowedAt() <= System.currentTimeMillis()) refresh()
+        else render()
     }
 
     private fun shape(color: Int, radius: Int = 24, stroke: Int? = null) = GradientDrawable().apply {
@@ -104,15 +114,15 @@ class MainActivity : Activity() {
     }
     private fun stack() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
     private fun LinearLayout.gap(value: Int) { addView(View(this@MainActivity), LinearLayout.LayoutParams(1, dp(value))) }
-    private fun button(label: String, primary: Boolean = true, action: () -> Unit) = Button(this).apply {
+    private fun button(label: String, primary: Boolean = true, networkAction: Boolean = false, action: () -> Unit) = Button(this).apply {
         text = label; isAllCaps = false; textSize = 16f
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         setTextColor(if (primary) bg else white)
         background = shape(if (primary) mint else panel, 18)
         minimumHeight = dp(56); setPadding(dp(16), dp(12), dp(16), dp(12))
         setOnClickListener { action() }
-        isEnabled = !loading
-        alpha = if (loading) .5f else 1f
+        isEnabled = !loading && (!networkAction || gate.nextAllowedAt() <= System.currentTimeMillis())
+        alpha = if (isEnabled) 1f else .5f
     }
     private fun badge(label: String, color: Int = mint) = text(label, 10f, color, true).apply {
         letterSpacing = .10f; setPadding(dp(12), dp(8), dp(12), dp(8))
@@ -168,13 +178,14 @@ class MainActivity : Activity() {
             progress.addView(text(if (saved == null) "Bağlantı hazırlanıyor…" else "Güncel sayılar alınıyor…", 14f, muted), LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(12) })
             page.addView(progress); page.gap(16)
         }
-        message?.let { page.addView(text(it, 14f, lilac).apply { setLineSpacing(dp(4).toFloat(), 1f) }); page.gap(16) }
+        val pause = pauseMessage()
+        (pause ?: message)?.let { page.addView(text(it, 14f, lilac).apply { setLineSpacing(dp(4).toFloat(), 1f) }); page.gap(16) }
         if (saved == null || needsConnection) {
-            page.addView(button(if (saved == null) "Instagram ile bağlan" else "Bağlantıyı yenile") { startLogin() }, LinearLayout.LayoutParams(-1, -2))
+            page.addView(button(if (saved == null) "Instagram ile bağlan" else "Bağlantıyı yenile", networkAction = true) { startLogin() }, LinearLayout.LayoutParams(-1, -2))
             if (saved == null && vault.exists()) {
                 page.gap(10); page.addView(button("Kayıtlı bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
             }
-        } else page.addView(button("Sayıları yenile") { refresh() }, LinearLayout.LayoutParams(-1, -2))
+        } else page.addView(button("Sayıları yenile", networkAction = true) { refresh() }, LinearLayout.LayoutParams(-1, -2))
         if (saved != null) {
             page.gap(12)
             page.addView(button("Bağlantıyı kaldır", false) { confirmRemove() }, LinearLayout.LayoutParams(-1, -2))
@@ -186,16 +197,38 @@ class MainActivity : Activity() {
             setOnClickListener { privacy() }; contentDescription = "Gizlilik bilgilerini aç"
         })
         page.addView(text("INSTAGRAMTRACKER  /  ${BuildConfig.VERSION_NAME}", 9f, muted).apply { gravity = Gravity.CENTER; letterSpacing = .14f })
+        scheduleGateWake()
+    }
+
+    private fun pauseMessage(): String? {
+        if (gate.blockedUntil() <= System.currentTimeMillis()) return null
+        val until = SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.blockedUntil()))
+        return "Instagram isteği sınırladı. Uygulama $until saatine kadar yeni istek göndermeyecek. " +
+            "Bu bekleme, Instagram'ın kısıtlamayı o saatte kaldıracağını garanti etmez."
+    }
+    private val gateWake = Runnable {
+        if (!isDestroyed) {
+            if (web == null) render()
+            else {
+                completionButton?.isEnabled = !loginChecking && gate.nextAllowedAt() <= System.currentTimeMillis()
+                completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
+                // No automatic retry when a pause expires.
+                loginStatus?.text = pauseMessage() ?: "Hazır olduğunda bağlantıyı tamamlamayı bir kez deneyebilirsin."
+            }
+        }
+    }
+    private fun scheduleGateWake() {
+        main.removeCallbacks(gateWake)
+        val wait = gate.nextAllowedAt() - System.currentTimeMillis()
+        if (wait > 0) main.postDelayed(gateWake, wait)
     }
 
     private fun refresh() {
         val saved = account ?: return
         if (loading) return
-        val now = android.os.SystemClock.elapsedRealtime()
-        if (lastRefreshElapsed > 0 && now - lastRefreshElapsed < 15000) {
-            message = "Yeni bir yenileme için birkaç saniye bekle."; render(); return
+        if (gate.nextAllowedAt() > System.currentTimeMillis()) {
+            message = pauseMessage() ?: ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return
         }
-        lastRefreshElapsed = now
         loading = true; message = null; render()
         val ticket = ++generation
         worker.execute {
@@ -215,7 +248,7 @@ class MainActivity : Activity() {
     }
 
     private fun showFailure(failure: ApiFailure) {
-        message = failure.userMessage()
+        message = pauseMessage() ?: failure.userMessage()
         needsConnection = failure.kind in setOf(ApiFailure.Kind.SESSION_EXPIRED, ApiFailure.Kind.VERIFICATION,
             ApiFailure.Kind.WRONG_ACCOUNT, ApiFailure.Kind.STORAGE)
     }
@@ -251,6 +284,7 @@ class MainActivity : Activity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun startLogin() {
         if (loading || web != null) return
+        if (gate.nextAllowedAt() > System.currentTimeMillis()) { render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         loading = false; loginChecking = false; loginAttempted = false; loginLoaded = false
         val page = stack().apply { setBackgroundColor(bg) }
@@ -279,11 +313,10 @@ class MainActivity : Activity() {
         CookieManager.getInstance().apply { setAcceptCookie(true); setAcceptThirdPartyCookies(browser, false) }
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !NavigationPolicy.isInstagram(request.url.toString())
-            @Deprecated("Used on API 23")
-            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean = !NavigationPolicy.isInstagram(url)
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                 if (NavigationPolicy.isLoginResource(request.url.toString())) null
                 else WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(byteArrayOf()))
+            @Suppress("OVERRIDE_DEPRECATION")
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 handler.cancel()
                 main.post { loginStatus?.text = "Güvenli bağlantı doğrulanamadı. Giriş durduruldu." }
@@ -293,7 +326,8 @@ class MainActivity : Activity() {
             }
         }
         page.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
-        page.addView(button("Giriş yaptım, bağlantıyı tamamla", false) { loginAttempted = false; checkLogin(manual = true) }, LinearLayout.LayoutParams(-1, dp(54)))
+        completionButton = button("Giriş yaptım, bağlantıyı tamamla", false, networkAction = true) { checkLogin(manual = true) }
+        page.addView(completionButton, LinearLayout.LayoutParams(-1, dp(54)))
         root.removeAllViews(); root.addView(page)
         CookieManager.getInstance().removeAllCookies {
             if (web === browser) {
@@ -310,12 +344,17 @@ class MainActivity : Activity() {
     private fun checkLogin(manual: Boolean = false) {
         val browser = web ?: return
         if (!loginLoaded || loginChecking || (!manual && loginAttempted)) return
+        if (gate.nextAllowedAt() > System.currentTimeMillis()) {
+            if (manual) loginStatus?.text = pauseMessage() ?: ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage()
+            scheduleGateWake(); return
+        }
         val session = SessionCookies.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"), browser.settings.userAgentString)
         if (session == null) {
             if (manual) loginStatus?.text = "Giriş henüz tamamlanmadı. Instagram ekranındaki adımları tamamla."
             return
         }
         loginChecking = true; loginAttempted = true
+        completionButton?.isEnabled = false; completionButton?.alpha = .5f
         loginStatus?.text = "Bağlantın doğrulanıyor ve sayılar alınıyor…"
         val ticket = ++generation
         worker.execute {
@@ -335,7 +374,10 @@ class MainActivity : Activity() {
                         account = it; message = "Bağlandı. Sonraki açılışta sayılar otomatik yenilenecek."
                         needsConnection = false; leaveLogin()
                     } catch (_: Exception) { loginStatus?.text = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
-                }.onFailure { loginStatus?.text = (it as ApiFailure).userMessage() }
+                }.onFailure { loginStatus?.text = pauseMessage() ?: (it as ApiFailure).userMessage() }
+                completionButton?.isEnabled = !loginChecking && gate.nextAllowedAt() <= System.currentTimeMillis()
+                completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
+                scheduleGateWake()
             }
         }
     }
@@ -344,7 +386,7 @@ class MainActivity : Activity() {
         ++generation; api.cancel()
         main.removeCallbacks(loginPoll)
         val browser = web
-        web = null; loginStatus = null; loginChecking = false
+        web = null; loginStatus = null; completionButton = null; loginChecking = false
         browser?.apply {
             stopLoading(); loadUrl("about:blank"); clearHistory(); clearCache(true)
             (parent as? ViewGroup)?.removeView(this); removeAllViews(); destroy()
@@ -355,7 +397,7 @@ class MainActivity : Activity() {
         loading = false; render()
     }
 
-    @Deprecated("Back handling retained for API 23 compatibility")
+    @Deprecated("Back handling retained for API 24-32 compatibility")
     @SuppressLint("GestureBackNavigation") // API 33+ uses the registered platform callback; this is the legacy path.
     @Suppress("DEPRECATION")
     override fun onBackPressed() { if (web != null) leaveLogin() else super.onBackPressed() }
