@@ -8,7 +8,7 @@ Giriş sayfasından alınan oturum çerezleri hesabın profil API'sini çağırm
 
 Oturum açıkken hesabın verisi bellekte bulunur. Keystore, uygulama verilerine erişebilen her olası saldırıyı veya ele geçirilmiş/root yetkili cihazı güvenli hale getirmez. Release sürümü debug edilemez ve ekran görüntüsü/son uygulamalar görüntüsüne karşı FLAG_SECURE kullanır; bu da mutlak gizlilik garantisi değildir.
 
-Manifestte tek izin INTERNET'tir. Yedekleme/cihaz aktarımı hariç tutma kuralları açıkça tanımlanmıştır. API çerezleri sabit Instagram HTTPS adresine gönderilir ve HTTP yönlendirmeleri takip edilmez. API yanıtı 1 MiB ile sınırlıdır; yanlış hesap ve eksik/bozuk sayaç reddedilir. Ham istek/yanıt/token uygulama tarafından loglanmaz.
+Manifest izinleri: INTERNET (Instagram HTTPS), ACCESS_NETWORK_STATE (ağ koşullu iş), RECEIVE_BOOT_COMPLETED (yeniden başlatma sonrası kalıcı Android işi) ve POST_NOTIFICATIONS (Android 13+ kullanıcı izni). Yedekleme/cihaz aktarımı hariç tutma kuralları açıkça tanımlanmıştır. API çerezleri sabit Instagram HTTPS adresine gönderilir ve HTTP yönlendirmeleri takip edilmez. API yanıtı 1 MiB ile sınırlıdır; yanlış hesap ve eksik/bozuk sayaç reddedilir. Ham istek/yanıt/token uygulama tarafından loglanmaz.
 
 Kaynaklar: [Android Keystore](https://developer.android.com/privacy-and-security/keystore), [WebView](https://developer.android.com/develop/ui/views/layout/webapps/webview), [yedekleme](https://developer.android.com/identity/data/autobackup).
 
@@ -17,4 +17,9 @@ Kaynaklar: [Android Keystore](https://developer.android.com/privacy-and-security
 
 Kişi adıyla ilk sorgu yalnız sabit Instagram HTTPS profil ucuna yapılır; kullanıcının verdiği URL'ye istek veya çerez gönderilmez. İzlenen hesaplar mevcut oturumdan erişilebilen profil verileriyle sınırlıdır; gizli içerik erişimi vaat edilmez. Takipçi listesi, mesaj, rehber, medya veya profil fotoğrafı indirilmez. İstek aralığı/sınırlama metadata'sı çerez içermez ve uygulamanın özel SharedPreferences alanında kalır; bağlantıyı kaldırmak sınırlama kaydını sıfırlamaz.
 
-Debug çevrimdışı demo, ayrı previewaccount şifreli dosyası ve preview_gate tercihleri kullanır. Yalnız derlemeye gömülü sentetik veriler gösterir; parola veya gerçek oturum istemez. Bu taşıma release kaynaklarında bulunmaz. Release ekran koruması, tek INTERNET izni, yedekleme/TLS sınırları korunur.
+Debug çevrimdışı demo, ayrı previewaccount şifreli dosyası ve preview_gate tercihleri kullanır. Yalnız derlemeye gömülü sentetik veriler gösterir; parola veya gerçek oturum istemez. Bu taşıma release kaynaklarında bulunmaz. Release ekran koruması, yedekleme/TLS sınırları korunur.
+
+
+0.1.4: İzleme tercihi ve kişi bazındaki bir sonraki kontrol zamanı aynı şifreli v3 kayıtta saklanır. v1/v2 kayıtları izleme kapalı olarak taşınır. Ekran ve arka plan güncellemeleri ortak kilit altında mevcut oturumu ve kişinin hâlâ izlenmesini doğrular. İş parametrelerine çerez/parola eklenmez. Yerel Android bildirimleri için Firebase, sunucu, e-posta veya Gmail erişimi kullanılmaz. Kilit ekranı için genel bir publicVersion ve VISIBILITY_PRIVATE kullanılır; Android/kullanıcı ayarları son görünümü belirler.
+
+Kayıt yazımı bildirimden önce tamamlanır. Bu iki adım arasında süreç kapanırsa bildirim kaçabilir; kalıcı bildirim kuyruğu veya tam bir kez teslim garantisi yoktur. Android planlaması ve üretici pil kısıtları nedeniyle zamanında teslim garantisi de yoktur. Bildirim izni kapalıyken arka plan ağ isteği yapılmaz.

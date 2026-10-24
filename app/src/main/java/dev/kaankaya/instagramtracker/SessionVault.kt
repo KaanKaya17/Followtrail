@@ -12,6 +12,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 class SessionVault(context: Context, slot: String = "account") {
+    companion object { private val lock = Any() }
     init { require(slot.matches(Regex("[a-z]+"))) }
     private val file = AtomicFile(File(context.noBackupFilesDir, "$slot.enc"))
     private val alias = "instagramtracker.$slot.v1"
@@ -26,7 +27,7 @@ class SessionVault(context: Context, slot: String = "account") {
                 .setKeySize(256).setRandomizedEncryptionRequired(true).build())
         }.generateKey()
     }
-    @Synchronized fun write(account: SavedAccount) {
+    fun write(account: SavedAccount): Unit = synchronized(lock) {
         val json = AccountCodec.encode(account).toByteArray(Charsets.UTF_8)
         require(json.size <= 512 * 1024)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
@@ -37,8 +38,8 @@ class SessionVault(context: Context, slot: String = "account") {
         try { output.write(cipher.iv); output.write(encrypted); file.finishWrite(output) }
         catch (failure: Exception) { file.failWrite(output); throw failure }
     }
-    @Synchronized fun read(): SavedAccount? {
-        if (!exists()) return null
+    fun read(): SavedAccount? = synchronized(lock) {
+        if (!exists()) return@synchronized null
         val bytes = file.openRead().use { input ->
             val output = java.io.ByteArrayOutputStream()
             val buffer = ByteArray(8192)
@@ -54,9 +55,20 @@ class SessionVault(context: Context, slot: String = "account") {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, bytes.copyOfRange(0, 12)))
         cipher.updateAAD(aad)
-        return AccountCodec.decode(String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8))
+        AccountCodec.decode(String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8))
     }
-    @Synchronized fun clear() {
+    /** Serialize foreground/background read-modify-write operations across vault instances. */
+    fun update(expected: Session, transform: (SavedAccount) -> SavedAccount): SavedAccount = synchronized(lock) {
+        val current = read()?.takeIf { it.session == expected } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        transform(current).also { require(it.session == expected); write(it) }
+    }
+    fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
+        val previous = read()
+        SavedAccount(session, profile, previous?.takeIf { it.session.userId == session.userId }?.people.orEmpty())
+            .also { write(it) }
+    }
+    fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }
+    fun clear(): Unit = synchronized(lock) {
         file.delete()
         check(!file.baseFile.exists())
         KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(alias)

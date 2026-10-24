@@ -19,8 +19,12 @@ def verify(apk: Path, sdk: Path) -> dict:
     package = re.search(r"^package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging, re.M)
     if not package or package[1] != 'dev.kaankaya.instagramtracker':
         raise ValueError('Expected the production package')
-    if re.findall(r"^uses-permission: name='([^']+)'", badging, re.M) != ['android.permission.INTERNET']:
+    permissions = ['INTERNET', 'ACCESS_NETWORK_STATE', 'RECEIVE_BOOT_COMPLETED', 'POST_NOTIFICATIONS']
+    if set(re.findall(r"^uses-permission: name='([^']+)'", badging, re.M)) != {'android.permission.' + name for name in permissions}:
         raise ValueError('Unexpected production permissions')
+    service_blocks = re.split(r'(?m)^\s*E: service ', manifest)[1:]
+    if len(service_blocks) != 1 or 'MonitorJobService' not in service_blocks[0] or 'android.permission.BIND_JOB_SERVICE' not in service_blocks[0]:
+        raise ValueError('Expected one system-protected background job service')
     for attribute in ('allowBackup', 'usesCleartextTraffic'):
         if not re.search(r'android:' + attribute + r'\([^)]*\)=\(type 0x12\)0x0\s', manifest):
             raise ValueError(attribute + ' must be explicitly disabled')
@@ -32,13 +36,13 @@ def verify(apk: Path, sdk: Path) -> dict:
         if any(name.startswith('lib/') for name in archive.namelist()):
             raise ValueError('Unexpected native architecture dependency')
         for name in archive.namelist():
-            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection')):
+            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection', b'DemoMonitorJobService')):
                 raise ValueError('Debug preview transport must not be in the production APK')
     with apk.open('rb') as stream:
         digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     return {'package': package[1], 'versionCode': int(package[2]), 'version': package[3],
             'bytes': apk.stat().st_size, 'sha256': digest,
-            'permissions': ['INTERNET'], 'debuggable': False, 'backup': False,
+            'permissions': permissions, 'debuggable': False, 'backup': False,
             'cleartext': False, 'nativeLibraries': 0, 'debugPreviewTransport': False,
             'scope': 'Packaged manifest and architecture check; not live account or penetration testing.'}
 

@@ -1,6 +1,7 @@
 package dev.kaankaya.instagramtracker
 
 import android.app.Activity
+import android.content.Context
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.URL
@@ -10,6 +11,9 @@ import org.json.JSONObject
 
 /** Debug-only transport. Every response is synthetic; no sockets or real account credentials. */
 object PreviewMode {
+    const val JOB_ID = 1402
+    fun sync(context: Context, account: SavedAccount?, gate: RequestGate) = MonitorScheduler.sync(context, account, gate, JOB_ID, DemoMonitorJobService::class.java)
+    fun cancel(context: Context) = MonitorScheduler.cancel(context, JOB_ID)
     fun enabled(activity: Activity) = activity.intent.getBooleanExtra("offline_preview", false)
     fun seed(enabled: Boolean): SavedAccount? {
         if (!enabled) return null
@@ -50,4 +54,13 @@ object PreviewMode {
         override fun getLocalCertificates(): Array<Certificate>? = null
         override fun getServerCertificates(): Array<Certificate>? = null
     }
+}
+
+/** Exercises Android's actual background lifecycle, with synthetic transport only. */
+class DemoMonitorJobService : MonitorJobService() {
+    override val vaultSlot = "previewaccount"
+    override val gateName = "preview_gate"
+    override val jobId = PreviewMode.JOB_ID
+    override val preview = true
+    override fun createApi(gate: RequestGate) = PreviewMode.api(gate, true)
 }
