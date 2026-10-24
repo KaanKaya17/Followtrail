@@ -39,7 +39,7 @@ class HistoryChartView(context: Context, private val observations: List<Profile>
         fun y(value: Long) = if (low == high) (top + bottom) / 2 else bottom - ((value - low).toDouble() / (high - low)).toFloat() * (bottom - top)
         paint.color = muted; paint.strokeWidth = d
         canvas.drawLine(left, top, left, bottom, paint); canvas.drawLine(left, bottom, right, bottom, paint)
-        canvas.drawText(number.format(high), 0f, top + 4 * d, paint)
+        canvas.drawText(number.format(high), 0f, y(high) + 4 * d, paint)
         if (low != high) canvas.drawText(number.format(low), 0f, bottom, paint)
         canvas.drawText("Kişi sayısı", 0f, 12 * d, paint)
         canvas.drawText(date(observations.first().observedAt), left, bottom + 17 * d, paint)
