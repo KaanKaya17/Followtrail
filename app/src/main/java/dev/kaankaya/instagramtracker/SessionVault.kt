@@ -11,8 +11,8 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-class SessionVault(context: Context, slot: String = "account") {
-    companion object { private val lock = Any() }
+/** Owns bounded, atomic Keystore encryption for account and mobile-session records. */
+class EncryptedRecord(context: Context, slot: String) {
     init { require(slot.matches(Regex("[a-z]+"))) }
     private val file = AtomicFile(File(context.noBackupFilesDir, "$slot.enc"))
     private val alias = "instagramtracker.$slot.v1"
@@ -27,8 +27,8 @@ class SessionVault(context: Context, slot: String = "account") {
                 .setKeySize(256).setRandomizedEncryptionRequired(true).build())
         }.generateKey()
     }
-    fun write(account: SavedAccount): Unit = synchronized(lock) {
-        val json = AccountCodec.encode(account).toByteArray(Charsets.UTF_8)
+    fun write(value: String) {
+        val json = value.toByteArray(Charsets.UTF_8)
         require(json.size <= 512 * 1024)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, key())
@@ -38,8 +38,8 @@ class SessionVault(context: Context, slot: String = "account") {
         try { output.write(cipher.iv); output.write(encrypted); file.finishWrite(output) }
         catch (failure: Exception) { file.failWrite(output); throw failure }
     }
-    fun read(): SavedAccount? = synchronized(lock) {
-        if (!exists()) return@synchronized null
+    fun read(): String? {
+        if (!exists()) return null
         val bytes = file.openRead().use { input ->
             val output = java.io.ByteArrayOutputStream()
             val buffer = ByteArray(8192)
@@ -55,8 +55,21 @@ class SessionVault(context: Context, slot: String = "account") {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, bytes.copyOfRange(0, 12)))
         cipher.updateAAD(aad)
-        AccountCodec.decode(String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8))
+        return String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8)
     }
+    fun clear() {
+        file.delete()
+        check(!file.baseFile.exists())
+        KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(alias)
+    }
+}
+
+class SessionVault(context: Context, slot: String = "account") {
+    companion object { private val lock = Any() }
+    private val record = EncryptedRecord(context, slot)
+    fun exists(): Boolean = synchronized(lock) { record.exists() }
+    fun write(account: SavedAccount): Unit = synchronized(lock) { record.write(AccountCodec.encode(account)) }
+    fun read(): SavedAccount? = synchronized(lock) { record.read()?.let(AccountCodec::decode) }
     /** Serialize foreground/background read-modify-write operations across vault instances. */
     fun update(expected: Session, transform: (SavedAccount) -> SavedAccount): SavedAccount = synchronized(lock) {
         val current = read()?.takeIf { it.session == expected } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
@@ -69,8 +82,6 @@ class SessionVault(context: Context, slot: String = "account") {
     }
     fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }
     fun clear(): Unit = synchronized(lock) {
-        file.delete()
-        check(!file.baseFile.exists())
-        KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(alias)
+        record.clear()
     }
 }

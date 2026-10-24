@@ -8,22 +8,30 @@ class InstagramApi(
     private val gate: RequestGate,
     private val openConnection: (URL) -> HttpsURLConnection = { it.openConnection() as HttpsURLConnection },
 ) {
+    private val mobile = MobileProfileReader(gate, MobileSessions(gate.context))
     private val lock = Any()
     private var generation = 0L
     private var active: HttpsURLConnection? = null
     fun cancel() {
+        mobile.cancel()
         val connection = synchronized(lock) { generation++; active.also { active = null } }
         connection?.disconnect()
     }
     fun read(session: Session): Profile = readId(session, session.userId)
+    fun testMobileConnection(session: Session): Profile {
+        require(session.mobileBinding != null)
+        return mobile.read(session, session.userId, null, connectionTest = true)
+    }
     fun readId(session: Session, userId: String): Profile {
         require(userId.matches(Regex("[1-9][0-9]{0,29}")))
+        if (session.mobileBinding != null) return mobile.read(session, userId, null)
         return request(session, "https://www.instagram.com/api/v1/users/$userId/info/") {
             ProfileParser.parse(it, userId, System.currentTimeMillis())
         }
     }
     fun readUsername(session: Session, username: String): Profile {
         require(ProfileInput.validUsername(username))
+        if (session.mobileBinding != null) return mobile.read(session, null, username)
         return request(session, "https://www.instagram.com/api/v1/users/web_profile_info/?username=$username") {
             ProfileParser.byUsername(it, username, System.currentTimeMillis())
         }

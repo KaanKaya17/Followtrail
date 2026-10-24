@@ -1,0 +1,15 @@
+<resources>
+    <string name="desktop_link_title">Bilgisayardan, güvenle.</string>
+    <string name="desktop_link_intro">Bilgisayarda çalışan mobil oturumunu bu cihaza aktar. Aktarımdan sonra sayıları APK kendi bağlantısıyla okur.</string>
+    <string name="desktop_link_prepare">1 · USB aktarımını hazırla</string>
+    <string name="desktop_link_import">2 · Şifreli aktarımı al</string>
+    <string name="desktop_link_read">3 · Bir kez sayıları oku</string>
+    <string name="desktop_link_close">Bitir ve ana ekrana dön</string>
+    <string name="desktop_link_ready">Cihaza özel anahtar hazır. Bilgisayarda scripts/link-desktop.ps1 dosyasını çalıştır. Aktarım penceresi 10 dakika geçerli.</string>
+    <string name="desktop_link_imported">Oturum şifreli kasaya alındı. Henüz Instagram isteği gönderilmedi. Başarılı okuma olursa ana hesaba bağlanacak.</string>
+    <string name="desktop_link_busy">Tek profil isteğinin yanıtı bekleniyor…</string>
+    <string name="desktop_link_success">Mobil API okuması başarılı. Sayılar ana ekrana kaydedildi; APK artık bu oturumla bilgisayardan bağımsız çalışabilir.</string>
+    <string name="desktop_link_error">Aktarım açılamadı. USB bağlantısını kontrol et; hazırlama adımından sonra bilgisayardaki aktarımı tekrar çalıştır. Mevcut hesabın korunuyor.</string>
+    <string name="desktop_link_idle">İlk iki adım çevrimdışı çalışır. Parola veya kod istenmez. Oturum yalnız bu cihazın anahtarıyla açılır; sunucuya yüklenmez.</string>
+    <string name="desktop_link_pause">Önceki sınırlama korunuyor. En erken yerel deneme: %1$s. Bu, Instagram’ın kesin bitiş zamanı değildir.</string>
+</resources>

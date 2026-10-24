@@ -1,5 +1,7 @@
 # Veri ve ağ sınırları
 
+0.1.6 mobil aktarımı: Windows'ta kullanıcının önceden oluşturduğu oturum yalnız bellekte DPAPI'den açılır, APK'nın Keystore açık anahtarına RSA-OAEP/AES-GCM ile şifrelenip ADB'den aktarılır. Parola/kod veya düz metin oturum dosyası aktarılmaz. Aktarım Instagram isteği başlatmaz. APK izinli mobil yetkilendirme/cihaz/çerez durumunu ve varsa kayıtlı USDID imza anahtarını Keystore ile şifreli iki yerel bankada tutar. Başarılı içe aktarma sonrası dış dizindeki şifreli zarf, açık istek ve geçici alıcı anahtar temizlenir; normal bitirme de temizlik yapar. Süreç ölümü temizliği tamamlamayabilir; ekranı yeniden açıp bitirmek kurtarma yoludur. Başarılı profil yanıtından sonra mobil HTTPS okumaları doğrudan i.instagram.com'a gider. Windows kaynak oturumu korunur. Ayrıntılar [MOBILE-PORT.md](MOBILE-PORT.md).
+
 Uygulama kendi sunucusuna veri göndermez; analitik, reklam ve çökme toplama SDK'sı içermez. Instagram girişini ve profil okumasını ağ üzerinden Instagram'a yapar. "Veri hiçbir şekilde cihazdan çıkmaz" iddiası doğru değildir.
 
 Uygulama kodu parola alanını okumaz; giriş Instagram'ın HTTPS web sayfasında yapılır. WebView bu sırada Instagram, cdninstagram.com ve fbcdn.net alanlarından içerik yükleyebilir. Üst seviye gezinme Instagram HTTPS alanlarıyla sınırlıdır. Facebook üzerinden ayrı giriş bu sürümde desteklenmez. WebView'e JavaScript köprüsü veya parola alanı enjeksiyonu eklenmez. TLS hatasında devam edilmez, dosya/içerik erişimi ve üçüncü taraf çerezler kapalıdır.

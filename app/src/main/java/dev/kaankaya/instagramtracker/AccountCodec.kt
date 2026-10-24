@@ -18,8 +18,9 @@ object AccountCodec {
         for (person in account.people) people.put(JSONObject().put("note", person.note).put("group", person.group)
             .put("watching", person.watching).put("intervalHours", person.intervalHours).put("nextCheckAt", person.nextCheckAt)
             .put("history", JSONArray().apply { person.history.forEach { put(profile(it)) } }))
-        val result = JSONObject().put("version", 3).put("id", account.session.userId)
+        val result = JSONObject().put("version", 4).put("id", account.session.userId)
             .put("cookie", account.session.cookie).put("ua", account.session.userAgent)
+            .apply { account.session.mobileBinding?.let { put("mobileBinding", it) } }
             .put("profile", profile(account.profile)).put("people", people).toString()
         // Validate at the owning boundary on both read and write.
         decode(result)
@@ -28,8 +29,15 @@ object AccountCodec {
     fun decode(text: String): SavedAccount {
         val json = JSONObject(text)
         val version = json.getInt("version")
-        require(version in 1..3)
-        val session = SessionCookies.fromHeader(json.getString("cookie"), json.getString("ua"))
+        require(version in 1..4)
+        val binding = if (version >= 4 && json.has("mobileBinding")) json.getString("mobileBinding") else null
+        val session = if (binding != null) {
+            require(binding.matches(Regex("[a-f0-9]{32}")))
+            val id = json.getString("id"); val ua = json.getString("ua")
+            require(id.matches(Regex("[1-9][0-9]{0,29}")) && ua.isNotBlank() && ua.none { it.code < 32 || it.code == 127 })
+            require(json.getString("cookie").isEmpty())
+            Session(id, "", ua, binding)
+        } else SessionCookies.fromHeader(json.getString("cookie"), json.getString("ua"))
             ?: throw IllegalArgumentException("Invalid session")
         require(session.userId == json.getString("id"))
         val own = if (version == 1) profile(JSONObject().put("pk", session.userId).put("username", json.get("username"))
