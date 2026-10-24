@@ -40,15 +40,17 @@
 
 ## 0.1.3
 
+**Sonuç:** [CI 40095985228](https://github.com/KaanKaya17/InstagramTracker/actions/runs/40095985228), `b675e6785f1c65297a46efff98aa79de9c2193b1` için tamamen geçti: verify, Android 7/API 24 ve Android 15/API 35. Her iki emülatörde de 21 test başladı/tamamlandı ve derleme başarılı döndü. Bunlar gerçek Instagram erişimi veya farklı ARM/üretici cihazları için doğrulama değildir.
+
 - 11 JVM testi geçti: önceki beş sınır testi ve altı kişi/girdi/web profil/v1 geçişi/geçmiş kimliği/sınır/önbellek testi.
 - Debug/release/test APK derlemeleri ve lint geçti; son raporda hata veya uyarı yok.
-- API 35 / Android 15 x86_64 yerel emülatörde son kaynaklarla 21 instrumentasyon testi geçti: 10 API sözleşmesi, 4 Keystore/manifest/kalıcı istek politikası, 4 kişi ekranı/diyalog akışı ve 3 önceki ekran akışı. Son koşu 17.07 saniye (derleme/kurulum hariç).
+- API 35 / Android 15 x86_64 yerel emülatörde `16b3ceb` kaynağında 21 instrumentasyon testi geçti: 10 API sözleşmesi, 4 Keystore/manifest/kalıcı istek politikası, 4 kişi ekranı/diyalog akışı ve 3 önceki ekran akışı. Son koşu 17.07 saniye (derleme/kurulum hariç).
 - Cihaz testleri 720×1280, 320 dpi ve %130 yazı ölçeğinde çalıştı. Kişi ekleme → not/grup kaydı → Activity yeniden oluşturma → kişi silme gerçek Android diyalogları ve şifreli kayıtla geçti. Kişi/geçmiş ekranlarında gezinme ağ rezervasyonu yapmadı; açık yenileme tek gözlem ekledi. Tüm profil yanıtları sentetik taşıma üzerinden verildi.
 - İlk ek diyalog testi, erişilebilirlik aramasının hint alanını ve büyük harfli diyalog düğmelerini bulamaması nedeniyle başarısız oldu. Test kontrol bulucusu gerçek pencere ağacını ve harf farklarını kullanacak şekilde düzeltildi; başarısız koşular başarı sayılmadı.
 - Release paket kontrolü geçti: üretim kimliği, yalnız INTERNET, debug/backup/cleartext kapalı, API 24/36, native kütüphane yok. Debug sentetik taşıma işaretleri release DEX içinde bulunmadı. Bu statik kontrol bağımsız güvenlik denetimi değildir.
 - Gerçek hesaba yeni profil isteği gönderilmedi. Fiziksel telefon bu çalışma sırasında ADB'de bağlı görünmedi; cihazın mevcut sınırlama kaydı okunmadı. Eski uyarının yeni sunucu reddi mi yoksa saklanan mola mı olduğu mevcut kanıtla belirlenemedi.
 - Bilgisayar önizlemesi gerçek APK ana kodunu kullanır; demo taşıması ve örnek veriler debug varyantına özgüdür. Canlı kendi hesap/başka profil erişimi, oturum sürekliliği ve farklı ARM/üretici cihazları hâlâ doğrulanmadı.
-- Bu commit için GitHub API 24/35 kontrolleri ayrıca izlenecek; yerel sonuç CI başarısı olarak sunulmaz.
+- GitHub API 24/35 kontrolleri aşağıdaki kaynak commit ve çalışma kimlikleriyle ayrıca izlendi; yerel sonuç CI başarısı olarak sunulmadı.
 
 - Son uygulama kaynağı `81c97a62ce096673c2376f8c21b9e5ec9c99d728` için [CI 40094208082](https://github.com/KaanKaya17/InstagramTracker/actions/runs/40094208082): verify ve API 35 başarılı; Android 15 üzerinde 21 test başladı/tamamlandı. API 24, test başlamadan 6984.46 MB boş alana karşı 7372.80 MB userdata talebiyle durdu. Bu Android 7 test başarısı sayılmadı.
 - Aynı koşunun kaydı, action'ın `disk.dataPartition.size=2048M` değerini mevcut config.ini sonuna eklediğini gösterdi; ayar etkili kabul edilemedi. CI'nin tek kullanımlık AVD dosyası artık başlamadan önce sahip olunan disk/RAM/çekirdek anahtarları için tek sayısal değerle normalize ediliyor ve okunarak doğrulanıyor; orijinal dosya yedekleniyor. Yinelenen anahtarlar, ilgisiz alanların korunması ve idempotence yerelde sınandı. Diğer AVD/SDK/telefon ayarlarına uygulanmaz.
@@ -58,4 +60,7 @@
 - `scripts/start-preview.ps1` ile sahip olunan yerel QA emülatörü görünür pencerede başlatıldı, debug APK kuruldu ve açık demo açıldı. Kullanıcı pencerenin açıldığını ve incelediğini doğruladı. Bu kullanıcı onayı, örnek arayüzün açılmasına aittir; gerçek Instagram erişimi anlamına gelmez. Pencere kullanıcının incelemesi için açık bırakıldı.
 
 - [CI 40095137502](https://github.com/KaanKaya17/InstagramTracker/actions/runs/40095137502), `5657ebf`: verify ve Android 7/API 24 üzerinde 21 test başarılı. Android 15 işi test başlamadan 7276.98 MB boş alana karşı 7372.80 MB userdata talebiyle durdu. Dosyada tek 2147483648 bayt disk ve 1536 MB RAM değeri okunarak doğrulandığı halde emülatör RAM'i 2560 MB'a, veri gereksinimini yaklaşık 6 GiB'a çıkardı. Bu nedenle yalnız config değeri yazmak gerçek kaynak sınırı sağlandığını göstermiyor.
-- CI cihaz işinde, native kütüphanesi/NDK derlemesi olmayan bu proje için geçici GitHub makinesindeki kullanılmayan sayısal sürümlü Android NDK paketleri SDK yöneticisiyle kaldırılacak; disk alanı önce/sonra gösterilecek. Yerel bilgisayarın SDK'sına veya kullanıcının açık emülatörüne uygulanmaz. Bu altyapı düzeltmesi uygulama kodunu değiştirmez.
+- CI cihaz işinde, native kütüphanesi/NDK derlemesi olmayan bu proje için geçici GitHub makinesindeki kullanılmayan sayısal sürümlü Android NDK paketleri SDK yöneticisiyle kaldırıldı; disk alanı önce/sonra gösterildi. Yerel bilgisayarın SDK'sına veya kullanıcının açık emülatörüne uygulanmaz. Bu altyapı düzeltmesi uygulama kodunu değiştirmez.
+
+- Son yeşil CI'nin `b675e67` kaynağı ile imzalı APK kaynağı `81c97a6` için `app/` Git ağacı aynıdır (`ad76cc9b7609e659a6a932b72e7938babba8f179`). v0.1.3 etiketi APK'nın gerçek kaynak commit'ine bağlanır; CI düzeltmeleri ve bu doğrulama notları main'de ayrıca bulunur.
+- Son CI'de API 24 işinin gösterdiği boş alan, yalnız geçici makinedeki kullanılmayan NDK paketleri kaldırılınca yaklaşık 13 GB'tan 19 GB'a çıktı. API 24 ve API 35 uygulama testleri başarılı tamamlandı. Config değerinin tek başına gerçek emülatör disk/RAM kullanımını sınırladığı iddia edilmez.
