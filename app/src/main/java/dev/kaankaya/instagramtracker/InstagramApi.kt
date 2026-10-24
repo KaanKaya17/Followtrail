@@ -36,8 +36,10 @@ class InstagramApi(
             }
         }
         var ownedConnection: HttpsURLConnection? = null
+        var lease: AutoCloseable? = null
         try {
             ensureCurrent()
+            lease = gate.claim()
             gate.begin()
             val connection = openConnection(URL(address))
             ownedConnection = connection
@@ -83,12 +85,15 @@ class InstagramApi(
             ensureCurrent()
             gate.succeeded()
             return profile
-        } catch (failure: ApiFailure) { throw failure }
+        } catch (failure: ApiFailure) {
+            if (failure.kind in setOf(ApiFailure.Kind.SESSION_EXPIRED, ApiFailure.Kind.VERIFICATION)) gate.pauseForConnection()
+            throw failure
+        }
         catch (_: java.io.IOException) { ensureCurrent(); throw ApiFailure(ApiFailure.Kind.CONNECTION) }
         catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE) }
         finally {
             synchronized(lock) { if (active === ownedConnection) active = null }
-            ownedConnection?.disconnect()
+            try { ownedConnection?.disconnect() } finally { lease?.close() }
         }
     }
     private fun java.io.InputStream.readNBytesBounded(limit: Int): ByteArray {

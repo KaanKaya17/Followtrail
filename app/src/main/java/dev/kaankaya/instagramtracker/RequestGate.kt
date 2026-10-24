@@ -31,19 +31,29 @@ object RetryPolicy {
 class RequestGate(context: Context, name: String = "request_gate") {
     // Activity recreation can create multiple owners of the same preferences.
     // Reserve requests across those instances, not only within one instance.
-    companion object { private val lock = Any(); const val AUTO_INTERVAL_MS = 15 * 60 * 1000L }
+    companion object { private val lock = Any(); private val active = mutableSetOf<String>(); const val AUTO_INTERVAL_MS = 15 * 60 * 1000L }
+    private val identity = "${context.packageName}:$name"
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
     fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0)) }
     fun manualOnly(): Boolean = synchronized(lock) { preferences.getBoolean("manual_only", false) || blockedUntil() > 0 }
     fun lastLimitedAt(): Long = synchronized(lock) { preferences.getLong("limited_at", 0) }
     fun limitReason(): String = synchronized(lock) { preferences.getString("limit_reason", null) ?: "Önceki sürümde kaydedilen sınırlama" }
+    fun requiresConnection(): Boolean = synchronized(lock) { preferences.getBoolean("requires_connection", false) }
+    fun pauseForConnection() = synchronized(lock) {
+        if (!preferences.edit().putBoolean("requires_connection", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
+    fun claim(): AutoCloseable = synchronized(lock) {
+        if (!active.add(identity)) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        var closed = false
+        AutoCloseable { synchronized(lock) { if (!closed) { active.remove(identity); closed = true }; Unit } }
+    }
     fun autoAllowed(profile: Profile, now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        !manualOnly() && PeoplePolicy.needsRefresh(profile, now) && nextAllowedAt() <= now &&
+        !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && nextAllowedAt() <= now &&
             preferences.getLong("auto_after", 0) <= now
     }
     fun reserveAutomatic(now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        if (manualOnly() || nextAllowedAt() > now || preferences.getLong("auto_after", 0) > now) return false
+        if (manualOnly() || requiresConnection() || nextAllowedAt() > now || preferences.getLong("auto_after", 0) > now) return false
         if (!preferences.edit().putLong("auto_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
         true
     }
@@ -66,6 +76,7 @@ class RequestGate(context: Context, name: String = "request_gate") {
     fun succeeded() = synchronized(lock) {
         // A successful manual read resumes normal cached own-account refreshes.
         if (!preferences.edit().putBoolean("manual_only", false).putLong("blocked_until", 0)
+                .putBoolean("requires_connection", false)
                 .putInt("limit_streak", 0).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
 }

@@ -2,21 +2,24 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.3**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; önceki telefon denemesi sınırlama ekranında kaldı. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.4**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; son emülatör girişinde kullanıcı HTTP 429 bildirdi ve canlı test durduruldu. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
 
 ## Kullanım
 
 İlk bağlantı uygulama içindeki Instagram HTTPS web giriş sayfasında yapılır. Uygulama parola alanını okumaz; API için gerekli oturum çerezlerini kullanır. Instagram giriş/doğrulama veya kısıtlama uygulayabilir. Kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
 
-- **Özet:** kendi hesabının son başarılı takipçi/takip edilen sayıları ve gözlem zamanı. Açılışta önce kayıt gösterilir. Otomatik yenileme için kayıt en az 15 dakika eski olmalı; otomatik denemeler de en az 15 dakika aralıklıdır. Arka plan taraması yoktur.
+- **Özet:** kendi hesabının son başarılı takipçi/takip edilen sayıları ve gözlem zamanı. Açılışta önce kayıt gösterilir. Otomatik yenileme için kayıt en az 15 dakika eski olmalı; otomatik denemeler de en az 15 dakika aralıklıdır.
 - **Kişiler:** kullanıcı adı veya HTTPS Instagram profil bağlantısıyla kişi ekle. İlk sorgu tek profil isteğidir. Sonraki sorgular sabit hesap kimliğine göre yapılır; kullanıcı adı değişmesi başka kişinin geçmişiyle karışmaz. Liste ve analiz açılışında otomatik sorgu yapılmaz.
 - **Analiz:** takipçi, takip edilen, varsa gönderi sayısı; önceki gözleme göre net fark; 7/30 gün veya tüm kayıtlar; zaman eksenli grafik; son 10 gözlemin metin dökümü; özel not ve grup. Eksik gönderi sayısı sıfır yapılmaz. Geçmiş ilk gözlemden başlar; gelen/giden kişilerin kimliği çıkarılamaz.
+- **Bildirim:** kişi analizinde izlemeyi aç; en az 1, 6 veya 24 saat aralığı seç. Takipçi/takip edilen sayısında gözlemlenen net değişim için yerel Android bildirimi gelir. İlk kayıt ve yalnız gönderi değişimi bildirim üretmez. Uygulama ekranı kapalıyken de JobScheduler çalışabilir; anlık bildirim değildir. Pil tasarrufu, Doze, üretici ayarları ve çok sayıda izlenen kişi gecikme yaratır. Zorla durdurma sonrası uygulamayı yeniden açmak gerekir.
 - Bu önizlemede cihaz kaydını sınırlamak için en fazla **20 kişi**, kişi başına son **90 başarılı gözlem**, 500 karakter not ve 40 karakter grup saklanır. Bunlar Instagram'ın güvenli istek limitleri değildir.
 - Tek kişiyi kaldırma o kişinin geçmiş ve notunu siler. **Bağlantıyı kaldır** bu uygulamadaki oturumu ve bütün kişileri siler; diğer Instagram oturumlarını kapatmaz.
 
 ## İstekler ve sınırlama
 
-Bütün profil okumaları aynı kalıcı en az 15 saniye aralığını kullanır. Toplu takipçi taraması, otomatik kişi yenilemesi, farklı uçlara tekrar deneme veya otomatik yeniden giriş yoktur. Düğmeler istek sırasında kapanır; ekranın eski isteği iptal edilirse geç yanıt kaydedilmez.
+Bütün profil okumaları aynı kalıcı en az 15 saniye aralığını ve tek etkin bağlantıyı kullanır. Otomatik okumalar ortak 15 dakikalık bütçeyi paylaşır; her arka plan çalışmasında yalnız sıradaki bir kişi sorgulanır. 20 kişi açıkken herkesin saatte bir kontrol edilmesi beklenmemelidir. Kişi bazındaki süre başarısız istekten önce de ayrılır. Toplu takipçi taraması, farklı uçlara tekrar deneme veya otomatik yeniden giriş yoktur. Düğmeler istek sırasında kapanır; ekranın eski isteği iptal edilirse geç yanıt kaydedilmez.
+
+Bildirim izni/kanalı kapalıysa arka plan sorgusu yapılmaz. Oturum veya doğrulama hatasında otomatik çalışma yeniden bağlantıya kadar durur. İzlemeyi kapatmak, kişiyi silmek veya bağlantıyı kaldırmak ilgili işi/bildirimi iptal eder. Bildirim ayrıntıları kilit ekranında gizli olarak işaretlenir; son görünüm Android ve kullanıcının sistem ayarlarına bağlıdır. Bildirim yalnız iki gözlem arasındaki net farkı gösterir; aradaki bütün hareketleri göstermez.
 
 Instagram 429 veya tanınan bekleme yanıtı verirse otomatik okuma kalıcı olarak durur. İlk yerel mola en az 1 saat; tekrarlarında 2/4/8/16/24 saate çıkar. Sunucunun Retry-After değeri daha uzunsa korunur. Bu saat Instagram kısıtlamasının kalkış saati değildir. Mola bitince kendiliğinden deneme yapılmaz; başarılı bir açık kullanıcı yenilemesi normal önbellekli akışı açar. Önceki sürümde kaydedilen sınırlama da otomatik okumayı durdurur.
 
@@ -31,7 +34,7 @@ Ekran kaydedilmiş son sınırlama yanıtının zamanını ve yerel molayı ayı
 .\scripts\start-preview.ps1
 ```
 
-Bu çalışma alanındaki TrackerQA AVD'si kullanılır. Başka bilgisayarda mevcut AVD'yi `-AvdName` ile seç. Emülatör zaten başsız çalışıyorsa görünür pencere için önce onu kapatıp script'i yeniden çalıştır. Debug karşılama ekranında **Çevrimdışı demoyu aç** da bulunur. Örnek iki kişinin geçmişi vardır; yeni kişi için `@efe.demo`, bulunamama senaryosu için `@bulunamadi.demo` denenebilir. Gerçek kullanıcı adı girilse de demo gerçek profil sorgulamaz.
+Bu çalışma alanındaki TrackerQA AVD'si kullanılır. Başka bilgisayarda mevcut AVD'yi `-AvdName` ile seç. Emülatör zaten başsız çalışıyorsa görünür pencere için önce onu kapatıp script'i yeniden çalıştır. Debug karşılama ekranında **Çevrimdışı demoyu aç** da bulunur. Örnek iki kişinin geçmişi vardır; yeni kişi için `@efe.demo`, bulunamama senaryosu için `@bulunamadi.demo` denenebilir. Gerçek kullanıcı adı girilse de demo gerçek profil sorgulamaz. Demo bildirimleri de ayrı debug servisiyle sentetik taşıma kullanır; bildirimde DEMO etiketi bulunur.
 
 Release APK farklı paket kimliği kullanır, demo taşımasını içermez ve `offline_preview` parametresini yok sayar. Demo başarısı canlı Instagram başarısı değildir. Gerçek hesap denemesi istenirse demo dışında ayrıca giriş gerekir; telefondaki oturum bilgisayara taşınmaz.
 

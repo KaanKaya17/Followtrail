@@ -29,8 +29,11 @@ class DevicePrivacyTest {
     @Test fun productionManifestHasNoBackupOrExtraPermissions() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         @Suppress("DEPRECATION") val info = context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.GET_PERMISSIONS)
-        assertEquals(setOf("android.permission.INTERNET"), info.requestedPermissions.orEmpty().toSet())
+        assertEquals(setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE",
+            "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.POST_NOTIFICATIONS"), info.requestedPermissions.orEmpty().toSet())
         assertEquals(0, info.applicationInfo!!.flags and android.content.pm.ApplicationInfo.FLAG_ALLOW_BACKUP)
+        val service = context.packageManager.getServiceInfo(android.content.ComponentName(context, MonitorJobService::class.java), 0)
+        assertEquals("android.permission.BIND_JOB_SERVICE", service.permission)
     }
     @Test fun pauseAndMinimumSpacingSurviveNewGateInstance() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

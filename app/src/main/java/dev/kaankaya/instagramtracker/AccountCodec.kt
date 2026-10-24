@@ -16,8 +16,9 @@ object AccountCodec {
     fun encode(account: SavedAccount): String {
         val people = JSONArray()
         for (person in account.people) people.put(JSONObject().put("note", person.note).put("group", person.group)
+            .put("watching", person.watching).put("intervalHours", person.intervalHours).put("nextCheckAt", person.nextCheckAt)
             .put("history", JSONArray().apply { person.history.forEach { put(profile(it)) } }))
-        val result = JSONObject().put("version", 2).put("id", account.session.userId)
+        val result = JSONObject().put("version", 3).put("id", account.session.userId)
             .put("cookie", account.session.cookie).put("ua", account.session.userAgent)
             .put("profile", profile(account.profile)).put("people", people).toString()
         // Validate at the owning boundary on both read and write.
@@ -27,7 +28,7 @@ object AccountCodec {
     fun decode(text: String): SavedAccount {
         val json = JSONObject(text)
         val version = json.getInt("version")
-        require(version in 1..2)
+        require(version in 1..3)
         val session = SessionCookies.fromHeader(json.getString("cookie"), json.getString("ua"))
             ?: throw IllegalArgumentException("Invalid session")
         require(session.userId == json.getString("id"))
@@ -46,7 +47,11 @@ object AccountCodec {
             val history = (0 until observations.length()).map { profile(observations.getJSONObject(it)) }
             require(history.all { it.userId == history.first().userId })
             require(history.zipWithNext().all { (a, b) -> a.observedAt < b.observedAt })
-            TrackedPerson(history, note, group)
+            val watching = if (version < 3) false else person.get("watching") as? Boolean ?: error("Invalid watch setting")
+            val hours = if (version < 3) 1 else person.getInt("intervalHours")
+            val nextCheck = if (version < 3) 0L else person.getLong("nextCheckAt")
+            require(hours in listOf(1, 6, 24) && nextCheck >= 0)
+            TrackedPerson(history, note, group, watching, hours, nextCheck)
         }
         require(people.map { it.latest.userId }.distinct().size == people.size)
         return SavedAccount(session, own, people)

@@ -27,6 +27,8 @@ class PeopleScreenTest {
     }
     @After fun cleanup() {
         scenario?.close()
+        PreviewMode.cancel(context)
+        ChangeNotifications(context).clear()
         SessionVault(context, "previewaccount").clear()
         context.getSharedPreferences("preview_gate", 0).edit().clear().commit()
     }
@@ -101,6 +103,23 @@ class PeopleScreenTest {
     private fun dialogClick(label: String) {
         assertTrue(dialogNode(label).performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK))
         instrumentation.waitForIdleSync()
+    }
+    @Test fun watchSettingsPersistAcrossRecreationAndDisableCancelsJob() {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                "pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
+            instrumentation.waitForIdleSync()
+        }
+        launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
+        click("Değişiklik bildirimini aç"); dialogClick("En az 6 saat arayla"); dialogClick("İzlemeyi aç")
+        awaitLabel("Açık · En az 6 saat arayla kontrol edilir.")
+        val person = SessionVault(context, "previewaccount").read()!!.people.first()
+        assertTrue(person.watching); assertEquals(6, person.intervalHours)
+        scenario!!.recreate(); awaitLabel("Açık · En az 6 saat arayla kontrol edilir.")
+        click("Bu kişide izlemeyi kapat"); awaitLabel("Kapalı · Bu kişi arka planda sorgulanmaz.")
+        assertFalse(SessionVault(context, "previewaccount").read()!!.people.first().watching)
+        assertNull(context.getSystemService(android.app.job.JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))
+        assertEquals(0L, RequestGate(context, "preview_gate").nextAllowedAt())
     }
     @Test fun addEditAndRemoveUseTheRealDialogsAndEncryptedStorage() {
         launch(); click("Kişiler"); click("Kişi ekle")
