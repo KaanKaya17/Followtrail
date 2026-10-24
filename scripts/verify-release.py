@@ -25,6 +25,9 @@ def verify(apk: Path, sdk: Path) -> dict:
     service_blocks = re.split(r'(?m)^\s*E: service ', manifest)[1:]
     if len(service_blocks) != 1 or 'MonitorJobService' not in service_blocks[0] or 'android.permission.BIND_JOB_SERVICE' not in service_blocks[0]:
         raise ValueError('Expected one system-protected background job service')
+    labs = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'ConnectionLabActivity' in block]
+    if len(labs) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', labs[0]):
+        raise ValueError('Connection prototype must be non-exported')
     for attribute in ('allowBackup', 'usesCleartextTraffic'):
         if not re.search(r'android:' + attribute + r'\([^)]*\)=\(type 0x12\)0x0\s', manifest):
             raise ValueError(attribute + ' must be explicitly disabled')
@@ -36,7 +39,7 @@ def verify(apk: Path, sdk: Path) -> dict:
         if any(name.startswith('lib/') for name in archive.namelist()):
             raise ValueError('Unexpected native architecture dependency')
         for name in archive.namelist():
-            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection', b'DemoMonitorJobService')):
+            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection', b'DemoMonitorJobService', b'tracker-fixture.invalid')):
                 raise ValueError('Debug preview transport must not be in the production APK')
     with apk.open('rb') as stream:
         digest = hashlib.file_digest(stream, 'sha256').hexdigest()

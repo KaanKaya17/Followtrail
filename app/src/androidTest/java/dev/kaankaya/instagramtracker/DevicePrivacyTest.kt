@@ -34,6 +34,8 @@ class DevicePrivacyTest {
         assertEquals(0, info.applicationInfo!!.flags and android.content.pm.ApplicationInfo.FLAG_ALLOW_BACKUP)
         val service = context.packageManager.getServiceInfo(android.content.ComponentName(context, MonitorJobService::class.java), 0)
         assertEquals("android.permission.BIND_JOB_SERVICE", service.permission)
+        val lab = context.packageManager.getActivityInfo(android.content.ComponentName(context, ConnectionLabActivity::class.java), 0)
+        assertFalse(lab.exported)
     }
     @Test fun pauseAndMinimumSpacingSurviveNewGateInstance() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

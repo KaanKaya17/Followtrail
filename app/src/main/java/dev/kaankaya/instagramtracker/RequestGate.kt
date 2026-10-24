@@ -40,6 +40,17 @@ class RequestGate(context: Context, name: String = "request_gate") {
     fun lastLimitedAt(): Long = synchronized(lock) { preferences.getLong("limited_at", 0) }
     fun limitReason(): String = synchronized(lock) { preferences.getString("limit_reason", null) ?: "Önceki sürümde kaydedilen sınırlama" }
     fun requiresConnection(): Boolean = synchronized(lock) { preferences.getBoolean("requires_connection", false) }
+    fun prototypeActive(): Boolean = synchronized(lock) { preferences.getBoolean("prototype_active", false) }
+    fun setPrototypeActive(active: Boolean) = synchronized(lock) {
+        if (!preferences.edit().putBoolean("prototype_active", active).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
+    fun nextPrototypeAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("prototype_after", 0)) }
+    fun beginPrototype(now: Long = System.currentTimeMillis()) = synchronized(lock) {
+        if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
+        if (nextPrototypeAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        begin(now)
+        if (!preferences.edit().putLong("prototype_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
     fun pauseForConnection() = synchronized(lock) {
         if (!preferences.edit().putBoolean("requires_connection", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
@@ -49,11 +60,11 @@ class RequestGate(context: Context, name: String = "request_gate") {
         AutoCloseable { synchronized(lock) { if (!closed) { active.remove(identity); closed = true }; Unit } }
     }
     fun autoAllowed(profile: Profile, now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && nextAllowedAt() <= now &&
+        !prototypeActive() && !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && nextAllowedAt() <= now &&
             preferences.getLong("auto_after", 0) <= now
     }
     fun reserveAutomatic(now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        if (manualOnly() || requiresConnection() || nextAllowedAt() > now || preferences.getLong("auto_after", 0) > now) return false
+        if (prototypeActive() || manualOnly() || requiresConnection() || nextAllowedAt() > now || preferences.getLong("auto_after", 0) > now) return false
         if (!preferences.edit().putLong("auto_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
         true
     }
