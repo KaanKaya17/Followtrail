@@ -6,7 +6,7 @@ Geliştirme sürümü 0.1.0. Canlı Android hesap testi tamamlanana kadar giriş
 
 ## Temel kararlar
 - Native Kotlin/Android arayüzü; Python, sunucu, reklam, analitik veya çökme toplama servisi yok.
-- Android 6.0+ (API 23), işlemciye özel native kütüphane yok. Minimum sürüm desteği test kapsamıyla aynı şey değildir.
+- Android 7.0+ (API 24), işlemciye özel native kütüphane yok. Minimum sürüm desteği test kapsamıyla aynı şey değildir.
 - İlk bağlantı uygulama içindeki Instagram web giriş sayfasında. Parola uygulama kodunca okunmaz. Sonraki açılışlarda oturumla API okuma hedeflenir.
 - Oturum AES-GCM / Android Keystore ile cihazda şifrelenir. Yedekleme ve cihaz aktarımı kapalıdır.
 - Ağ istekleri Instagram'a gider; kullanıcı verisinin hiç ağdan çıkmadığı iddia edilmez.
