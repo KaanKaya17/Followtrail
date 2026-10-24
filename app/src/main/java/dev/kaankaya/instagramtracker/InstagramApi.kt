@@ -15,7 +15,20 @@ class InstagramApi(
         val connection = synchronized(lock) { generation++; active.also { active = null } }
         connection?.disconnect()
     }
-    fun read(session: Session): Profile {
+    fun read(session: Session): Profile = readId(session, session.userId)
+    fun readId(session: Session, userId: String): Profile {
+        require(userId.matches(Regex("[1-9][0-9]{0,29}")))
+        return request(session, "https://www.instagram.com/api/v1/users/$userId/info/") {
+            ProfileParser.parse(it, userId, System.currentTimeMillis())
+        }
+    }
+    fun readUsername(session: Session, username: String): Profile {
+        require(ProfileInput.validUsername(username))
+        return request(session, "https://www.instagram.com/api/v1/users/web_profile_info/?username=$username") {
+            ProfileParser.byUsername(it, username, System.currentTimeMillis())
+        }
+    }
+    private fun request(session: Session, address: String, parse: (String) -> Profile): Profile {
         val ticket = synchronized(lock) { generation }
         fun ensureCurrent() {
             if (Thread.currentThread().isInterrupted || synchronized(lock) { ticket != generation }) {
@@ -26,7 +39,7 @@ class InstagramApi(
         try {
             ensureCurrent()
             gate.begin()
-            val connection = openConnection(URL("https://www.instagram.com/api/v1/users/${session.userId}/info/"))
+            val connection = openConnection(URL(address))
             ownedConnection = connection
             synchronized(lock) {
                 ensureCurrent()
@@ -48,7 +61,7 @@ class InstagramApi(
             val status = connection.responseCode
             ensureCurrent()
             fun limited(): Nothing {
-                gate.limited(connection.getHeaderField("Retry-After"))
+                gate.limited(connection.getHeaderField("Retry-After"), reason = if (status == 429) "HTTP 429" else "Instagram bekleme yanıtı")
                 throw ApiFailure(ApiFailure.Kind.LIMITED)
             }
             if (status == 429) limited()
@@ -64,9 +77,11 @@ class InstagramApi(
                 "Please wait a few minutes before you try again." -> limited()
             }
             if (status == 403) throw ApiFailure(ApiFailure.Kind.VERIFICATION)
+            if (status == 404) throw ApiFailure(ApiFailure.Kind.NOT_FOUND)
             if (status !in 200..299) throw ApiFailure(ApiFailure.Kind.CONNECTION)
-            val profile = ProfileParser.parse(text, session.userId, System.currentTimeMillis())
+            val profile = parse(text)
             ensureCurrent()
+            gate.succeeded()
             return profile
         } catch (failure: ApiFailure) { throw failure }
         catch (_: java.io.IOException) { ensureCurrent(); throw ApiFailure(ApiFailure.Kind.CONNECTION) }

@@ -1,45 +1,53 @@
 # InstagramTracker
 
-Yerel Android uygulaması. İlk sürüm yalnız kendi hesabının takipçi ve takip edilen sayılarını gösterir.
+Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme sürümü 0.1.2. Android 13 telefona 0.1.0 kuruldu ve giriş denendi. Kullanıcı sayı ekranına ulaşmadan Instagram sınırlaması gördü; canlı Android sayaç okuması ve otomatik yeniden açılış henüz doğrulanmadı. Son sürümlerde tekrarlı istek koruması, iptal akışı ve otomatik kontroller geliştirildi. [Doğrulama](docs/VALIDATION.md).
-
-## Temel kararlar
-- Native Kotlin/Android arayüzü; Python, sunucu, reklam, analitik veya çökme toplama servisi yok.
-- Android 7.0+ (API 24), işlemciye özel native kütüphane yok. Minimum sürüm desteği test kapsamıyla aynı şey değildir.
-- İlk bağlantı uygulama içindeki Instagram web giriş sayfasında. Parola uygulama kodunca okunmaz. Sonraki açılışlarda oturumla API okuma hedeflenir.
-- Oturum AES-GCM / Android Keystore ile cihazda şifrelenir. Yedekleme ve cihaz aktarımı kapalıdır.
-- Ağ istekleri Instagram'a gider; kullanıcı verisinin hiç ağdan çıkmadığı iddia edilmez.
-
-Bu ürün Meta/Instagram tarafından sunulmaz veya desteklenmez. Kullanılan kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
+Geliştirme önizlemesi **0.1.3**. Gerçek Instagram hesabıyla Android sayaç okuması henüz doğrulanmadı; önceki telefon denemesi sınırlama ekranında kaldı. Çevrimdışı emülatör testleri canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
 
 ## Kullanım
 
-İlk açılışta **Instagram ile bağlan** üzerinden hesabına giriş yap. Giriş tamamlandığında uygulama oturum çerezleriyle kendi profilini bir kez okumayı dener. Otomatik geçiş olmadıysa **Giriş yaptım, bağlantıyı tamamla** düğmesi bir deneme başlatır; işlem sürerken düğme kapanır. Giriş/kod alanları Instagram sayfasınındır, sohbete bilgi gönderme.
+İlk bağlantı uygulama içindeki Instagram HTTPS web giriş sayfasında yapılır. Uygulama parola alanını okumaz; API için gerekli oturum çerezlerini kullanır. Instagram giriş/doğrulama veya kısıtlama uygulayabilir. Kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
 
-Başarılı profil okumasından sonra oturum ve son sayılar şifreli saklanır. Sonraki açılış/ön plana gelişte bekleme süresi uygunsa otomatik yenilenir. Kayıtlı sayılar kendi gerçek gözlem zamanı ile gösterilir; hata yeni veya sıfır sayı üretmez. **Bağlantıyı kaldır** kayıtlı oturumu ve sayıları siler; diğer Instagram oturumlarını kapatmaz.
+- **Özet:** kendi hesabının son başarılı takipçi/takip edilen sayıları ve gözlem zamanı. Açılışta önce kayıt gösterilir. Otomatik yenileme için kayıt en az 15 dakika eski olmalı; otomatik denemeler de en az 15 dakika aralıklıdır. Arka plan taraması yoktur.
+- **Kişiler:** kullanıcı adı veya HTTPS Instagram profil bağlantısıyla kişi ekle. İlk sorgu tek profil isteğidir. Sonraki sorgular sabit hesap kimliğine göre yapılır; kullanıcı adı değişmesi başka kişinin geçmişiyle karışmaz. Liste ve analiz açılışında otomatik sorgu yapılmaz.
+- **Analiz:** takipçi, takip edilen, varsa gönderi sayısı; önceki gözleme göre net fark; 7/30 gün veya tüm kayıtlar; zaman eksenli grafik; son 10 gözlemin metin dökümü; özel not ve grup. Eksik gönderi sayısı sıfır yapılmaz. Geçmiş ilk gözlemden başlar; gelen/giden kişilerin kimliği çıkarılamaz.
+- Bu önizlemede cihaz kaydını sınırlamak için en fazla **20 kişi**, kişi başına son **90 başarılı gözlem**, 500 karakter not ve 40 karakter grup saklanır. Bunlar Instagram'ın güvenli istek limitleri değildir.
+- Tek kişiyi kaldırma o kişinin geçmiş ve notunu siler. **Bağlantıyı kaldır** bu uygulamadaki oturumu ve bütün kişileri siler; diğer Instagram oturumlarını kapatmaz.
 
-Sınırlama gelirse tekrar tekrar giriş yapma. Sunucu bekleme süresi bildirdiyse izlenir; bildirmediyse yerel 15 dakika mola uygulanır. Sürenin dolması kısıtlamanın kalktığı anlamına gelmez; süre dolunca otomatik istek gönderilmez. En az 15 saniye istek aralığı ve sınırlama molası uygulama yeniden başlatılsa veya bağlantı kaldırılsa da korunur. İlk 0.1.0 sürümü bu kaydı tutmadığından geçmiş kısıtlamayı 0.1.1 kendiliğinden bilemez.
+## İstekler ve sınırlama
+
+Bütün profil okumaları aynı kalıcı en az 15 saniye aralığını kullanır. Toplu takipçi taraması, otomatik kişi yenilemesi, farklı uçlara tekrar deneme veya otomatik yeniden giriş yoktur. Düğmeler istek sırasında kapanır; ekranın eski isteği iptal edilirse geç yanıt kaydedilmez.
+
+Instagram 429 veya tanınan bekleme yanıtı verirse otomatik okuma kalıcı olarak durur. İlk yerel mola en az 1 saat; tekrarlarında 2/4/8/16/24 saate çıkar. Sunucunun Retry-After değeri daha uzunsa korunur. Bu saat Instagram kısıtlamasının kalkış saati değildir. Mola bitince kendiliğinden deneme yapılmaz; başarılı bir açık kullanıcı yenilemesi normal önbellekli akışı açar. Önceki sürümde kaydedilen sınırlama da otomatik okumayı durdurur.
+
+Ekran kaydedilmiş son sınırlama yanıtının zamanını ve yerel molayı ayırır. Eski uyarının görünmesi yeni bir Instagram isteğinin reddedildiğini tek başına göstermez. Gerçek sınırlamanın nedeni ve süresi bu uygulamadan kesin belirlenemez.
+
+## Bilgisayarda aynı Android kodunu deneme
+
+Önceden kurulu Android SDK/emülatör ve JDK 21 gerekir. Bu iş akışı yazılım kurmaz. Telefon sürümüyle aynı ana Kotlin ekranları, parser, istek kapısı ve şifreli kayıt kullanılır. Debug sürümündeki belirgin **DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK** modu yalnız sentetik yanıt döndürür; gerçek hesaba bağlanmaz.
+
+```powershell
+.\gradlew.bat :app:assembleDebug
+.\scripts\start-preview.ps1
+```
+
+Bu çalışma alanındaki TrackerQA AVD'si kullanılır. Başka bilgisayarda mevcut AVD'yi `-AvdName` ile seç. Emülatör zaten başsız çalışıyorsa görünür pencere için önce onu kapatıp script'i yeniden çalıştır. Debug karşılama ekranında **Çevrimdışı demoyu aç** da bulunur. Örnek iki kişinin geçmişi vardır; yeni kişi için `@efe.demo`, bulunamama senaryosu için `@bulunamadi.demo` denenebilir. Gerçek kullanıcı adı girilse de demo gerçek profil sorgulamaz.
+
+Release APK farklı paket kimliği kullanır, demo taşımasını içermez ve `offline_preview` parametresini yok sayar. Demo başarısı canlı Instagram başarısı değildir. Gerçek hesap denemesi istenirse demo dışında ayrıca giriş gerekir; telefondaki oturum bilgisayara taşınmaz.
 
 ## Derleme ve doğrulama
 
-JDK 21, Android SDK 36 ve build-tools 36.0.0 kullanıldı. `ANDROID_HOME` veya izlenmeyen `local.properties` ile SDK yolunu tanımla.
+Android 7.0+ / API 24; compile/target 36. JDK 21 ve build-tools 36.0.0 kullanılır. SDK'yı `ANDROID_HOME` veya izlenmeyen `local.properties` ile tanımla.
 
 ```sh
 ./gradlew :app:testDebugUnitTest :app:lintRelease :app:assembleRelease
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-Windows: `gradlew.bat`. Release imzalama için `scripts/sign-release.ps1`, `%LOCALAPPDATA%/InstagramTracker/signing/` altında yerel bir anahtar oluşturur; parola Windows kullanıcı DPAPI'siyle korunur. Anahtar veya parola repoya girmez. Aynı anahtar sonraki APK güncellemeleri için gerekir; kendi güvenli yedeğini tut. APK'lar izlenmeyen `artifacts/` klasörüne yazılır. CI imzasız release derler; burada CI geçti iddiası yerel testlerden çıkarılmaz.
+Windows: `gradlew.bat`. [Yayın hazırlama](docs/RELEASING.md), [katkı](CONTRIBUTING.md), [CI](https://github.com/KaanKaya17/InstagramTracker/actions/workflows/android.yml). Gradle dağıtımı SHA-256, action sürümleri commit SHA, bağımlılıklar lockfile ile sabittir. Test uygulaması `.debug` paketinde üretim verisinden ayrıdır. CI testleri gerçek Instagram oturumu kullanmaz.
 
-## Tasarım ve gizlilik
+## Gizlilik
 
-[Canva arayüz taslağı](https://canva.link/g4rw1g4hoiufg4m) · [Gizlilik ve sınırlar](docs/PRIVACY.md) · [Sürümler](CHANGELOG.md)
+Oturum, kişiler, geçmiş ve notlar AES-GCM / Android Keystore ile bu cihazda şifrelenir. Bulut yedekleme ve cihaz aktarımı kapalıdır. Kendi sunucusu, reklam, analitik, çökme toplama SDK'sı ve işlemciye özel native kütüphane yoktur. Canlı giriş/profil istekleri Instagram'a gider; verinin hiç ağdan çıkmadığı iddia edilmez. [Gizlilik ve sınırlar](docs/PRIVACY.md), [güvenlik bildirimi](SECURITY.md).
 
-## Kalite kapıları
-
-5 JVM testi, Android 15 emülatörde 14 instrumentasyon testi ve lint yerelde geçti. Ağ testleri Instagram yerine sahte taşıma kullanır. [GitHub CI](https://github.com/KaanKaya17/InstagramTracker/actions/runs/40081063588) derleme/lint/yayın kontrolü ve Android 7/15 üzerinde 14'er instrumentasyon testiyle geçti; yeşil durum gerçek hesap desteğini kanıtlamaz. Test paketi `.debug` son ekiyle üretim oturumundan ayrıdır.
-
-Action sürümleri commit SHA ile, Gradle dağıtımı SHA-256 ile, Android bağımlılıkları lockfile ile sabitlenmiştir. CI raporları 14 gün saklanır; kullanıcı oturumu veya imza anahtarı yüklenmez.
-
-[Katkı](CONTRIBUTING.md) · [Güvenlik bildirimi](SECURITY.md) · [Yayın süreci](docs/RELEASING.md) · [CI](https://github.com/KaanKaya17/InstagramTracker/actions/workflows/android.yml)
+[Canva ilk arayüz taslağı](https://canva.link/g4rw1g4hoiufg4m) · [Sürümler](CHANGELOG.md)

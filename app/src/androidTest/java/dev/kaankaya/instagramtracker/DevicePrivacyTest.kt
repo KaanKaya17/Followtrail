@@ -12,10 +12,12 @@ class DevicePrivacyTest {
         val file = File(context.noBackupFilesDir, "testvault.enc")
         try {
             val session = SessionCookies.fromHeader("ds_user_id=123; sessionid=synthetic-private-token", "test-UA")!!
-            val account = SavedAccount(session, Profile("123", "synthetic", 0, 7, 1000))
+            val account = SavedAccount(session, Profile("123", "synthetic", 0, 7, 1000),
+                listOf(TrackedPerson(listOf(Profile("456", "synthetic_person", 12, 34, 1000, 0)), "private-note", "group")))
             vault.write(account)
             assertEquals(account, SessionVault(context, "testvault").read())
             assertFalse(String(file.readBytes(), Charsets.ISO_8859_1).contains("synthetic-private-token"))
+            assertFalse(String(file.readBytes(), Charsets.ISO_8859_1).contains("private-note"))
             val firstWrite = file.readBytes()
             vault.write(account)
             assertFalse(firstWrite.contentEquals(file.readBytes()))
@@ -48,7 +50,30 @@ class DevicePrivacyTest {
             try { RequestGate(context, "test_gate").begin(now + 16000); fail("Limit must survive restart") }
             catch (failure: ApiFailure) { assertEquals(ApiFailure.Kind.LIMITED, failure.kind) }
             // Expiry allows a user-triggered request, without automatically sending one.
-            recreated.begin(now + 120001)
+            recreated.begin(gate.blockedUntil() + 1)
+            assertTrue(recreated.manualOnly())
+            recreated.succeeded(); assertFalse(recreated.manualOnly())
+        } finally { settings.edit().clear().commit() }
+    }
+    @Test fun repeatedRestrictionsEscalateAndExpiredPauseNeverEnablesAutomaticRead() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val settings = context.getSharedPreferences("escalation_test", 0)
+        settings.edit().clear().commit()
+        try {
+            val gate = RequestGate(context, "escalation_test")
+            val now = System.currentTimeMillis()
+            gate.limited(null, now, "HTTP 429")
+            val firstEnd = gate.blockedUntil()
+            assertEquals(now + 3600000, firstEnd)
+            assertEquals(now, gate.lastLimitedAt()); assertEquals("HTTP 429", gate.limitReason())
+            gate.limited(null, firstEnd + 1)
+            assertEquals(firstEnd + 1 + 7200000, gate.blockedUntil())
+            val profile = Profile("123", "synthetic", 1, 2, 1000)
+            assertFalse(RequestGate(context, "escalation_test").autoAllowed(profile, gate.blockedUntil() + 1))
+            assertFalse(gate.reserveAutomatic(gate.blockedUntil() + 1))
+            gate.succeeded()
+            assertTrue(gate.reserveAutomatic(now)); assertFalse(gate.reserveAutomatic(now + 16000))
+            assertTrue(gate.reserveAutomatic(now + RequestGate.AUTO_INTERVAL_MS))
         } finally { settings.edit().clear().commit() }
     }
 }

@@ -61,6 +61,27 @@ class ApiContractTest {
         assertEquals(1, connection.responseReads)
         assertTrue(connection.disconnected)
     }
+    @Test fun selectedPersonLookupIsSingleRequestAndRefreshPinsStableIdentity() {
+        val web = Connection(body = """{"status":"ok","data":{"user":{"id":"456","username":"deniz","edge_followed_by":{"count":12},"edge_follow":{"count":7}}}}""")
+        var opened: URL? = null
+        val profile = InstagramApi(gate()) { url -> opened = url; web }.readUsername(session, "deniz")
+        assertEquals("https://www.instagram.com/api/v1/users/web_profile_info/?username=deniz", opened.toString())
+        assertEquals("456", profile.userId); assertNull(profile.posts); assertEquals(1, web.responseReads)
+        preferences.edit().clear().commit()
+        val renamed = Connection(body = """{"status":"ok","user":{"pk":"456","username":"renamed","follower_count":14,"following_count":7,"media_count":0}}""")
+        val refreshed = InstagramApi(gate()) { url -> opened = url; renamed }.readId(session, profile.userId)
+        assertEquals("https://www.instagram.com/api/v1/users/456/info/", opened.toString())
+        assertEquals("renamed", refreshed.username); assertEquals(0L, refreshed.posts)
+    }
+    @Test fun missingTargetDoesNotRetryAndMismatchCannotReplaceAnotherPerson() {
+        val connection = Connection(404)
+        failure(ApiFailure.Kind.NOT_FOUND) { InstagramApi(gate()) { connection }.readUsername(session, "absent") }
+        assertEquals(1, connection.responseReads); assertTrue(connection.disconnected)
+        preferences.edit().clear().commit()
+        failure(ApiFailure.Kind.WRONG_ACCOUNT) { InstagramApi(gate()) { Connection() }.readId(session, "456") }
+        preferences.edit().clear().commit()
+        failure(ApiFailure.Kind.INVALID_RESPONSE) { InstagramApi(gate()) { Connection(body = """{"status":"ok","data":{"user":null}}""") }.readUsername(session, "absent") }
+    }
     @Test fun server429PersistsWaitAndNextReaderNeverOpensConnection() {
         val connection = Connection(429, retryAfter = "120")
         val now = System.currentTimeMillis()

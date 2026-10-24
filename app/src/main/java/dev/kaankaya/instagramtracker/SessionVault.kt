@@ -4,7 +4,6 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.AtomicFile
-import org.json.JSONObject
 import java.io.File
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -28,35 +27,34 @@ class SessionVault(context: Context, slot: String = "account") {
         }.generateKey()
     }
     @Synchronized fun write(account: SavedAccount) {
-        val s = account.session
-        val p = account.profile
-        val json = JSONObject().put("version", 1).put("id", s.userId).put("cookie", s.cookie)
-            .put("ua", s.userAgent).put("username", p.username).put("followers", p.followers)
-            .put("following", p.following).put("observedAt", p.observedAt).toString()
+        val json = AccountCodec.encode(account).toByteArray(Charsets.UTF_8)
+        require(json.size <= 512 * 1024)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, key())
         cipher.updateAAD(aad)
-        val encrypted = cipher.doFinal(json.toByteArray(Charsets.UTF_8))
+        val encrypted = cipher.doFinal(json)
         val output = file.startWrite()
         try { output.write(cipher.iv); output.write(encrypted); file.finishWrite(output) }
         catch (failure: Exception) { file.failWrite(output); throw failure }
     }
     @Synchronized fun read(): SavedAccount? {
         if (!exists()) return null
-        val bytes = file.readFully()
-        require(bytes.size in 29..65536)
+        val bytes = file.openRead().use { input ->
+            val output = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(8192)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                require(output.size() <= 512 * 1024 + 28 - count)
+                output.write(buffer, 0, count)
+            }
+            output.toByteArray()
+        }
+        require(bytes.size >= 29)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, bytes.copyOfRange(0, 12)))
         cipher.updateAAD(aad)
-        val json = JSONObject(String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8))
-        require(json.getInt("version") == 1)
-        val session = SessionCookies.fromHeader(json.getString("cookie"), json.getString("ua"))
-            ?: throw IllegalArgumentException("Invalid session")
-        require(session.userId == json.getString("id"))
-        val profile = Profile(session.userId, json.getString("username"), json.getLong("followers"),
-            json.getLong("following"), json.getLong("observedAt"))
-        require(profile.username.isNotBlank() && profile.followers >= 0 && profile.following >= 0 && profile.observedAt > 0)
-        return SavedAccount(session, profile)
+        return AccountCodec.decode(String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8))
     }
     @Synchronized fun clear() {
         file.delete()
