@@ -4,15 +4,16 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId = "dev.kaankaya.instagramtracker"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
-        testInstrumentationRunner = "android.test.InstrumentationTestRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
-    kotlinOptions { jvmTarget = "17" }
     lint { abortOnError = true }
 }
-dependencies { testImplementation("junit:junit:4.13.2"); testImplementation("org.json:json:20240303") }
+dependencies { testImplementation("junit:junit:4.13.2"); testImplementation("org.json:json:20260814"); androidTestImplementation("androidx.test:runner:1.7.0"); androidTestImplementation("androidx.test.ext:junit:1.3.0") }
+
+kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }

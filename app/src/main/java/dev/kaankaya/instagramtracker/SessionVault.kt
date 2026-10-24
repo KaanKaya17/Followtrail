@@ -12,9 +12,10 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-class SessionVault(context: Context) {
-    private val file = AtomicFile(File(context.noBackupFilesDir, "account.enc"))
-    private val alias = "instagramtracker.account.v1"
+class SessionVault(context: Context, slot: String = "account") {
+    init { require(slot.matches(Regex("[a-z]+"))) }
+    private val file = AtomicFile(File(context.noBackupFilesDir, "$slot.enc"))
+    private val alias = "instagramtracker.$slot.v1"
     private val aad = "InstagramTracker/session/v1".toByteArray()
     fun exists(): Boolean = file.baseFile.exists()
     private fun key(): SecretKey {
