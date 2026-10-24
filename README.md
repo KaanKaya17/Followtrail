@@ -6,7 +6,7 @@ Geliştirme önizlemesi **0.1.6**. Windows'ta çalışan kayıtlı mobil oturumu
 
 ## Kullanım
 
-İlk bağlantı uygulama içindeki Instagram HTTPS web giriş sayfasında yapılır. Uygulama parola alanını okumaz; API için gerekli oturum çerezlerini kullanır. Instagram giriş/doğrulama veya kısıtlama uygulayabilir. Kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
+Bağlantı için Windows'taki mobil oturumu şifreli aktarma ve önceki uygulama içi HTTPS web girişi seçenekleri vardır. Mobil aktarım aşağıda açıklanır. Web girişinde uygulama parola alanını okumaz; gerekli oturum çerezlerini kullanır. Instagram giriş/doğrulama veya kısıtlama uygulayabilir. Kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
 
 - **Özet:** kendi hesabının son başarılı takipçi/takip edilen sayıları ve gözlem zamanı. Açılışta önce kayıt gösterilir. Otomatik yenileme için kayıt en az 15 dakika eski olmalı; otomatik denemeler de en az 15 dakika aralıklıdır.
 - **Kişiler:** kullanıcı adı veya HTTPS Instagram profil bağlantısıyla kişi ekle. İlk sorgu tek profil isteğidir. Sonraki sorgular sabit hesap kimliğine göre yapılır; kullanıcı adı değişmesi başka kişinin geçmişiyle karışmaz. Liste ve analiz açılışında otomatik sorgu yapılmaz.
