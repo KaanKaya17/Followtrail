@@ -155,15 +155,15 @@ class MainActivity : Activity() {
             page.gap(28)
             val row = LinearLayout(this)
             fun stat(label: String, value: Long, color: Int): LinearLayout = stack().apply {
-                background = shape(color); setPadding(dp(18), dp(22), dp(18), dp(22))
+                background = shape(color); minimumHeight = dp(155); setPadding(dp(18), dp(22), dp(18), dp(22))
                 addView(text(label, 13f, bg, true)); gap(26)
                 addView(text(NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR")).format(value), 30f, bg, true).apply {
                     maxLines = 1
                     if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 30, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
                 })
             }
-            row.addView(stat("Takipçi", saved.profile.followers, mint), LinearLayout.LayoutParams(0, dp(155), 1f).apply { marginEnd = dp(10) })
-            row.addView(stat("Takip edilen", saved.profile.following, lilac), LinearLayout.LayoutParams(0, dp(155), 1f))
+            row.addView(stat("Takipçi", saved.profile.followers, mint), LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(10) })
+            row.addView(stat("Takip edilen", saved.profile.following, lilac), LinearLayout.LayoutParams(0, -2, 1f))
             page.addView(row); page.gap(22)
             page.addView(text("SON BAŞARILI OKUMA", 10f, muted, true).apply { letterSpacing = .12f })
             page.gap(7)
@@ -213,7 +213,7 @@ class MainActivity : Activity() {
                 completionButton?.isEnabled = !loginChecking && gate.nextAllowedAt() <= System.currentTimeMillis()
                 completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 // No automatic retry when a pause expires.
-                loginStatus?.text = pauseMessage() ?: "Hazır olduğunda bağlantıyı tamamlamayı bir kez deneyebilirsin."
+                loginStatus?.text = pauseMessage() ?: getString(R.string.connection_ready)
             }
         }
     }
@@ -234,13 +234,15 @@ class MainActivity : Activity() {
         worker.execute {
             val result = try {
                 val updated = SavedAccount(saved.session, api.read(saved.session))
-                try { vault.write(updated) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
                 Result.success(updated)
             } catch (failure: ApiFailure) { Result.failure(failure) }
             main.post {
                 if (isDestroyed || ticket != generation) return@post
                 loading = false
-                result.onSuccess { account = it; needsConnection = false }
+                result.onSuccess {
+                    try { vault.write(it); account = it; needsConnection = false }
+                    catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
+                }
                     .onFailure { showFailure(it as ApiFailure) }
                 render()
             }
@@ -319,7 +321,7 @@ class MainActivity : Activity() {
             @Suppress("OVERRIDE_DEPRECATION")
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 handler.cancel()
-                main.post { loginStatus?.text = "Güvenli bağlantı doğrulanamadı. Giriş durduruldu." }
+                main.post { loginStatus?.setText(R.string.connection_tls_error) }
             }
             override fun onPageFinished(view: WebView, url: String) {
                 if (NavigationPolicy.isInstagram(url)) { loginLoaded = true; checkLogin() }
@@ -350,12 +352,12 @@ class MainActivity : Activity() {
         }
         val session = SessionCookies.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"), browser.settings.userAgentString)
         if (session == null) {
-            if (manual) loginStatus?.text = "Giriş henüz tamamlanmadı. Instagram ekranındaki adımları tamamla."
+            if (manual) loginStatus?.setText(R.string.connection_incomplete)
             return
         }
         loginChecking = true; loginAttempted = true
         completionButton?.isEnabled = false; completionButton?.alpha = .5f
-        loginStatus?.text = "Bağlantın doğrulanıyor ve sayılar alınıyor…"
+        loginStatus?.setText(R.string.connection_checking)
         val ticket = ++generation
         worker.execute {
             val result = try {

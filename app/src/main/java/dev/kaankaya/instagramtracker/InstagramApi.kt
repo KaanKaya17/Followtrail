@@ -4,15 +4,34 @@ import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class InstagramApi(private val gate: RequestGate) {
-    @Volatile private var active: HttpsURLConnection? = null
-    fun cancel() { active?.disconnect() }
+class InstagramApi(
+    private val gate: RequestGate,
+    private val openConnection: (URL) -> HttpsURLConnection = { it.openConnection() as HttpsURLConnection },
+) {
+    private val lock = Any()
+    private var generation = 0L
+    private var active: HttpsURLConnection? = null
+    fun cancel() {
+        val connection = synchronized(lock) { generation++; active.also { active = null } }
+        connection?.disconnect()
+    }
     fun read(session: Session): Profile {
-        gate.begin()
-        val connection = URL("https://www.instagram.com/api/v1/users/${session.userId}/info/")
-            .openConnection() as HttpsURLConnection
-        active = connection
+        val ticket = synchronized(lock) { generation }
+        fun ensureCurrent() {
+            if (Thread.currentThread().isInterrupted || synchronized(lock) { ticket != generation }) {
+                throw ApiFailure(ApiFailure.Kind.CANCELLED)
+            }
+        }
+        var ownedConnection: HttpsURLConnection? = null
         try {
+            ensureCurrent()
+            gate.begin()
+            val connection = openConnection(URL("https://www.instagram.com/api/v1/users/${session.userId}/info/"))
+            ownedConnection = connection
+            synchronized(lock) {
+                ensureCurrent()
+                active = connection
+            }
             connection.requestMethod = "GET"
             connection.instanceFollowRedirects = false
             connection.connectTimeout = 15000
@@ -25,7 +44,9 @@ class InstagramApi(private val gate: RequestGate) {
             connection.setRequestProperty("X-Requested-With", "XMLHttpRequest")
             connection.setRequestProperty("Referer", "https://www.instagram.com/")
             SessionCookies.csrf(session)?.let { connection.setRequestProperty("X-CSRFToken", it) }
+            ensureCurrent()
             val status = connection.responseCode
+            ensureCurrent()
             fun limited(): Nothing {
                 gate.limited(connection.getHeaderField("Retry-After"))
                 throw ApiFailure(ApiFailure.Kind.LIMITED)
@@ -44,11 +65,16 @@ class InstagramApi(private val gate: RequestGate) {
             }
             if (status == 403) throw ApiFailure(ApiFailure.Kind.VERIFICATION)
             if (status !in 200..299) throw ApiFailure(ApiFailure.Kind.CONNECTION)
-            return ProfileParser.parse(text, session.userId, System.currentTimeMillis())
+            val profile = ProfileParser.parse(text, session.userId, System.currentTimeMillis())
+            ensureCurrent()
+            return profile
         } catch (failure: ApiFailure) { throw failure }
-        catch (_: java.io.IOException) { throw ApiFailure(ApiFailure.Kind.CONNECTION) }
+        catch (_: java.io.IOException) { ensureCurrent(); throw ApiFailure(ApiFailure.Kind.CONNECTION) }
         catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE) }
-        finally { connection.disconnect(); if (active === connection) active = null }
+        finally {
+            synchronized(lock) { if (active === ownedConnection) active = null }
+            ownedConnection?.disconnect()
+        }
     }
     private fun java.io.InputStream.readNBytesBounded(limit: Int): ByteArray {
         val output = java.io.ByteArrayOutputStream()

@@ -20,3 +20,13 @@
 - İmzalı release: 685613 bayt, SHA-256 `9a4f00c1e79bb691be12f69d89e519e09514a4afb5eaee6ff0a65fe2bf7439dc`. APK imzası v2/v3 doğrulandı. Telefonun `/sdcard/Download/InstagramTracker-0.1.1.apk` yoluna kopyalandı; kullanıcı kurulumunu doğrulayana kadar cihazda güncellenmiş sayılmaz.
 - 0.1.0 geçmiş sınırlama zamanını saklamıyordu; güncelleme geçmişteki 429'u kendiliğinden bilemez. Kullanıcıya yeni giriş denemesi yapmaması bildirildi. 0.1.1 sonrası gözlenen sınırlamalar kalıcı mola uygular.
 - Android'de gerçek sayaç yanıtı ve yeni süreçte otomatik yenileme hâlâ doğrulanmadı. Sınırlamayı aşmaya yönelik oturum değiştirme, IP döndürme veya otomatik yeniden giriş yapılmadı.
+
+## 0.1.2
+
+- Beş JVM testi geçti. Tarih biçimli Retry-After alanına eklenmiş geçersiz son ekler de reddediliyor.
+- API 35 / Android 15 x86_64 emülatörde 14 instrumentasyon testi geçti: 8 API sınırı/iptal testi, 3 Keystore/manifest/istek aralığı testi ve 3 ekran akışı testi. Son kaynaklarla test APK'ları yeniden derlenip çalıştırıldı: `OK (14 tests)`, 9.88 saniye test süresi (derleme/kurulum hariç).
+- Taşıma testleri gerçek `InstagramApi.read` akışını sahte HttpsURLConnection ile çalıştırır: sabit HTTPS adresi/başlıklar, yönlendirmeme, HTTP 429/401/403/302/500, challenge, bozuk/aşırı büyük gövde, bağlantı hazırlama hatası, zaman aşımı, bağlantı oluşurken ve yanıt beklerken iptal, birden fazla gate örneğinde tek istek rezervasyonu.
+- Ekran testleri gerçek Activity'de bağlantısız ilk ekranı, sınırlama sırasında kayıtlı sentetik sayıları ve ekran yeniden oluşmasını, bozuk oturumda kurtarma seçeneğini sınar. Gerçek hesaba ağ isteği atılmaz. Testler normal release paketinden ayrı `.debug` paketinde çalışır.
+- Debug/release/test APK derlemesi ve lint geçti. Son lint raporunda hata veya uyarı yok. Bağımlılık kilidi üretildi; kilidi değiştirmeden normal `testDebugUnitTest lintRelease assembleRelease` kontrol komutu da geçti.
+- Önceki GitHub CI çalışmasının SDK kurulumu `Failed to find package 'tools'` hatasıyla testlere ulaşamadığı doğrulandı. Kaldırılmış paketin varsayılan kurulumuna dayanan action güncellendi; SDK paketleri açıkça seçildi. CI yeni commit'te ayrıca izlenecek.
+- Release APK kontrol script'i derlenmiş manifestte yalnız INTERNET izni, debug/backup/cleartext kapalı durumu, API 24/36 hedefi ve native kütüphane bulunmadığını doğruladı. Bu kontrol şifreleme, gerçek hesap veya penetrasyon testinin yerine geçmez.

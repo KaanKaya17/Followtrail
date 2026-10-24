@@ -1,0 +1,20 @@
+name: Hata bildirimi
+description: Kullanıcı verisi paylaşmadan bir sorunu bildirin.
+body:
+  - type: markdown
+    attributes:
+      value: Parola, kod, oturum, gerçek profil yanıtı veya kişisel bilgi içeren ekran görüntüsü eklemeyin. Güvenlik açıkları için SECURITY.md dosyasını izleyin.
+  - type: input
+    id: version
+    attributes:
+      label: Uygulama ve Android sürümü
+      description: Örneğin uygulama 0.1.2, Android 13; hesap adı gerekmez.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Adımlar, beklenen ve gözlenen sonuç
+      description: Yeniden üretim adımlarını ve hata ekranındaki genel mesajı yazın. Giriş bilgisi eklemeyin.
+    validations:
+      required: true

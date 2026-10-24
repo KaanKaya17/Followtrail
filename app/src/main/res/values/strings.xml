@@ -1,0 +1,6 @@
+<resources>
+    <string name="connection_ready">Hazır olduğunda bağlantıyı tamamlamayı bir kez deneyebilirsin.</string>
+    <string name="connection_tls_error">Güvenli bağlantı doğrulanamadı. Giriş durduruldu.</string>
+    <string name="connection_incomplete">Giriş henüz tamamlanmadı. Instagram ekranındaki adımları tamamla.</string>
+    <string name="connection_checking">Bağlantın doğrulanıyor ve sayılar alınıyor…</string>
+</resources>
