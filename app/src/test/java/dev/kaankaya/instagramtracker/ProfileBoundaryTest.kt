@@ -38,4 +38,12 @@ class ProfileBoundaryTest {
         }
         assertFalse(NavigationPolicy.isLoginResource("https://analytics.example/"))
     }
+    @Test fun serverWaitIsRespectedAndUnknownWaitUsesLocalPause() {
+        val now = 1700000000000L
+        assertEquals(now + 120000L, RetryPolicy.until("120", now))
+        assertEquals(1700000040000L, RetryPolicy.until("Tue, 14 Nov 2023 22:14:00 GMT", now))
+        for (header in listOf(null, "garbage", "99999999999999999999999999", "0", "-1")) {
+            assertEquals(now + RetryPolicy.FALLBACK_PAUSE_MS, RetryPolicy.until(header, now))
+        }
+    }
 }

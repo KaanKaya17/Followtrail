@@ -58,11 +58,12 @@ object ProfileParser {
 }
 
 class ApiFailure(val kind: Kind) : Exception(kind.name) {
-    enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, CONNECTION, INVALID_RESPONSE, WRONG_ACCOUNT, STORAGE }
+    enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, TOO_SOON, CONNECTION, INVALID_RESPONSE, WRONG_ACCOUNT, STORAGE }
     fun userMessage(): String = when (kind) {
         Kind.SESSION_EXPIRED -> "Bağlantının süresi dolmuş. Hesabını yeniden bağla."
         Kind.VERIFICATION -> "Instagram ek doğrulama istiyor. Bağlantıyı yenileyerek tamamlayabilirsin."
         Kind.LIMITED -> "Instagram şu anda yenilemeyi sınırlıyor. Biraz sonra tekrar dene."
+        Kind.TOO_SOON -> "Yeni bir istek için birkaç saniye bekle. Tekrar giriş yapmana gerek yok."
         Kind.CONNECTION -> "Bağlantı kurulamadı. İnternetini kontrol edip yeniden dene."
         Kind.INVALID_RESPONSE -> "Instagram sayıları beklenen biçimde döndürmedi. Daha sonra tekrar dene."
         Kind.WRONG_ACCOUNT -> "Hesap kimliği eşleşmedi. Bağlantıyı kaldırıp yeniden bağla."
