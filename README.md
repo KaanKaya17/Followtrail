@@ -38,7 +38,7 @@ Windows: `gradlew.bat`. Release imzalama için `scripts/sign-release.ps1`, `%LOC
 
 ## Kalite kapıları
 
-5 JVM testi, Android 15 emülatörde 14 instrumentasyon testi ve lint yerelde geçti. Ağ testleri Instagram yerine sahte taşıma kullanır. CI aynı kontrolleri ve Android 7/15 emülatör işlerini çalıştırır; yeşil durum gerçek hesap desteğini kanıtlamaz. Test paketi `.debug` son ekiyle üretim oturumundan ayrıdır.
+5 JVM testi, Android 15 emülatörde 14 instrumentasyon testi ve lint yerelde geçti. Ağ testleri Instagram yerine sahte taşıma kullanır. [GitHub CI](https://github.com/KaanKaya17/InstagramTracker/actions/runs/40081063588) derleme/lint/yayın kontrolü ve Android 7/15 üzerinde 14'er instrumentasyon testiyle geçti; yeşil durum gerçek hesap desteğini kanıtlamaz. Test paketi `.debug` son ekiyle üretim oturumundan ayrıdır.
 
 Action sürümleri commit SHA ile, Gradle dağıtımı SHA-256 ile, Android bağımlılıkları lockfile ile sabitlenmiştir. CI raporları 14 gün saklanır; kullanıcı oturumu veya imza anahtarı yüklenmez.
 
