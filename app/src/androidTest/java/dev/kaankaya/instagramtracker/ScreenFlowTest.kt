@@ -46,9 +46,11 @@ class ScreenFlowTest {
         scenario!!.onActivity { activity ->
             val labels = views(activity).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(labels.contains("Hesabın,\nbir bakışta."))
-            assertTrue(views(activity).filterIsInstance<Button>().single { it.text == "Instagram ile bağlan" }.isEnabled)
+            assertTrue(views(activity).filterIsInstance<Button>().single { it.text == "Hesap bağla" }.isEnabled)
             assertFalse(labels.contains("Takipçi"))
             assertFalse(labels.any { it.startsWith("@") })
+            assertFalse(labels.any { it.contains("prototip", true) || it.contains("HTTP") })
+            assertTrue(labels.joinToString(" ").split(Regex("\\s+")).size < 60)
         }
     }
     @Test fun savedCountsAndPauseSurviveActivityRecreationWithoutRequest() {
@@ -59,9 +61,11 @@ class ScreenFlowTest {
         fun assertSaved() = scenario!!.onActivity { activity ->
             val labels = views(activity).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(labels.contains("@synthetic_only")); assertTrue(labels.contains("37")); assertTrue(labels.contains("12"))
-            assertTrue(labels.any { it.contains("yeni istek göndermeyecek") })
-            assertFalse(views(activity).filterIsInstance<Button>().single { it.text == "Sayıları yenile" }.isEnabled)
-            assertTrue(views(activity).filterIsInstance<Button>().single { it.text == "Bağlantıyı kaldır" }.isEnabled)
+            assertTrue(labels.any { it.startsWith("Yeni deneme ·") })
+            assertFalse(views(activity).filterIsInstance<Button>().single { it.text == "Yenile" }.isEnabled)
+            assertTrue(views(activity).filterIsInstance<Button>().single { it.contentDescription == "Seçenekler" }.isEnabled)
+            assertFalse(labels.contains("Bağlantıyı kaldır"))
+            assertFalse(labels.any { it.contains("prototip", true) || it.contains("HTTP") })
         }
         assertSaved(); scenario!!.recreate()
         val deadline = android.os.SystemClock.elapsedRealtime() + 5000
@@ -79,7 +83,7 @@ class ScreenFlowTest {
         scenario!!.onActivity { activity ->
             val labels = views(activity).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(labels.any { it.contains("güvenli kayıt açılamadı") })
-            assertTrue(labels.contains("Kayıtlı bağlantıyı kaldır"))
+            assertTrue(views(activity).filterIsInstance<Button>().any { it.contentDescription == "Seçenekler" && it.isEnabled })
             assertFalse(labels.any { it.startsWith("@") })
         }
     }

@@ -21,7 +21,7 @@ object PreviewMode {
         val session = Session("100", "ds_user_id=100; sessionid=offline-demo", "offline-demo")
         val people = listOf("deniz.demo", "ada.demo").mapIndexed { index, name ->
             TrackedPerson((0..11).map { day -> Profile((200 + index).toString(), name,
-                1200L + index * 700 + day * 13, 340L + day * 2, now - (11 - day) * 86400000L, 42L + day / 3) },
+                1200L + index * 700 + day * 13, 340L + day * 2, now - PeoplePolicy.FRESH_MS - 60000 - (11 - day) * 86400000L, 42L + day / 3) },
                 "Bu bir örnek not. Gerçek hesap verisi değildir.", if (index == 0) "Arkadaşlar" else "İçerik üreticileri")
         }
         return SavedAccount(session, Profile("100", "benim.demo", 875, 412, now), people)

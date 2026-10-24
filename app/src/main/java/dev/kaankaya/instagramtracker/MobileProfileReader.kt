@@ -63,11 +63,8 @@ class MobileProfileReader(private val gate: RequestGate, private val sessions: M
             synchronized(lock) { current(); active = call }
             call.execute().use { response ->
                 current()
-                if (response.code == 429) {
-                    gate.limited(response.header("Retry-After"), reason = "Mobil API · HTTP 429")
-                    throw ApiFailure(ApiFailure.Kind.LIMITED)
-                }
-                if (response.isRedirect || response.code == 401) throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
+                gate.observedStatus(response.code)
+                InstagramResponsePolicy.checkHeaders(gate, response.code, response.header("Retry-After"))
                 val body = response.body ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 if (body.contentLength() > 1024 * 1024) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val source = body.source()
@@ -75,17 +72,7 @@ class MobileProfileReader(private val gate: RequestGate, private val sessions: M
                 if (source.buffer.size > 1024 * 1024) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val text = source.readUtf8()
                 val json = try { JSONObject(text) } catch (_: Exception) { null }
-                when (json?.optString("message")) {
-                    "login_required" -> throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
-                    "challenge_required", "checkpoint_required", "consent_required" -> throw ApiFailure(ApiFailure.Kind.VERIFICATION)
-                    "feedback_required", "please_wait_a_few_minutes", "Please wait a few minutes before you try again." -> {
-                        gate.limited(response.header("Retry-After"), reason = "Mobil API · bekleme yanıtı")
-                        throw ApiFailure(ApiFailure.Kind.LIMITED)
-                    }
-                }
-                if (response.code == 403) throw ApiFailure(ApiFailure.Kind.VERIFICATION)
-                if (response.code == 404) throw ApiFailure(ApiFailure.Kind.NOT_FOUND)
-                if (!response.isSuccessful) throw ApiFailure(ApiFailure.Kind.CONNECTION)
+                InstagramResponsePolicy.checkBody(gate, response.code, json, response.header("Retry-After"))
                 val profile = if (userId != null) ProfileParser.parse(text, userId, System.currentTimeMillis())
                     else ProfileParser.user(json?.getJSONObject("user") ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE), System.currentTimeMillis()).also {
                         if (json.optString("status") != "ok" || !it.username.equals(username, true)) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT)

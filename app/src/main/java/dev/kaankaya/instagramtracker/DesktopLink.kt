@@ -26,6 +26,10 @@ class DesktopLink(private val context: Context, namespace: String = "") {
     private val directory = context.getExternalFilesDir(null) ?: error("USB directory unavailable")
     internal val publicFile = File(directory, "${namespace}mobile-link-public.json")
     val bundleFile = File(directory, "${namespace}desktop-session.iglink")
+    fun isPrepared(now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
+        preferences.getLong("expires", 0) > now && publicFile.isFile &&
+            KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.containsAlias(alias)
+    }
     fun prepare(now: Long = System.currentTimeMillis()): Unit = synchronized(lock) {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         if (preferences.getLong("expires", 0) > now && store.containsAlias(alias) && publicFile.isFile) return@synchronized

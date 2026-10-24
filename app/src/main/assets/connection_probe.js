@@ -46,8 +46,9 @@
             let body;
             try { body = JSON.parse(text); } catch (_) { done({status, reason: 'invalid'}); return; }
             const message = body.message;
-            if (['feedback_required', 'please_wait_a_few_minutes', 'Please wait a few minutes before you try again.'].includes(message)) {
-                done({status, reason: 'limited', retryAfter}); return;
+            if (message === 'feedback_required') { done({status, reason: 'feedback', retryAfter}); return; }
+            if (['please_wait_a_few_minutes', 'Please wait a few minutes before you try again.'].includes(message)) {
+                done({status, reason: 'wait', retryAfter}); return;
             }
             if (message === 'login_required') { done({status, reason: 'login_required'}); return; }
             if (['challenge_required', 'checkpoint_required', 'consent_required'].includes(message)) {

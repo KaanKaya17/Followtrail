@@ -1,5 +1,14 @@
 # Değişiklikler
 
+## 0.1.7 — 2026-10-24 (sade arayüz ve istek denetimi)
+
+- Ana ekranda hesap, iki sayaç, son kayıt ve sabit tek yenile düğmesi; alt gezinme. Bağlantı yönetimi, gizlilik, teknik ayrıntı ve deney araçları üç nokta menüsüne taşındı. Kişi analizinde uzun açıklamalar/kayıt listesi isteğe bağlı ayrıntı oldu; bildirim tek anahtarla yönetiliyor.
+- Bağlantı aktarımı aynı anda tek adım gösteriyor; hazırlık ve bekleyen aktarım yeniden açılışta bulunuyor. Başka hesaba geçiş etkin hesabı ve molayı silmeden bekleyen aktarımı kaldırıyor.
+- Açılışta kendi hesabını otomatik yenileme varsayılan kapalı. Aynı profilin 15 dakikalık kaydı kullanılıyor; ağdan önce son şifreli kayıt yeniden denetlenerek eski ekranın taze kayda rağmen istek göndermesi engelleniyor.
+- Web girişi artık sayfa yüklenince profil GET'i başlatmıyor. Devam et tek açık deneme; bağlantı testleri ortak kalıcı 15 dakika bütçesinde. Başarılı yanıt yeni hesap bağlanmadan eski otomasyonu açmıyor.
+- Native yanıt sınıflandırması tek sahibi paylaşıyor; HTTP 429, bekleme, feedback ve doğrulama ayrılıyor. Sunucu Retry-After süresi ile yerel mola ayrıldı; bilinmeyen süre bilinmeyen kalıyor. Yerel okuma sayacı yalnız zaman/durum/sabit sinyal tutuyor.
+- 429 dayanakları, kapsamı ve test protokolü REQUEST-POLICY.md içinde. Yeni hesabın 429'dan etkilenmeyeceği veya erişimin kesin açılacağı iddia edilmez. Bu geliştirmede yeni canlı hesap isteği yapılmadı.
+
 ## 0.1.6 — 2026-10-24 (mobil oturum taşıma önizlemesi)
 
 - Windows instagrapi 3.2.0 oturumundan cihaza özel RSA-OAEP/AES-GCM şifreli yerel ADB aktarımı; aktarım sırasında Instagram isteği veya parola girişi yok.

@@ -28,6 +28,13 @@ class MobileSessions(context: Context, namespace: String = "mobile") {
         values().firstOrNull { it?.binding == reference.mobileBinding && it?.owner == reference.userId }
             ?: throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
     }
+    fun discardPending(): Unit = synchronized(lock) {
+        val binding = preferences.getString("binding", null)
+        if (binding != null && account.read()?.session?.mobileBinding != binding) {
+            values().forEachIndexed { index, state -> if (state?.binding == binding) banks[index].clear() }
+        }
+        check(preferences.edit().remove("binding").commit())
+    }
     fun save(reference: Session, state: MobileSession): Unit = synchronized(lock) {
         require(state.reference() == reference)
         val index = values().indexOfFirst { it?.binding == reference.mobileBinding }

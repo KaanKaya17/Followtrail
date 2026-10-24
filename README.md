@@ -2,41 +2,41 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.6**. Windows'ta çalışan kayıtlı mobil oturumun Android'e şifreli aktarımı ve mobil profil okuyucusu eklendi. Android'de gerçek sayaç okuması henüz doğrulanmadı; önceki web denemesi HTTP 429 döndürdü. Yerel mola korunur. Çevrimdışı testler canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.7**. Ana ekran sadeleştirildi; kendi hesabını açılışta otomatik yenileme varsayılan kapalıdır. Windows'ta çalışan kayıtlı mobil oturumun Android'e şifreli aktarımı ve mobil profil okuyucusu eklendi. Android'de gerçek sayaç okuması henüz doğrulanmadı; önceki web denemesi HTTP 429 döndürdü. Yerel mola korunur. Çevrimdışı testler canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
 
 ## Kullanım
 
 Bağlantı için Windows'taki mobil oturumu şifreli aktarma ve önceki uygulama içi HTTPS web girişi seçenekleri vardır. Mobil aktarım aşağıda açıklanır. Web girişinde uygulama parola alanını okumaz; gerekli oturum çerezlerini kullanır. Instagram giriş/doğrulama veya kısıtlama uygulayabilir. Kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
 
-- **Özet:** kendi hesabının son başarılı takipçi/takip edilen sayıları ve gözlem zamanı. Açılışta önce kayıt gösterilir. Otomatik yenileme için kayıt en az 15 dakika eski olmalı; otomatik denemeler de en az 15 dakika aralıklıdır.
+- **Özet:** hesap, iki sayaç, son kayıt zamanı ve tek Yenile düğmesi. Son 15 dakikadaki kayıt tekrar kullanılır. Açılışta otomatik yenileme varsayılan kapalı; Seçenekler → Yenileme ayarları ile açılabilir. Kayıt en az 15 dakika eski olmalı ve sınırlama bulunmamalıdır.
 - **Kişiler:** kullanıcı adı veya HTTPS Instagram profil bağlantısıyla kişi ekle. İlk sorgu tek profil isteğidir. Sonraki sorgular sabit hesap kimliğine göre yapılır; kullanıcı adı değişmesi başka kişinin geçmişiyle karışmaz. Liste ve analiz açılışında otomatik sorgu yapılmaz.
 - **Analiz:** takipçi, takip edilen, varsa gönderi sayısı; önceki gözleme göre net fark; 7/30 gün veya tüm kayıtlar; zaman eksenli grafik; son 10 gözlemin metin dökümü; özel not ve grup. Eksik gönderi sayısı sıfır yapılmaz. Geçmiş ilk gözlemden başlar; gelen/giden kişilerin kimliği çıkarılamaz.
 - **Bildirim:** kişi analizinde izlemeyi aç; en az 1, 6 veya 24 saat aralığı seç. Takipçi/takip edilen sayısında gözlemlenen net değişim için yerel Android bildirimi gelir. İlk kayıt ve yalnız gönderi değişimi bildirim üretmez. Uygulama ekranı kapalıyken de JobScheduler çalışabilir; anlık bildirim değildir. Pil tasarrufu, Doze, üretici ayarları ve çok sayıda izlenen kişi gecikme yaratır. Zorla durdurma sonrası uygulamayı yeniden açmak gerekir.
 - Bu önizlemede cihaz kaydını sınırlamak için en fazla **20 kişi**, kişi başına son **90 başarılı gözlem**, 500 karakter not ve 40 karakter grup saklanır. Bunlar Instagram'ın güvenli istek limitleri değildir.
 - Tek kişiyi kaldırma o kişinin geçmiş ve notunu siler. **Bağlantıyı kaldır** bu uygulamadaki oturumu ve bütün kişileri siler; diğer Instagram oturumlarını kapatmaz.
 
-## Bağlantı prototipi
+## Bağlantı seçenekleri
 
 ### Windows'taki mobil bağlantıyı APK'ya taşıma
 
-**Bilgisayardaki bağlantıyı aktar**, Windows prototipinde kurulmuş oturumu Android'e taşır. İlk eşleştirme bilgisayar/ADB gerektirir; başarılı okumadan sonra APK bağımsız çalışır. Bu sürüm Android içinde yeni mobil parola/CAA girişi uygulamaz; WebView girişi ayrı seçenek olarak kalır.
+**Hesap bağla → Bilgisayardan bağlan**, Windows prototipinde kurulmuş oturumu Android'e taşır. Bağlantı yönetimi, gizlilik, yenileme tercihleri ve istek bilgileri sağ üstteki **⋯** menüsündedir. İlk eşleştirme bilgisayar/ADB gerektirir; başarılı okumadan sonra APK bağımsız çalışır. Bu sürüm Android içinde yeni mobil parola/CAA girişi uygulamaz; WebView girişi ayrı seçenek olarak kalır.
 
-1. APK'da **USB aktarımını hazırla**. Cihaza özel anahtar ve 10 dakikalık aktarım isteği oluşturulur.
+1. APK'da **Bağlantıyı hazırla**. Cihaza özel anahtar ve 10 dakikalık aktarım isteği oluşturulur.
 2. Aynı Windows kullanıcısında `scripts/link-desktop.ps1` çalıştır. Önceden çalışan `InstagramCounter` ortamı ve DPAPI oturumu gerekir. Script oturumu yalnız bellekte açar, bu cihaza özel anahtarla şifreler ve ADB'den aktarır. Giriş/profil isteği, sunucu, parola/kod kopyalama yoktur. Birden fazla cihaz varsa `-Serial`; debug paket için `-DebugApp` kullanılır.
-3. APK'da **Şifreli aktarımı al**. Bu adım Instagram'a bağlanmaz ve mevcut hesabı değiştirmez. Aktarım dosyası ve tek kullanımlık anahtar temizlenir; oturum Keystore ile şifreli kasaya alınır.
-4. Yerel mola dolunca **Bir kez sayıları oku**. Yeni oturumdan kimliği doğrulanmış başarılı yanıt gelirse ana hesap bağlanır; aynı hesabın kişi/geçmiş kayıtları korunur. Özet, kişiler ve arka plan kontrolleri bu oturumu kullanır. İlk bağlantı denemeleri kalıcı en az 15 dakika aralıklıdır.
+3. APK'da **Aktarımı al**. Bu adım Instagram'a bağlanmaz ve mevcut hesabı değiştirmez. Aktarım dosyası ve tek kullanımlık anahtar temizlenir; oturum Keystore ile şifreli kasaya alınır.
+4. Yerel mola dolunca **Bağlan**. Yeni oturumdan kimliği doğrulanmış başarılı yanıt gelirse ana hesap bağlanır; aynı hesabın kişi/geçmiş kayıtları korunur. Özet, kişiler ve arka plan kontrolleri bu oturumu kullanır. İlk bağlantı denemeleri kalıcı en az 15 dakika aralıklıdır.
 
-Aktarım ekranı açıkken otomatik kontroller bekler. Süreç kapanırsa bu ekranı yeniden açıp **Bitir ve ana ekrana dön** ile bekletmeyi kaldır. Aktarım manuel moda alır; başarısız deneme sonrası eski bağlantıdan gizli yenileme yapılmaz. Başarılı açık okuma normal önbellekli akışı yeniden açar. [Sözleşme ve sınırlar](docs/MOBILE-PORT.md).
+Aktarım ekranı açıkken otomatik kontroller bekler. Süreç kapanırsa bu ekranı yeniden açıp **Geri** ile bekletmeyi kaldır. Aktarım manuel moda alır; başarısız deneme sonrası eski bağlantıdan gizli yenileme yapılmaz. Başarılı açık okuma normal önbellekli akışı yeniden açar. [Sözleşme ve sınırlar](docs/MOBILE-PORT.md).
 
 ### Önceki web deneyi
 
-Ana ekrandaki **Bağlantı prototipini aç**, eski 429 kaydını koruyarak farklı bir erişim hipotezini sınar: giriş ve tek web profil okuması aynı WebView oturumunda kalır. Giriş/doğrulama sonrası kullanıcı adını girip **Tek okumayı başlat** seçilir. Sayfa açma ve profil okuma otomatik başlamaz; her deneme tek açık okuma ve en az 15 dakika aralığıyla sınırlıdır. Sonuç ana hesaba/izlenen kişilere aktarılmaz ve arka plan bildirimlerine bağlanmaz. Çalışacağı veya 429'u kaldıracağı garanti edilmez.
+**⋯ → Gelişmiş → Web bağlantı deneyi**, eski 429 kaydını koruyarak farklı bir erişim hipotezini sınar: giriş ve tek web profil okuması aynı WebView oturumunda kalır. Giriş/doğrulama sonrası kullanıcı adını girip **Tek okumayı başlat** seçilir. Sayfa açma ve profil okuma otomatik başlamaz; her deneme tek açık okuma ve en az 15 dakika aralığıyla sınırlıdır. Sonuç ana hesaba/izlenen kişilere aktarılmaz ve arka plan bildirimlerine bağlanmaz. Çalışacağı veya 429'u kaldıracağı garanti edilmez.
 
 Prototip açıkken otomatik kontroller duraklar. **Denemeyi bitir** tarayıcı verilerini temizleyip bu bekletmeyi kaldırır; önceki 429'u kaldırmaz. Süreç kapanıp bekletme kalırsa prototipi yeniden açıp bitir. Debug demoda **Bağlantı prototipi · çevrimdışı** aynı JS/WebView akışını sentetik yanıtta sınar. [REA bulguları, yöntem ve sınırlar](docs/CONNECTION-PROTOTYPE.md).
 
 ## İstekler ve sınırlama
 
-Bütün profil okumaları aynı kalıcı en az 15 saniye aralığını ve tek etkin bağlantıyı kullanır. Otomatik okumalar ortak 15 dakikalık bütçeyi paylaşır; her arka plan çalışmasında yalnız sıradaki bir kişi sorgulanır. 20 kişi açıkken herkesin saatte bir kontrol edilmesi beklenmemelidir. Kişi bazındaki süre başarısız istekten önce de ayrılır. Toplu takipçi taraması, farklı uçlara tekrar deneme veya otomatik yeniden giriş yoktur. Düğmeler istek sırasında kapanır; ekranın eski isteği iptal edilirse geç yanıt kaydedilmez.
+Bütün profil okumaları aynı kalıcı en az 15 saniye aralığını ve tek etkin bağlantıyı kullanır. Kayıtlı aynı profilin 15 dakika içindeki başarılı gözlemi yeni istek göndermeden kullanılır. Bu süreler Instagram güvenli kota garantisi değildir. [İstek politikası, 429 dayanakları ve test sınırı](docs/REQUEST-POLICY.md). Otomatik okumalar ortak 15 dakikalık bütçeyi paylaşır; her arka plan çalışmasında yalnız sıradaki bir kişi sorgulanır. 20 kişi açıkken herkesin saatte bir kontrol edilmesi beklenmemelidir. Kişi bazındaki süre başarısız istekten önce de ayrılır. Toplu takipçi taraması, farklı uçlara tekrar deneme veya otomatik yeniden giriş yoktur. Düğmeler istek sırasında kapanır; ekranın eski isteği iptal edilirse geç yanıt kaydedilmez.
 
 Bildirim izni/kanalı kapalıysa arka plan sorgusu yapılmaz. Oturum veya doğrulama hatasında otomatik çalışma yeniden bağlantıya kadar durur. İzlemeyi kapatmak, kişiyi silmek veya bağlantıyı kaldırmak ilgili işi/bildirimi iptal eder. Bildirim ayrıntıları kilit ekranında gizli olarak işaretlenir; son görünüm Android ve kullanıcının sistem ayarlarına bağlıdır. Bildirim yalnız iki gözlem arasındaki net farkı gösterir; aradaki bütün hareketleri göstermez.
 
@@ -46,14 +46,14 @@ Ekran kaydedilmiş son sınırlama yanıtının zamanını ve yerel molayı ayı
 
 ## Bilgisayarda aynı Android kodunu deneme
 
-Önceden kurulu Android SDK/emülatör ve JDK 21 gerekir. Bu iş akışı yazılım kurmaz. Telefon sürümüyle aynı ana Kotlin ekranları, parser, istek kapısı ve şifreli kayıt kullanılır. Debug sürümündeki belirgin **DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK** modu yalnız sentetik yanıt döndürür; gerçek hesaba bağlanmaz.
+Önceden kurulu Android SDK/emülatör ve JDK 21 gerekir. Bu iş akışı yazılım kurmaz. Telefon sürümüyle aynı ana Kotlin ekranları, parser, istek kapısı ve şifreli kayıt kullanılır. Debug sürümündeki belirgin **DEMO · ÖRNEK VERİ** modu yalnız sentetik yanıt döndürür; gerçek hesaba bağlanmaz.
 
 ```powershell
 .\gradlew.bat :app:assembleDebug
 .\scripts\start-preview.ps1
 ```
 
-Bu çalışma alanındaki TrackerQA AVD'si kullanılır. Başka bilgisayarda mevcut AVD'yi `-AvdName` ile seç. Emülatör zaten başsız çalışıyorsa görünür pencere için önce onu kapatıp script'i yeniden çalıştır. Debug karşılama ekranında **Çevrimdışı demoyu aç** da bulunur. Örnek iki kişinin geçmişi vardır; yeni kişi için `@efe.demo`, bulunamama senaryosu için `@bulunamadi.demo` denenebilir. Gerçek kullanıcı adı girilse de demo gerçek profil sorgulamaz. Demo bildirimleri de ayrı debug servisiyle sentetik taşıma kullanır; bildirimde DEMO etiketi bulunur.
+Bu çalışma alanındaki TrackerQA AVD'si kullanılır. Başka bilgisayarda mevcut AVD'yi `-AvdName` ile seç. Emülatör zaten başsız çalışıyorsa görünür pencere için önce onu kapatıp script'i yeniden çalıştır. Debug sürümünde **⋯ → Çevrimdışı demoyu aç** da bulunur. Örnek iki kişinin geçmişi vardır; yeni kişi için `@efe.demo`, bulunamama senaryosu için `@bulunamadi.demo` denenebilir. Gerçek kullanıcı adı girilse de demo gerçek profil sorgulamaz. Demo bildirimleri de ayrı debug servisiyle sentetik taşıma kullanır; bildirimde DEMO etiketi bulunur.
 
 Release APK farklı paket kimliği kullanır, demo taşımasını içermez ve `offline_preview` parametresini yok sayar. Demo başarısı canlı Instagram başarısı değildir. Gerçek hesap denemesi istenirse demo dışında ayrıca giriş gerekir; telefondaki oturum bilgisayara taşınmaz.
 
