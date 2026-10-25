@@ -16,6 +16,7 @@ data class ListArchive(val owner: String, val binding: String?, val targets: Lis
 }
 data class ListDifference(val target: String, val direction: FollowDirection, val previousAt: Long, val observedAt: Long,
     val added: List<FollowUser>, val missing: List<FollowUser>)
+data class ListPageCommit(val target: ListTarget, val difference: ListDifference?)
 
 object ListAutomationPolicy {
     const val RESCAN_MS = 24 * 60 * 60 * 1000L
@@ -54,6 +55,15 @@ sealed interface AutomaticTask {
 }
 
 object AutomaticQueue {
+    /** Only the unchanged MORE run committed by this round can bypass its next-job deadline. */
+    fun page(target: ListTarget, direction: FollowDirection, now: Long, continuationOf: FollowRun? = null): AutomaticTask.Page? {
+        val state = target.scan(direction)
+        if (state.failure == ApiFailure.Kind.CAPACITY) return null
+        val run = target.snapshot?.run(direction)
+        val continuingRound = continuationOf != null && state.continuing && run == continuationOf && run.coverage() == FollowCoverage.MORE
+        if (state.nextAt > now && !continuingRound) return null
+        return AutomaticTask.Page(target.target, state.nextAt, direction, if (state.continuing) run?.cursor() else null, run?.latest?.observedAt)
+    }
     fun next(account: SavedAccount, archive: ListArchive, now: Long): AutomaticTask? {
         require(archive.matches(account.session))
         val tasks = account.people.filter { it.watching }.map { AutomaticTask.Person(it.latest.userId, it.nextCheckAt) }.toMutableList<AutomaticTask>()
@@ -61,13 +71,8 @@ object AutomaticQueue {
             if (account.session.userId in account.automation.targets) tasks += AutomaticTask.Own(account.session.userId,
                 maxOf(account.automation.ownNextCheckAt, account.profile.observedAt + ListAutomationPolicy.OWN_PROFILE_MS))
             for (id in account.automation.targets) for (direction in FollowDirection.entries) {
-                val target = archive.targets.firstOrNull { it.target == id }
-                val state = target?.scan(direction) ?: ListScan()
-                // Capacity needs user action, never repeatedly fetch an unrecordable page.
-                if (state.failure == ApiFailure.Kind.CAPACITY) continue
-                val run = target?.snapshot?.run(direction)
-                tasks += AutomaticTask.Page(id, state.nextAt, direction,
-                    if (state.continuing) run?.cursor() else null, run?.latest?.observedAt)
+                val target = archive.targets.firstOrNull { it.target == id } ?: ListTarget(id)
+                page(target, direction, now)?.let { tasks += it }
             }
         }
         val ready = tasks.filter { it.dueAt <= now }

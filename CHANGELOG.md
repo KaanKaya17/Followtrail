@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## 0.1.15 — 2026-10-25 (ardışık liste sayfaları ve diyaloglar)
+
+- Aynı hedefin takipçi/takip edilen sayfaları bir otomatik turda dönüşümlü ilerler: en fazla 6 sayfa, istek başlangıçları arasında mevcut en az 15 saniye. İlk 90 saniye yeni istek başlatma bütçesidir; tur başlangıçlarının ortak 15 dakika aralığı korunur. Her sayfa kalıcıdır; kalan cursor sonraki turda sürer.
+- İlk hata, sınırlı/belirsiz/takılmış sayfalama turu durdurur. İptal, seçim/oturum değişimi, manuel yeniden okuma ve kayıt temizleme sonraki sayfanın eski kaydı ezmesine izin vermez. Liste sonu sonrası 24 saat hedefi ve mevcut 429 molaları korunur.
+- Bütün native diyaloglarda yumuşak mor yüzey, yuvarlatılmış köşeler, temaya uygun yazı/seçim/düğmeler. Kısa Başlat düğmesi; otomasyon durumunda yerel Yenile; liste temizleme işlemi açıklama ve ayrı onayın arkasına taşındı. Yeni izin, bağımlılık veya kayıt biçimi yok.
+- Önceki 0.1.14 kaynak ve imzalı APK ayrı yedek/etikette korundu. Canlı Instagram çok sayfalı okuma ve uzun süreli Android pil/Doze davranışı kullanıcı testine açık.
+
 ## 0.1.14 — 2026-10-25 (kendi hesabı ve seçili kişilerde liste otomasyonu)
 
 - Özet ekranından bir kez seçilen hedeflerde takipçi/takip edilen sayfalarını arka planda sırayla alma. Kaldığı cursor, rezervasyon ve hata durumu kalıcıdır; her sayfa için elle düğme gerekmez. Eski sürümlerde otomasyon varsayılan kapalıdır.
