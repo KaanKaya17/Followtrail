@@ -12,7 +12,7 @@ class ProfileChangesTest {
             picture?.let(ProfileText::known) ?: ProfileText(), url?.let(ProfileText::known) ?: ProfileText(), anonymous))
     private fun user() = JSONObject("""{"pk":"456","username":"original","follower_count":20,"following_count":8}""")
     private fun account(history: List<Profile>) = SavedAccount(session, p().copy(userId = "123"),
-        listOf(TrackedPerson(history, "note", "group", true, 6, 5000, true)))
+        listOf(TrackedPerson(history, "note", "group", true, 360, 5000, true)))
 
     @Test fun optionalFieldsPreserveAbsentNullEmptyAndMalformedWithoutBreakingCounts() {
         val body = user(); assertEquals(ProfileTextState.MISSING, ProfileParser.user(body, 1000).details.biography.state)

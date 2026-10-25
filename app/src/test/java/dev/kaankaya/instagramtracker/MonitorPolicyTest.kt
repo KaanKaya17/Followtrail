@@ -6,7 +6,7 @@ import org.junit.Test
 
 class MonitorPolicyTest {
     private val profile = Profile("456", "synthetic", 12, 7, 1000, 4)
-    private val person = TrackedPerson(listOf(profile), "note", "group", true, 6, 2000)
+    private val person = TrackedPerson(listOf(profile), "note", "group", true, 360, 2000)
     @Test fun earliestDueWatchWinsAndDisabledOrFutureWatchesDoNotRun() {
         val earlier = person.copy(history = listOf(profile.copy(userId = "789")), nextCheckAt = 1500)
         assertEquals(earlier, MonitorPolicy.due(listOf(person, earlier), 2000))
@@ -29,9 +29,9 @@ class MonitorPolicyTest {
         assertEquals(account, AccountCodec.decode(encoded))
         val old = JSONObject(encoded).put("version", 2)
         val oldPerson = old.getJSONArray("people").getJSONObject(0)
-        listOf("watching", "intervalHours", "nextCheckAt").forEach { oldPerson.remove(it) }
+        listOf("watching", "intervalMinutes", "intervalHours", "nextCheckAt").forEach { oldPerson.remove(it) }
         val migrated = AccountCodec.decode(old.toString()).people.single()
-        assertFalse(migrated.watching); assertEquals(1, migrated.intervalHours); assertEquals(0L, migrated.nextCheckAt)
-        assertThrows(Exception::class.java) { AccountCodec.encode(account.copy(people = listOf(person.copy(intervalHours = 2)))) }
+        assertFalse(migrated.watching); assertEquals(60, migrated.intervalMinutes); assertEquals(0L, migrated.nextCheckAt)
+        assertThrows(Exception::class.java) { AccountCodec.encode(account.copy(people = listOf(person.copy(intervalMinutes = 2)))) }
     }
 }

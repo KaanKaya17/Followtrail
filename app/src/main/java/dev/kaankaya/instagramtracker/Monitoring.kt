@@ -4,8 +4,8 @@ data class ObservedProfileChange(val ownerId: String, val profile: Profile, val 
 
 object MonitorPolicy {
     const val POLL_MS = 15 * 60 * 1000L
-    fun due(people: List<TrackedPerson>, now: Long): TrackedPerson? = people.filter { it.watching && it.nextCheckAt <= now }
-        .minByOrNull { it.nextCheckAt }
+    fun orderedWatches(people: List<TrackedPerson>): List<TrackedPerson> = people.filter { it.watching }.sortedBy { it.nextCheckAt }
+    fun due(people: List<TrackedPerson>, now: Long): TrackedPerson? = orderedWatches(people).firstOrNull { it.nextCheckAt <= now }
     fun change(owner: String, person: TrackedPerson?, profile: Profile): ObservedProfileChange? {
         if (person == null || !person.watching) return null
         val followers = profile.followers - person.latest.followers
@@ -54,7 +54,7 @@ class MonitorEngine(private val vault: SessionVault, private val gate: RequestGa
             val person = current.people.firstOrNull { it.latest.userId == selected.latest.userId && it.watching && it.nextCheckAt <= now }
                 ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
             current.copy(people = current.people.map { if (it.latest.userId == person.latest.userId)
-                it.copy(nextCheckAt = now + it.intervalHours * 3600000L) else it })
+                it.copy(nextCheckAt = now + WatchIntervals.durationMs(it.intervalMinutes)) else it })
         }
         if (cancelled()) return
         val profile = api.readId(saved.session, selected.latest.userId)

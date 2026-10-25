@@ -70,7 +70,7 @@ class MainActivity : Activity() {
     private var pendingMobile = false
     private var pendingWatchId: String? = null
     private var pendingWatchOwner: String? = null
-    private var pendingWatchHours = 1
+    private var pendingWatchMinutes = 60
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +97,7 @@ class MainActivity : Activity() {
         rangeDays = savedInstanceState?.getInt("range") ?: 0
         pendingWatchId = savedInstanceState?.getString("pendingWatch")
         pendingWatchOwner = savedInstanceState?.getString("pendingOwner")
-        pendingWatchHours = savedInstanceState?.getInt("pendingHours", 1) ?: 1
+        pendingWatchMinutes = savedInstanceState?.getInt("pendingMinutes", 60) ?: 60
         vault = SessionVault(this, if (preview) "previewaccount" else "account")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
         api = PreviewMode.api(gate, preview)
@@ -525,6 +525,7 @@ class MainActivity : Activity() {
             page.gap(6); page.addView(text("${date(previous.observedAt)} → ${date(p.observedAt)}", 12f, muted))
         } else page.addView(text("Henüz karşılaştırma yok.", 14f, muted))
         page.gap(20)
+        renderWatchStatus(page, person, saved)
         page.addView(button("Kişiyi yenile", false, networkAction = true) { readPerson(person = person) }.apply {
             isEnabled = !loading && gate.nextAllowedAt() <= System.currentTimeMillis() && PeoplePolicy.needsRefresh(p, System.currentTimeMillis())
             alpha = if (isEnabled) 1f else .5f
@@ -558,26 +559,6 @@ class MainActivity : Activity() {
         } else historyCard.addView(text("Bu tarih aralığında kayıt yok. Tümü ile önceki gözlemleri görebilirsin.", 14f, muted))
         historyCard.gap(12)
         page.addView(historyCard); page.gap(16)
-        val settingsCard = AppUi.card(this)
-        settingsCard.addView(AppUi.heading(this, "Bildirimler", 18f)); settingsCard.gap(8)
-        settingsCard.addView(text(getString(R.string.profile_watch_scope), 12f, muted)); settingsCard.gap(10)
-        val watch = android.widget.Switch(this).apply {
-            setText(R.string.watch_toggle); textSize = 16f; setTextColor(ink)
-            isChecked = person.watching; minimumHeight = dp(56)
-            setOnClickListener {
-                isChecked = person.watching
-                if (person.watching) { setWatch(p.userId, saved.session.userId, person.intervalHours, false); render() }
-                else watchSettings(person)
-            }
-        }
-        settingsCard.addView(watch, LinearLayout.LayoutParams(-1, -2))
-        if (person.watching) settingsCard.addView(text("${person.intervalHours} saatte bir", 13f, accent).apply {
-            minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL; setOnClickListener { watchSettings(person) }
-        })
-        if (person.watching && !ChangeNotifications(this, preview).allowed()) {
-            settingsCard.addView(text("Bildirim izni kapalı.", 13f, accent))
-        }
-        page.addView(settingsCard); page.gap(16)
         val notesCard = AppUi.card(this)
         notesCard.addView(AppUi.heading(this, "Özel notun", 18f)); notesCard.gap(8)
         if (person.note.isNotBlank()) { notesCard.addView(text(person.note, 14f, muted)); notesCard.gap(10) }
@@ -689,13 +670,75 @@ class MainActivity : Activity() {
         val notices = ChangeNotifications(this, preview)
         Observations.deliver(vault, session, change, notices::allowed, notices::post)
     }
+    private fun intervalLabel(minutes: Int, choice: Boolean = false): String {
+        val amount = if (minutes < 60) minutes else minutes / 60
+        return resources.getQuantityString(
+            if (minutes < 60) { if (choice) R.plurals.watch_choice_minutes else R.plurals.watch_interval_minutes }
+            else { if (choice) R.plurals.watch_choice_hours else R.plurals.watch_interval_hours }, amount, amount)
+    }
+
+    private fun renderWatchStatus(page: LinearLayout, person: TrackedPerson, saved: SavedAccount) {
+        val now = System.currentTimeMillis()
+        val conditions = WatchConditions(ChangeNotifications(this, preview).allowed(), AppUi.offline(this) == true,
+            gate.requiresConnection(), gate.automationHeld(), gate.blockedUntil(), gate.manualOnly(), gate.automaticNextAllowedAt())
+        val status = WatchStatusPolicy.status(person, saved.people, conditions, now)
+        val card = AppUi.card(this)
+        card.addView(AppUi.heading(this, getString(R.string.watch_status_title), 20f)); card.gap(10)
+        card.addView(text(getString(R.string.watch_last_success, date(person.latest.observedAt)), 13f, muted)); card.gap(8)
+        val watch = android.widget.Switch(this).apply {
+            setText(R.string.watch_toggle); textSize = 16f; setTextColor(ink)
+            isChecked = person.watching; minimumHeight = dp(56)
+            setOnClickListener {
+                isChecked = person.watching
+                if (person.watching) setWatch(person.latest.userId, saved.session.userId, person.intervalMinutes, false)
+                else watchSettings(person)
+            }
+        }
+        card.addView(watch, LinearLayout.LayoutParams(-1, -2))
+        if (person.watching) {
+            card.addView(text(intervalLabel(person.intervalMinutes), 14f, accent, true)); card.gap(8)
+            card.addView(text(when {
+                status.eligibleAt == null -> getString(R.string.watch_target_paused)
+                status.eligibleAt <= now -> getString(R.string.watch_target_due)
+                else -> getString(R.string.watch_target_at, date(status.eligibleAt))
+            }, 13f, ink)); card.gap(8)
+        }
+        card.addView(text(when (status.reason) {
+            WatchReason.OFF -> getString(R.string.watch_reason_off)
+            WatchReason.NOTIFICATIONS_OFF -> getString(R.string.watch_reason_notifications)
+            WatchReason.LIMITED -> getString(R.string.watch_reason_limited, date(conditions.blockedUntil))
+            WatchReason.CONNECTION_REQUIRED -> getString(R.string.watch_reason_connection)
+            WatchReason.CONNECTION_IN_PROGRESS -> getString(R.string.watch_reason_link)
+            WatchReason.MANUAL_ONLY -> getString(R.string.watch_reason_manual)
+            WatchReason.OFFLINE -> getString(R.string.watch_reason_offline)
+            WatchReason.INTERVAL -> getString(R.string.watch_reason_interval)
+            WatchReason.SHARED_BUDGET -> getString(R.string.watch_reason_budget)
+            WatchReason.QUEUED -> resources.getQuantityString(R.plurals.watch_reason_queue, status.ahead, status.ahead)
+            WatchReason.READY -> getString(R.string.watch_reason_ready)
+        }, 13f, if (status.eligibleAt == null && person.watching) AppUi.coral else muted)); card.gap(10)
+        if (status.ahead > 0 && status.reason != WatchReason.QUEUED) {
+            card.addView(text(resources.getQuantityString(R.plurals.watch_reason_queue, status.ahead, status.ahead), 13f, muted)); card.gap(10)
+        }
+        card.addView(text(getString(R.string.profile_watch_scope), 12f, muted)); card.gap(8)
+        card.addView(text(getString(R.string.watch_timing_scope), 12f, muted)); card.gap(12)
+        if (person.watching) {
+            card.addView(button(getString(R.string.watch_change_interval), false) { watchSettings(person) }); card.gap(8)
+        }
+        card.addView(button(getString(R.string.watch_refresh_status), false) {
+            try { account = vault.read(); syncMonitoring() }
+            catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
+            render()
+        })
+        page.addView(card); page.gap(16)
+    }
+
     private fun watchSettings(person: TrackedPerson) {
-        var selection = listOf(1, 6, 24).indexOf(person.intervalHours).coerceAtLeast(0)
+        var selection = WatchIntervals.minutes.indexOf(person.intervalMinutes).coerceAtLeast(0)
         AlertDialog.Builder(this).setTitle("Değişiklik bildirimi")
-            .setSingleChoiceItems(arrayOf("En az 1 saat arayla", "En az 6 saat arayla", "En az 24 saat arayla"), selection) { _, index -> selection = index }
+            .setSingleChoiceItems(WatchIntervals.minutes.map { intervalLabel(it, true) }.toTypedArray(), selection) { _, index -> selection = index }
             .setNegativeButton("Vazgeç", null).setPositiveButton("İzlemeyi aç") { _, _ ->
                 val saved = account ?: return@setPositiveButton
-                pendingWatchId = person.latest.userId; pendingWatchOwner = saved.session.userId; pendingWatchHours = listOf(1, 6, 24)[selection]
+                pendingWatchId = person.latest.userId; pendingWatchOwner = saved.session.userId; pendingWatchMinutes = WatchIntervals.minutes[selection]
                 val notices = ChangeNotifications(this, preview); notices.ensureChannel()
                 if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1401)
@@ -703,19 +746,19 @@ class MainActivity : Activity() {
             }.show()
     }
     private fun finishWatchPermission() {
-        val id = pendingWatchId; val owner = pendingWatchOwner; val hours = pendingWatchHours
+        val id = pendingWatchId; val owner = pendingWatchOwner; val minutes = pendingWatchMinutes
         pendingWatchId = null; pendingWatchOwner = null
         if (id == null || owner == null) return
         if (!ChangeNotifications(this, preview).allowed()) {
             message = "Bildirim izni veya kanalı kapalı. Sistem ayarlarından izin verip izlemeyi yeniden açabilirsin."; render(); return
         }
-        setWatch(id, owner, hours, true)
+        setWatch(id, owner, minutes, true)
     }
-    private fun setWatch(id: String, owner: String, hours: Int, enabled: Boolean) {
+    private fun setWatch(id: String, owner: String, minutes: Int, enabled: Boolean) {
         if (account?.session?.userId != owner) return
         if (savePeople { people -> people.map { person -> if (person.latest.userId != id) person else person.copy(
-                watching = enabled, intervalHours = hours,
-                nextCheckAt = if (enabled) maxOf(System.currentTimeMillis(), person.latest.observedAt + hours * 3600000L) else 0)
+                watching = enabled, intervalMinutes = minutes,
+                nextCheckAt = if (enabled) maxOf(System.currentTimeMillis(), person.latest.observedAt + WatchIntervals.durationMs(minutes)) else 0)
             } }) {
             message = if (enabled) "İzleme açıldı. Kontroller Android'in planlamasına göre gecikebilir." else "Bu kişide arka plan izleme kapatıldı."
             if (!enabled) ChangeNotifications(this, preview).cancel(owner, id)
@@ -975,7 +1018,7 @@ class MainActivity : Activity() {
     }
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
-        outState.putString("pendingWatch", pendingWatchId); outState.putString("pendingOwner", pendingWatchOwner); outState.putInt("pendingHours", pendingWatchHours)
+        outState.putString("pendingWatch", pendingWatchId); outState.putString("pendingOwner", pendingWatchOwner); outState.putInt("pendingMinutes", pendingWatchMinutes)
         super.onSaveInstanceState(outState)
     }
 

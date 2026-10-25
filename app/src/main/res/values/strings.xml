@@ -1,4 +1,27 @@
 <resources>
+    <string name="watch_status_title">Takip durumu</string>
+    <string name="watch_last_success">Son başarılı profil okuması: %1$s</string>
+    <plurals name="watch_choice_minutes"><item quantity="other">En az %1$d dakika arayla</item></plurals>
+    <plurals name="watch_choice_hours"><item quantity="other">En az %1$d saat arayla</item></plurals>
+    <plurals name="watch_interval_minutes"><item quantity="other">%1$d dakikada bir</item></plurals>
+    <plurals name="watch_interval_hours"><item quantity="other">%1$d saatte bir</item></plurals>
+    <string name="watch_target_at">Sıradaki kontrol hedefi: %1$s · en erken</string>
+    <string name="watch_target_due">Kontrol zamanı geldi; henüz yeni başarılı okuma yok.</string>
+    <string name="watch_target_paused">Sıradaki kontrol: beklemede.</string>
+    <string name="watch_reason_off">Otomatik takip kapalı. Kişiyi yenile ile elle okuyabilirsin.</string>
+    <string name="watch_reason_notifications">Bildirim izni veya kanalı kapalı; otomatik kontrol de duraklatıldı. Sistem ayarlarından bildirimlere izin ver.</string>
+    <string name="watch_reason_limited">Instagram molası var: en erken %1$s. Süre dolunca başarılı bir elle okuma otomatik takibi yeniden açar.</string>
+    <string name="watch_reason_connection">Hesabı yeniden bağlamak gerekiyor; otomatik kontrol duraklatıldı.</string>
+    <string name="watch_reason_link">Hesap bağlantısı hazırlanıyor; otomatik kontrol bekliyor.</string>
+    <string name="watch_reason_manual">Otomatik kontrol duraklatıldı. İzinli bir elle okuma başarılı olunca yeniden açılır.</string>
+    <string name="watch_reason_offline">Cihaz çevrimdışı görünüyor. İnternet bağlantısı bekleniyor.</string>
+    <string name="watch_reason_interval">Seçtiğin kontrol aralığının dolması bekleniyor.</string>
+    <string name="watch_reason_budget">Ortak istek molasının dolması bekleniyor. Diğer kişiler ve otomatik ana hesap yenilemesi aynı bütçeyi paylaşır.</string>
+    <plurals name="watch_reason_queue"><item quantity="other">Sırada önünde %1$d kişi var. Her arka plan çalışmasında tek kişi kontrol edilir.</item></plurals>
+    <string name="watch_reason_ready">Kontrol için uygun; Android’in görevi çalıştırması bekleniyor.</string>
+    <string name="watch_timing_scope">Bu bilgiler ekran açıldığında veya Durumu güncelle ile yenilenir; bu düğme Instagram isteği göndermez. Aralıklar hedeftir: kişi sırası, bağlantı ve Android’in pil yönetimi gecikmeye yol açabilir. Anlık takip değildir.</string>
+    <string name="watch_change_interval">Kontrol aralığını değiştir</string>
+    <string name="watch_refresh_status">Durumu güncelle</string>
     <string name="profile_username_changed">Kullanıcı adı değişti</string>
     <string name="profile_bio_changed">Biyografi değişti</string>
     <string name="profile_picture_changed">Profil fotoğrafı bilgisi değişti</string>

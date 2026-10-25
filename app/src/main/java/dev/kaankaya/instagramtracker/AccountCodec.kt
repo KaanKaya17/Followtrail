@@ -5,6 +5,11 @@ import org.json.JSONObject
 
 /** Owns the encrypted payload format; v1 accounts migrate without discarding the saved session. */
 object AccountCodec {
+    private val legacyHourChoices = listOf(1, 6, 24)
+    private fun legacyHours(minutes: Int): Int {
+        require(minutes in WatchIntervals.minutes)
+        return legacyHourChoices.first { it * 60 >= minutes }
+    }
     private fun profile(p: Profile, details: List<ProfileDetails>): JSONObject = JSONObject().put("pk", p.userId).put("username", p.username)
         .put("follower_count", p.followers).put("following_count", p.following).put("observedAt", p.observedAt)
         .apply {
@@ -46,7 +51,9 @@ object AccountCodec {
         val people = JSONArray()
         for (person in account.people) people.put(JSONObject().put("note", person.note).put("group", person.group)
             .put("favorite", person.favorite)
-            .put("watching", person.watching).put("intervalHours", person.intervalHours).put("nextCheckAt", person.nextCheckAt)
+            .put("watching", person.watching).put("intervalMinutes", person.intervalMinutes)
+            // v4 compatibility for older APKs: round up to their supported interval, never speed up a downgrade.
+            .put("intervalHours", legacyHours(person.intervalMinutes)).put("nextCheckAt", person.nextCheckAt)
             .put("history", JSONArray().apply { person.history.forEach { put(profile(it, details)) } }))
         val result = JSONObject().put("version", 4).put("id", account.session.userId)
             .put("cookie", account.session.cookie).put("ua", account.session.userAgent)
@@ -99,11 +106,15 @@ object AccountCodec {
             require(history.all { it.userId == history.first().userId })
             require(history.zipWithNext().all { (a, b) -> a.observedAt < b.observedAt })
             val watching = if (version < 3) false else person.get("watching") as? Boolean ?: error("Invalid watch setting")
-            val hours = if (version < 3) 1 else person.getInt("intervalHours")
+            val hours = if (version < 3) 1 else person.get("intervalHours").also { require(it is Int && it in legacyHourChoices) } as Int
+            val minutes = if (version >= 3 && person.has("intervalMinutes")) {
+                val value = person.get("intervalMinutes"); require(value is Int && value in WatchIntervals.minutes)
+                require(hours == legacyHours(value)); value
+            } else hours * 60
             val nextCheck = if (version < 3) 0L else person.getLong("nextCheckAt")
-            require(hours in listOf(1, 6, 24) && nextCheck >= 0)
+            require(nextCheck >= 0)
             val favorite = if (!person.has("favorite")) false else person.get("favorite") as? Boolean ?: error("Invalid favorite setting")
-            TrackedPerson(history, note, group, watching, hours, nextCheck, favorite)
+            TrackedPerson(history, note, group, watching, minutes, nextCheck, favorite)
         }
         require(people.map { it.latest.userId }.distinct().size == people.size)
         return SavedAccount(session, own, people)

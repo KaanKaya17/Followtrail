@@ -31,11 +31,12 @@ class RequestGate(context: Context, name: String = "request_gate") {
     internal val context: Context = context.applicationContext
     // Activity recreation can create multiple owners of the same preferences.
     // Reserve requests across those instances, not only within one instance.
-    companion object { private val lock = Any(); private val active = mutableSetOf<String>(); const val AUTO_INTERVAL_MS = 15 * 60 * 1000L }
+    companion object { private val lock = Any(); private val active = mutableSetOf<String>(); const val AUTO_INTERVAL_MS = MonitorPolicy.POLL_MS }
     private val identity = "${context.packageName}:$name"
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
     fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0)) }
+    fun automaticNextAllowedAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("auto_after", 0)) }
     fun manualOnly(): Boolean = synchronized(lock) { preferences.getBoolean("manual_only", false) || blockedUntil() > 0 }
     fun restrictionPending(): Boolean = blockedUntil() > 0
     fun serverRetryAt(): Long? = synchronized(lock) { preferences.getLong("server_retry_at", 0).takeIf { it > 0 } }
@@ -81,11 +82,10 @@ class RequestGate(context: Context, name: String = "request_gate") {
         AutoCloseable { synchronized(lock) { if (!closed) { active.remove(identity); closed = true }; Unit } }
     }
     fun autoAllowed(profile: Profile, now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        ownAutoRefresh() && !automationHeld() && !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && nextAllowedAt() <= now &&
-            preferences.getLong("auto_after", 0) <= now
+        ownAutoRefresh() && !automationHeld() && !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && automaticNextAllowedAt() <= now
     }
     fun reserveAutomatic(now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        if (automationHeld() || manualOnly() || requiresConnection() || nextAllowedAt() > now || preferences.getLong("auto_after", 0) > now) return false
+        if (automationHeld() || manualOnly() || requiresConnection() || automaticNextAllowedAt() > now) return false
         if (!preferences.edit().putLong("auto_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
         true
     }

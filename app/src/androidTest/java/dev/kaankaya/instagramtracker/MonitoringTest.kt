@@ -23,7 +23,7 @@ class MonitoringTest {
     private val preferences = context.getSharedPreferences("monitor_test_gate", 0)
     private val session = Session("123", "ds_user_id=123; sessionid=synthetic", "test-UA")
     private val profile = Profile("456", "synthetic", 10, 7, 1000, 4)
-    private val person = TrackedPerson(listOf(profile), "note", "group", true, 1, 0)
+    private val person = TrackedPerson(listOf(profile), "note", "group", true, 60, 0)
     private fun gate() = RequestGate(context, "monitor_test_gate")
     @Before fun prepare() {
         check(context.packageName.endsWith(".debug"))
@@ -77,6 +77,22 @@ class MonitoringTest {
         preferences.edit().clear().commit(); gate().pauseForConnection()
         MonitorEngine(vault, gate(), api, { true }, {}).tick()
         assertEquals(1, vault.read()!!.people.first().history.size)
+    }
+    @Test fun fifteenMinutePersonStillSharesOneAutomaticSlotAndTheOtherPersonKeepsItsTurn() {
+        val saved = vault.read()!!
+        vault.write(saved.copy(people = saved.people.map { it.copy(intervalMinutes = 15) }))
+        var requests = 0
+        val gate = gate(); val now = System.currentTimeMillis()
+        val engine = MonitorEngine(vault, gate, InstagramApi(gate) { requests++; Connection() }, { true }, {})
+        engine.tick(now); engine.tick(now + 16000)
+        val people = vault.read()!!.people
+        assertEquals(1, requests); assertEquals(1L, gate.attempts())
+        assertTrue(people.first().nextCheckAt >= now + 15 * 60000L)
+        assertTrue(gate.automaticNextAllowedAt() >= now + 15 * 60000L)
+        assertEquals("789", MonitorPolicy.due(people, now + 16000)!!.latest.userId)
+        val state = WatchStatusPolicy.status(people.last(), people,
+            WatchConditions(automaticAt = gate.automaticNextAllowedAt()), now + 16000)
+        assertEquals(WatchReason.SHARED_BUDGET, state.reason)
     }
     @Test fun serverLimitAndAuthenticationStopAutomaticWorkAcrossInstances() {
         for ((status, kind) in listOf(429 to ApiFailure.Kind.LIMITED, 401 to ApiFailure.Kind.SESSION_EXPIRED)) {
@@ -141,6 +157,8 @@ class MonitoringTest {
         val notification = manager.activeNotifications.single { it.tag == "profile:100:200" }.notification
         assertEquals(Notification.VISIBILITY_PRIVATE, notification.visibility)
         assertTrue(notification.extras.getCharSequence(Notification.EXTRA_TITLE).toString().startsWith("DEMO"))
+        val detail = notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString()
+        assertTrue(detail.contains("Biyografi değişti")); assertTrue(detail.contains("Profil fotoğrafı bilgisi değişti"))
         assertFalse(notification.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("deniz"))
         assertEquals(1356L, previewVault.read()!!.people.first().latest.followers)
         previewVault.update(seeded.session) { it.copy(people = it.people.map { p -> p.copy(watching = false) }) }

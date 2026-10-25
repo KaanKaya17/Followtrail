@@ -189,13 +189,48 @@ class PeopleScreenTest {
         click("Değişiklik bildirimi"); dialogClick("En az 6 saat arayla"); dialogClick("İzlemeyi aç")
         awaitLabel("6 saatte bir")
         val person = SessionVault(context, "previewaccount").read()!!.people.first()
-        assertTrue(person.watching); assertEquals(6, person.intervalHours)
+        assertTrue(person.watching); assertEquals(360, person.intervalMinutes)
         scenario!!.recreate(); awaitLabel("6 saatte bir")
         click("Değişiklik bildirimi")
         scenario!!.onActivity { activity -> assertFalse(all(activity.window.decorView).filterIsInstance<android.widget.Switch>().single().isChecked) }
         assertFalse(SessionVault(context, "previewaccount").read()!!.people.first().watching)
         assertNull(context.getSystemService(android.app.job.JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))
         assertEquals(0L, RequestGate(context, "preview_gate").nextAllowedAt())
+    }
+
+    @Test fun minuteAndTwelveHourChoicesPersistAndLocalStatusRefreshHonorsRestrictionsWithoutRequests() {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                "pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
+        }
+        // Keep all target observations fresh: enabling a due watch may legitimately start the real Android job.
+        // This test isolates local settings/status; MonitoringTest verifies the due-job transport separately.
+        val seed = PreviewMode.seed(true)!!
+        val now = System.currentTimeMillis()
+        SessionVault(context, "previewaccount").write(seed.copy(people = seed.people.map {
+            it.copy(history = it.history.dropLast(1) + it.latest.copy(observedAt = now))
+        }))
+        launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
+        click("Değişiklik bildirimi"); dialogClick("En az 15 dakika arayla"); dialogClick("İzlemeyi aç")
+        awaitLabel("15 dakikada bir")
+        val vault = SessionVault(context, "previewaccount"); val gate = RequestGate(context, "preview_gate")
+        assertEquals(15, vault.read()!!.people.first().intervalMinutes)
+        scenario!!.recreate(); awaitLabel("15 dakikada bir")
+        for ((choice, label, minutes) in listOf(Triple("En az 30 dakika arayla", "30 dakikada bir", 30),
+                Triple("En az 12 saat arayla", "12 saatte bir", 720))) {
+            click("Kontrol aralığını değiştir"); dialogClick(choice); dialogClick("İzlemeyi aç")
+            awaitLabel(label); assertEquals(minutes, vault.read()!!.people.first().intervalMinutes)
+        }
+        val before = vault.read()!!
+        gate.limited(null)
+        click("Durumu güncelle"); awaitLabel("Sıradaki kontrol: beklemede.")
+        scenario!!.onActivity { activity ->
+            assertTrue(all(activity.window.decorView).filterIsInstance<TextView>().any { it.text.toString().startsWith("Instagram molası var:") })
+        }
+        assertEquals(before, vault.read()); assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
+        assertNull(context.getSystemService(android.app.job.JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))
+        scenario!!.recreate(); awaitLabel("12 saatte bir"); awaitLabel("Sıradaki kontrol: beklemede.")
+        assertEquals(0L, gate.attempts())
     }
     @Test fun addEditAndRemoveUseTheRealDialogsAndEncryptedStorage() {
         launch(); click("Kişiler"); click("Kişi ekle")
