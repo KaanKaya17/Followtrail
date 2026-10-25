@@ -12,7 +12,7 @@ class RecentActivityTest {
     private fun account(vararg people: TrackedPerson) = SavedAccount(session, own, people.toList())
 
     @Test fun oldPayloadsDefaultFavoritesWithoutLosingSessionHistoryOrSettings() {
-        val person = TrackedPerson(listOf(profile(), profile(2000)), "note", "group", true, 6, 3000, true)
+        val person = TrackedPerson(listOf(profile(), profile(2000)), "note", "group", true, 360, 3000, true)
         val saved = account(person)
         assertEquals(saved, AccountCodec.decode(AccountCodec.encode(saved)))
         for (version in listOf(2, 3, 4)) {

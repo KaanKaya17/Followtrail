@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.13 — 2026-10-25 (kontrol aralıkları ve takip durumu)
+
+- Kişi kontrollerinde 15/30 dakika ve 1/6/12/24 saat seçenekleri. Ortak otomatik bütçe en fazla 15 dakikada bir okuma ve her işte tek kişi olarak kalır; bu seçenekler her kişi için kesin süre taahhüdü değildir. Mevcut 1/6/24 saat tercihleri aynı sürede korunur.
+- Kişi analizinde Takip durumu: son başarılı okuma, en erken kontrol hedefi, bekleme nedeni ve o anda zamanı gelmiş kişiler arasındaki sıra. Durumu güncelle yeni Instagram isteği göndermez.
+- Aralıkların kaynak modeli dakika cinsindedir. Mevcut şifreli v4 kaydına isteğe bağlı intervalMinutes eklendi; eski intervalHours yalnız sürüm uyumluluğu için üretilir/okunur. Eski APK'ya dönüşte 15/30 dakika 1 saate, 12 saat 24 saate yuvarlanır ve eski sürüm yeniden yazarsa dakika tercihi kaybolur.
+- Kullanıcı adı, biyografi ve karşılaştırılabilir fotoğraf bilgisi değişiklikleri 0.1.12'deki ortak bildirim yolunu kullanmaya devam eder. Sayılar aynıyken her alanın tek başına bildirimi ve gerçek Android arka plan işinin biyografi/fotoğraf bildirimi için test kapsamı genişletildi.
+- Yeni ağ ucu, izin, servis, sunucu veya 1–2 dakikalık hızlı takip eklenmedi. 429/oturum duraklatmaları, 15 dakika önbellek, kişi başına son 90 kayıt ve favoriler korunur.
+
 ## 0.1.12 — 2026-10-25 (profil bilgisi değişiklikleri)
 
 - Kayıtlı kişiler için kullanıcı adı, biyografi ve karşılaştırılabilir fotoğraf bilgisi değişiklikleri ortak ProfileChanges yorumundan üretilir. Sayılar değişmese de Son değişiklikler ve açık izleme bildirimleri olayı gösterir.

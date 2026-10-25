@@ -10,7 +10,7 @@ data class Profile(val userId: String, val username: String, val followers: Long
 data class SavedAccount(val session: Session, val profile: Profile, val people: List<TrackedPerson> = emptyList())
 
 data class TrackedPerson(val history: List<Profile>, val note: String = "", val group: String = "",
-    val watching: Boolean = false, val intervalHours: Int = 1, val nextCheckAt: Long = 0, val favorite: Boolean = false) {
+    val watching: Boolean = false, val intervalMinutes: Int = 60, val nextCheckAt: Long = 0, val favorite: Boolean = false) {
     val latest: Profile get() = history.last()
 }
 
@@ -26,7 +26,7 @@ object PeoplePolicy {
         require(existing == null || profile.observedAt > existing.latest.observedAt)
         val updated = (existing ?: TrackedPerson(emptyList())).copy(
             history = (existing?.history.orEmpty() + profile).takeLast(MAX_HISTORY),
-            nextCheckAt = if (existing?.watching == true) profile.observedAt + existing.intervalHours * 3600000L else 0)
+            nextCheckAt = if (existing?.watching == true) profile.observedAt + WatchIntervals.durationMs(existing.intervalMinutes) else 0)
         return if (existing == null) people + updated else people.map { if (it === existing) updated else it }
     }
 }
