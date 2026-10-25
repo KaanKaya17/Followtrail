@@ -4,11 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -32,11 +28,12 @@ class DesktopLinkActivity : Activity() {
     private var status = ""
     private var prepared = false
     private var visibleScroll: ScrollView? = null
-    private val mint = Color.rgb(186, 243, 213)
+    private val accent = AppUi.violet
     private val gateWake = Runnable { if (!isDestroyed && !busy) render() }
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppUi.systemBars(this)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         gate = RequestGate(this); api = InstagramApi(gate); link = DesktopLink(this)
         gate.setMobileLinkActive(true); MonitorScheduler.cancel(this)
@@ -56,42 +53,43 @@ class DesktopLinkActivity : Activity() {
         val position = visibleScroll?.scrollY ?: 0
         val page = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; setPadding(dp(24), dp(20), dp(24), dp(28))
-            setBackgroundColor(Color.rgb(16, 19, 27))
+            setBackgroundColor(AppUi.background)
         }
-        fun label(value: String, size: Float, color: Int = Color.rgb(242, 244, 235)) {
+        fun label(value: String, size: Float, color: Int = AppUi.ink) {
             page.addView(TextView(this).apply { text = value; textSize = size; setTextColor(color); setPadding(0, dp(8), 0, dp(12)) })
         }
         fun action(resource: Int, enabled: Boolean = true, primary: Boolean = true, allowDuringWork: Boolean = false, run: () -> Unit) {
-            page.addView(Button(this).apply {
-                setText(resource); isAllCaps = false; textSize = 16f
-                setTextColor(if (primary) Color.rgb(16, 19, 27) else Color.rgb(216, 204, 250))
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                background = if (primary) GradientDrawable().apply { setColor(mint); cornerRadius = dp(18).toFloat() } else null
-                isEnabled = enabled && (!busy || allowDuringWork); alpha = if (isEnabled) 1f else .45f
-                minimumHeight = dp(56); setPadding(dp(16), dp(12), dp(16), dp(12)); setOnClickListener { run() }
-            }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
+            page.addView(AppUi.button(this, getString(resource), primary, enabled && (!busy || allowDuringWork), action = run),
+                LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(10) })
         }
         val header = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
-        header.addView(Button(this).apply {
-            text = "‹"; contentDescription = getString(R.string.desktop_link_close); textSize = 30f
-            setTextColor(mint); background = null; minimumWidth = dp(48); setOnClickListener { close() }
-        }, LinearLayout.LayoutParams(dp(48), dp(48)))
-        header.addView(TextView(this).apply { setText(R.string.desktop_link_header); textSize = 16f; setTextColor(Color.rgb(164, 174, 181)) })
+        header.addView(AppUi.iconButton(this, "back", getString(R.string.desktop_link_close)) { close() }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        header.addView(TextView(this).apply { setText(R.string.desktop_link_header); textSize = 16f; setTextColor(AppUi.muted) })
         page.addView(header, LinearLayout.LayoutParams(-1, dp(56)).apply { bottomMargin = dp(16) })
-        label(if (staged != null) "Aktarım hazır." else if (prepared) "Sıra bilgisayarında." else getString(R.string.desktop_link_title), 32f, mint)
+        val step = if (staged != null) 3 else if (prepared) 2 else 1
+        val steps = LinearLayout(this)
+        listOf("1 · Hazırla", "2 · Aktar", "3 · Bağlan").forEachIndexed { index, title ->
+            steps.addView(AppUi.text(this, title, 11f, if (step == index + 1) AppUi.violet else AppUi.muted, step == index + 1).apply {
+                gravity = android.view.Gravity.CENTER; setPadding(dp(6), dp(12), dp(6), dp(12))
+                background = AppUi.shape(this@DesktopLinkActivity, if (step == index + 1) AppUi.violetSoft else AppUi.background, 14)
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+        }
+        page.addView(steps, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(22) })
+        label(if (staged != null) "Aktarım hazır." else if (prepared) "Sıra bilgisayarında." else getString(R.string.desktop_link_title), 32f, accent)
         label(if (staged != null) "Hazır olduğunda sayılarını al." else if (prepared) "Aktarımı çalıştır, sonra buradan devam et." else getString(R.string.desktop_link_intro), 16f)
         val mark = TextView(this).apply {
-            text = if (staged != null) "✓" else "↔"; textSize = 64f; setTextColor(mint)
+            text = ""; setPadding(dp(32), dp(32), dp(32), dp(32))
+            setCompoundDrawablesWithIntrinsicBounds(null, AppUi.Icon(this@DesktopLinkActivity, if (staged != null) "check" else "link", accent, 48), null, null)
             gravity = android.view.Gravity.CENTER
             importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            background = GradientDrawable().apply { setColor(Color.rgb(28, 33, 43)); cornerRadius = dp(28).toFloat() }
+            background = AppUi.shape(this@DesktopLinkActivity, AppUi.violetSoft, 28)
         }
         page.addView(mark, LinearLayout.LayoutParams(-1, dp(120)).apply { topMargin = dp(16); bottomMargin = dp(24) })
         if (busy) label(getString(R.string.desktop_link_busy), 14f)
-        else if (status.isNotEmpty()) label(status, 14f, Color.rgb(216, 204, 250))
+        else if (status.isNotEmpty()) label(status, 14f, AppUi.violet)
         val remaining = gate.nextPrototypeAt() - System.currentTimeMillis()
         if (staged != null && remaining > 0) label(getString(R.string.desktop_link_pause,
-            SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextPrototypeAt()))), 14f, Color.rgb(216, 204, 250))
+            SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextPrototypeAt()))), 14f, AppUi.violet)
         when {
             staged != null -> action(R.string.desktop_link_read, !attempted && remaining <= 0) {
                 val reference = staged ?: return@action
@@ -127,7 +125,7 @@ class DesktopLinkActivity : Activity() {
                 .setPositiveButton("Anladım", null).show()
         }
         val scroll = ScrollView(this).apply {
-            setBackgroundColor(Color.rgb(16, 19, 27)); isFillViewport = true
+            setBackgroundColor(AppUi.background); isFillViewport = true
             setOnApplyWindowInsetsListener { view, insets ->
                 @Suppress("DEPRECATION")
                 view.setPadding(insets.systemWindowInsetLeft, insets.systemWindowInsetTop, insets.systemWindowInsetRight, insets.systemWindowInsetBottom)

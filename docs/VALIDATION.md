@@ -2,6 +2,15 @@
 
 25 Ekim 2026. Sürümler ayrı değerlendirilir; Windows prototipinin canlı başarısı Android başarısı olarak sayılmaz.
 
+## 0.1.9 — açık ve canlı arayüz
+
+- Çalışan 0.1.8 kaynağı yerel `00591da7bce28e8532990f56522c9040ace135a3` commit'inde ve `checkpoint/0.1.8-live-20261025` etiketinde korundu. Ayrı `InstagramTracker-Backups/0.1.8-live-20261025` klasöründe kaynak ZIP, tam Git bundle ve aynı SHA-256 değerli özgün APK var; bundle doğrulaması geçti. Bu yedek kullanıcı oturumlarını/telefon verisini içermez. Arayüz çalışması `codex/bright-interface` dalındadır; uzaktaki repoya gönderilmedi.
+- Ortak AppUi yalnız görsel bileşenleri sahiplenir. Oturum, profil/liste okuyucuları, şifreli kayıt biçimleri ve RequestGate kaynakları bu arayüz değişikliğinde aynı kaldı. Ana sayfa sayı kartları yalnız ilgili liste ekranını açar; açılışta liste isteği göndermez.
+- 36 JVM testi geçti. API 35 / Android 15 emülatörde ilk 60 test ve yerel arama kontrolü eklendikten sonraki tam 61 test geçti. Yerel arama testi alınmış kullanıcıların filtrelenmesini, sorgunun yeniden oluşmada korunmasını ve deneme sayısının artmamasını gerçek Activity/Keystore/sentetik veri ile doğrular. Son tam koşu 62,644 saniye; çıktı `artifacts/validation-0.1.9-device.txt` içindedir. Son odaklı kontrolde kaydırılabilir, seçilemeyen liste başlığını klavye modunda seçmeye çalışmanın özeti atladığı görüldü. Başlık için seçim yerine kaydırma ofseti korunur; sayfalama testi klavye modunu açıkça sınar. Düzeltme sonrası son 17 ekran testi geçti (38,694 saniye); çıktı `artifacts/validation-0.1.9-final-screens-fixed.txt` içindedir. Önceki başarısız koşu ayrı dosyada korunur.
+- Release/debug/test APK derlendi ve lint geçti. İlk lint koşusunda API 27'ye özgü navigation bar tema niteliği API 24 alt sınırına aykırı bulundu; nitelik kaldırıldı, sistem çubukları API kontrolü bulunan ortak koddan uygulanır. Güncel raporda sıfır hata, üç mevcut OkHttp sürüm bildirimi var.
+- Görsel inceleme ayrı debug paketi ve belirgin örnek veriyle yapıldı. 720×1280 / 320 dpi, yazı ölçeği 1,3 ve 2,0 incelendi; listede başlık bilgileri kaydırılır, klavye açıkken özet ve işlem alanı gizlenerek yerel sonuçlara yer açılır. Tam TalkBack veya tüm cihaz uyumluluğu iddiası değildir. Görüntüler `artifacts/ui-0.1.9-*.png` altında tutulur.
+- Bu arayüz turunda gerçek Instagram isteği gönderilmedi. Telefonun üretim uygulaması veya verisi silinmedi; canlı mobil başarının önceki kullanıcı bildirimi aşağıdaki 0.1.8 kaydına aittir. API 24 ve GitHub CI bu sürüm için çalıştırılmadı. Güncelleme önizlemesidir.
+
 ## 0.1.8 — elle liste okuma önizlemesi
 
 ### 25 Ekim — kullanıcı tarafından bildirilen fiziksel telefon testi

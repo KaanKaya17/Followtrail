@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.net.http.SslError
 import android.os.Bundle
 import android.os.Handler
@@ -62,18 +61,14 @@ class ConnectionLabActivity : Activity() {
     private val preview by lazy { ConnectionLabMode.enabled(this) }
     private val origin by lazy { ConnectionLabMode.origin(preview) }
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
-    private fun label(value: String, size: Float = 15f, color: Int = Color.WHITE) = TextView(this).apply {
+    private fun label(value: String, size: Float = 15f, color: Int = AppUi.ink) = TextView(this).apply {
         text = value; textSize = size; setTextColor(color); setPadding(0, dp(5), 0, dp(5))
     }
-    private fun action(value: String, callback: () -> Unit) = Button(this).apply {
-        text = value; isAllCaps = false; setOnClickListener { callback() }
-        setTextColor(Color.rgb(15, 18, 25)); background = GradientDrawable().apply {
-            setColor(Color.rgb(181, 245, 218)); cornerRadius = dp(16).toFloat()
-        }; setPadding(dp(12), dp(12), dp(12), dp(12)); minimumHeight = dp(52)
-    }
+    private fun action(value: String, callback: () -> Unit) = AppUi.button(this, value, action = callback)
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppUi.systemBars(this)
         if (!preview) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         gate = RequestGate(this, if (preview) "probe_preview_gate" else "request_gate")
         diagnostics = ProbeDiagnostics(this, if (preview) "probe_preview_diagnostics" else "connection_probe")
@@ -86,10 +81,10 @@ class ConnectionLabActivity : Activity() {
         } catch (_: Exception) { finish(); return }
         val body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(24), dp(16), dp(24), dp(24)) }
         body.addView(label("Bağlantı prototipi", 28f).apply { typeface = Typeface.DEFAULT_BOLD })
-        body.addView(label(if (preview) "DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK" else "Tek kontrollü profil okuması · Arka plan kontrolleri duraklatıldı.", 13f, Color.rgb(210, 196, 255)))
+        body.addView(label(if (preview) "DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK" else "Tek kontrollü profil okuması · Arka plan kontrolleri duraklatıldı.", 13f, AppUi.violet))
         body.addView(label("Instagram oturumunu aç. Giriş ve varsa doğrulamayı tarayıcıda tamamla; sonra profilin kullanıcı adını girip tek okumayı başlat.", 14f))
         username = EditText(this).apply {
-            hint = "@kullanıcıadı"; setTextColor(Color.WHITE); setHintTextColor(Color.LTGRAY)
+            hint = "@kullanıcıadı"; setTextColor(AppUi.ink); setHintTextColor(AppUi.muted)
             setSingleLine(true); filters = arrayOf(android.text.InputFilter.LengthFilter(31))
             setText(savedInstanceState?.getString("username") ?: if (preview) "lab.demo" else "")
         }; body.addView(username)
@@ -97,9 +92,9 @@ class ConnectionLabActivity : Activity() {
         read = action("Tek okumayı başlat", ::startProbe)
         close = action("Denemeyi bitir", ::closeLab)
         for (button in listOf(startBrowser, read)) body.addView(button, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
-        status = label("Henüz profil isteği gönderilmedi.", 14f, Color.rgb(210, 196, 255)); body.addView(status)
-        counts = label("", 21f, Color.rgb(181, 245, 218)); body.addView(counts)
-        summary = label("", 12f, Color.LTGRAY); body.addView(summary)
+        status = label("Henüz profil isteği gönderilmedi.", 14f, AppUi.violet); body.addView(status)
+        counts = label("", 21f, AppUi.teal); body.addView(counts)
+        summary = label("", 12f, AppUi.muted); body.addView(summary)
         browser = WebView(this).apply {
             setBackgroundColor(Color.WHITE)
             settings.apply {
@@ -173,8 +168,8 @@ class ConnectionLabActivity : Activity() {
         }
         body.addView(browser, LinearLayout.LayoutParams(-1, dp(420)).apply { topMargin = dp(12) })
         body.addView(close, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        body.addView(label("Sonuç bu deneme ekranında kalır. Tarayıcı çerezleri ayrı HTTP istemcisine aktarılmaz. Otomatik yeniden deneme yapılmaz.", 12f, Color.LTGRAY))
-        val scroll = ScrollView(this).apply { setBackgroundColor(Color.rgb(15, 18, 25)); addView(body) }
+        body.addView(label("Sonuç bu deneme ekranında kalır. Tarayıcı çerezleri ayrı HTTP istemcisine aktarılmaz. Otomatik yeniden deneme yapılmaz.", 12f, AppUi.muted))
+        val scroll = ScrollView(this).apply { setBackgroundColor(AppUi.background); addView(body) }
         scroll.setOnApplyWindowInsetsListener { view, insets ->
             @Suppress("DEPRECATION") view.setPadding(insets.systemWindowInsetLeft, insets.systemWindowInsetTop, insets.systemWindowInsetRight, insets.systemWindowInsetBottom)
             insets

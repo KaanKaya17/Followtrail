@@ -19,12 +19,14 @@
     <string name="list_cancel">İptal</string>
     <string name="list_cancelled">Okuma iptal edildi. Önceki sayfalar korundu.</string>
     <string name="list_close">Kapat</string>
+    <string name="list_restart_action">Yeniden oku</string>
+    <string name="list_compare_action">Karşılaştır</string>
     <string name="list_compare">Alınan listeleri karşılaştır</string>
     <string name="list_mutual">İki kayıtta ortak · %1$d</string>
     <string name="list_followers_only">Yalnız alınan takipçi kaydında · %1$d</string>
     <string name="list_following_only">Yalnız alınan takip edilen kaydında · %1$d</string>
     <string name="list_comparison_scope">Yalnız alınan kayıtlar karşılaştırılır. Bir listede görünmemek, geri takip etmediğini veya takipten çıktığını kanıtlamaz.</string>
-    <string name="list_scope">Her düğme bir sayfa okur. Tam liste veya geçmiş değişim iddiası yok.</string>
+    <string name="list_scope">Her okuma bir sayfa getirir. Kayıtlar kısmi olabilir.</string>
     <string name="list_wait">Yeni sayfa için %1$s saatini bekle.</string>
     <string name="list_username_unknown">Kullanıcı adı belirtilmedi</string>
     <string name="list_finish_connection">Önce yarım kalan bağlantı işlemini tamamla.</string>

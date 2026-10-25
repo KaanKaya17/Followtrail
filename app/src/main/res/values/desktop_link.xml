@@ -9,7 +9,7 @@
     <string name="desktop_link_busy">Biraz bekle…</string>
     <string name="desktop_link_success">Bağlandı</string>
     <string name="desktop_link_error">Aktarım açılamadı. Bilgisayardaki aktarımı kontrol et.</string>
-    <string name="desktop_link_pause">Yeni deneme · %1$s</string>
+    <string name="desktop_link_pause">Yerel mola · %1$s</string>
     <string name="desktop_link_switch">Başka hesap bağla</string>
     <string name="desktop_link_help">Nasıl çalışır?</string>
 </resources>
