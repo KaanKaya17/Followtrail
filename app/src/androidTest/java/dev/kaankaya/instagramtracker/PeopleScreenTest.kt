@@ -22,6 +22,7 @@ class PeopleScreenTest {
         instrumentation.uiAutomation.serviceInfo = instrumentation.uiAutomation.serviceInfo.apply {
             flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
         }
+        FollowListVault(context, "previewlists").clear()
         SessionVault(context, "previewaccount").clear()
         context.getSharedPreferences("preview_gate", 0).edit().clear().commit()
     }
@@ -29,6 +30,7 @@ class PeopleScreenTest {
         scenario?.close()
         PreviewMode.cancel(context)
         ChangeNotifications(context).clear()
+        FollowListVault(context, "previewlists").clear()
         SessionVault(context, "previewaccount").clear()
         context.getSharedPreferences("preview_gate", 0).edit().clear().commit()
     }
@@ -51,6 +53,47 @@ class PeopleScreenTest {
     private fun launch() {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).putExtra("offline_preview", true))
         awaitLabel("@benim.demo")
+    }
+    private fun clickDescription(description: String) = scenario!!.onActivity { activity ->
+        val view = all(activity.window.decorView).single { it.contentDescription?.toString() == description && it.isClickable }
+        assertTrue(view.isEnabled); view.performClick()
+    }
+    @Test fun favoritesStayFirstAcrossRecreationAndRefreshWithoutExtraReads() {
+        launch(); click("Kişiler"); clickDescription("Favoriye ekle · @ada.demo")
+        val vault = SessionVault(context, "previewaccount")
+        fun orderedNames(): List<String> {
+            var result = emptyList<String>()
+            scenario!!.onActivity { activity -> result = all(activity.window.decorView).filterIsInstance<android.widget.Button>()
+                .map { it.text.toString() }.filter { it.startsWith("Analizi aç ·") } }
+            return result
+        }
+        assertEquals(listOf("Analizi aç · @ada.demo", "Analizi aç · @deniz.demo"), orderedNames())
+        assertTrue(vault.read()!!.people.single { it.latest.userId == "201" }.favorite)
+        assertEquals(0L, RequestGate(context, "preview_gate").attempts())
+        scenario!!.recreate(); awaitLabel("Seçtiğin kişiler")
+        assertEquals("Analizi aç · @ada.demo", orderedNames().first())
+        click("Analizi aç · @ada.demo"); click("Kişiyi yenile"); awaitLabel("Yeni gözlem bu cihazda kaydedildi.")
+        val refreshed = vault.read()!!.people.single { it.latest.userId == "201" }
+        assertTrue(refreshed.favorite); assertEquals(13, refreshed.history.size); assertEquals("İçerik üreticileri", refreshed.group)
+        assertEquals(1L, RequestGate(context, "preview_gate").attempts())
+        clickDescription("Favorilerden çıkar · @ada.demo"); click("Tüm kişiler")
+        assertEquals("Analizi aç · @deniz.demo", orderedNames().first())
+        assertFalse(vault.read()!!.people.single { it.latest.userId == "201" }.favorite)
+        assertEquals(1L, RequestGate(context, "preview_gate").attempts())
+    }
+    @Test fun homeFeedOpensAnalysisAndShowsSavedPagesWithoutRequestingAnything() {
+        launch(); awaitLabel("Son değişiklikler")
+        scenario!!.onActivity { activity -> all(activity.window.decorView).first {
+            it.tag?.toString()?.startsWith("activity:counts:200:") == true }.performClick() }
+        awaitLabel("@deniz.demo"); assertEquals(0L, RequestGate(context, "preview_gate").attempts())
+        click("Özet")
+        val vault = SessionVault(context, "previewaccount"); val saved = vault.read()!!
+        val page = FollowPageParser.parse(org.json.JSONObject("""{"status":"ok","users":[],"next_max_id":null}"""),
+            "200", FollowDirection.FOLLOWERS, null, System.currentTimeMillis())
+        val lists = FollowListVault(context, "previewlists"); lists.commit(saved.session, page)
+        scenario!!.recreate(); awaitLabel("Takipçiler · Kaydedilen sayfa: 1")
+        assertEquals(saved, vault.read()); assertEquals(0L, RequestGate(context, "preview_gate").attempts())
+        assertNotNull(lists.current(saved.session)); assertNull(lists.current(saved.session.copy(userId = "999")))
     }
     @Test fun navigatingPeopleAndHistoryDoesNotReserveNetworkAndSurvivesRecreation() {
         launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")

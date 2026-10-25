@@ -1,4 +1,20 @@
 <resources>
+    <string name="favorite_add">Favoriye ekle · @%1$s</string>
+    <string name="favorite_remove">Favorilerden çıkar · @%1$s</string>
+    <string name="favorite_added">@%1$s favorilere eklendi.</string>
+    <string name="favorite_removed">@%1$s favorilerden çıkarıldı.</string>
+    <string name="people_summary">Kişi: %1$d · Favori: %2$d</string>
+    <string name="activity_title">Son değişiklikler</string>
+    <string name="activity_subtitle">Cihazdaki başarılı kayıtlardan.</string>
+    <string name="activity_empty">Henüz kayıtlı değişiklik yok. Yeni başarılı okumalar geldikçe burada görünür.</string>
+    <string name="activity_followers">Takipçi %1$s</string>
+    <string name="activity_following">Takip edilen %1$s</string>
+    <string name="activity_list_page">%1$s · Kaydedilen sayfa: %2$d</string>
+    <string name="activity_observed">Gözlem · %1$s</string>
+    <string name="activity_all">Tümünü gör</string>
+    <string name="activity_scope">Akış hakkında</string>
+    <string name="activity_scope_body">Son 20 kayıtlı gözlem gösterilir. Sayı farkı iki başarılı okuma arasındadır; değişimin kesin zamanı veya kimlerin takipten çıktığı değildir. Liste etkinliği son incelenen profilin mevcut sayfa kayıtlarıyla sınırlıdır. Akışı açmak yeni istek göndermez.</string>
+    <string name="activity_lists_unavailable">Liste kaydı açılamadı. Akış yalnız profil geçmişini gösteriyor.</string>
     <string name="list_search_hint">Kayıtlarda ara</string>
     <string name="list_search_summary">Eşleşen: %1$d · Kayıt: %2$d</string>
     <string name="list_info_title">Kaydın kapsamı</string>

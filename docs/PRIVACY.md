@@ -35,3 +35,7 @@ Kayıt yazımı bildirimden önce tamamlanır. Bu iki adım arasında süreç ka
 ## 0.1.8 liste deneyi
 
 Yalnız son incelenen hedefin iki yöndeki alınmış sayfaları noBackupFilesDir içinde Keystore/AES-GCM ile şifrelenir. Kimlik, yanıtta bulunan kullanıcı/görünen ad ve isteğe bağlı resim adresi/gizlilik/doğrulanma alanları saklanır. Resimler indirilmez, üye başına profil isteği yapılmaz. Ham yanıt, Authorization veya çerez liste kaydına/tanıya yazılmaz. Liste kaydı mevcut 512 KiB bütçesini kullanır; kapasite hatası eski sayfaları korur. Başka hedefin başarılı ilk okuması bu kaydı değiştirir. Kişiyi kaldırma ilgili hedefi; bağlantıyı kaldırma liste kaydını siler. Liste okumaları açık kullanıcı eylemidir; arka plan liste toplaması yoktur. [Kapsam ve test](FOLLOW-LISTS-TEST.md).
+
+## 0.1.11 favoriler ve akış
+
+Favori tercihi, ilgili kişinin mevcut şifreli kaydında Boolean olarak saklanır. Ana sayfa akışı ayrı bir sunucuya veya olay dosyasına gönderilmez; cihazdaki profil geçmişi ve mevcut liste sayfalarından üretilir. Kişiyi kaldırmak onun türetildiği geçmişi ve favorisini de kaldırır. Favoriler farklı Instagram hesapları arasında birleştirilmez.

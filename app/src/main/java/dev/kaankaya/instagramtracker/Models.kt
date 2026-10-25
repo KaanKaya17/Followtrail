@@ -10,7 +10,7 @@ data class Profile(val userId: String, val username: String, val followers: Long
 data class SavedAccount(val session: Session, val profile: Profile, val people: List<TrackedPerson> = emptyList())
 
 data class TrackedPerson(val history: List<Profile>, val note: String = "", val group: String = "",
-    val watching: Boolean = false, val intervalHours: Int = 1, val nextCheckAt: Long = 0) {
+    val watching: Boolean = false, val intervalHours: Int = 1, val nextCheckAt: Long = 0, val favorite: Boolean = false) {
     val latest: Profile get() = history.last()
 }
 
@@ -18,6 +18,7 @@ object PeoplePolicy {
     const val MAX_PEOPLE = 20
     const val MAX_HISTORY = 90
     const val FRESH_MS = 15 * 60 * 1000L
+    fun favoritesFirst(people: List<TrackedPerson>): List<TrackedPerson> = people.filter { it.favorite } + people.filterNot { it.favorite }
     fun needsRefresh(profile: Profile, now: Long): Boolean = now >= profile.observedAt && now - profile.observedAt >= FRESH_MS
     fun record(people: List<TrackedPerson>, profile: Profile): List<TrackedPerson> {
         val existing = people.firstOrNull { it.latest.userId == profile.userId }
