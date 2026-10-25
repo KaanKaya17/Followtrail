@@ -232,6 +232,23 @@ class PeopleScreenTest {
         scenario!!.recreate(); awaitLabel("12 saatte bir"); awaitLabel("Sıradaki kontrol: beklemede.")
         assertEquals(0L, gate.attempts())
     }
+    @Test fun fullAutomationSettingsPersistWithoutClearingRestrictionsAndCanBeStopped() {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(
+                "pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
+        }
+        val gate = RequestGate(context, "preview_gate"); gate.limited(null)
+        launch(); click("Otomasyonu ayarla"); dialogClick("Seçilenlerde başlat")
+        awaitLabel("Liste otomasyonu açık")
+        val vault = SessionVault(context, "previewaccount"); val saved = vault.read()!!
+        assertEquals(setOf("100", "200", "201"), saved.automation.targets)
+        assertTrue(saved.people.all { it.watching }); assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
+        scenario!!.recreate(); awaitLabel("Liste otomasyonu açık")
+        assertEquals(saved, vault.read()); assertEquals(0L, gate.attempts())
+        click("Liste otomasyonunu durdur"); awaitLabel("Liste otomasyonu kapalı")
+        assertFalse(vault.read()!!.automation.enabled); assertTrue(vault.read()!!.people.all { it.watching })
+        assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
+    }
     @Test fun addEditAndRemoveUseTheRealDialogsAndEncryptedStorage() {
         launch(); click("Kişiler"); click("Kişi ekle")
         setText("@kullanıcıadı veya profil bağlantısı", "@efe.demo")

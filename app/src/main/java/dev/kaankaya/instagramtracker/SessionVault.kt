@@ -77,7 +77,8 @@ class SessionVault(context: Context, slot: String = "account") {
     }
     fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
         val previous = read()
-        SavedAccount(session, profile, previous?.takeIf { it.session.userId == session.userId }?.people.orEmpty())
+        val sameOwner = previous?.takeIf { it.session.userId == session.userId }
+        SavedAccount(session, profile, sameOwner?.people.orEmpty(), sameOwner?.automation ?: ListAutomation())
             .also { write(it) }
     }
     fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }

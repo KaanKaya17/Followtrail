@@ -37,7 +37,14 @@ class RequestGate(context: Context, name: String = "request_gate") {
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
     fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0)) }
     fun automaticNextAllowedAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("auto_after", 0)) }
-    fun manualOnly(): Boolean = synchronized(lock) { preferences.getBoolean("manual_only", false) || blockedUntil() > 0 }
+    fun manualOnly(): Boolean = synchronized(lock) { preferences.getBoolean("manual_only", false) || blockedUntil() > 0 || listCapacityPaused() }
+    fun listCapacityPaused(): Boolean = synchronized(lock) { preferences.getBoolean("list_capacity_pause", false) }
+    fun pauseForListCapacity() = synchronized(lock) {
+        if (!preferences.edit().putBoolean("list_capacity_pause", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
+    fun clearListCapacityPause() = synchronized(lock) {
+        if (!preferences.edit().remove("list_capacity_pause").commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
     fun restrictionPending(): Boolean = blockedUntil() > 0
     fun serverRetryAt(): Long? = synchronized(lock) { preferences.getLong("server_retry_at", 0).takeIf { it > 0 } }
     fun ownAutoRefresh(): Boolean = synchronized(lock) { preferences.getBoolean("own_auto_refresh", false) }

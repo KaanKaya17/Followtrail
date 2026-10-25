@@ -7,7 +7,8 @@ import java.util.Locale
 data class Session(val userId: String, val cookie: String, val userAgent: String, val mobileBinding: String? = null)
 data class Profile(val userId: String, val username: String, val followers: Long, val following: Long, val observedAt: Long,
     val posts: Long? = null, val details: ProfileDetails = ProfileDetails())
-data class SavedAccount(val session: Session, val profile: Profile, val people: List<TrackedPerson> = emptyList())
+data class SavedAccount(val session: Session, val profile: Profile, val people: List<TrackedPerson> = emptyList(),
+    val automation: ListAutomation = ListAutomation())
 
 data class TrackedPerson(val history: List<Profile>, val note: String = "", val group: String = "",
     val watching: Boolean = false, val intervalMinutes: Int = 60, val nextCheckAt: Long = 0, val favorite: Boolean = false) {

@@ -71,6 +71,8 @@ class MainActivity : Activity() {
     private var pendingWatchId: String? = null
     private var pendingWatchOwner: String? = null
     private var pendingWatchMinutes = 60
+    private var pendingAutomationOwner: String? = null
+    private var pendingAutomationTargets: Set<String>? = null
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,6 +100,8 @@ class MainActivity : Activity() {
         pendingWatchId = savedInstanceState?.getString("pendingWatch")
         pendingWatchOwner = savedInstanceState?.getString("pendingOwner")
         pendingWatchMinutes = savedInstanceState?.getInt("pendingMinutes", 60) ?: 60
+        pendingAutomationOwner = savedInstanceState?.getString("pendingAutomationOwner")
+        pendingAutomationTargets = savedInstanceState?.getStringArrayList("pendingAutomationTargets")?.toSet()
         vault = SessionVault(this, if (preview) "previewaccount" else "account")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
         api = PreviewMode.api(gate, preview)
@@ -265,6 +269,7 @@ class MainActivity : Activity() {
         row.addView(stat("Takipçi", saved.profile.followers, FollowDirection.FOLLOWERS, true), LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
         row.addView(stat("Takip edilen", saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
         page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        renderAutomation(page, saved)
         renderRecentActivity(page, saved)
         val quick = LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL; background = AppUi.touch(this@MainActivity, shape(panel, 22, AppUi.line))
@@ -279,6 +284,118 @@ class MainActivity : Activity() {
         quick.addView(quickText, LinearLayout.LayoutParams(0, -2, 1f))
         quick.addView(text("", 12f).apply { setCompoundDrawablesWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "chevron", muted, 18), null, null, null) })
         page.addView(quick); page.gap(20)
+    }
+
+    private fun renderAutomation(page: LinearLayout, saved: SavedAccount) {
+        val card = AppUi.card(this)
+        card.addView(AppUi.heading(this, getString(R.string.auto_title), 21f)); card.gap(8)
+        card.addView(text(getString(if (saved.automation.enabled) R.string.auto_enabled else R.string.auto_disabled), 14f,
+            if (saved.automation.enabled) AppUi.teal else muted)); card.gap(8)
+        if (gate.listCapacityPaused()) { card.addView(text(ApiFailure(ApiFailure.Kind.CAPACITY).userMessage(), 13f, AppUi.coral)); card.gap(8) }
+        card.addView(text(getString(R.string.auto_summary), 12f, muted)); card.gap(12)
+        card.addView(button(getString(R.string.auto_settings), false) { automationSettings() })
+        if (saved.automation.enabled) {
+            card.gap(8); card.addView(button(getString(R.string.auto_progress), false) { automationProgress() })
+            card.gap(8); card.addView(button(getString(R.string.auto_stop), false) {
+                try {
+                    account = vault.update(saved.session) { it.copy(automation = it.automation.copy(enabled = false)) }
+                    saved.automation.targets.forEach { ChangeNotifications(this, preview).cancelLists(saved.session.userId, it) }
+                    syncMonitoring()
+                } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
+                render()
+            })
+        }
+        page.addView(card); page.gap(20)
+    }
+    private fun automationSettings() {
+        val saved = account ?: return
+        if (!preview && saved.session.mobileBinding == null) {
+            message = getString(R.string.auto_mobile_required); render(); return
+        }
+        val profiles = listOf(saved.profile) + saved.people.map { it.latest }
+        val selected = profiles.map { it.userId in saved.automation.targets || saved.automation.targets.isEmpty() }.toBooleanArray()
+        AlertDialog.Builder(this).setTitle(R.string.auto_choose_targets)
+            .setMultiChoiceItems(profiles.map { "@${it.username}" + if (it.userId == saved.session.userId) " · kendi hesabın" else "" }.toTypedArray(), selected) { _, i, checked -> selected[i] = checked }
+            .setNeutralButton(R.string.auto_how) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_title)
+                .setMessage(R.string.auto_full_scope).setPositiveButton(R.string.list_close, null).show() }
+            .setNegativeButton(R.string.list_cancel, null).setPositiveButton(R.string.auto_start) { _, _ ->
+                val targets = profiles.filterIndexed { index, _ -> selected[index] }.map { it.userId }.toSet()
+                if (targets.isEmpty()) { message = getString(R.string.auto_select_one); render(); return@setPositiveButton }
+                pendingAutomationOwner = saved.session.userId; pendingAutomationTargets = targets
+                ChangeNotifications(this, preview).ensureChannel()
+                if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+                    requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1402)
+                else finishAutomationPermission()
+            }.show()
+    }
+    private fun finishAutomationPermission() {
+        val owner = pendingAutomationOwner; val targets = pendingAutomationTargets
+        pendingAutomationOwner = null; pendingAutomationTargets = null
+        val saved = account ?: return
+        if (saved.session.userId != owner || targets == null) return
+        if (!ChangeNotifications(this, preview).allowed()) { message = getString(R.string.watch_reason_notifications); render(); return }
+        try {
+            account = vault.update(saved.session) { current ->
+                val valid = targets.filter { id -> id == current.session.userId || current.people.any { it.latest.userId == id } }.toSet()
+                if (valid.isEmpty()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                current.copy(automation = current.automation.copy(enabled = true, targets = valid), people = current.people.map { person ->
+                    if (person.latest.userId !in valid || person.watching) person else person.copy(watching = true,
+                        nextCheckAt = maxOf(System.currentTimeMillis(), person.latest.observedAt + WatchIntervals.durationMs(person.intervalMinutes)))
+                })
+            }
+            saved.automation.targets.filterNot { it in targets }.forEach { ChangeNotifications(this, preview).cancelLists(saved.session.userId, it) }
+            syncMonitoring(); message = getString(R.string.auto_started)
+        } catch (failure: ApiFailure) { message = failure.userMessage() }
+        catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
+        render()
+    }
+    private fun automationProgress() {
+        try {
+            account = vault.read(); syncMonitoring()
+            val saved = account ?: return
+            val archive = FollowListVault(this, if (preview) "previewlists" else "followlists").archive(saved.session)
+            val profiles = (listOf(saved.profile) + saved.people.map { it.latest }).filter { it.userId in saved.automation.targets }
+            val rows = profiles.flatMap { profile -> FollowDirection.entries.map { profile to it } }
+            val descriptions = rows.map { (profile, direction) ->
+                val record = archive.targets.firstOrNull { it.target == profile.userId }
+                val run = record?.snapshot?.run(direction); val state = record?.scan(direction)
+                val label = getString(if (direction == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following)
+                val detail = when {
+                    state?.failure != null -> ApiFailure(state.failure).userMessage()
+                    run == null -> getString(R.string.auto_first_pending)
+                    run.coverage() == FollowCoverage.MORE -> getString(R.string.auto_scan_progress, run.pages.size.toString(), run.users.size.toString())
+                    run.coverage() == FollowCoverage.END_OBSERVED -> getString(R.string.auto_scan_end, run.users.size.toString(), date(state!!.nextAt))
+                    else -> getString(R.string.auto_scan_partial, run.pages.size.toString())
+                }
+                "@${profile.username} · $label\n$detail"
+            }
+            val gateReason = when {
+                !ChangeNotifications(this, preview).allowed() -> getString(R.string.watch_reason_notifications)
+                gate.listCapacityPaused() -> ApiFailure(ApiFailure.Kind.CAPACITY).userMessage()
+                gate.blockedUntil() > System.currentTimeMillis() -> getString(R.string.watch_reason_limited, date(gate.blockedUntil()))
+                gate.requiresConnection() -> getString(R.string.watch_reason_connection)
+                gate.manualOnly() -> getString(R.string.watch_reason_manual)
+                gate.automationHeld() -> getString(R.string.watch_reason_link)
+                AppUi.offline(this) == true -> getString(R.string.watch_reason_offline)
+                else -> getString(R.string.auto_progress_hint)
+            }
+            AlertDialog.Builder(this).setTitle(R.string.auto_progress).setItems(descriptions.toTypedArray()) { _, index ->
+                val (profile, direction) = rows[index]; openLists(profile, direction)
+            }.setNeutralButton(R.string.auto_how) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_progress)
+                .setMessage(gateReason + "\n\n" + getString(R.string.auto_full_scope)).setPositiveButton(R.string.list_close, null).show() }
+                .setNegativeButton(R.string.auto_clear_cache) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_clear_cache)
+                    .setMessage(R.string.auto_clear_cache_confirm).setNegativeButton(R.string.list_cancel, null)
+                    .setPositiveButton(R.string.auto_clear_cache) { _, _ ->
+                        try {
+                            FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
+                            gate.clearListCapacityPause(); syncMonitoring()
+                            archive.targets.forEach { ChangeNotifications(this, preview).cancelLists(saved.session.userId, it.target) }
+                            message = getString(R.string.auto_cache_cleared)
+                        }
+                        catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }; render()
+                    }.show() }
+                .setPositiveButton(R.string.list_close, null).show()
+        } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(); render() }
     }
 
     private fun favoriteButton(person: TrackedPerson) = AppUi.iconButton(this,
@@ -355,9 +472,9 @@ class MainActivity : Activity() {
     }
     private fun renderRecentActivity(page: LinearLayout, saved: SavedAccount) {
         var listsUnavailable = false
-        val snapshot = try { FollowListVault(this, if (preview) "previewlists" else "followlists").current(saved.session) }
-            catch (_: Exception) { listsUnavailable = true; null }
-        val entries = RecentActivity.items(saved, snapshot)
+        val snapshots = try { FollowListVault(this, if (preview) "previewlists" else "followlists").archive(saved.session).targets.mapNotNull { it.snapshot } }
+            catch (_: Exception) { listsUnavailable = true; emptyList() }
+        val entries = RecentActivity.all(saved, snapshots)
         val card = AppUi.card(this)
         card.addView(AppUi.heading(this, getString(R.string.activity_title), 21f)); card.gap(6)
         card.addView(text(getString(R.string.activity_subtitle), 12f, muted)); card.gap(14)
@@ -648,7 +765,11 @@ class MainActivity : Activity() {
     }
     private fun savePeople(reschedule: Boolean = true, update: (List<TrackedPerson>) -> List<TrackedPerson>): Boolean {
         val saved = account ?: return false
-        return try { account = vault.update(saved.session) { it.copy(people = update(it.people)) }; if (reschedule) syncMonitoring(); true }
+        return try { account = vault.update(saved.session) {
+            val people = update(it.people)
+            val targets = it.automation.targets.filter { id -> id == it.session.userId || people.any { person -> person.latest.userId == id } }.toSet()
+            it.copy(people = people, automation = it.automation.copy(targets = targets, enabled = it.automation.enabled && targets.isNotEmpty()))
+        }; if (reschedule) syncMonitoring(); true }
         catch (_: Exception) { message = "Kişiler kaydedilemedi. Önceki kayıtlar korunuyor."; false }
     }
     private fun editPerson(person: TrackedPerson) {
@@ -695,6 +816,9 @@ class MainActivity : Activity() {
             }
         }
         card.addView(watch, LinearLayout.LayoutParams(-1, -2))
+        if (saved.automation.enabled && person.latest.userId in saved.automation.targets) {
+            card.addView(text(getString(R.string.auto_person_scope), 12f, AppUi.teal)); card.gap(8)
+        }
         if (person.watching) {
             card.addView(text(intervalLabel(person.intervalMinutes), 14f, accent, true)); card.gap(8)
             card.addView(text(when {
@@ -770,13 +894,15 @@ class MainActivity : Activity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1401) finishWatchPermission()
+        if (requestCode == 1402) finishAutomationPermission()
     }
     private fun openNotification(saved: SavedAccount?) {
         val owner = intent.getStringExtra("notification_owner")
         val person = intent.getStringExtra("notification_person")
         intent.removeExtra("notification_owner"); intent.removeExtra("notification_person")
-        if (saved?.session?.userId == owner && saved?.people?.any { it.latest.userId == person } == true) {
-            peopleScreen = true; selectedPersonId = person
+        if (saved != null && saved.session.userId == owner) {
+            if (saved.profile.userId == person) { peopleScreen = false; selectedPersonId = null }
+            else if (saved.people.any { it.latest.userId == person }) { peopleScreen = true; selectedPersonId = person }
         }
     }
     override fun onNewIntent(intent: Intent) {
@@ -873,6 +999,7 @@ class MainActivity : Activity() {
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
                         if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear() }
                         FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
+                        gate.clearListCapacityPause()
                         vault.clear(); ChangeNotifications(this, preview).clear(); true
                     } catch (_: Exception) { false }
                     main.post {
@@ -1019,6 +1146,8 @@ class MainActivity : Activity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
         outState.putString("pendingWatch", pendingWatchId); outState.putString("pendingOwner", pendingWatchOwner); outState.putInt("pendingMinutes", pendingWatchMinutes)
+        outState.putString("pendingAutomationOwner", pendingAutomationOwner)
+        pendingAutomationTargets?.let { outState.putStringArrayList("pendingAutomationTargets", ArrayList(it)) }
         super.onSaveInstanceState(outState)
     }
 

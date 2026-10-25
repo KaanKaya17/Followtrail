@@ -1,5 +1,14 @@
 # Değişiklikler
 
+## 0.1.14 — 2026-10-25 (kendi hesabı ve seçili kişilerde liste otomasyonu)
+
+- Özet ekranından bir kez seçilen hedeflerde takipçi/takip edilen sayfalarını arka planda sırayla alma. Kaldığı cursor, rezervasyon ve hata durumu kalıcıdır; her sayfa için elle düğme gerekmez. Eski sürümlerde otomasyon varsayılan kapalıdır.
+- Profil ve liste işleri ortak tek 15 dakikalık otomatik okuma bütçesini paylaşır; ikisi de uygunsa dönüşümlü çalışarak açlık önlenir. Kendi hesap profil kontrolü de seçilirse saatlik hedefle arka plana katılır. Seçili kişilerin mevcut profil bildirimleri açılır; favori, not, geçmiş ve kişi aralıkları korunur.
+- Liste kasası son tek hedeften en fazla 21 hedeflik v2 arşive taşındı. Eski v1 kayıt ilk yazımda göç eder. Yön başına son uygun baseline ve güncel/yarım okuma tutulur; kapasite sınırı 512 KiB olarak kalır. Kapasite aşımında önceki kayıt korunur ve başarısız yönde otomasyon duraklatılır. Rezervasyon/hata kaydı bile sığmıyorsa ayrı kapasite molası alınır; bu molayı temizlemek 429 molasını kaldıramaz.
+- İki ayrı okumada da liste sonu gözlenmişse kimlik tabanlı yeni görülen/görünmeyen hesap farkları ve özel Android bildirimi. İlk/yarım/sınırlı okuma olay değildir. Kesin takipten çıkış veya tam/atomik Instagram listesi garantisi verilmez. Bildirime dokunmak sahipliği kontrol edilen hedef listesini açar.
+- Otomasyon durumu, kayıtlı listeden fark görüntüleme, ayrı hedef önbellekleri ve onaylı liste kaydı temizleme. Liste otomasyonunu durdurmak bağımsız kişi profil izlemelerini kapatmaz. Manuel liste okuması korunur; açılış ve yerel gezinme kendiliğinden istek göndermez.
+- Ağ uçları, mobil oturum taşıması, sayfa boyutu, 429/oturum duraklatması ve Android görev sıklığı korunur; yeni servis, izin veya sunucu yoktur. Büyük listeler ve Android kısıtları tamamlanmayı geciktirir. Canlı uzun süreli Instagram davranışı ayrıca doğrulanmalıdır.
+
 ## 0.1.13 — 2026-10-25 (kontrol aralıkları ve takip durumu)
 
 - Kişi kontrollerinde 15/30 dakika ve 1/6/12/24 saat seçenekleri. Ortak otomatik bütçe en fazla 15 dakikada bir okuma ve her işte tek kişi olarak kalır; bu seçenekler her kişi için kesin süre taahhüdü değildir. Mevcut 1/6/24 saat tercihleri aynı sürede korunur.

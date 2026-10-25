@@ -51,20 +51,55 @@ object FollowListCodec {
 class FollowListVault(context: Context, slot: String = "followlists") {
     companion object { private val lock = Any() }
     private val record = EncryptedRecord(context, slot)
-    fun current(session: Session): FollowSnapshot? = synchronized(lock) {
-        record.read()?.let(FollowListCodec::decode)?.takeIf { it.matches(session, it.target) }
+    fun archive(session: Session): ListArchive = synchronized(lock) {
+        record.read()?.let(FollowArchiveCodec::decode)?.takeIf { it.matches(session) }
+            ?: ListArchive(session.userId, session.mobileBinding)
     }
-    fun read(session: Session, target: String): FollowSnapshot? = current(session)?.takeIf { it.target == target }
+    private fun write(archive: ListArchive) = record.write(FollowArchiveCodec.encode(archive))
+    fun current(session: Session): FollowSnapshot? = synchronized(lock) {
+        archive(session).targets.mapNotNull { it.snapshot }.maxByOrNull { snapshot ->
+            FollowDirection.entries.mapNotNull { snapshot.run(it)?.latest?.observedAt }.maxOrNull() ?: 0
+        }
+    }
+    fun read(session: Session, target: String): FollowSnapshot? = synchronized(lock) {
+        archive(session).targets.firstOrNull { it.target == target }?.snapshot
+    }
+    fun target(session: Session, target: String): ListTarget? = synchronized(lock) { archive(session).targets.firstOrNull { it.target == target } }
     fun commit(session: Session, page: FollowPage): FollowSnapshot = synchronized(lock) {
-        val next = (read(session, page.target) ?: FollowSnapshot(session.userId, session.mobileBinding, page.target)).record(page)
-        val text = FollowListCodec.encode(next)
-        // Same explicit byte bound as the owning encrypted record; never silently drop page members.
-        if (text.toByteArray(Charsets.UTF_8).size > 512 * 1024) throw ApiFailure(ApiFailure.Kind.CAPACITY)
-        record.write(text)
-        next
+        val archive = archive(session)
+        val previous = archive.targets.firstOrNull { it.target == page.target } ?: ListTarget(page.target)
+        val next = ListAutomationPolicy.record(previous, session, page)
+        write(archive.replace(next))
+        next.snapshot!!
+    }
+    private fun matches(target: ListTarget, task: AutomaticTask.Page) =
+        target.snapshot?.run(task.direction)?.latest?.observedAt == task.previousObservation &&
+            (if (target.scan(task.direction).continuing) target.snapshot?.run(task.direction)?.cursor() else null) == task.cursor
+    fun reserve(session: Session, task: AutomaticTask.Page, now: Long) = synchronized(lock) {
+        val archive = archive(session)
+        val target = archive.targets.firstOrNull { it.target == task.target } ?: ListTarget(task.target)
+        if (!matches(target, task) || target.scan(task.direction).nextAt > now) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        write(archive.replace(target.withScan(task.direction, target.scan(task.direction).copy(attemptAt = now, nextAt = now + MonitorPolicy.POLL_MS))))
+    }
+    fun commitAutomatic(session: Session, task: AutomaticTask.Page, attemptAt: Long, page: FollowPage): ListDifference? = synchronized(lock) {
+        val archive = archive(session)
+        val target = archive.targets.firstOrNull { it.target == task.target } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        if (!matches(target, task) || target.scan(task.direction).attemptAt != attemptAt) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        require(page.target == task.target && page.direction == task.direction && page.inputCursor == task.cursor)
+        val next = ListAutomationPolicy.record(target, session, page)
+        write(archive.replace(next))
+        ListAutomationPolicy.difference(next, task.direction)?.takeIf { it.added.isNotEmpty() || it.missing.isNotEmpty() }
+    }
+    fun failed(session: Session, task: AutomaticTask.Page, attemptAt: Long, failure: ApiFailure.Kind) = synchronized(lock) {
+        val archive = archive(session)
+        val target = archive.targets.firstOrNull { it.target == task.target } ?: return@synchronized
+        if (!matches(target, task) || target.scan(task.direction).attemptAt != attemptAt) return@synchronized
+        write(archive.replace(target.withScan(task.direction, target.scan(task.direction).copy(
+            nextAt = attemptAt + ListAutomationPolicy.RESCAN_MS, continuing = false, failure = failure))))
     }
     fun clearTarget(session: Session, target: String) = synchronized(lock) {
-        if (read(session, target) != null) record.clear()
+        val archive = archive(session)
+        if (archive.targets.any { it.target == target }) write(archive.copy(targets = archive.targets.filterNot { it.target == target }))
     }
     fun clear() = synchronized(lock) { record.clear() }
 }

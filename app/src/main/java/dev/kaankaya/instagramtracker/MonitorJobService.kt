@@ -18,7 +18,7 @@ object MonitorScheduler {
     fun sync(context: Context, account: SavedAccount?, gate: RequestGate, jobId: Int = JOB_ID,
         service: Class<out JobService> = MonitorJobService::class.java): Boolean {
         val scheduler = context.getSystemService(JobScheduler::class.java)
-        if (account?.people?.any { it.watching } != true || !ChangeNotifications(context).allowed() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) {
+        if ((account?.people?.any { it.watching } != true && account?.automation?.enabled != true) || !ChangeNotifications(context).allowed() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) {
             scheduler.cancel(jobId); return false
         }
         if (scheduler.getPendingJob(jobId) != null) return true
@@ -33,12 +33,13 @@ open class MonitorJobService : JobService() {
     protected open val jobId = MonitorScheduler.JOB_ID
     protected open val preview = false
     protected open fun createApi(gate: RequestGate) = InstagramApi(gate)
+    protected open fun createListSource(gate: RequestGate): FollowListSource = MobileFollowListReader(gate, MobileSessions(this))
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
-    private class Run(val parameters: JobParameters, val api: InstagramApi) {
+    private class Run(val parameters: JobParameters, val api: InstagramApi, val lists: FollowListSource) {
         val cancelled = AtomicBoolean(false)
         var future: Future<*>? = null
-        fun cancel() { cancelled.set(true); api.cancel(); future?.cancel(true) }
+        fun cancel() { cancelled.set(true); api.cancel(); lists.cancel(); future?.cancel(true) }
     }
     private var active: Run? = null
     override fun onStartJob(params: JobParameters): Boolean {
@@ -46,10 +47,11 @@ open class MonitorJobService : JobService() {
         val gate = RequestGate(this, gateName)
         if (!notices.allowed() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) { MonitorScheduler.cancel(this, jobId); return false }
         active?.cancel()
-        val run = Run(params, createApi(gate)); active = run
+        val run = Run(params, createApi(gate), createListSource(gate)); active = run
         run.future = worker.submit {
             val vault = SessionVault(this, vaultSlot)
-            try { MonitorEngine(vault, gate, run.api, notices::allowed, notices::post).tick(cancelled = run.cancelled::get) }
+            try { AutomaticEngine(vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
+                run.api, run.lists, notices::allowed, notices::post, notices::postList).tick(cancelled = run.cancelled::get) }
             catch (_: ApiFailure) { /* The gate preserves restrictions and auth pauses; no immediate retries. */ }
             catch (_: Exception) { gate.pauseForConnection() }
             finally {

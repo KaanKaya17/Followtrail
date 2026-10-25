@@ -59,6 +59,9 @@ object AccountCodec {
             .put("cookie", account.session.cookie).put("ua", account.session.userAgent)
             .apply { account.session.mobileBinding?.let { put("mobileBinding", it) } }
             .put("profile", profile(account.profile, details)).put("people", people)
+            .apply { if (account.automation != ListAutomation()) put("listAutomation", JSONObject()
+                .put("enabled", account.automation.enabled).put("targets", JSONArray(account.automation.targets.toList()))
+                .put("ownNextCheckAt", account.automation.ownNextCheckAt).put("lastWorkWasList", account.automation.lastWorkWasList)) }
             .apply { if (details.isNotEmpty()) put("profileDetails", JSONArray().apply { details.forEach { put(encodeDetails(it, texts)) } })
                 if (texts.isNotEmpty()) put("profileTexts", JSONArray(texts))
             }.toString()
@@ -117,6 +120,16 @@ object AccountCodec {
             TrackedPerson(history, note, group, watching, minutes, nextCheck, favorite)
         }
         require(people.map { it.latest.userId }.distinct().size == people.size)
-        return SavedAccount(session, own, people)
+        val automation = if (!json.has("listAutomation")) ListAutomation() else {
+            val config = json.getJSONObject("listAutomation")
+            val enabled = config.get("enabled") as? Boolean ?: error("Invalid automation setting")
+            val targetArray = config.getJSONArray("targets"); require(targetArray.length() <= PeoplePolicy.MAX_PEOPLE + 1)
+            val targets = (0 until targetArray.length()).map { InstagramIdentity.id(targetArray.get(it)) }
+            require(targets.distinct().size == targets.size && targets.all { id -> id == session.userId || people.any { it.latest.userId == id } })
+            val next = config.getLong("ownNextCheckAt"); require(next >= 0 && (!enabled || targets.isNotEmpty()))
+            val lastList = config.get("lastWorkWasList") as? Boolean ?: error("Invalid automation work state")
+            ListAutomation(enabled, targets.toSet(), next, lastList)
+        }
+        return SavedAccount(session, own, people, automation)
     }
 }

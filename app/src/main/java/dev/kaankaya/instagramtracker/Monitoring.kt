@@ -43,10 +43,12 @@ object Observations {
 /** One due profile per invocation, no retries, and the same gate used by foreground reads. */
 class MonitorEngine(private val vault: SessionVault, private val gate: RequestGate, private val api: InstagramApi,
     private val canNotify: () -> Boolean, private val notify: (ObservedProfileChange) -> Unit) {
-    fun tick(now: Long = System.currentTimeMillis(), cancelled: () -> Boolean = { false }) {
+    fun tick(now: Long = System.currentTimeMillis(), cancelled: () -> Boolean = { false }, targetId: String? = null) {
         if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now) return
         val saved = vault.read() ?: return
-        val selected = MonitorPolicy.due(saved.people, now) ?: return
+        val selected = if (targetId == null) MonitorPolicy.due(saved.people, now) else
+            saved.people.firstOrNull { it.latest.userId == targetId && it.watching && it.nextCheckAt <= now }
+        if (selected == null) return
         if (!gate.reserveAutomatic(now)) return
         // Reserve this person's interval before transport, including transient failures.
         vault.update(saved.session) { current ->
