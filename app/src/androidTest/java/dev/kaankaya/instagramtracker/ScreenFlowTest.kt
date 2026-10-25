@@ -77,6 +77,19 @@ class ScreenFlowTest {
         assertTrue(loaded); assertSaved()
         assertTrue(RequestGate(context).blockedUntil() > System.currentTimeMillis())
     }
+    @Test fun navigationLeavesTheScrollViewportUncoveredAndDoesNotRead() {
+        val session = SessionCookies.fromHeader("ds_user_id=123; sessionid=synthetic", "test-UA")!!
+        SessionVault(context).write(SavedAccount(session, Profile("123", "synthetic_only", 37, 12, System.currentTimeMillis())))
+        launchUntilReady(); instrumentation.waitForIdleSync()
+        scenario!!.onActivity { activity ->
+            val scroll = views(activity).filterIsInstance<android.widget.ScrollView>().single()
+            val navigation = views(activity).single { it.tag == "primary_navigation" }
+            val scrollPosition = IntArray(2); val navPosition = IntArray(2)
+            scroll.getLocationOnScreen(scrollPosition); navigation.getLocationOnScreen(navPosition)
+            assertTrue(scroll.height > 0); assertTrue(scrollPosition[1] + scroll.height <= navPosition[1])
+        }
+        assertEquals(0L, RequestGate(context).attempts())
+    }
     @Test fun malformedVaultShowsRecoveryWithoutFabricatingProfile() {
         java.io.File(context.noBackupFilesDir, "account.enc").writeBytes(byteArrayOf(1, 2, 3))
         launchUntilReady()

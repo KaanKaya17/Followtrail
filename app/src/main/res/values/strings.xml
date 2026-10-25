@@ -1,4 +1,9 @@
 <resources>
+    <string name="list_search_hint">Kayıtlarda ara</string>
+    <string name="list_search_summary">Eşleşen: %1$d · Kayıt: %2$d</string>
+    <string name="list_info_title">Kaydın kapsamı</string>
+    <string name="list_info_body">Bu ekranda cihazına alınmış sayfalar gösterilir. Sayı, Instagram profilinin güncel toplamı değildir. Liste sonu görülmesi bütün hesapların alındığını garanti etmez. Arama yalnız alınan kayıtlarda çalışır; yeni istek göndermez. Bekleme saati dolunca otomatik okuma yapılmaz.</string>
+    <string name="list_pause">Yerel mola · %1$s</string>
     <string name="list_open">Listeleri incele</string>
     <string name="list_back">Geri</string>
     <string name="list_demo">DEMO · ÖRNEK LİSTELER</string>
@@ -26,8 +31,8 @@
     <string name="list_followers_only">Yalnız alınan takipçi kaydında · %1$d</string>
     <string name="list_following_only">Yalnız alınan takip edilen kaydında · %1$d</string>
     <string name="list_comparison_scope">Yalnız alınan kayıtlar karşılaştırılır. Bir listede görünmemek, geri takip etmediğini veya takipten çıktığını kanıtlamaz.</string>
-    <string name="list_scope">Her okuma bir sayfa getirir. Kayıtlar kısmi olabilir.</string>
-    <string name="list_wait">Yeni sayfa için %1$s saatini bekle.</string>
+    <string name="list_scope">Her okuma: 1 sayfa.</string>
+    <string name="list_wait">Bekleme · %1$s</string>
     <string name="list_username_unknown">Kullanıcı adı belirtilmedi</string>
     <string name="list_finish_connection">Önce yarım kalan bağlantı işlemini tamamla.</string>
     <string name="list_storage_error">Kayıtlı bağlantı veya hedef açılamadı. Geri dönüp bağlantını kontrol et.</string>

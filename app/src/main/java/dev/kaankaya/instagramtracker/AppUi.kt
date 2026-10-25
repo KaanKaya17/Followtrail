@@ -13,6 +13,9 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.graphics.drawable.StateListDrawable
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
@@ -39,12 +42,45 @@ object AppUi {
     }
     fun gradient(context: Context, start: Int = violet, end: Int = Color.rgb(139, 96, 235), radius: Int = 26) =
         GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(start, end)).apply { cornerRadius = dp(context, radius).toFloat() }
-    fun touch(context: Context, drawable: Drawable) = RippleDrawable(ColorStateList.valueOf(0x18674BD8), drawable, null)
+    fun touch(context: Context, drawable: Drawable): Drawable {
+        val focus = drawable.constantState?.newDrawable()?.mutate()
+        if (focus is GradientDrawable) focus.setStroke(dp(context, 2), ink)
+        val states = StateListDrawable().apply {
+            if (focus != null) addState(intArrayOf(android.R.attr.state_focused), focus)
+            addState(intArrayOf(), drawable)
+        }
+        return RippleDrawable(ColorStateList.valueOf(0x18674BD8), states, null)
+    }
     fun text(context: Context, value: String, size: Float = 14f, color: Int = ink, strong: Boolean = false) = TextView(context).apply {
         text = value; textSize = size; setTextColor(color); includeFontPadding = false
         typeface = Typeface.create(if (strong) "sans-serif-medium" else "sans-serif", Typeface.NORMAL)
         setLineSpacing(dp(context, 3).toFloat(), 1f)
     }
+    fun heading(context: Context, value: String, size: Float = 22f) = text(context, value, size, ink, true).apply {
+        if (android.os.Build.VERSION.SDK_INT >= 28) isAccessibilityHeading = true
+    }
+    fun pill(context: Context, value: String, foreground: Int = violet, tint: Int = violetSoft) = text(context, value, 10f, foreground, true).apply {
+        letterSpacing = .04f; setPadding(dp(context, 10), dp(context, 7), dp(context, 10), dp(context, 7))
+        background = shape(context, tint, 12)
+        layoutParams = LinearLayout.LayoutParams(-2, -2)
+    }
+    fun card(context: Context) = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL; background = shape(context, surface, 24, line)
+        setPadding(dp(context, 18), dp(context, 18), dp(context, 18), dp(context, 18))
+    }
+    fun notice(context: Context, title: String, detail: String, warning: Boolean = false) = LinearLayout(context).apply {
+        orientation = LinearLayout.VERTICAL
+        background = shape(context, if (warning) peach else mint, 18)
+        setPadding(dp(context, 14), dp(context, 13), dp(context, 14), dp(context, 13))
+        addView(text(context, title, 13f, if (warning) coral else teal, true))
+        addView(text(context, detail, 12f).apply { setPadding(0, dp(context, 5), 0, 0) })
+    }
+    /** Local connectivity evidence only; never probes Instagram or another host. */
+    fun offline(context: Context): Boolean? = try {
+        val manager = context.getSystemService(ConnectivityManager::class.java)
+        val network = manager.activeNetwork
+        if (network == null) true else manager.getNetworkCapabilities(network)?.let { !it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) }
+    } catch (_: SecurityException) { null }
     fun button(context: Context, title: String, primary: Boolean = true, enabled: Boolean = true, icon: String? = null, action: () -> Unit) = Button(context).apply {
         text = title; textSize = 14f; isAllCaps = false; isEnabled = enabled
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
@@ -108,6 +144,7 @@ object AppUi {
                 "link" -> { canvas.drawRoundRect(3f, 7f, 14f, 17f, 5f, 5f, paint); canvas.drawRoundRect(10f, 7f, 21f, 17f, 5f, 5f, paint) }
                 "compare" -> { path(4f, 7f, 20f, 7f, 16f, 3f); path(20f, 17f, 4f, 17f, 8f, 21f) }
                 "close" -> { path(6f, 6f, 18f, 18f); path(18f, 6f, 6f, 18f) }
+                "info" -> { canvas.drawCircle(12f, 12f, 9f, paint); path(12f, 11f, 12f, 17f); canvas.drawCircle(12f, 7f, .4f, paint) }
                 else -> { path(3f, 17f, 9f, 11f, 13f, 14f, 21f, 5f); path(15f, 5f, 21f, 5f, 21f, 11f) }
             }
             canvas.restoreToCount(saved)

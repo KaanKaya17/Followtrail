@@ -139,9 +139,7 @@ class MainActivity : Activity() {
     private fun button(label: String, primary: Boolean = true, networkAction: Boolean = false, action: () -> Unit) =
         AppUi.button(this, label, primary, !loading && (!networkAction || gate.nextAllowedAt() <= System.currentTimeMillis()),
             when (label) { "Yenile", "Kişiyi yenile" -> "refresh"; "Kişi ekle" -> "plus"; "Listeleri incele" -> "list"; else -> null }, action)
-    private fun badge(label: String, color: Int = accent) = text(label, 10f, color, true).apply {
-        letterSpacing = .06f; setPadding(dp(10), dp(7), dp(10), dp(7)); background = shape(AppUi.violetSoft, 12)
-    }
+    private fun badge(label: String, color: Int = accent) = AppUi.pill(this, label, color)
     private var visibleScroll: ScrollView? = null
     private var screenIdentity = ""
     private fun render() {
@@ -153,8 +151,11 @@ class MainActivity : Activity() {
         val saved = account
         val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false; isVerticalScrollBarEnabled = false }
         visibleScroll = scroll
-        val page = stack().apply { setPadding(dp(22), dp(16), dp(22), dp(if (saved != null) 104 else 32)) }
-        scroll.addView(page, ViewGroup.LayoutParams(-1, -2)); root.addView(scroll)
+        val page = stack().apply { setPadding(dp(22), dp(16), dp(22), dp(28)) }
+        val shell = stack()
+        root.addView(shell, FrameLayout.LayoutParams(-1, -1))
+        scroll.addView(page, ViewGroup.LayoutParams(-1, -2))
+        shell.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         header.addView(text("", 20f).apply {
             background = AppUi.gradient(this@MainActivity, radius = 16); gravity = Gravity.CENTER
@@ -173,8 +174,12 @@ class MainActivity : Activity() {
             val notice = stack().apply { background = shape(AppUi.peach, 20); setPadding(dp(18), dp(16), dp(18), dp(16)) }
             notice.addView(text(if (gate.blockedUntil() > System.currentTimeMillis()) "Biraz ara verelim" else "Yalnız sen yenilediğinde", 16f, AppUi.coral, true))
             notice.gap(6); notice.addView(text(pause, 13f, ink))
+            notice.gap(5); notice.addView(text("Süre dolunca otomatik deneme yapılmaz.", 12f, muted))
             notice.contentDescription = "Sınırlama bilgisi"; notice.setOnClickListener { requestInfo() }
             page.addView(notice); page.gap(16)
+        }
+        if (saved != null && AppUi.offline(this) == true) {
+            page.addView(AppUi.notice(this, "Çevrimdışı görüntülüyorsun", "Cihazdaki kayıtlar gösteriliyor. Yeni veri almak için internet bağlantısı gerekir.")); page.gap(16)
         }
         if (saved == null) {
             page.addView(text("Hesabın,\nbir bakışta.", 38f, ink, true)); page.gap(12)
@@ -198,14 +203,14 @@ class MainActivity : Activity() {
             val allowed = maxOf(gate.nextAllowedAt(), saved.profile.observedAt + PeoplePolicy.FRESH_MS)
             val refreshRow = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
             val detail = stack()
-            detail.addView(text("Son kayıt", 11f, muted)); detail.gap(4); detail.addView(text(date(saved.profile.observedAt), 12f, ink, true))
+            detail.addView(text("Yenileme", 11f, muted)); detail.gap(4); detail.addView(text("Mevcut kaydı güncelle", 12f, ink, true))
             refreshRow.addView(detail, LinearLayout.LayoutParams(0, -2, 1f))
             refreshRow.addView(button("Yenile", false, networkAction = true) { refresh() }.apply {
                 isEnabled = !loading && allowed <= System.currentTimeMillis(); alpha = if (isEnabled) 1f else .48f
             }, LinearLayout.LayoutParams(-2, -2))
             page.addView(refreshRow)
             if (allowed > System.currentTimeMillis() && pause == null) {
-                page.gap(8); page.addView(text("Yeniden yenileme · ${clock(allowed)}", 11f, muted))
+                page.gap(8); page.addView(text("Yenile düğmesi · ${clock(allowed)} sonrası", 11f, muted))
             }
         }
         if (gate.mobileLinkActive() || gate.prototypeActive()) {
@@ -224,21 +229,23 @@ class MainActivity : Activity() {
                 setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, icon, if (selected) accent else muted, 20), null, null, null)
                 compoundDrawablePadding = dp(8)
             }
-            navigation.addView(tab("Özet", "home", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f).apply { marginEnd = dp(6) })
-            navigation.addView(tab("Kişiler", "people", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f))
-            root.addView(navigation, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM).apply {
-                leftMargin = dp(22); rightMargin = dp(22); bottomMargin = dp(12)
+            navigation.addView(tab("Özet", "home", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
+            navigation.addView(tab("Kişiler", "people", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f))
+            navigation.tag = "primary_navigation"
+            shell.addView(navigation, LinearLayout.LayoutParams(-1, -2).apply {
+                leftMargin = dp(22); rightMargin = dp(22); topMargin = dp(8); bottomMargin = dp(12)
             })
         }
         scroll.post { scroll.scrollTo(0, position) }; scheduleGateWake()
     }
 
     private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
-        page.addView(text("Bir bakışta", 30f, ink, true)); page.gap(10)
+        page.addView(AppUi.heading(this, "Bir bakışta", 30f)); page.gap(10)
         val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         identity.addView(AppUi.avatar(this, saved.profile.username, 28))
         identity.addView(text("@${saved.profile.username}", 15f, muted).apply { setPadding(dp(10), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
-        page.addView(identity); page.gap(18)
+        page.addView(identity); page.gap(8)
+        page.addView(text("Kayıtlı özet · ${date(saved.profile.observedAt)}", 11f, muted)); page.gap(18)
         val row = LinearLayout(this)
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
             val foreground = if (purple) AppUi.surface else ink
@@ -344,7 +351,7 @@ class MainActivity : Activity() {
         val person = saved.people.firstOrNull { it.latest.userId == selectedPersonId }
         if (person == null) {
             selectedPersonId = null
-            page.addView(text("Seçtiğin kişiler", 30f, ink, true)); page.gap(8)
+            page.addView(AppUi.heading(this, "Seçtiğin kişiler", 30f)); page.gap(8)
             page.addView(text("Merak ettiğin profiller, sana özel bir alan.", 14f, muted)); page.gap(20)
             val actions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
             actions.addView(text("${saved.people.size} kişi", 13f, muted), LinearLayout.LayoutParams(0, -2, 1f))
@@ -377,11 +384,11 @@ class MainActivity : Activity() {
         }
         val p = person.latest
         page.addView(button("Tüm kişiler", false) { selectedPersonId = null; message = null; render() }.apply {
-            background = null; setPadding(0, dp(8), dp(12), dp(8))
+            background = null; gravity = Gravity.START or Gravity.CENTER_VERTICAL; setPadding(0, dp(8), dp(12), dp(8))
             setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "back", accent, 18), null, null, null)
             compoundDrawablePadding = dp(6)
         }); page.gap(12)
-        page.addView(text("@${p.username}", 29f, ink, true)); page.gap(8)
+        page.addView(AppUi.heading(this, "@${p.username}", 27f)); page.gap(8)
         page.addView(badge(person.group.ifBlank { "PROFİL ANALİZİ" })); page.gap(20)
         page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(12)
         val stats = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(20), dp(20), dp(20), dp(20)) }
@@ -391,7 +398,7 @@ class MainActivity : Activity() {
             stats.addView(row); stats.gap(14)
         }
         page.addView(stats); page.gap(12)
-        page.addView(text("Son başarılı okuma: ${date(p.observedAt)}", 12f, muted)); page.gap(16)
+        page.addView(text("Kayıtlı özet · ${date(p.observedAt)}", 12f, muted)); page.gap(16)
         if (person.history.size >= 2) {
             val previous = person.history[person.history.lastIndex - 1]
             page.addView(text("Son kayda göre", 12f, muted)); page.gap(6)
@@ -399,10 +406,41 @@ class MainActivity : Activity() {
             page.gap(6); page.addView(text("${date(previous.observedAt)} → ${date(p.observedAt)}", 12f, muted))
         } else page.addView(text("Henüz karşılaştırma yok.", 14f, muted))
         page.gap(20)
-        page.addView(button("Kişiyi yenile", networkAction = true) { readPerson(person = person) }.apply {
+        page.addView(button("Kişiyi yenile", false, networkAction = true) { readPerson(person = person) }.apply {
             isEnabled = !loading && gate.nextAllowedAt() <= System.currentTimeMillis() && PeoplePolicy.needsRefresh(p, System.currentTimeMillis())
             alpha = if (isEnabled) 1f else .5f
         }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        val historyCard = AppUi.card(this)
+        historyCard.addView(AppUi.heading(this, "Gözlem geçmişi", 22f)); historyCard.gap(10)
+        val filters = LinearLayout(this)
+        for ((label, days) in listOf("7 gün" to 7, "30 gün" to 30, "Tümü" to 0)) {
+            filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
+        }
+        historyCard.addView(filters); historyCard.gap(10)
+        val observations = person.history.filter { rangeDays == 0 || it.observedAt >= System.currentTimeMillis() - rangeDays * 86400000L }
+        if (observations.isNotEmpty()) {
+            val metric = LinearLayout(this)
+            metric.addView(button("Takipçi", chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
+            metric.addView(button("Takip edilen", !chartFollowers) { chartFollowers = false; render() }, LinearLayout.LayoutParams(0, -2, 1f))
+            historyCard.addView(metric); historyCard.gap(12)
+            if (observations.size >= 2) {
+                historyCard.addView(HistoryChartView(this, observations, chartFollowers, accent, muted).apply {
+                    setPadding(0, dp(8), 0, dp(8))
+                }, LinearLayout.LayoutParams(-1, dp(224)))
+                val first = observations.first(); val last = observations.last()
+                historyCard.addView(text("Dönem net farkı: ${delta(last.followers - first.followers)} takipçi, ${delta(last.following - first.following)} takip edilen", 13f, accent)); historyCard.gap(10)
+            }
+            historyCard.addView(button("Kayıtları gör", false) {
+                val records = observations.takeLast(10).asReversed().joinToString("\n\n") {
+                    "${date(it.observedAt)}\n${number(it.followers)} takipçi · ${number(it.following)} takip edilen"
+                }
+                AlertDialog.Builder(this).setTitle("Son kayıtlar").setMessage(records).setPositiveButton("Kapat", null).show()
+            })
+        } else historyCard.addView(text("Bu tarih aralığında kayıt yok. Tümü ile önceki gözlemleri görebilirsin.", 14f, muted))
+        historyCard.gap(12)
+        page.addView(historyCard); page.gap(16)
+        val settingsCard = AppUi.card(this)
+        settingsCard.addView(AppUi.heading(this, "Bildirimler", 18f)); settingsCard.gap(8)
         val watch = android.widget.Switch(this).apply {
             setText(R.string.watch_toggle); textSize = 16f; setTextColor(ink)
             isChecked = person.watching; minimumHeight = dp(56)
@@ -412,44 +450,19 @@ class MainActivity : Activity() {
                 else watchSettings(person)
             }
         }
-        page.addView(watch, LinearLayout.LayoutParams(-1, -2))
-        if (person.watching) page.addView(text("${person.intervalHours} saatte bir", 13f, accent).apply {
+        settingsCard.addView(watch, LinearLayout.LayoutParams(-1, -2))
+        if (person.watching) settingsCard.addView(text("${person.intervalHours} saatte bir", 13f, accent).apply {
             minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL; setOnClickListener { watchSettings(person) }
         })
         if (person.watching && !ChangeNotifications(this, preview).allowed()) {
-            page.addView(text("Bildirim izni kapalı.", 13f, accent))
+            settingsCard.addView(text("Bildirim izni kapalı.", 13f, accent))
         }
-        page.gap(24)
-        page.addView(text("Gözlem geçmişi", 22f, ink, true)); page.gap(10)
-        val filters = LinearLayout(this)
-        for ((label, days) in listOf("7 gün" to 7, "30 gün" to 30, "Tümü" to 0)) {
-            filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
-        }
-        page.addView(filters); page.gap(10)
-        val observations = person.history.filter { rangeDays == 0 || it.observedAt >= System.currentTimeMillis() - rangeDays * 86400000L }
-        if (observations.isNotEmpty()) {
-            val metric = LinearLayout(this)
-            metric.addView(button("Takipçi", chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
-            metric.addView(button("Takip edilen", !chartFollowers) { chartFollowers = false; render() }, LinearLayout.LayoutParams(0, -2, 1f))
-            page.addView(metric); page.gap(12)
-            if (observations.size >= 2) {
-                page.addView(HistoryChartView(this, observations, chartFollowers, accent, muted).apply {
-                    background = shape(panel, 20, AppUi.line); setPadding(dp(12), dp(8), dp(12), dp(8))
-                }, LinearLayout.LayoutParams(-1, dp(224)))
-                val first = observations.first(); val last = observations.last()
-                page.addView(text("Dönem net farkı: ${delta(last.followers - first.followers)} takipçi, ${delta(last.following - first.following)} takip edilen", 13f, accent)); page.gap(10)
-            }
-            page.addView(button("Kayıtları gör", false) {
-                val records = observations.takeLast(10).asReversed().joinToString("\n\n") {
-                    "${date(it.observedAt)}\n${number(it.followers)} takipçi · ${number(it.following)} takip edilen"
-                }
-                AlertDialog.Builder(this).setTitle("Son kayıtlar").setMessage(records).setPositiveButton("Kapat", null).show()
-            })
-        } else page.addView(text("Bu tarih aralığında kayıt yok. Tümü ile önceki gözlemleri görebilirsin.", 14f, muted))
-        page.gap(12)
-        page.addView(text("Özel notun", 18f, ink, true)); page.gap(8)
-        if (person.note.isNotBlank()) { page.addView(text(person.note, 14f, muted)); page.gap(10) }
-        page.addView(button("Not ve grup düzenle", false) { editPerson(person) }, LinearLayout.LayoutParams(-1, -2)); page.gap(10)
+        page.addView(settingsCard); page.gap(16)
+        val notesCard = AppUi.card(this)
+        notesCard.addView(AppUi.heading(this, "Özel notun", 18f)); notesCard.gap(8)
+        if (person.note.isNotBlank()) { notesCard.addView(text(person.note, 14f, muted)); notesCard.gap(10) }
+        notesCard.addView(button("Not ve grup düzenle", false) { editPerson(person) }, LinearLayout.LayoutParams(-1, -2)); notesCard.gap(10)
+        page.addView(notesCard); page.gap(16)
         page.addView(button("Kişiyi kaldır", false) {
             AlertDialog.Builder(this).setTitle("Kişi kaldırılsın mı?").setMessage("Bu kişinin kayıtlı geçmişi ve notu bu cihazdan silinir.")
                 .setNegativeButton("Vazgeç", null).setPositiveButton("Kaldır") { _, _ ->
@@ -460,7 +473,7 @@ class MainActivity : Activity() {
                     }
                     render()
                 }.show()
-        }, LinearLayout.LayoutParams(-1, -2)); page.gap(20)
+        }.apply { background = null; setTextColor(AppUi.coral) }, LinearLayout.LayoutParams(-1, -2)); page.gap(20)
     }
 
     private fun input(hintValue: String, limit: Int) = EditText(this).apply {
