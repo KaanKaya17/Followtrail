@@ -19,7 +19,7 @@ class MobileTransportTest {
         val trust = HandshakeCertificates.Builder().addTrustedCertificate(certificate.certificate).build()
         MockWebServer().use { server ->
             server.useHttps(serverKeys.sslSocketFactory()); server.protocols = protocols; server.start()
-            val client = MobileProfileReader.client().newBuilder().sslSocketFactory(trust.sslSocketFactory(), trust.trustManager).build()
+            val client = MobileReadTransport.client().newBuilder().sslSocketFactory(trust.sslSocketFactory(), trust.trustManager).build()
             try { operation(server, client) }
             finally { client.connectionPool.evictAll(); client.dispatcher.executorService.shutdown() }
         }

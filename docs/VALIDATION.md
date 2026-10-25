@@ -1,6 +1,26 @@
 # Doğrulama kaydı
 
-24 Ekim 2026. Sürümler ayrı değerlendirilir; Windows prototipinin canlı başarısı Android başarısı olarak sayılmaz.
+25 Ekim 2026. Sürümler ayrı değerlendirilir; Windows prototipinin canlı başarısı Android başarısı olarak sayılmaz.
+
+## 0.1.8 — elle liste okuma önizlemesi
+
+### 25 Ekim — kullanıcı tarafından bildirilen fiziksel telefon testi
+
+- ADB'de fiziksel M2101K7BG telefon bağlıydı. Hazırlanmış üretim paketi eşleştirmesine `scripts/link-desktop.ps1` ile kayıtlı Windows mobil oturumu şifreli aktarıldı; komut başarıyla tamamlandı. Aktarım Instagram isteği göndermez.
+- Kullanıcı, APK'da mobil bağlantıdan sonra kendi hesabının doğru sayılarını gördüğünü bildirdi: 1 takip edilen, 0 takipçi. Ardından Kendi listelerim → Takip edilenler → İlk sayfayı oku adımının ve seçilen arkadaşın Takipçiler → İlk sayfayı oku adımının çalıştığını ayrı ayrı doğruladı.
+- Bunlar kullanıcının canlı ekran gözlemleridir; bu tur ekran görüntüsü, ham yanıt veya bağımsız HTTP kaydı alınmadı. Arkadaş listesinin kayıt sayısı/kapsam mesajı ve tamlığı bilinmiyor. Çok sayfalı devam, iki yönlü karşılaştırma, süreç yeniden açılışı ve uzun süreli oturum geçerliliği canlı olarak henüz sınanmadı. Sonuç, web yolundaki önceki 429'un nedenini veya gelecekte kısıtlama olmayacağını göstermez.
+
+### 24 Ekim — geliştirme ve sentetik doğrulama
+
+- Son imzalı önizleme: `InstagramTracker-0.1.8.apk`, 1.276.149 bayt; SHA-256 `0854fd15d03e98b95b588d4c592af94d886a947323c1b3645e3d9130641a6f66`. v2/v3 imzası geçerli; sertifika SHA-256 önceki sürümle aynı: `51f1412a8c037617d98df7b0e1dce84a3e825765d4cdc442b9b59a8d8f00fb75`. Güncel paket denetimi dört mevcut izin, dışarıya açık olmayan liste Activity'si, kapalı backup/debug/cleartext ve üretimde demo/native kütüphane bulunmaması kontrollerini geçti. Bu bağımsız güvenlik denetimi değildir.
+- Son debug APK emülatöre kurularak gerçek menüden Kişiler → kişi analizi → Listeleri incele → İlk sayfayı oku akışı izlendi. 720×1280/%130 yazı ölçeğinde örnek adlar, seçili sekme, kayıt sayısı ve manuel devam düğmesi görsel olarak incelendi. `artifacts/ui-0.1.8-lists.png` yalnız sentetik demo verisidir. Üretim uygulaması açılmadı; debug demo inceleme için açık bırakıldı.
+
+- 36 JVM testi geçti: önceki 29 teste eklenen 7 liste sınır testi eksik/null/false ayrımı, bozuk liste/kimlik/cursor, sınırlama ve çelişkili devam, sayfa örtüşmesi, sabit kimlik, döngü ve iki kayıt karşılaştırmasını kapsar. Gerçek loopback TLS/HTTP2 taşıma testleri de aynı koşuda geçti.
+- Android 15/API 35 `TrackerQA` emülatöründe ilk tam koşu 59 test, sıfır hata/başarısız/atlanan ile geçti. Buna yeni gerçek Activity/Keystore/sentetik liste akışı ve mobil liste taşıma testleri dahildir. Sonrasında eski ekranda hesap değişimini göndermeden önce denetleyen kontrol eklendi; son kaynakta 4 liste ekranı testi ayrıca geçti. Test sonuçları gerçek Instagram erişimi değildir.
+- Mobil profil ve liste okuyucuları ortak `MobileReadTransport` sahibine geçirildi; tek HTTP gönderimi, boyut sınırı, yanıt yorumu, oturum rotasyonu ve iptal bu sınırda kalır. Liste okumaları otomasyonu yeniden açmaz. Android testleri tek sayfa, 429 sonrası yön değiştirerek bile istek göndermeme, eski web bağlantısında taşıma açmama, geç iptal yanıtının oturumu değiştirmemesi, şifreli kalıcılık ve kayıt kapasitesinde eski sayfanın korunmasını doğruladı.
+- Release derlemesi ve lint geçti. Lint: sıfır hata, önceki üç OkHttp ailesi sürüm uyarısı. SDK 36/OkHttp 5.4.0 ve API 24 alt sınırı korunur; bu sürümün yeni akışı Android 7 veya fiziksel telefonda bu tur çalıştırılmadı. GitHub CI başlatılmadı.
+- Canlı giriş, profil veya liste isteği gönderilmedi. Telefonun oturumu alınmadı, eski üretim bağlantısı/mola silinmedi; testler yalnız ayrı debug paketinde sentetik veri kullandı. Bu sürüm yeni Android mobil parola/CAA girişi veya geçmiş liste değişim bildirimi eklemez. Gerçek kabulün testi [FOLLOW-LISTS-TEST.md](FOLLOW-LISTS-TEST.md) içindedir.
+- APK yerel çalışma ağacından hazırlanır; henüz yeni kaynak commit'i/etiketi veya CI sonucu yoktur. Paket içindeki VCS metaverisi taban commit'i gösterebilir, yeni değişikliklerin commit kanıtı sayılmaz. Dağıtılan önizleme için uygulama kaynak dosyalarının SHA-256 manifesti, paket özeti ve yürütülen son test XML'leri `artifacts/` altında ayrıca tutulur.
 
 ## 0.1.7 — sade arayüz ve istek denetimi
 

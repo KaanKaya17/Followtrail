@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.7**. Ana ekran sadeleştirildi; kendi hesabını açılışta otomatik yenileme varsayılan kapalıdır. Windows'ta çalışan kayıtlı mobil oturumun Android'e şifreli aktarımı ve mobil profil okuyucusu eklendi. Android'de gerçek sayaç okuması henüz doğrulanmadı; önceki web denemesi HTTP 429 döndürdü. Yerel mola korunur. Çevrimdışı testler canlı erişimin kanıtı değildir. [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.8**. Seçilen profilin takipçi/takip edilen listelerini elle birer sayfa okuma ve alınan kayıtları karşılaştırma deneyi eklendi. Mobil oturum bağlantısı gerekir; eski web bağlantısından liste okunmaz. 25 Ekim fiziksel telefon testinde kullanıcı kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi. Çok sayfalı canlı okuma ve uzun süreli oturum henüz sınanmadı; önceki 429 ve yerel mola korunur. [Adım adım liste testi](docs/FOLLOW-LISTS-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
 
 ## Kullanım
 
@@ -11,6 +11,7 @@ Bağlantı için Windows'taki mobil oturumu şifreli aktarma ve önceki uygulama
 - **Özet:** hesap, iki sayaç, son kayıt zamanı ve tek Yenile düğmesi. Son 15 dakikadaki kayıt tekrar kullanılır. Açılışta otomatik yenileme varsayılan kapalı; Seçenekler → Yenileme ayarları ile açılabilir. Kayıt en az 15 dakika eski olmalı ve sınırlama bulunmamalıdır.
 - **Kişiler:** kullanıcı adı veya HTTPS Instagram profil bağlantısıyla kişi ekle. İlk sorgu tek profil isteğidir. Sonraki sorgular sabit hesap kimliğine göre yapılır; kullanıcı adı değişmesi başka kişinin geçmişiyle karışmaz. Liste ve analiz açılışında otomatik sorgu yapılmaz.
 - **Analiz:** takipçi, takip edilen, varsa gönderi sayısı; önceki gözleme göre net fark; 7/30 gün veya tüm kayıtlar; zaman eksenli grafik; son 10 gözlemin metin dökümü; özel not ve grup. Eksik gönderi sayısı sıfır yapılmaz. Geçmiş ilk gözlemden başlar; gelen/giden kişilerin kimliği çıkarılamaz.
+- **Listeler:** kişi analizinde **Listeleri incele**, kendi profilin için **⋯ → Kendi listelerim**. Açılış/sekme değişimi istek göndermez; İlk sayfayı oku ve Sonraki sayfayı oku ayrı açık işlemlerdir. Alınan iki kayıt karşılaştırılır; eksik listeden kesin geri takip etmeme sonucu çıkarılmaz. Son incelenen hedefin liste kaydı şifreli saklanır; geçmiş liste değişim bildirimi yoktur. [Kapsam ve test](docs/FOLLOW-LISTS-TEST.md).
 - **Bildirim:** kişi analizinde izlemeyi aç; en az 1, 6 veya 24 saat aralığı seç. Takipçi/takip edilen sayısında gözlemlenen net değişim için yerel Android bildirimi gelir. İlk kayıt ve yalnız gönderi değişimi bildirim üretmez. Uygulama ekranı kapalıyken de JobScheduler çalışabilir; anlık bildirim değildir. Pil tasarrufu, Doze, üretici ayarları ve çok sayıda izlenen kişi gecikme yaratır. Zorla durdurma sonrası uygulamayı yeniden açmak gerekir.
 - Bu önizlemede cihaz kaydını sınırlamak için en fazla **20 kişi**, kişi başına son **90 başarılı gözlem**, 500 karakter not ve 40 karakter grup saklanır. Bunlar Instagram'ın güvenli istek limitleri değildir.
 - Tek kişiyi kaldırma o kişinin geçmiş ve notunu siler. **Bağlantıyı kaldır** bu uygulamadaki oturumu ve bütün kişileri siler; diğer Instagram oturumlarını kapatmaz.

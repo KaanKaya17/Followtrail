@@ -1,0 +1,93 @@
+package dev.kaankaya.instagramtracker
+
+import android.content.Intent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
+import androidx.test.core.app.ActivityScenario
+import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.Assert.*
+
+/** Real Activity, Keystore and parser; debug-only synthetic transport. */
+class FollowListFlowTest {
+    private val context = InstrumentationRegistry.getInstrumentation().targetContext
+    private val preferences = context.getSharedPreferences("preview_gate", 0)
+    private val vault = SessionVault(context, "previewaccount")
+    private val lists = FollowListVault(context, "previewlists")
+    private var scenario: ActivityScenario<FollowListActivity>? = null
+    @Before fun setup() {
+        check(context.packageName.endsWith(".debug")); lists.clear(); preferences.edit().clear().commit()
+        vault.write(PreviewMode.seed(true)!!)
+    }
+    @After fun cleanup() { scenario?.close(); lists.clear(); vault.clear(); preferences.edit().clear().commit() }
+    private fun views(view: View): List<View> = listOf(view) + if (view is ViewGroup)
+        (0 until view.childCount).flatMap { views(view.getChildAt(it)) } else emptyList()
+    private fun launch() {
+        scenario = ActivityScenario.launch(Intent(context, FollowListActivity::class.java).putExtra("target_id", "200").putExtra("offline_preview", true))
+        awaitText("Henüz liste okunmadı.")
+    }
+    private fun click(text: String) = scenario!!.onActivity { activity ->
+        val button = views(activity.window.decorView).filterIsInstance<Button>().single { it.text.toString() == text }
+        assertTrue("Button disabled: $text", button.isEnabled); button.performClick()
+    }
+    private fun awaitText(text: String) {
+        val deadline = android.os.SystemClock.elapsedRealtime() + 5000
+        var found = false
+        while (!found && android.os.SystemClock.elapsedRealtime() < deadline) {
+            scenario!!.onActivity { activity -> found = views(activity.window.decorView).filterIsInstance<TextView>().any { it.text.toString() == text } }
+            if (!found) Thread.sleep(20)
+        }
+        assertTrue("Missing label: $text", found)
+    }
+    @Test fun manualPagesPersistWithoutAutomaticRequestsAcrossTabsAndRecreation() {
+        launch(); val gate = RequestGate(context, "preview_gate")
+        assertEquals(0L, gate.attempts()); scenario!!.recreate(); assertEquals(0L, gate.attempts())
+        click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        assertEquals(1L, gate.attempts()); assertEquals("demo-page-2", lists.read(vault.read()!!.session, "200")!!.followers!!.cursor())
+        preferences.edit().putLong("next_read_at", 0).commit(); scenario!!.recreate()
+        awaitText("Alınan hesap: 2 · Sayfa: 1"); assertEquals(1L, gate.attempts())
+        click("Sonraki sayfayı oku"); awaitText("Alınan hesap: 3 · Sayfa: 2")
+        assertEquals(2L, gate.attempts())
+        click("Takip edilenler"); awaitText("Henüz liste okunmadı."); assertEquals(2L, gate.attempts())
+        preferences.edit().putLong("next_read_at", 0).commit(); scenario!!.recreate()
+        click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        assertEquals(3L, gate.attempts()); assertEquals(1, FollowAnalysis.compare(lists.read(vault.read()!!.session, "200")!!)!!.mutual.size)
+        scenario!!.close(); scenario = ActivityScenario.launch(Intent(context, FollowListActivity::class.java)
+            .putExtra("target_id", "200").putExtra("offline_preview", true))
+        awaitText("Alınan hesap: 3 · Sayfa: 2"); assertEquals(3L, gate.attempts())
+        val bytes = context.noBackupFilesDir.resolve("previewlists.enc").readBytes().toString(Charsets.ISO_8859_1)
+        assertFalse(bytes.contains("kisi501.demo"))
+    }
+    @Test fun existingRestrictionBlocksPageAndPreservesLastSnapshot() {
+        launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        val saved = lists.read(vault.read()!!.session, "200")
+        val gate = RequestGate(context, "preview_gate"); gate.limited("7200"); scenario!!.recreate()
+        scenario!!.onActivity { activity ->
+            assertFalse(views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "Sonraki sayfayı oku" }.isEnabled)
+        }
+        assertEquals(1L, gate.attempts()); assertEquals(saved, lists.read(vault.read()!!.session, "200"))
+    }
+    @Test fun changedAccountPreventsAnOldScreenFromSendingItsRequest() {
+        launch()
+        val account = vault.read()!!
+        vault.write(account.copy(session = account.session.copy(cookie = "ds_user_id=100; sessionid=changed")))
+        click("İlk sayfayı oku")
+        awaitText(ApiFailure(ApiFailure.Kind.CANCELLED).userMessage())
+        assertEquals(0L, RequestGate(context, "preview_gate").attempts())
+        assertNull(lists.read(account.session, "200"))
+    }
+    @Test fun storageCapacityFailurePreservesPreviousPageAndAccountScope() {
+        val session = vault.read()!!.session
+        val page = FollowPageParser.parse(org.json.JSONObject("""{"status":"ok","users":[{"pk":"1"}],"next_max_id":"next"}"""),
+            "200", FollowDirection.FOLLOWERS, null, 1000)
+        val before = lists.commit(session, page)
+        val huge = page.copy(inputCursor = "next", users = listOf(page.users.single().copy(name = "x".repeat(600 * 1024))))
+        assertEquals(ApiFailure.Kind.CAPACITY, assertThrows(ApiFailure::class.java) { lists.commit(session, huge) }.kind)
+        assertEquals(before, lists.read(session, "200")); assertNull(lists.read(session.copy(userId = "999"), "200"))
+        lists.clearTarget(session, "200"); assertNull(lists.read(session, "200"))
+    }
+}

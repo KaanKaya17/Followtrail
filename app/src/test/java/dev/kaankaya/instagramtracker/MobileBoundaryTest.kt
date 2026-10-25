@@ -64,7 +64,7 @@ class MobileBoundaryTest {
         assertThrows(Exception::class.java) { MobileSessionCodec.imported(raw.toString()) }
     }
     @Test fun productionTransportDisablesReplaysRedirectsAndParallelFallback() {
-        val client = MobileProfileReader.client()
+        val client = MobileReadTransport.client()
         assertFalse(client.retryOnConnectionFailure); assertFalse(client.followRedirects); assertFalse(client.followSslRedirects)
         assertFalse(client.fastFallback); assertEquals(30000, client.callTimeoutMillis)
         assertTrue(client.networkInterceptors.isNotEmpty())
