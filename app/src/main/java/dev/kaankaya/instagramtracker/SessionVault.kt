@@ -29,7 +29,7 @@ class EncryptedRecord(context: Context, slot: String) {
     }
     fun write(value: String) {
         val json = value.toByteArray(Charsets.UTF_8)
-        require(json.size <= 512 * 1024)
+        if (json.size > 512 * 1024) throw ApiFailure(ApiFailure.Kind.CAPACITY)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, key())
         cipher.updateAAD(aad)

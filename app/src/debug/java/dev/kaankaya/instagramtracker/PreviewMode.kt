@@ -21,7 +21,8 @@ object PreviewMode {
         val session = Session("100", "ds_user_id=100; sessionid=offline-demo", "offline-demo")
         val people = listOf("deniz.demo", "ada.demo").mapIndexed { index, name ->
             TrackedPerson((0..11).map { day -> Profile((200 + index).toString(), name,
-                1200L + index * 700 + day * 13, 340L + day * 2, now - PeoplePolicy.FRESH_MS - 60000 - (11 - day) * 86400000L, 42L + day / 3) },
+                1200L + index * 700 + day * 13, 340L + day * 2, now - PeoplePolicy.FRESH_MS - 60000 - (11 - day) * 86400000L, 42L + day / 3,
+                ProfileDetails(ProfileText.known("Kahve, kitaplar ve yeni yollar. ☀️"), ProfileText.known("demo-picture-1"), anonymousPicture = false)) },
                 "Bu bir örnek not. Gerçek hesap verisi değildir.", if (index == 0) "Arkadaşlar" else "İçerik üreticileri")
         }
         return SavedAccount(session, Profile("100", "benim.demo", 875, 412, now), people)
@@ -43,6 +44,8 @@ object PreviewMode {
                 .put("edge_follow", JSONObject().put("count", 365)).put("edge_owner_to_timeline_media", JSONObject().put("count", 46))
             else JSONObject().put("pk", id).put("username", username).put("follower_count", followers)
                 .put("following_count", 365).put("media_count", 46)
+            user.put("biography", "Yeni duraklar, yeni hikâyeler. ☀️\nİstanbul")
+                .put("profile_pic_id", "demo-picture-2").put("has_anonymous_profile_picture", false)
             val body = JSONObject().put("status", "ok").apply {
                 if (name.isNotBlank()) put("data", JSONObject().put("user", user)) else put("user", user)
             }

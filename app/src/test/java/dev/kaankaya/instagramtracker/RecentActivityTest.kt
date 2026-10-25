@@ -41,7 +41,7 @@ class RecentActivityTest {
     @Test fun feedUsesCountObservationsAndDoesNotInventEventsForFirstReadsOrPostOnlyChanges() {
         val before = profile(); val after = profile(2000, followers = 12, following = 4).copy(username = "renamed")
         val saved = account(TrackedPerson(listOf(before, after, after.copy(observedAt = 3000, posts = 99))))
-        val item = RecentActivity.items(saved).single() as ActivityItem.Counts
+        val item = RecentActivity.items(saved).filterIsInstance<ActivityItem.Counts>().single()
         assertEquals("456", item.profileId); assertEquals("renamed", item.username)
         assertEquals(1000L, item.previousAt); assertEquals(2000L, item.observedAt)
         assertEquals(2L, item.followersDelta); assertEquals(-1L, item.followingDelta)

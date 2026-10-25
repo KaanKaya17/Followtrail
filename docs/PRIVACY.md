@@ -39,3 +39,9 @@ Yalnız son incelenen hedefin iki yöndeki alınmış sayfaları noBackupFilesDi
 ## 0.1.11 favoriler ve akış
 
 Favori tercihi, ilgili kişinin mevcut şifreli kaydında Boolean olarak saklanır. Ana sayfa akışı ayrı bir sunucuya veya olay dosyasına gönderilmez; cihazdaki profil geçmişi ve mevcut liste sayfalarından üretilir. Kişiyi kaldırmak onun türetildiği geçmişi ve favorisini de kaldırır. Favoriler farklı Instagram hesapları arasında birleştirilmez.
+
+## 0.1.12 profil bilgileri
+
+Normal profil okumasında sunucu gönderirse biyografi metni, profil fotoğrafı kimliği/adresi ve varsayılan fotoğraf bilgisi alınır. Alanların bilinirlik durumu da saklanır. Bu alanlar mevcut sayı geçmişiyle aynı şifreli hesap kaydında, yinelenen metinler ortaklaştırılarak ve mevcut 512 KiB bütçesiyle tutulur. Yalnız son 90 gözlem kapsamındadır; kişi veya bağlantı kaldırılınca ilgili kayıt silinir. Sunucu bu alanları göndermeyebilir.
+
+Fotoğraf binary dosyası indirilmez; harici CDN isteği eklenmez. Fotoğraf kimliği farkı, aynı görselin yeniden yüklenmesini de kapsayabilir. Biyografi ve eski kullanıcı adları uygulama içindeki geçmişte görülebilir. Bildirim yalnız değişiklik türünü taşır; tam biyografi veya eski/yeni değerler bildirime yazılmaz. Kilit ekranı public görünümü kişi adını ve profil metnini içermez; son görünüm Android ayarlarına da bağlıdır.

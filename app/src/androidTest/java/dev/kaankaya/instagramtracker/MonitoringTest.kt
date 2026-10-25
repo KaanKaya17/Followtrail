@@ -53,7 +53,7 @@ class MonitoringTest {
     }
     @Test fun oneDuePersonIsCommittedWithDeltaAndForegroundMetadataSurvives() {
         var requests = 0
-        val notices = mutableListOf<CountChange>()
+        val notices = mutableListOf<ObservedProfileChange>()
         val api = InstagramApi(gate()) { url ->
             requests++; assertEquals("/api/v1/users/456/info/", url.path)
             Connection { vault.update(session) { account -> account.copy(people = account.people.map { it.copy(note = "edited during request") }) } }

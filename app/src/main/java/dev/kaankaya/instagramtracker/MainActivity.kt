@@ -298,10 +298,49 @@ class MainActivity : Activity() {
         isSelected = person.favorite
         if (person.favorite) background = AppUi.touch(this@MainActivity, shape(AppUi.violetSoft, 16))
     }
+    private fun editTitle(edit: ProfileEdit): String = getString(when (edit.field) {
+        ProfileChangeField.USERNAME -> R.string.profile_username_changed
+        ProfileChangeField.BIOGRAPHY -> R.string.profile_bio_changed
+        ProfileChangeField.PICTURE -> R.string.profile_picture_changed
+    })
+    private fun profileText(field: ProfileText): String = when (field.state) {
+        ProfileTextState.VALUE -> field.value!!.ifEmpty { getString(R.string.profile_empty_bio) }
+        ProfileTextState.MISSING -> getString(R.string.profile_field_missing)
+        ProfileTextState.NULL -> getString(R.string.profile_field_null)
+        ProfileTextState.UNAVAILABLE -> getString(R.string.profile_field_unavailable)
+    }
+    private fun showProfileEdit(edit: ProfileEdit) {
+        val value = if (edit.field == ProfileChangeField.PICTURE) getString(R.string.profile_picture_evidence) else
+            getString(R.string.profile_edit_values, edit.before.ifEmpty { getString(R.string.profile_empty_bio) },
+                edit.after.ifEmpty { getString(R.string.profile_empty_bio) })
+        AlertDialog.Builder(this).setTitle(editTitle(edit)).setMessage(value + "\n\n" +
+            getString(R.string.profile_observation_range, date(edit.previousAt), date(edit.observedAt)))
+            .setPositiveButton(R.string.list_close, null).show()
+    }
+    private fun renderProfileDetails(page: LinearLayout, person: TrackedPerson) {
+        val profile = person.latest
+        val card = AppUi.card(this)
+        card.addView(AppUi.heading(this, getString(R.string.profile_details_title), 20f)); card.gap(12)
+        card.addView(text(getString(R.string.profile_bio_label), 12f, muted)); card.gap(6)
+        card.addView(text(profileText(profile.details.biography), 14f, ink)); card.gap(12)
+        val pictureComparable = ProfileChanges.pictureComparable(profile)
+        card.addView(text(getString(if (pictureComparable) R.string.profile_picture_available else R.string.profile_picture_unknown), 12f, muted))
+        card.gap(12)
+        val edits = ProfileChanges.history(person.history).sortedWith(compareByDescending<ProfileEdit> { it.observedAt }.thenBy { it.key })
+        card.addView(button(getString(R.string.profile_history), false) {
+            if (edits.isEmpty()) AlertDialog.Builder(this).setTitle(R.string.profile_history).setMessage(R.string.profile_history_empty)
+                .setPositiveButton(R.string.list_close, null).show()
+            else AlertDialog.Builder(this).setTitle(R.string.profile_history).setItems(edits.map {
+                "${editTitle(it)}\n${date(it.observedAt)}"
+            }.toTypedArray()) { _, index -> showProfileEdit(edits[index]) }.setNegativeButton(R.string.list_close, null).show()
+        }, LinearLayout.LayoutParams(-1, -2))
+        page.addView(card); page.gap(16)
+    }
     private fun activityDetail(item: ActivityItem): String = when (item) {
         is ActivityItem.Counts -> listOfNotNull(
             item.followersDelta.takeIf { it != 0L }?.let { getString(R.string.activity_followers, delta(it)) },
             item.followingDelta.takeIf { it != 0L }?.let { getString(R.string.activity_following, delta(it)) }).joinToString(" · ")
+        is ActivityItem.ProfileChanged -> editTitle(item.edit)
         is ActivityItem.ListRead -> getString(R.string.activity_list_page,
             getString(if (item.direction == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following), item.pageNumber)
     }
@@ -310,6 +349,7 @@ class MainActivity : Activity() {
         val profile = (listOf(saved.profile) + saved.people.map { it.latest }).firstOrNull { it.userId == item.profileId } ?: return
         when (item) {
             is ActivityItem.Counts -> { peopleScreen = true; selectedPersonId = item.profileId; rangeDays = 0; message = null; render() }
+            is ActivityItem.ProfileChanged -> showProfileEdit(item.edit)
             is ActivityItem.ListRead -> openLists(profile, item.direction)
         }
     }
@@ -468,6 +508,7 @@ class MainActivity : Activity() {
         personHeading.addView(favoriteButton(person), LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(personHeading); page.gap(8)
         page.addView(badge(person.group.ifBlank { "PROFİL ANALİZİ" })); page.gap(20)
+        renderProfileDetails(page, person)
         page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(12)
         val stats = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(20), dp(20), dp(20), dp(20)) }
         for ((label, value) in listOf("Takipçi" to number(p.followers), "Takip edilen" to number(p.following), "Gönderi" to (p.posts?.let { number(it) } ?: "Bilgi yok"))) {
@@ -510,7 +551,7 @@ class MainActivity : Activity() {
             }
             historyCard.addView(button("Kayıtları gör", false) {
                 val records = observations.takeLast(10).asReversed().joinToString("\n\n") {
-                    "${date(it.observedAt)}\n${number(it.followers)} takipçi · ${number(it.following)} takip edilen"
+                    "@${it.username} · ${date(it.observedAt)}\n${number(it.followers)} takipçi · ${number(it.following)} takip edilen"
                 }
                 AlertDialog.Builder(this).setTitle("Son kayıtlar").setMessage(records).setPositiveButton("Kapat", null).show()
             })
@@ -519,6 +560,7 @@ class MainActivity : Activity() {
         page.addView(historyCard); page.gap(16)
         val settingsCard = AppUi.card(this)
         settingsCard.addView(AppUi.heading(this, "Bildirimler", 18f)); settingsCard.gap(8)
+        settingsCard.addView(text(getString(R.string.profile_watch_scope), 12f, muted)); settingsCard.gap(10)
         val watch = android.widget.Switch(this).apply {
             setText(R.string.watch_toggle); textSize = 16f; setTextColor(ink)
             isChecked = person.watching; minimumHeight = dp(56)
@@ -643,7 +685,7 @@ class MainActivity : Activity() {
             if (preview) PreviewMode.sync(this, account, gate) else MonitorScheduler.sync(this, account, gate)
         } catch (_: Exception) { message = "Arka plan işi planlanamadı. İzleme ayarlarını yeniden kontrol et." }
     }
-    private fun notifyCurrent(session: Session, change: CountChange) {
+    private fun notifyCurrent(session: Session, change: ObservedProfileChange) {
         val notices = ChangeNotifications(this, preview)
         Observations.deliver(vault, session, change, notices::allowed, notices::post)
     }

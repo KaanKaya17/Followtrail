@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.12 — 2026-10-25 (profil bilgisi değişiklikleri)
+
+- Kayıtlı kişiler için kullanıcı adı, biyografi ve karşılaştırılabilir fotoğraf bilgisi değişiklikleri ortak ProfileChanges yorumundan üretilir. Sayılar değişmese de Son değişiklikler ve açık izleme bildirimleri olayı gösterir.
+- Kişi analizinde Profil bilgileri ve Profil geçmişi. Kullanıcı adı/biyografi için önceki-yeni değer ve iki gözlem zamanı; fotoğraf için kimlik/varsayılan fotoğraf durumu kanıtı açıklanır.
+- Eksik, null, açık boş metin ve alınamayan isteğe bağlı alan ayrılır. İlk bilinen alan başlangıçtır; bilinmeyen aralıktan sonra fark varsa önceki bilinen gözlem zamanı korunur. URL farkı fotoğraf olayı değildir; görsel indirme yoktur.
+- Mevcut v4 şifreli hesap kaydına isteğe bağlı metadata/text havuzları eklendi. Yinelenen metinler bir kez yazılır. Eski oturum, geçmiş, favori ve izleme korunur; 512 KiB bütçesi aynı kalır, kapasite aşımında eski kayıt değiştirilmez.
+- Mevcut profil GET'i, önbellek aralığı, istek kapısı, sayfalama ve oturum taşıması korundu. Profil alanları yalnız zaten yapılan başarılı okumada gelirse kullanılır. Canlı alan kapsamı ayrıca test edilmelidir.
+
 ## 0.1.11 — 2026-10-25 (son değişiklikler ve favoriler)
 
 - Ana sayfada Son değişiklikler: mevcut kişi geçmişindeki takipçi/takip edilen net farkları ve mevcut liste kaydındaki sayfa okumaları gözlem zamanına göre gösterilir. İlk üç kayıt kartta, en fazla 20 kayıt tam akışta görünür. Kayda dokunmak ilgili analizi veya listeyi açar; istek başlatmaz.

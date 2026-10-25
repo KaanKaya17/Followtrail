@@ -76,6 +76,14 @@ class MobileConnectionTest {
             }
         }
     }
+    @Test fun mobileProfileCarriesOptionalMetadataInTheSameSingleRequest() {
+        val reference = sessions.stage(state())
+        val body = """{"status":"ok","user":{"pk":"123","username":"mobile_user","follower_count":12,"following_count":7,"biography":"new bio","profile_pic_id":"image_123","profile_pic_url":"https://cdn.example/pic","has_anonymous_profile_picture":false}}"""
+        val transport = Transport(body = body)
+        val profile = MobileProfileReader(gate(), sessions, transport).read(reference, "123", null)
+        assertEquals("new bio", profile.details.biography.value); assertEquals("image_123", profile.details.pictureId.value)
+        assertFalse(profile.details.anonymousPicture!!); assertEquals(1L, gate().attempts())
+    }
     @Test fun successfulReadUsesMobileIdentityAndPersistsRotationBeforeReturningCounts() {
         val reference = sessions.stage(state())
         val transport = Transport(headers = mapOf("IG-Set-X-MID" to "rotated"))

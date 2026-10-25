@@ -2,11 +2,13 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.11**. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Yeni veri toplama, oturum veya kayıt biçimi değişikliği yoktur. Çalışan 0.1.8 ve önceki 0.1.9 kaynak/APK yedekleri korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.12**. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Profil geçmişinde kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi izlenir; ek profil veya görsel isteği yapılmaz. Eski oturum ve kayıtlar korunur. Çalışan 0.1.8 ve önceki 0.1.9 kaynak/APK yedekleri korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
 
 25 Ekim fiziksel telefon testinde kullanıcı, mobil bağlantıyla kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi. Bu canlı sonuç 0.1.8'e aittir; yeni arayüz kontrolleri ayrı debug paketi ve sentetik veri kullanır. Çok sayfalı canlı devam ve uzun süreli oturum henüz sınanmadı. [Liste testi](docs/FOLLOW-LISTS-TEST.md).
 
 ## Kullanım
+
+- **Profil bilgileri:** kayıtlı kişinin analizinde biyografi ve Profil geçmişi. Kullanıcı adı/biyografi değişimlerinde eski-yeni değerler, fotoğrafta dönen kimlik/varsayılan fotoğraf durumu karşılaştırılır. Yalnız URL farkıyla bildirim üretilmez; bu sürüm görsel indirme/yan yana fotoğraf arşivi yapmaz. Eksik alan silinmiş sayılmaz, ilk bilinen değer başlangıçtır. Açık izleme mevcut 1/6/24 saat kurallarıyla bu değişimleri de bildirebilir. [Test adımları](docs/PROFILE-CHANGES-TEST.md).
 
 - **Son değişiklikler:** ana sayfada kayıtlı kişilerin sayı farkları ve mevcut liste sayfaları, okuma zamanına göre gösterilir. İlk üç kayıt ve Tümünü gör ile en fazla 20 kayıt; analiz/liste açılışı yeni istek göndermez. Akış saklanan geçmişe dayanır, kesin takip/çıkış zamanı değildir.
 - **Favoriler:** kişi kartı veya analizde yıldız. Favoriler kişi listesinin başında görünür; bayrak hesap/kişi kimliğine bağlı olarak şifreli saklanır. Açıp kapatmak okuma veya bildirim kontrolü başlatmaz. İzleme önceliği bu sürümde değişmez.
