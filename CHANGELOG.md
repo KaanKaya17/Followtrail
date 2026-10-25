@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.16 — 2026-10-25 (kişi silme, profil bağlantıları ve fotoğraflar)
+
+- Kişi kartlarında erişilebilir silme düğmesi; mevcut analiz ekranıyla aynı onaylı kaldırma akışı. Yalnız seçilen kişinin profil geçmişi, favori/not/izleme ayarı, otomasyon seçimi, bildirimleri ve liste kayıtları kaldırılır; Instagram hesabında işlem yapılmaz.
+- Takipçi/takip edilen listesinde üyeye dokunarak yanıttaki kullanıcı adıyla Instagram profilini uygulama veya tarayıcıda açma. Aranmış sonuçta doğru üye açılır; bu işlem uygulamanın kişi listesine ekleme veya profil sorgusu yapmaz. Kullanıcı adı bilinmiyorsa bağlantı uydurulmaz.
+- Kendi hesap özeti, kişi kartı/analizi ve liste üyelerinde yanıttaki fotoğraf bağlantısından küçük görsel. Görünür alanlarda iki eşzamanlı yükleme, sınırlı kuyruk, Activity/geri dönüş/yeniden kullanılan satır için iptal. Profil/liste okuyucusundan ayrı ve oturum/çerez göndermeyen HTTPS CDN taşıması; bağlantı veya görsel hatasında harfli simge kalır.
+- Özel cihaz önbelleğinde en çok 8 MiB/128 küçük görsel ve ekran başına 2 MiB bellek önbelleği. Fotoğraf kimliği/adresi değişirse ayrı kayıt; kişi kaldırmada ilgili önbellek, bağlantı kaldırmada bütün görseller temizlenir. Görsel önbelleği ayrıca şifreli değildir ve işletim sistemi tarafından temizlenebilir. Hesap/liste kayıt biçimi, kontrol aralıkları ve profil değişikliği bildirimi hesabı değişmedi.
+- Değişikliklerden önce çalışan 0.1.15 GitHub'a push/etiket ve ayrı kaynak/APK yedeğiyle korundu. Yeni fotoğraf akışının canlı CDN/telefon davranışı kullanıcı testine açıktır.
+
 ## 0.1.15 — 2026-10-25 (ardışık liste sayfaları ve diyaloglar)
 
 - Aynı hedefin takipçi/takip edilen sayfaları bir otomatik turda dönüşümlü ilerler: en fazla 6 sayfa, istek başlangıçları arasında mevcut en az 15 saniye. İlk 90 saniye yeni istek başlatma bütçesidir; tur başlangıçlarının ortak 15 dakika aralığı korunur. Her sayfa kalıcıdır; kalan cursor sonraki turda sürer.

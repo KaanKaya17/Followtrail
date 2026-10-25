@@ -11,6 +11,7 @@ import org.json.JSONObject
 
 /** Debug-only transport. Every response is synthetic; no sockets or real account credentials. */
 object PreviewMode {
+    fun avatarFetcher(enabled: Boolean): AvatarFetcher = if (enabled) DemoAvatarFetcher() else CdnAvatarFetcher()
     const val JOB_ID = 1402
     fun sync(context: Context, account: SavedAccount?, gate: RequestGate) = MonitorScheduler.sync(context, account, gate, JOB_ID, DemoMonitorJobService::class.java)
     fun cancel(context: Context) = MonitorScheduler.cancel(context, JOB_ID)
@@ -22,10 +23,12 @@ object PreviewMode {
         val people = listOf("deniz.demo", "ada.demo").mapIndexed { index, name ->
             TrackedPerson((0..11).map { day -> Profile((200 + index).toString(), name,
                 1200L + index * 700 + day * 13, 340L + day * 2, now - PeoplePolicy.FRESH_MS - 60000 - (11 - day) * 86400000L, 42L + day / 3,
-                ProfileDetails(ProfileText.known("Kahve, kitaplar ve yeni yollar. ☀️"), ProfileText.known("demo-picture-1"), anonymousPicture = false)) },
+                ProfileDetails(ProfileText.known("Kahve, kitaplar ve yeni yollar. ☀️"), ProfileText.known("demo-picture-1"),
+                    ProfileText.known("https://cdninstagram.com/offline-demo/${200 + index}.png"), anonymousPicture = false)) },
                 "Bu bir örnek not. Gerçek hesap verisi değildir.", if (index == 0) "Arkadaşlar" else "İçerik üreticileri")
         }
-        return SavedAccount(session, Profile("100", "benim.demo", 875, 412, now), people)
+        return SavedAccount(session, Profile("100", "benim.demo", 875, 412, now, details = ProfileDetails(
+            pictureUrl = ProfileText.known("https://cdninstagram.com/offline-demo/100.png"))), people)
     }
     fun api(gate: RequestGate, enabled: Boolean): InstagramApi = if (!enabled) InstagramApi(gate)
         else InstagramApi(gate) { url -> DemoConnection(url) }

@@ -144,6 +144,7 @@ object AppUi {
                 "link" -> { canvas.drawRoundRect(3f, 7f, 14f, 17f, 5f, 5f, paint); canvas.drawRoundRect(10f, 7f, 21f, 17f, 5f, 5f, paint) }
                 "compare" -> { path(4f, 7f, 20f, 7f, 16f, 3f); path(20f, 17f, 4f, 17f, 8f, 21f) }
                 "close" -> { path(6f, 6f, 18f, 18f); path(18f, 6f, 6f, 18f) }
+                "trash" -> { path(4f, 7f, 20f, 7f); path(9f, 7f, 9f, 4f, 15f, 4f, 15f, 7f); path(6f, 7f, 7f, 21f, 17f, 21f, 18f, 7f); path(10f, 10f, 10f, 17f); path(14f, 10f, 14f, 17f) }
                 "info" -> { canvas.drawCircle(12f, 12f, 9f, paint); path(12f, 11f, 12f, 17f); canvas.drawCircle(12f, 7f, .4f, paint) }
                 "star", "star_filled" -> {
                     if (name == "star_filled") paint.style = Paint.Style.FILL

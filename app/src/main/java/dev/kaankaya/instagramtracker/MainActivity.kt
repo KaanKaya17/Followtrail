@@ -50,6 +50,7 @@ class MainActivity : Activity() {
     private lateinit var api: InstagramApi
     private lateinit var gate: RequestGate
     private lateinit var vault: SessionVault
+    private lateinit var avatars: AvatarImages
     private lateinit var root: FrameLayout
     private var account: SavedAccount? = null
     private var loading = true
@@ -94,6 +95,7 @@ class MainActivity : Activity() {
             }
         }
         preview = PreviewMode.enabled(this)
+        avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         peopleScreen = savedInstanceState?.getBoolean("people") ?: false
         selectedPersonId = savedInstanceState?.getString("person")
         rangeDays = savedInstanceState?.getInt("range") ?: 0
@@ -137,6 +139,10 @@ class MainActivity : Activity() {
     }
 
     private fun shape(color: Int, radius: Int = 24, stroke: Int? = null) = AppUi.shape(this, color, radius, stroke)
+    private fun avatar(profile: Profile, size: Int, tint: Int = AppUi.violetSoft, foreground: Int = accent) = ProfileAvatarView(this, size).apply {
+        bind(avatars, account!!.session.userId, profile.userId, profile.username,
+            profile.details.pictureUrl.value.takeUnless { profile.details.anonymousPicture == true }, profile.details.pictureId.value, tint, foreground)
+    }
     private fun text(value: String, size: Float, color: Int = ink, medium: Boolean = false) = AppUi.text(this, value, size, color, medium)
     private fun stack() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
     private fun LinearLayout.gap(value: Int) { addView(View(this@MainActivity), LinearLayout.LayoutParams(1, dp(value))) }
@@ -246,7 +252,7 @@ class MainActivity : Activity() {
     private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
         page.addView(AppUi.heading(this, "Bir bakışta", 30f)); page.gap(10)
         val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        identity.addView(AppUi.avatar(this, saved.profile.username, 28))
+        identity.addView(avatar(saved.profile, 36))
         identity.addView(text("@${saved.profile.username}", 15f, muted).apply { setPadding(dp(10), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
         page.addView(identity); page.gap(8)
         page.addView(text("Kayıtlı özet · ${date(saved.profile.observedAt)}", 11f, muted)); page.gap(18)
@@ -565,7 +571,7 @@ class MainActivity : Activity() {
             lines += if (gate.blockedUntil() > now) "Uygulamanın yerel molası: ${date(gate.blockedUntil())}" else "Yerel mola doldu."
             lines += "Bu saat, Instagram erişiminin açılacağını garanti etmez. Süre dolunca otomatik deneme yapılmaz."
         }
-        lines += "Sayaç profil ve liste sayfası okuma girişimlerini kapsar. Giriş sayfasının ve Windows uygulamasının kendi trafiği dahil değildir. Instagram'ın toplam sayacı değildir; sunucunun isteği aldığına dair kanıt da değildir. Parola, çerez ve ham yanıt kaydedilmez."
+        lines += "Sayaç profil ve liste sayfası okuma girişimlerini kapsar. Profil görselleri, giriş sayfası ve Windows uygulamasının trafiği dahil değildir. Instagram'ın toplam sayacı değildir; sunucunun isteği aldığına dair kanıt da değildir. Parola, çerez ve ham yanıt kaydedilmez."
         AlertDialog.Builder(this).setTitle("İstek bilgileri").setMessage(lines.joinToString("\n\n")).setPositiveButton("Tamam", null).show()
     }
     private fun openLab() {
@@ -603,12 +609,15 @@ class MainActivity : Activity() {
                 val p = entry.latest
                 val card = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(18), dp(18), dp(18), dp(16)) }
                 val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-                identity.addView(AppUi.avatar(this, p.username, 46, if (index % 2 == 0) AppUi.violetSoft else AppUi.peach, if (index % 2 == 0) accent else AppUi.coral))
+                identity.addView(avatar(p, 46, if (index % 2 == 0) AppUi.violetSoft else AppUi.peach, if (index % 2 == 0) accent else AppUi.coral))
                 val name = stack().apply { setPadding(dp(12), 0, 0, 0) }
                 name.addView(text("@${p.username}", 17f, ink, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
                 name.gap(5); name.addView(text(entry.group.ifBlank { "Kayıtlı profil" }, 12f, muted))
                 identity.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
                 identity.addView(favoriteButton(entry), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(8) })
+                identity.addView(AppUi.iconButton(this, "trash", getString(R.string.person_remove_description, p.username)) { removePerson(saved.session, p) }
+                    .apply { setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "trash", AppUi.coral), null, null, null) },
+                    LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(4) })
                 card.addView(identity); card.gap(18)
                 card.addView(text("${number(p.followers)} takipçi · ${number(p.following)} takip edilen", 14f, ink, true)); card.gap(8)
                 card.addView(text("Son kayıt · ${date(p.observedAt)}", 11f, muted))
@@ -626,6 +635,7 @@ class MainActivity : Activity() {
             compoundDrawablePadding = dp(6)
         }); page.gap(12)
         val personHeading = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        personHeading.addView(avatar(p, 48), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) })
         personHeading.addView(AppUi.heading(this, "@${p.username}", 27f), LinearLayout.LayoutParams(0, -2, 1f))
         personHeading.addView(favoriteButton(person), LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(personHeading); page.gap(8)
@@ -686,17 +696,25 @@ class MainActivity : Activity() {
         if (person.note.isNotBlank()) { notesCard.addView(text(person.note, 14f, muted)); notesCard.gap(10) }
         notesCard.addView(button("Not ve grup düzenle", false) { editPerson(person) }, LinearLayout.LayoutParams(-1, -2)); notesCard.gap(10)
         page.addView(notesCard); page.gap(16)
-        page.addView(button("Kişiyi kaldır", false) {
-            AlertDialog.Builder(this).setTitle("Kişi kaldırılsın mı?").setMessage("Bu kişinin kayıtlı geçmişi ve notu bu cihazdan silinir.")
+        page.addView(button("Kişiyi kaldır", false) { removePerson(saved.session, p) }
+            .apply { background = null; setTextColor(AppUi.coral) }, LinearLayout.LayoutParams(-1, -2)); page.gap(20)
+    }
+
+    private fun removePerson(session: Session, profile: Profile) {
+        AlertDialog.Builder(this).setTitle("Kişi kaldırılsın mı?").setMessage(getString(R.string.person_remove_confirm, profile.username))
                 .setNegativeButton("Vazgeç", null).setPositiveButton("Kaldır") { _, _ ->
-                    if (savePeople { people -> people.filterNot { it.latest.userId == p.userId } }) {
-                        try { FollowListVault(this, if (preview) "previewlists" else "followlists").clearTarget(saved.session, p.userId) }
+                    if (account?.session != session) return@setPositiveButton
+                    if (savePeople { people -> people.filterNot { it.latest.userId == profile.userId } }) {
+                        try {
+                            avatars.remove(session.userId, profile.userId)
+                            FollowListVault(this, if (preview) "previewlists" else "followlists").clearTarget(session, profile.userId)
+                        }
                         catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
-                        ChangeNotifications(this, preview).cancel(saved.session.userId, p.userId); selectedPersonId = null
+                        ChangeNotifications(this, preview).cancel(session.userId, profile.userId)
+                        if (selectedPersonId == profile.userId) selectedPersonId = null
                     }
                     render()
                 }.show()
-        }.apply { background = null; setTextColor(AppUi.coral) }, LinearLayout.LayoutParams(-1, -2)); page.gap(20)
     }
 
     private fun input(hintValue: String, limit: Int) = EditText(this).apply {
@@ -989,6 +1007,7 @@ class MainActivity : Activity() {
             .setMessage("Web bağlantısında giriş Instagram'ın kendi sayfasındadır; uygulama şifre alanını okumaz. Bilgisayardan aktarımda parola istenmez; mevcut mobil oturum bu cihazın anahtarına şifrelenerek ADB'den gelir.\n\n" +
                 "Oturum, seçtiğin kişiler, geçmiş ve notların Android Keystore ile şifrelenir. Giriş sırasında WebView kendi geçici tarayıcı verilerini oluşturabilir; bağlantı tamamlanınca veya iptal edilince temizlenir.\n\n" +
                 "İstekler Instagram'a gider. Kendi sunucumuz, reklam, analitik veya veri toplama SDK'mız yok. Bulut yedekleme ve cihaz aktarımı kapalıdır.\n\n" +
+                "Görünür profil fotoğrafları, yanıttaki Instagram görsel bağlantısından oturum bilgisi gönderilmeden yüklenebilir. Küçük görseller uygulamanın özel önbelleğinde tutulur; bu görsel önbelleği ayrıca şifrelenmez. Bağlantıyı kaldırmak görsel önbelleğini de temizler.\n\n" +
                 "Bu bağımsız bir uygulamadır. Instagram giriş veya doğrulama isteyebilir; kesintisiz çalışma garantisi yoktur.")
             .setPositiveButton("Anladım", null).show()
     }
@@ -998,9 +1017,11 @@ class MainActivity : Activity() {
         AlertDialog.Builder(this).setTitle("Bağlantı kaldırılsın mı?")
             .setMessage("Bu uygulamadaki oturum, kişiler, listeler, geçmiş ve notların silinir.")
             .setNegativeButton("Vazgeç", null).setPositiveButton("Kaldır") { _, _ ->
+                avatars.close()
                 loading = true; render()
                 worker.execute {
                     val ok = try {
+                        avatars.remove()
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
                         if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear() }
                         FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
@@ -1009,6 +1030,7 @@ class MainActivity : Activity() {
                     } catch (_: Exception) { false }
                     main.post {
                         if (isDestroyed) return@post
+                        avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
                         loading = false
                         if (ok) { account = null; peopleScreen = false; selectedPersonId = null; needsConnection = false; message = "Bu cihazdaki bağlantı kaldırıldı." }
                         else message = "Bağlantı silinemedi. Lütfen tekrar dene."
@@ -1157,6 +1179,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        if (::avatars.isInitialized) avatars.close()
         ++generation; main.removeCallbacksAndMessages(null); api.cancel()
         if (web != null) {
             CookieManager.getInstance().removeAllCookies { CookieManager.getInstance().flush() }
@@ -1167,4 +1190,5 @@ class MainActivity : Activity() {
         worker.shutdownNow()
         super.onDestroy()
     }
+    override fun onStop() { if (::avatars.isInitialized) avatars.cancelAll(); super.onStop() }
 }

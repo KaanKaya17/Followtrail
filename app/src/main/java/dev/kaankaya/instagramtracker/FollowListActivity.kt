@@ -17,6 +17,7 @@ import android.text.TextWatcher
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.ImageView
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -31,6 +32,7 @@ class FollowListActivity : Activity() {
     private lateinit var accountVault: SessionVault
     private lateinit var lists: FollowListVault
     private lateinit var source: FollowListSource
+    private lateinit var avatars: AvatarImages
     private lateinit var reference: Session
     private lateinit var target: Profile
     private var snapshot: FollowSnapshot? = null
@@ -55,6 +57,7 @@ class FollowListActivity : Activity() {
         AppUi.systemBars(this)
         if (!BuildConfig.DEBUG) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         preview = PreviewMode.enabled(this)
+        avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
         accountVault = SessionVault(this, if (preview) "previewaccount" else "account")
         lists = FollowListVault(this, if (preview) "previewlists" else "followlists")
@@ -82,7 +85,7 @@ class FollowListActivity : Activity() {
         AppUi.button(this, title, primary, enabled, action = action)
     private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
     private fun LinearLayout.gap(n: Int) { addView(View(this@FollowListActivity), LinearLayout.LayoutParams(1, dp(n))) }
-    private data class UserRow(val initial: TextView, val name: TextView, val detail: TextView)
+    private data class UserRow(val initial: ProfileAvatarView, val name: TextView, val detail: TextView)
     private fun render() {
         if (isDestroyed || !::target.isInitialized) return
         val searchFocused = visibleSearch?.isFocused == true
@@ -180,20 +183,24 @@ class FollowListActivity : Activity() {
                 val row = convertView ?: LinearLayout(this@FollowListActivity).apply {
                     orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL
                     setPadding(dp(14), dp(14), dp(14), dp(14))
-                    val initial = AppUi.avatar(this@FollowListActivity, "?", 42)
+                    val initial = ProfileAvatarView(this@FollowListActivity, 42)
                     addView(initial)
                     val labels = column().apply { setPadding(dp(12), 0, 0, 0) }
                     val name = AppUi.text(this@FollowListActivity, "", 14f, fg, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }
                     val detail = AppUi.text(this@FollowListActivity, "", 12f, AppUi.muted).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }
                     labels.addView(name); labels.gap(4); labels.addView(detail)
                     addView(labels, LinearLayout.LayoutParams(0, -2, 1f)); tag = UserRow(initial, name, detail)
+                    addView(ImageView(this@FollowListActivity).apply {
+                        setImageDrawable(AppUi.Icon(this@FollowListActivity, "arrow", AppUi.violet, 18))
+                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    }, LinearLayout.LayoutParams(dp(24), dp(24)))
                 }
                 val user = items[position]; val holder = row.tag as UserRow
-                holder.initial.text = (user.username ?: user.name ?: "?").take(1).uppercase(Locale.forLanguageTag("tr-TR"))
-                holder.initial.background = AppUi.shape(this@FollowListActivity, if (position % 2 == 0) AppUi.violetSoft else AppUi.mint, 24)
-                holder.initial.setTextColor(if (position % 2 == 0) AppUi.violet else AppUi.teal)
+                holder.initial.bind(avatars, reference.userId, user.id, user.username ?: user.name ?: "?", user.picture,
+                    tint = if (position % 2 == 0) AppUi.violetSoft else AppUi.mint, foreground = if (position % 2 == 0) AppUi.violet else AppUi.teal)
                 holder.name.text = user.username?.let { "@$it" } ?: getString(R.string.list_username_unknown)
                 holder.detail.text = user.name?.takeIf { it.isNotBlank() } ?: "Ad bilgisi yok"
+                row.contentDescription = user.username?.let { getString(R.string.profile_open_description, it) } ?: getString(R.string.list_username_unknown)
                 return row
             }
         }
@@ -236,6 +243,9 @@ class FollowListActivity : Activity() {
         updateSearchState(items.size)
         listHeader.addView(empty)
         list.addHeaderView(listHeader, null, false); list.adapter = adapter
+        list.setOnItemClickListener { _, _, position, _ ->
+            items.getOrNull(position - list.headerViewsCount)?.let(::openProfile)
+        }
         list.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         root.addView(list, LinearLayout.LayoutParams(-1, 0, 1f))
         // Header 0 is not selectable. Selecting it in keyboard mode would skip to user 1.
@@ -354,6 +364,16 @@ class FollowListActivity : Activity() {
         }.setNegativeButton(R.string.list_close, null).show()
     }
     private fun cancel() { generation++; source.cancel(); pending?.cancel(true); pending = null; loading = false }
+    private fun openProfile(user: FollowUser) {
+        val url = ProfileLinks.url(user.username)
+        if (url == null) {
+            android.widget.Toast.makeText(this, R.string.profile_link_missing, android.widget.Toast.LENGTH_SHORT).show(); return
+        }
+        try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE)) }
+        catch (_: android.content.ActivityNotFoundException) {
+            android.widget.Toast.makeText(this, R.string.profile_link_unavailable, android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
     override fun onPause() { if (::source.isInitialized) cancel(); main.removeCallbacks(wake); super.onPause() }
     override fun onResume() {
         super.onResume()
@@ -368,5 +388,9 @@ class FollowListActivity : Activity() {
     @SuppressLint("GestureBackNavigation")
     @Deprecated("Legacy callback for Android 7–12; API 33+ uses OnBackInvokedCallback")
     override fun onBackPressed() { finish() }
-    override fun onDestroy() { if (::source.isInitialized) cancel(); main.removeCallbacksAndMessages(null); worker.shutdownNow(); super.onDestroy() }
+    override fun onDestroy() {
+        if (::avatars.isInitialized) avatars.close()
+        if (::source.isInitialized) cancel(); main.removeCallbacksAndMessages(null); worker.shutdownNow(); super.onDestroy()
+    }
+    override fun onStop() { if (::avatars.isInitialized) avatars.cancelAll(); super.onStop() }
 }
