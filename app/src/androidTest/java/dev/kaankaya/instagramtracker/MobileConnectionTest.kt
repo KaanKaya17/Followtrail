@@ -59,7 +59,7 @@ class MobileConnectionTest {
         var cancelled = false
         override fun newCall(request: Request): Call {
             last = request
-            return object : Call by MobileProfileReader.client().newCall(request) {
+            return object : Call by MobileReadTransport.client().newCall(request) {
                 override fun request() = request
                 override fun execute(): Response {
                     calls++; wait?.invoke()
@@ -86,6 +86,39 @@ class MobileConnectionTest {
         assertNull(vault.read()) // Reader cannot attach an account to the UI by itself.
         val encrypted = context.noBackupFilesDir.resolve("mobiletesta.enc").readBytes().toString(Charsets.ISO_8859_1)
         assertFalse(encrypted.contains("Bearer IGT")); assertFalse(encrypted.contains("synthetic"))
+    }
+    @Test fun oneListPagePreservesRestrictionMetadataAndNeverResumesAutomation() {
+        val reference = sessions.stage(state()); gate().pauseAutomatic()
+        val transport = Transport(body = """{"status":"ok","users":[{"pk":"999","username":"visible"}],"next_max_id":"opaque+cursor","should_limit_list_of_followers":true}""",
+            headers = mapOf("IG-Set-X-MID" to "rotated"))
+        val page = MobileFollowListReader(gate(), sessions, transport).read(reference, "456", FollowDirection.FOLLOWERS, null)
+        assertEquals(1, transport.calls); assertEquals(FollowCoverage.LIMITED, page.coverage())
+        assertEquals("opaque+cursor", page.next.value); assertEquals("999", page.users.single().id)
+        assertTrue(gate().manualOnly()); assertEquals("rotated", sessions.read(reference).headers["X-MID"])
+        assertEquals("/api/v1/friendships/456/followers/", transport.last!!.url.encodedPath)
+        assertEquals(1L, gate().attempts())
+    }
+    @Test fun list429AndWebOnlyReferenceDoNotFallbackOrRepeat() {
+        val reference = sessions.stage(state()); val transport = Transport(429)
+        val reader = MobileFollowListReader(gate(), sessions, transport)
+        failure(ApiFailure.Kind.MOBILE_REQUIRED) { reader.read(Session("123", "cookie", "ua"), "456", FollowDirection.FOLLOWERS, null) }
+        assertEquals(0, transport.calls); assertEquals(0L, gate().attempts())
+        failure(ApiFailure.Kind.LIMITED) { reader.read(reference, "456", FollowDirection.FOLLOWERS, null) }
+        failure(ApiFailure.Kind.LIMITED) { reader.read(reference, "456", FollowDirection.FOLLOWING, null) }
+        assertEquals(1, transport.calls); assertTrue(gate().manualOnly())
+    }
+    @Test fun cancelledLateListResponseCannotRotateSession() {
+        val reference = sessions.stage(state()); val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        val transport = Transport(body = """{"status":"ok","users":[],"next_max_id":null}""",
+            wait = { entered.countDown(); check(release.await(5, TimeUnit.SECONDS)) }, headers = mapOf("IG-Set-X-MID" to "late"))
+        val reader = MobileFollowListReader(gate(), sessions, transport); val executor = Executors.newSingleThreadExecutor()
+        try {
+            val pending = executor.submit<ApiFailure.Kind?> {
+                try { reader.read(reference, "456", FollowDirection.FOLLOWERS, null); null } catch (failure: ApiFailure) { failure.kind }
+            }
+            assertTrue(entered.await(5, TimeUnit.SECONDS)); reader.cancel(); release.countDown()
+            assertEquals(ApiFailure.Kind.CANCELLED, pending.get(5, TimeUnit.SECONDS)); assertNull(sessions.read(reference).headers["X-MID"])
+        } finally { release.countDown(); executor.shutdownNow() }
     }
     @Test fun rateLimitStopsAfterOneRequestAndPersistsAcrossReaderRecreation() {
         val reference = sessions.stage(state()); val transport = Transport(429, headers = mapOf("Retry-After" to "7200"))

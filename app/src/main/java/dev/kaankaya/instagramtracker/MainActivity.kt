@@ -278,25 +278,27 @@ class MainActivity : Activity() {
     }
     private fun options() {
         val labels = mutableListOf("Bağlantıyı yönet", "Yenileme ayarları", "İstek bilgileri", "Gizlilik", "Gelişmiş")
+        if (account != null) labels.add("Kendi listelerim")
         if (BuildConfig.DEBUG && !preview) labels.add("Çevrimdışı demoyu aç")
         AlertDialog.Builder(this).setTitle("Seçenekler").setItems(labels.toTypedArray()) { _, index ->
-            when (index) {
-                0 -> {
+            when (labels[index]) {
+                "Bağlantıyı yönet" -> {
                     val exists = account != null || vault.exists() || (!preview && MobileSessions(this).exists())
                     val actions = if (exists) arrayOf("Başka hesap bağla", "Bağlantıyı kaldır") else arrayOf("Hesap bağla")
                     AlertDialog.Builder(this).setTitle("Bağlantı").setItems(actions) { _, item ->
                         if (item == 0) connectionOptions(replacePending = true) else confirmRemove()
                     }.setNegativeButton("Kapat", null).show()
                 }
-                1 -> AlertDialog.Builder(this).setTitle("Yenileme ayarları")
+                "Yenileme ayarları" -> AlertDialog.Builder(this).setTitle("Yenileme ayarları")
                     .setMultiChoiceItems(arrayOf("Açılışta otomatik yenile"), booleanArrayOf(gate.ownAutoRefresh())) { _, _, enabled ->
                         try { gate.setOwnAutoRefresh(enabled) } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
                     }
                     .setPositiveButton("Tamam", null).show()
-                2 -> requestInfo()
-                3 -> privacy()
-                4 -> AlertDialog.Builder(this).setTitle("Gelişmiş").setItems(arrayOf("Web bağlantı deneyi")) { _, _ -> openLab() }.setNegativeButton("Kapat", null).show()
-                5 -> startActivity(Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
+                "İstek bilgileri" -> requestInfo()
+                "Gizlilik" -> privacy()
+                "Gelişmiş" -> AlertDialog.Builder(this).setTitle("Gelişmiş").setItems(arrayOf("Web bağlantı deneyi")) { _, _ -> openLab() }.setNegativeButton("Kapat", null).show()
+                "Kendi listelerim" -> account?.profile?.let(::openLists)
+                "Çevrimdışı demoyu aç" -> startActivity(Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
             }
         }.setNegativeButton("Kapat", null).show()
     }
@@ -312,7 +314,7 @@ class MainActivity : Activity() {
             lines += if (gate.blockedUntil() > now) "Uygulamanın yerel molası: ${date(gate.blockedUntil())}" else "Yerel mola doldu."
             lines += "Bu saat, Instagram erişiminin açılacağını garanti etmez. Süre dolunca otomatik deneme yapılmaz."
         }
-        lines += "Sayaç bu sürümden itibaren profil okuma girişimlerini kapsar. Giriş sayfasının ve Windows uygulamasının kendi trafiği dahil değildir. Instagram'ın toplam sayacı değildir; sunucunun isteği aldığına dair kanıt da değildir. Parola, çerez ve ham yanıt kaydedilmez."
+        lines += "Sayaç profil ve liste sayfası okuma girişimlerini kapsar. Giriş sayfasının ve Windows uygulamasının kendi trafiği dahil değildir. Instagram'ın toplam sayacı değildir; sunucunun isteği aldığına dair kanıt da değildir. Parola, çerez ve ham yanıt kaydedilmez."
         AlertDialog.Builder(this).setTitle("İstek bilgileri").setMessage(lines.joinToString("\n\n")).setPositiveButton("Tamam", null).show()
     }
     private fun openLab() {
@@ -325,6 +327,9 @@ class MainActivity : Activity() {
     private fun date(time: Long) = SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
     private fun number(value: Long) = NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR")).format(value)
     private fun delta(value: Long) = (if (value > 0) "+" else "") + number(value)
+    private fun openLists(profile: Profile) {
+        startActivity(Intent(this, FollowListActivity::class.java).putExtra("target_id", profile.userId).putExtra("offline_preview", preview))
+    }
 
     private fun renderPeople(page: LinearLayout, saved: SavedAccount) {
         val person = saved.people.firstOrNull { it.latest.userId == selectedPersonId }
@@ -356,6 +361,7 @@ class MainActivity : Activity() {
         page.addView(button("Tüm kişiler", false) { selectedPersonId = null; message = null; render() }); page.gap(18)
         page.addView(text("@${p.username}", 29f, white, true)); page.gap(8)
         page.addView(text(person.group.ifBlank { "KİŞİ ANALİZİ" }, 12f, lilac, true)); page.gap(22)
+        page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(12)
         val stats = stack().apply { background = shape(panel); setPadding(dp(20), dp(20), dp(20), dp(20)) }
         for ((label, value) in listOf("Takipçi" to number(p.followers), "Takip edilen" to number(p.following), "Gönderi" to (p.posts?.let { number(it) } ?: "Bilgi yok"))) {
             val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -424,6 +430,8 @@ class MainActivity : Activity() {
             AlertDialog.Builder(this).setTitle("Kişi kaldırılsın mı?").setMessage("Bu kişinin kayıtlı geçmişi ve notu bu cihazdan silinir.")
                 .setNegativeButton("Vazgeç", null).setPositiveButton("Kaldır") { _, _ ->
                     if (savePeople { people -> people.filterNot { it.latest.userId == p.userId } }) {
+                        try { FollowListVault(this, if (preview) "previewlists" else "followlists").clearTarget(saved.session, p.userId) }
+                        catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
                         ChangeNotifications(this, preview).cancel(saved.session.userId, p.userId); selectedPersonId = null
                     }
                     render()
@@ -655,13 +663,14 @@ class MainActivity : Activity() {
     private fun confirmRemove() {
         if (loading) return
         AlertDialog.Builder(this).setTitle("Bağlantı kaldırılsın mı?")
-            .setMessage("Bu uygulamadaki oturum, kişiler, geçmiş ve notların silinir.")
+            .setMessage("Bu uygulamadaki oturum, kişiler, listeler, geçmiş ve notların silinir.")
             .setNegativeButton("Vazgeç", null).setPositiveButton("Kaldır") { _, _ ->
                 loading = true; render()
                 worker.execute {
                     val ok = try {
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
                         if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear() }
+                        FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
                         vault.clear(); ChangeNotifications(this, preview).clear(); true
                     } catch (_: Exception) { false }
                     main.post {

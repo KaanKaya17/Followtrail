@@ -1,6 +1,6 @@
 # Profil okuma politikası — 0.1.7
 
-Bu belge özel mobil/web profil okuyucularının sözleşmesidir. Bu uçlar resmî Graph API kotasıyla eş tutulmaz. Yeni test hesabında canlı kabul henüz doğrulanmadı; aşağıdaki denetimler bir sorunsuzluk garantisi değildir.
+Bu belge özel mobil/web profil okuyucularının sözleşmesidir. Bu uçlar resmî Graph API kotasıyla eş tutulmaz. 25 Ekim 2026'da kullanıcı fiziksel telefonda mobil sayaç ve ilk liste okumalarının çalıştığını bildirdi; aşağıdaki denetimler bir sorunsuzluk garantisi değildir. Kanıt kapsamı [VALIDATION.md](VALIDATION.md) içindedir.
 
 ## Dayanak ve bilinmeyenler
 
@@ -10,7 +10,7 @@ Bu belge özel mobil/web profil okuyucularının sözleşmesidir. Bu uçlar resm
 
 [Kullandığımız kütüphanenin rehberi](https://subzeroid.github.io/instagrapi/latest/usage-guide/best-practices/), web yolunun mobil yoldan bağımsız 429 alabileceğini; taze giriş döngüsü yerine oturum/cihaz durumunu korumayı ve kısıtlamalarda durmayı önerir. Yeni hesapları hemen yüksek hacimde kullanmama uyarısı da vardır. Bu, Meta'nın yayımladığı garanti veya bu proje için doğrulanmış bir güvenli kota değildir. Yeni hesap açmak, cihaz veya istemci değiştirmek sorunun giderildiğini kanıtlamaz.
 
-Projedeki gözlem: Windows prototipinde ilk giriş ve kayıtlı oturumdan yeniden okuma başarılıydı; Android web prototipindeki tek kontrollü okuma da 429 verdi. Bunlar farklı istemci/oturum/taşıma yollarıydı. Mobil oturumun Android'e şifreli aktarımı doğrulandı; mobil canlı GET başarısı doğrulanmadı. Resmî Instagram uygulamasında sayılar görülmesi kullanıcı bildirimidir; aynı API/oturumun taze isteğiyle eşdeğer ölçüm değildir. Mevcut kanıt belirli bir sunucu filtresini veya cihaz/IP/hesap kotasını teşhis etmeye yetmez.
+Projedeki gözlem: Windows prototipinde ilk giriş ve kayıtlı oturumdan yeniden okuma başarılıydı; Android web prototipindeki tek kontrollü okuma da 429 verdi. Bunlar farklı istemci/oturum/taşıma yollarıydı. Mobil oturumun Android'e şifreli aktarımı doğrulandı. 25 Ekim'de kullanıcı APK'da kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi; bu tur bağımsız HTTP kaydı alınmadı. Resmî Instagram uygulamasında sayılar görülmesi de aynı API/oturumun taze isteğiyle eşdeğer ölçüm değildir. Mevcut kanıt belirli bir sunucu filtresini veya cihaz/IP/hesap kotasını teşhis etmeye yetmez.
 
 ## Uygulanan sözleşme
 
@@ -29,3 +29,8 @@ Projedeki gözlem: Windows prototipinde ilk giriş ve kayıtlı oturumdan yenide
 Seçenekler → İstek bilgileri, bu sürümden itibaren başlatılan mantıksal profil okuma denemelerini, zamanı ve bilinen son HTTP durumunu gösterir. Engel nedeniyle başlatılmayan tıklama sayılmaz. Yeni denemede önceki HTTP durumu temizlenir; henüz yanıt gelmediyse bilinmeyen kalır. Sayaç, sunucunun aldığı toplam istek, bütün cihaz trafiği veya resmî Instagram oturumu ölçümü değildir. Kullanıcı adı, URL, IP, parola, çerez ve ham gövde tutulmaz.
 
 Doğrulama, ağsız profil/vault/gate testleri ile yerel TLS/HTTP2 sunucusu ve Android Keystore/ekran akışlarına dayanır. CI Instagram hesabı kullanmaz. Yeni canlı testte kullanıcı doğru hesabını kendisi bağlar; önceki yerel mola korunur ve yalnız açık bir okuma denenir. İlk hata durdurulur; hesap/IP/cihaz döndürme, otomatik tekrar veya farklı uçlara yedek sorgu başlatılmaz. Sonuçlar [VALIDATION.md](VALIDATION.md) içinde gözlem/çıkarım ayrımıyla tutulur.
+
+
+## 0.1.8 liste okuyucusu
+
+Takipçi ve takip edilen sayfaları aynı kalıcı RequestGate, tek etkin okuma, 15 saniyelik alt aralık ve HTTP/2 tek gönderim sözleşmesini kullanır. Her düğme yalnız bir friendships/v1 sayfası ister; otomatik cursor döngüsü, GraphQL/web yedeği veya giriş yoktur. İlk sayfa için istenen 50 kayıt araştırma tercihidir; Instagram kotası değildir. Liste başarısı önceki kısıtlamayı temizleyip otomasyonu açmaz. should_limit_list_of_followers, has_more ve next_max_id eksik/null/değer olarak korunur; listeye özel HTTP 200 sınırlaması HTTP 429 diye kaydedilmez. Bu durumda alınan sayfa sınırlı işaretlenir ve devam düğmesi sunulmaz. Genel HTTP 429/bekleme/feedback mevcut kalıcı politikayı uygular. Yeni canlı veri isteği bu geliştirmede yapılmadı.

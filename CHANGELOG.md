@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.8 — 2026-10-24 (elle liste okuma önizlemesi)
+
+- Seçilen hedefin takipçi/takip edilen listesini tek açık istekle sayfa sayfa okuma; gizli sayfalama, web/GraphQL yedeği veya otomatik giriş yok.
+- Devam ve sınırlama alanlarında eksik/null/değer ayrımı; sabit kimlikle tekilleştirme; döngü/boş devam/çelişkili yanıt ayrımı. Liste sonu eksiksizlik garantisi sayılmaz.
+- Son hedefin iki yönlü kayıtlarını Keystore ile şifreli saklama; yeniden açılışta istek göndermeden gösterme; alınan iki listede gözlenen ortak ve tek yönde bulunan hesapları karşılaştırma.
+- Profil ve liste okuyucuları aynı tek gönderim, 429/yanıt politikası, oturum güncelleme ve iptal sahibini kullanır. Liste başarısı otomasyonu yeniden açmaz.
+- Debug örnek liste akışı ve üretim sınırında testler. 25 Ekim'de kullanıcı fiziksel telefonda kendi sayaçları, kendi takip edilen listesi ve arkadaşının ilk takipçi sayfası için canlı başarı bildirdi; çok sayfalı devam henüz canlı sınanmadı. Yeni Android mobil parola/CAA girişi eklenmedi. Canlı test adımları `docs/FOLLOW-LISTS-TEST.md` içinde.
+
 ## 0.1.7 — 2026-10-24 (sade arayüz ve istek denetimi)
 
 - Ana ekranda hesap, iki sayaç, son kayıt ve sabit tek yenile düğmesi; alt gezinme. Bağlantı yönetimi, gizlilik, teknik ayrıntı ve deney araçları üç nokta menüsüne taşındı. Kişi analizinde uzun açıklamalar/kayıt listesi isteğe bağlı ayrıntı oldu; bildirim tek anahtarla yönetiliyor.

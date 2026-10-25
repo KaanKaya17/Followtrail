@@ -76,8 +76,8 @@ object NavigationPolicy {
 }
 
 object ProfileParser {
-    fun parse(text: String, expectedId: String, time: Long): Profile {
-        val body = JSONObject(text)
+    fun parse(text: String, expectedId: String, time: Long): Profile = fromBody(JSONObject(text), expectedId, time)
+    fun fromBody(body: JSONObject, expectedId: String, time: Long): Profile {
         if (body.optString("status") != "ok") throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
         val user = body.optJSONObject("user") ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
         return user(user, time).also { if (it.userId != expectedId) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT) }
@@ -86,20 +86,15 @@ object ProfileParser {
         val body = JSONObject(text)
         if (body.optString("status") != "ok") throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
         val user = body.optJSONObject("data")?.optJSONObject("user") ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
-        val id = id(user.opt("id"))
+        val id = InstagramIdentity.id(user.opt("id"))
         val profile = Profile(id, username(user), count(user.optJSONObject("edge_followed_by")?.opt("count")),
             count(user.optJSONObject("edge_follow")?.opt("count")), time,
             optionalCount(user.optJSONObject("edge_owner_to_timeline_media")?.opt("count")))
         if (!profile.username.equals(expectedUsername, ignoreCase = true)) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT)
         return profile
     }
-    fun user(user: JSONObject, time: Long): Profile = Profile(id(user.opt("pk")), username(user),
+    fun user(user: JSONObject, time: Long): Profile = Profile(InstagramIdentity.id(user.opt("pk")), username(user),
         count(user.opt("follower_count")), count(user.opt("following_count")), time, optionalCount(user.opt("media_count")))
-    private fun id(pk: Any?): String {
-        val id = when (pk) { is String -> pk; is Int -> pk.toString(); is Long -> pk.toString(); else -> "" }
-        if (!id.matches(Regex("[1-9][0-9]{0,29}"))) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
-        return id
-    }
     private fun username(user: JSONObject): String = (user.opt("username") as? String)
         ?.takeIf { ProfileInput.validUsername(it) } ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
     private fun count(value: Any?): Long = when (value) {
@@ -109,9 +104,19 @@ object ProfileParser {
     private fun optionalCount(value: Any?): Long? = if (value == null || value === JSONObject.NULL) null else count(value)
 }
 
+object InstagramIdentity {
+    fun id(value: Any?): String {
+        val id = when (value) { is String -> value; is Int -> value.toString(); is Long -> value.toString(); else -> "" }
+        if (!id.matches(Regex("[1-9][0-9]{0,29}"))) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
+        return id
+    }
+}
+
 class ApiFailure(val kind: Kind) : Exception(kind.name) {
-    enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, TOO_SOON, CONNECTION, CANCELLED, INVALID_RESPONSE, WRONG_ACCOUNT, NOT_FOUND, STORAGE }
+    enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, TOO_SOON, CONNECTION, CANCELLED, INVALID_RESPONSE, WRONG_ACCOUNT, NOT_FOUND, STORAGE, MOBILE_REQUIRED, CAPACITY }
     fun userMessage(): String = when (kind) {
+        Kind.MOBILE_REQUIRED -> "Listeler için mobil bağlantı gerekiyor. Seçenekler → Bağlantıyı yönet → Bilgisayardan bağlan yolunu kullan."
+        Kind.CAPACITY -> "Bu okuma için cihaz kayıt sınırına ulaşıldı. Önceki sayfalar korundu; okuma tamamlanmış sayılmadı."
         Kind.SESSION_EXPIRED -> "Bağlantının süresi dolmuş. Hesabını yeniden bağla."
         Kind.VERIFICATION -> "Instagram ek doğrulama istiyor. Bağlantıyı yenileyerek tamamlayabilirsin."
         Kind.LIMITED -> "Instagram şu anda yenilemeyi sınırlıyor. Biraz sonra tekrar dene."

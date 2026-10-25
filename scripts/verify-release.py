@@ -31,6 +31,9 @@ def verify(apk: Path, sdk: Path) -> dict:
     links = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'DesktopLinkActivity' in block]
     if len(links) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', links[0]):
         raise ValueError('Desktop pairing must be non-exported')
+    lists = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'FollowListActivity' in block]
+    if len(lists) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', lists[0]):
+        raise ValueError('Follow lists must be non-exported')
     for attribute in ('allowBackup', 'usesCleartextTraffic'):
         if not re.search(r'android:' + attribute + r'\([^)]*\)=\(type 0x12\)0x0\s', manifest):
             raise ValueError(attribute + ' must be explicitly disabled')
@@ -42,7 +45,7 @@ def verify(apk: Path, sdk: Path) -> dict:
         if any(name.startswith('lib/') for name in archive.namelist()):
             raise ValueError('Unexpected native architecture dependency')
         for name in archive.namelist():
-            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection', b'DemoMonitorJobService', b'tracker-fixture.invalid')):
+            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection', b'DemoMonitorJobService', b'DemoFollowListSource', b'demo-page-2', b'tracker-fixture.invalid')):
                 raise ValueError('Debug preview transport must not be in the production APK')
     with apk.open('rb') as stream:
         digest = hashlib.file_digest(stream, 'sha256').hexdigest()

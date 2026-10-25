@@ -30,3 +30,8 @@ Kayıt yazımı bildirimden önce tamamlanır. Bu iki adım arasında süreç ka
 
 
 0.1.5 bağlantı prototipi: ayrı ve dışarıya açık olmayan Activity, kullanıcının başlattığı WebView oturumunda tek same-origin fetch çalıştırır. evaluateJavascript ile yalnız profil kimliği/adı/sayılar ve durum projeksiyonu alınır; parola/form/cookie okuma ve JavaScript-native köprüsü yoktur. Profil sonucu ana şifreli kayda veya loga yazılmaz; yalnız ekranda kalır. Tanılama zaman, event enum'u, sayısal HTTP durumları ve sayaçlardan oluşur; URL/query ve ham gövde içermez. Tarayıcı kendi uygulama özel verisini oluşturabilir. Normal bitirme, açılmış tarayıcının cookie/cache/WebStorage verisini temizler; ani süreç ölümü bu temizliği garanti etmez. Henüz kalıcı şifreli tarayıcı oturumu veya yeni arka plan taşıması olarak sunulmaz. Ayrıntılar CONNECTION-PROTOTYPE.md belgesindedir.
+
+
+## 0.1.8 liste deneyi
+
+Yalnız son incelenen hedefin iki yöndeki alınmış sayfaları noBackupFilesDir içinde Keystore/AES-GCM ile şifrelenir. Kimlik, yanıtta bulunan kullanıcı/görünen ad ve isteğe bağlı resim adresi/gizlilik/doğrulanma alanları saklanır. Resimler indirilmez, üye başına profil isteği yapılmaz. Ham yanıt, Authorization veya çerez liste kaydına/tanıya yazılmaz. Liste kaydı mevcut 512 KiB bütçesini kullanır; kapasite hatası eski sayfaları korur. Başka hedefin başarılı ilk okuması bu kaydı değiştirir. Kişiyi kaldırma ilgili hedefi; bağlantıyı kaldırma liste kaydını siler. Liste okumaları açık kullanıcı eylemidir; arka plan liste toplaması yoktur. [Kapsam ve test](FOLLOW-LISTS-TEST.md).
