@@ -45,3 +45,14 @@ Favori tercihi, ilgili kişinin mevcut şifreli kaydında Boolean olarak saklan�
 Normal profil okumasında sunucu gönderirse biyografi metni, profil fotoğrafı kimliği/adresi ve varsayılan fotoğraf bilgisi alınır. Alanların bilinirlik durumu da saklanır. Bu alanlar mevcut sayı geçmişiyle aynı şifreli hesap kaydında, yinelenen metinler ortaklaştırılarak ve mevcut 512 KiB bütçesiyle tutulur. Yalnız son 90 gözlem kapsamındadır; kişi veya bağlantı kaldırılınca ilgili kayıt silinir. Sunucu bu alanları göndermeyebilir.
 
 Fotoğraf binary dosyası indirilmez; harici CDN isteği eklenmez. Fotoğraf kimliği farkı, aynı görselin yeniden yüklenmesini de kapsayabilir. Biyografi ve eski kullanıcı adları uygulama içindeki geçmişte görülebilir. Bildirim yalnız değişiklik türünü taşır; tam biyografi veya eski/yeni değerler bildirime yazılmaz. Kilit ekranı public görünümü kişi adını ve profil metnini içermez; son görünüm Android ayarlarına da bağlıdır.
+
+
+## 0.1.14 liste otomasyonu
+
+Kullanıcı bir kez açıp hedef seçtiğinde kendi hesabının ve seçili kişilerin takipçi/takip edilen sayfaları arka planda Instagram'dan okunabilir. Profil işleriyle aynı bütçe ve mobil oturum kullanılır. Yeni izin, üçüncü taraf sunucu, reklam/analitik veya medya indirme eklenmedi. Önceki 0.1.8'in yalnız elle/son hedef açıklaması bu yeni isteğe bağlı modun kapsamını anlatmaz; manuel mod ayrıca korunur.
+
+Liste v2 arşivi viewer/mobil binding/hedef kapsamını korur; kullanıcı kimlikleri, yanıtta varsa kullanıcı adları/tam adlar/fotoğraf bağlantıları ve bilinirlik/sayfalama alanları, önceki uygun okuma ile güncel okuma için şifreli tutulur. Binary fotoğraf indirilmez. En fazla 21 hedef tek 512 KiB liste dosyası bütçesini paylaşır. Daha eski liste okumaları kalıcı bir olay günlüğü olarak tutulmaz; yeni döngü önceki baseline/güncel ikilisini değiştirir. Profildeki 90 gözlem saklama kuralı liste geçmişi kuralı değildir.
+
+Kısmi/sınırlı listeden eksik kişi bildirimi üretilmez; iki liste sonu gözlemi de atomik veya eksiksiz veri garantisi değildir. Bildirim kişi üyelerinin isimlerini değil fark sayılarını taşır; public görünüm hedef adını gizler. Bildirim tıklamasında bağlı hesap sahipliği kontrol edilir. Kesin takip/takipten çıkış veya olay saati iddiası yoktur.
+
+Liste kayıtlarını temizleme bütün liste başlangıçlarını ve liste farklarını kaldırır; profil geçmişi, favori, not ve oturum korunur. Bu işlem mevcut 429/bekleme molasını kaldırmaz. Kişiyi kaldırmak o kişinin liste kayıtlarını da kaldırır. Bağlantıyı kaldırmak arşivin tamamını siler. Yeni v2 liste dosyasını eski APK'lar okuyamaz; geri dönmeden önce yeni sürümde liste önbelleği temizlenmelidir. Hesap kaydı v4'e eklenen isteğe bağlı otomasyon alanlarını eski APK yeniden yazarken kaybedebilir.

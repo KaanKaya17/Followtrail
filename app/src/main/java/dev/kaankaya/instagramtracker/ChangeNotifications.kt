@@ -21,7 +21,7 @@ class ChangeNotifications(private val context: Context, private val preview: Boo
     fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel(CHANNEL,
             "Profil değişiklikleri", NotificationManager.IMPORTANCE_DEFAULT).apply {
-            description = "Seçtiğin kişilerde gözlemlenen sayı, kullanıcı adı, biyografi ve fotoğraf bilgisi değişiklikleri."
+            description = "Profil değişiklikleri ve önceki/güncel liste okumaları arasındaki gözlemlenen farklar."
         })
     }
     @Suppress("DEPRECATION")
@@ -55,7 +55,30 @@ class ChangeNotifications(private val context: Context, private val preview: Boo
         try { manager.notify(tag(change.ownerId, change.profile.userId), 0, notification) }
         catch (_: SecurityException) { /* Permission can be revoked after the check; observations stay saved. */ }
     }
-    fun cancel(owner: String, person: String) { manager.cancel(tag(owner, person), 0) }
+    fun postList(session: Session, profile: Profile, difference: ListDifference) {
+        ensureChannel(); if (!allowed()) return
+        val intent = Intent(context, FollowListActivity::class.java)
+            .setData(Uri.parse("instagramtracker://list/${session.userId}/${profile.userId}/${difference.direction.path}"))
+            .putExtra("target_id", profile.userId).putExtra("notification_owner", session.userId)
+            .putExtra("initial_direction", difference.direction.name).putExtra("offline_preview", preview)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        val pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val direction = context.getString(if (difference.direction == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following)
+        val details = context.getString(R.string.auto_difference_counts, difference.added.size.toString(), difference.missing.size.toString())
+        val public = builder().setSmallIcon(R.drawable.ic_notification).setContentTitle("InstagramTracker")
+            .setContentText(context.getString(R.string.auto_notification_public)).build()
+        val notification = builder().setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("${if (preview) "DEMO · " else ""}@${profile.username} · $direction")
+            .setContentText(details).setStyle(Notification.BigTextStyle().bigText(details + "\n" + context.getString(R.string.auto_difference_scope)))
+            .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public).setContentIntent(pending)
+            .setAutoCancel(true).setOnlyAlertOnce(true).setCategory(Notification.CATEGORY_STATUS).build()
+        try { manager.notify("list:${session.userId}:${profile.userId}:${difference.direction.path}", 0, notification) }
+        catch (_: SecurityException) { /* The committed comparison remains available in the app. */ }
+    }
+    fun cancelLists(owner: String, person: String) {
+        FollowDirection.entries.forEach { manager.cancel("list:$owner:$person:${it.path}", 0) }
+    }
+    fun cancel(owner: String, person: String) { manager.cancel(tag(owner, person), 0); cancelLists(owner, person) }
     fun clear() { manager.cancelAll() }
     private fun tag(owner: String, person: String) = "profile:$owner:$person"
 }

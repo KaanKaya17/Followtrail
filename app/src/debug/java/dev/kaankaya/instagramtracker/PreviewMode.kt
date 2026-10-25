@@ -68,4 +68,5 @@ class DemoMonitorJobService : MonitorJobService() {
     override val jobId = PreviewMode.JOB_ID
     override val preview = true
     override fun createApi(gate: RequestGate) = PreviewMode.api(gate, true)
+    override fun createListSource(gate: RequestGate) = PreviewMode.followLists(gate, true)
 }

@@ -25,7 +25,8 @@ sealed interface ActivityItem {
 
 object RecentActivity {
     const val MAX_ITEMS = 20
-    fun items(account: SavedAccount, lists: FollowSnapshot? = null): List<ActivityItem> {
+    fun items(account: SavedAccount, lists: FollowSnapshot? = null): List<ActivityItem> = all(account, listOfNotNull(lists))
+    fun all(account: SavedAccount, snapshots: List<FollowSnapshot>): List<ActivityItem> {
         val entries = mutableListOf<ActivityItem>()
         for (person in account.people) person.history.zipWithNext().forEach { (before, after) ->
             val followers = after.followers - before.followers
@@ -34,7 +35,7 @@ object RecentActivity {
                 before.observedAt, after.observedAt, followers, following)
         }
         account.people.forEach { person -> entries += ProfileChanges.history(person.history).map { ActivityItem.ProfileChanged(it) } }
-        if (lists != null && lists.matches(account.session, lists.target)) {
+        for (lists in snapshots) if (lists.matches(account.session, lists.target)) {
             val target = (listOf(account.profile) + account.people.map { it.latest }).firstOrNull { it.userId == lists.target }
             if (target != null) FollowDirection.entries.forEach { direction ->
                 lists.run(direction)?.pages?.forEachIndexed { index, page ->

@@ -65,6 +65,7 @@ class FollowListActivity : Activity() {
             android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT) { finish() }
         try {
             val account = accountVault.read() ?: throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
+            intent.getStringExtra("notification_owner")?.let { if (it != account.session.userId) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT) }
             reference = account.session
             val id = intent.getStringExtra("target_id")
             target = (listOf(account.profile) + account.people.map { it.latest }).firstOrNull { it.userId == id }
@@ -286,6 +287,18 @@ class FollowListActivity : Activity() {
                 getString(R.string.list_observed, SimpleDateFormat("d MMM yyyy · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(run.latest.observedAt)))
         AlertDialog.Builder(this).setTitle(R.string.list_info_title)
             .setMessage(description + "\n\n" + getString(R.string.list_info_body))
+            .setNeutralButton(R.string.auto_list_differences) { _, _ -> showListDifferences() }
+            .setPositiveButton(R.string.list_close, null).show()
+    }
+    private fun showListDifferences() {
+        val record = lists.target(reference, target.userId)
+        val difference = record?.let { ListAutomationPolicy.difference(it, direction) }
+        val body = if (difference == null) getString(R.string.auto_no_comparison) else {
+            getString(R.string.auto_difference_counts, difference.added.size.toString(), difference.missing.size.toString()) + "\n\n" +
+                "Yeni görülenler:\n" + difference.added.joinToString("\n", transform = ::userLabel).ifEmpty { "Yok" } +
+                "\n\nBu okumada görünmeyenler:\n" + difference.missing.joinToString("\n", transform = ::userLabel).ifEmpty { "Yok" }
+        }
+        AlertDialog.Builder(this).setTitle(R.string.auto_list_differences).setMessage(body + "\n\n" + getString(R.string.auto_difference_scope))
             .setPositiveButton(R.string.list_close, null).show()
     }
     private fun directionName(value: FollowDirection) = getString(if (value == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following)
@@ -316,6 +329,11 @@ class FollowListActivity : Activity() {
                         accountVault.inspect { current ->
                             if (!currentAccount(current)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                             snapshot = lists.commit(reference, page)
+                            if (current!!.automation.enabled && target.userId in current.automation.targets) {
+                                val difference = lists.target(reference, target.userId)?.let { ListAutomationPolicy.difference(it, selected) }
+                                if (difference != null && (difference.added.isNotEmpty() || difference.missing.isNotEmpty()))
+                                    ChangeNotifications(this, preview).postList(reference, target, difference)
+                            }
                         }
                     } catch (failure: ApiFailure) { message = failure.userMessage() }
                     catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }

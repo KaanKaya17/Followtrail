@@ -34,3 +34,14 @@ Doğrulama, ağsız profil/vault/gate testleri ile yerel TLS/HTTP2 sunucusu ve A
 ## 0.1.8 liste okuyucusu
 
 Takipçi ve takip edilen sayfaları aynı kalıcı RequestGate, tek etkin okuma, 15 saniyelik alt aralık ve HTTP/2 tek gönderim sözleşmesini kullanır. Her düğme yalnız bir friendships/v1 sayfası ister; otomatik cursor döngüsü, GraphQL/web yedeği veya giriş yoktur. İlk sayfa için istenen 50 kayıt araştırma tercihidir; Instagram kotası değildir. Liste başarısı önceki kısıtlamayı temizleyip otomasyonu açmaz. should_limit_list_of_followers, has_more ve next_max_id eksik/null/değer olarak korunur; listeye özel HTTP 200 sınırlaması HTTP 429 diye kaydedilmez. Bu durumda alınan sayfa sınırlı işaretlenir ve devam düğmesi sunulmaz. Genel HTTP 429/bekleme/feedback mevcut kalıcı politikayı uygular. Yeni canlı veri isteği bu geliştirmede yapılmadı.
+
+
+## 0.1.14 isteğe bağlı liste otomasyonu
+
+Kullanıcının yeni talebiyle seçilen hedeflerde otomatik cursor devamı eklendi. Bu, 0.1.8'deki elle tek sayfa modunun yerine geçmez: tek çağrı halen tek sayfadır; yeni uygulama kuyruğu sayfalar arasında kalıcı duraklama/rezervasyon uygular. Her Android işinde bir profil veya bir liste sayfası; bütün otomatik işler için en az 15 dakika bütçe. Profil ve liste işlerinin ikisi de hazırsa dönüşümlü seçim yapılır. Üretim okuyucularının uç, sayfa boyutu, tek etkin istek ve HTTP yanıt sınırı değişmedi.
+
+Güncel taramada cursor yalnız MORE durumunda ilerler; LIMITED/UNKNOWN/STALLED durumda otomatik devam yoktur. Liste sonu gözlenince veya beklenen bir okuma hatası alınca yeni döngü en erken 24 saat sonra hedeflenir; HTTP 429/oturum doğrulaması bundan bağımsız mevcut genel duraklamayı uygular. Bu 24 saat Instagram cursor ömrü veya güvenli kota garantisi değildir. Cursor sunucu tarafından reddedilirse aynı işte ilk sayfa/başka uç yedeği denenmez. İlk/yarım/sınırlı okumadan fark bildirimi çıkmaz.
+
+Rezervasyon, mevcut oturum/hedef ve beklenen önceki sayfa gözlemiyle bağlanır. Hedef kaldırılır, otomasyon kapatılır, oturum değişir veya manuel yeni okuma araya girerse geç otomatik sayfa eski kaydı ezmez. Kapasite hatasında önceki liste korunur; kaydedilemeyen yönde yeni otomatik sayfa alınmaz. Rezervasyon/hata kaydı da sığmıyorsa kapasite molası aynı RequestGate'de ayrı bayrakla tutulur; liste temizliği yalnız bu bayrağı kaldırır, Instagram kısıtlamasını kaldırmaz.
+
+Bu geliştirmede gerçek Instagram isteği gönderilmedi; testler sentetik taşıma kullanır. Önce az sayıda küçük, kullanıcının kontrolündeki hesapla fiziksel cihaz testi gerekir. Uzun taramalar sırasında üyelik değişebilir; END_OBSERVED yalnız gözlenen sunucu sayfalama sonudur, eksiksizlik veya atomiklik ispatı değildir.

@@ -1,4 +1,32 @@
 <resources>
+    <string name="auto_title">Otomatik takip</string>
+    <string name="auto_enabled">Liste otomasyonu açık</string>
+    <string name="auto_disabled">Liste otomasyonu kapalı</string>
+    <string name="auto_summary">Hesabını ve izlenecek kişileri bir kez seç. Takipçi ve takip edilen sayfaları arka planda sırayla alınır; her sayfa için düğmeye basman gerekmez.</string>
+    <string name="auto_settings">Otomasyonu ayarla</string>
+    <string name="auto_person_scope">Bu kişinin listeleri de otomatik izleniyor. Liste seçimini ana ekrandaki Otomatik takip kartından yönetebilirsin; bu anahtar yalnız profil kontrolünü yönetir.</string>
+    <string name="auto_choose_targets">Otomatik izlenecek hesaplar</string>
+    <string name="auto_start">Seçilenlerde başlat</string>
+    <string name="auto_stop">Liste otomasyonunu durdur</string>
+    <string name="auto_how">Nasıl çalışır?</string>
+    <string name="auto_progress">Otomasyon durumu</string>
+    <string name="auto_select_one">En az bir hesap seç.</string>
+    <string name="auto_mobile_required">Liste otomasyonu için mobil bağlantı gerekiyor. Hesabı bilgisayardan bağlama yöntemiyle bağla; mevcut kayıtların korunur.</string>
+    <string name="auto_started">Liste otomasyonu açıldı. Sayfalar Android izin verdiğinde sırayla okunacak; mevcut molalar korunur.</string>
+    <string name="auto_first_pending">İlk liste okuması sırada.</string>
+    <string name="auto_scan_progress">%1$s sayfa · %2$s hesap görüldü · devamı sırada.</string>
+    <string name="auto_scan_end">%1$s hesap görüldü · liste sonu gözlendi. Yeni tarama hedefi: %2$s sonrası.</string>
+    <string name="auto_scan_partial">%1$s sayfa alındı; liste sınırlı veya kapsamı belirsiz. Sonraki tarama döngüsü beklenecek.</string>
+    <string name="auto_progress_hint">Bir satıra dokunarak kayıtlı listeyi açabilirsin. Açılış yeni istek göndermez. Durum bu pencere açıldığında yenilenir.</string>
+    <string name="auto_full_scope">Seçtiğin kişilerin profil bildirimleri de açılır; kendi hesabının profili yaklaşık saatte bir kontrol için sıraya girer. Profil ve liste işleri ortak bütçeyi paylaşır: en az 15 dakikada bir, tek okuma. İkisi de hazırsa sırayla çalışırlar. Android geciktirebilir; büyük listelerin taranması saatler veya günler sürebilir.\n\nSayfalar kaldığı yerden devam eder. Liste sonu gözlenince yeni tarama 24 saat sonra hedeflenir. Hatalı veya sınırlı okumada aynı anda tekrar denenmez; 429 ve doğrulama molaları korunur. Bildirim izni kapalıysa otomatik işler durur.\n\nİlk okuma başlangıçtır. Yalnız iki okumada da liste sonu gözlendiyse fark bildirimi üretilir; sayfalama sırasında listeler değişebilir veya Instagram sonuçları eksiltebilir. Bu yüzden sonuçlar yeni görülen / bu okumada görünmeyen hesaplardır; kesin takip veya takipten çıkış kanıtı değildir.\n\nKayıtlar bu cihazda şifrelenir. En fazla 21 hedef ve önceki/güncel okumalar aynı 512 KiB liste kayıt bütçesini paylaşır. Kapasite dolarsa önceki kayıt korunur ve otomatik kayıt duraklar. Liste kayıtlarını temizlemek başlangıçları sıfırlar. Liste otomasyonunu durdurmak kişilerin ayrı profil bildirimlerini kapatmaz.</string>
+    <string name="auto_list_differences">Önceki okumayla farklar</string>
+    <string name="auto_no_comparison">Karşılaştırma için liste sonu gözlenmiş iki ayrı okuma gerekiyor. İlk, yarım veya sınırlı okumadan değişiklik çıkarılmadı.</string>
+    <string name="auto_difference_counts">Yeni görülen: %1$s · Bu okumada görünmeyen: %2$s</string>
+    <string name="auto_difference_scope">Bunlar iki okuma arasındaki liste farklarıdır. Instagram sonuçları eksiltebilir; tarama sırasında liste değişebilir. Kesin takip/takipten çıkış veya kesin olay saati anlamına gelmez.</string>
+    <string name="auto_notification_public">Kayıtlı bir listede okuma farkı gözlendi.</string>
+    <string name="auto_clear_cache">Liste kayıtlarını temizle</string>
+    <string name="auto_clear_cache_confirm">Bütün hedeflerin önceki ve güncel liste okumaları silinir. Yeni liste taramaları başlangıç kaydı olur; profil geçmişi, kişiler ve bağlantı korunur. Mevcut istek molası sıfırlanmaz.</string>
+    <string name="auto_cache_cleared">Liste kayıtları temizlendi. Sonraki otomatik okuma başlangıç oluşturacak; mevcut mola korunuyor.</string>
     <string name="watch_status_title">Takip durumu</string>
     <string name="watch_last_success">Son başarılı profil okuması: %1$s</string>
     <plurals name="watch_choice_minutes"><item quantity="other">En az %1$d dakika arayla</item></plurals>
@@ -8,7 +36,7 @@
     <string name="watch_target_at">Sıradaki kontrol hedefi: %1$s · en erken</string>
     <string name="watch_target_due">Kontrol zamanı geldi; henüz yeni başarılı okuma yok.</string>
     <string name="watch_target_paused">Sıradaki kontrol: beklemede.</string>
-    <string name="watch_reason_off">Otomatik takip kapalı. Kişiyi yenile ile elle okuyabilirsin.</string>
+    <string name="watch_reason_off">Otomatik profil kontrolü kapalı. Liste otomasyonu ayrı yönetilir; Kişiyi yenile ile elle okuyabilirsin.</string>
     <string name="watch_reason_notifications">Bildirim izni veya kanalı kapalı; otomatik kontrol de duraklatıldı. Sistem ayarlarından bildirimlere izin ver.</string>
     <string name="watch_reason_limited">Instagram molası var: en erken %1$s. Süre dolunca başarılı bir elle okuma otomatik takibi yeniden açar.</string>
     <string name="watch_reason_connection">Hesabı yeniden bağlamak gerekiyor; otomatik kontrol duraklatıldı.</string>
@@ -17,8 +45,8 @@
     <string name="watch_reason_offline">Cihaz çevrimdışı görünüyor. İnternet bağlantısı bekleniyor.</string>
     <string name="watch_reason_interval">Seçtiğin kontrol aralığının dolması bekleniyor.</string>
     <string name="watch_reason_budget">Ortak istek molasının dolması bekleniyor. Diğer kişiler ve otomatik ana hesap yenilemesi aynı bütçeyi paylaşır.</string>
-    <plurals name="watch_reason_queue"><item quantity="other">Sırada önünde %1$d kişi var. Her arka plan çalışmasında tek kişi kontrol edilir.</item></plurals>
-    <string name="watch_reason_ready">Kontrol için uygun; Android’in görevi çalıştırması bekleniyor.</string>
+    <plurals name="watch_reason_queue"><item quantity="other">Profil sırasında önünde %1$d kişi var. Profil ve liste okumaları ortak sırayı paylaşır.</item></plurals>
+    <string name="watch_reason_ready">Profil kontrolü için uygun; ortak sıra ve Android’in görevi çalıştırması bekleniyor.</string>
     <string name="watch_timing_scope">Bu bilgiler ekran açıldığında veya Durumu güncelle ile yenilenir; bu düğme Instagram isteği göndermez. Aralıklar hedeftir: kişi sırası, bağlantı ve Android’in pil yönetimi gecikmeye yol açabilir. Anlık takip değildir.</string>
     <string name="watch_change_interval">Kontrol aralığını değiştir</string>
     <string name="watch_refresh_status">Durumu güncelle</string>
