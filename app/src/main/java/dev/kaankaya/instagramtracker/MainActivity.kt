@@ -7,8 +7,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.net.http.SslError
 import android.os.Bundle
 import android.os.Handler
@@ -42,12 +40,11 @@ import java.util.concurrent.Executors
 
 class MainActivity : Activity() {
     private data class ProfileRead(val profile: Profile, val fetched: Boolean)
-    private val bg = Color.rgb(16, 19, 27)
-    private val panel = Color.rgb(28, 33, 43)
-    private val mint = Color.rgb(186, 243, 213)
-    private val lilac = Color.rgb(216, 204, 250)
-    private val white = Color.rgb(242, 244, 235)
-    private val muted = Color.rgb(164, 174, 181)
+    private val bg = AppUi.background
+    private val panel = AppUi.surface
+    private val accent = AppUi.violet
+    private val ink = AppUi.ink
+    private val muted = AppUi.muted
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private lateinit var api: InstagramApi
@@ -78,6 +75,7 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppUi.systemBars(this)
         if (!BuildConfig.DEBUG) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         root = FrameLayout(this).apply { setBackgroundColor(bg) }
         root.setOnApplyWindowInsetsListener { view, insets ->
@@ -134,30 +132,15 @@ class MainActivity : Activity() {
         else render()
     }
 
-    private fun shape(color: Int, radius: Int = 24, stroke: Int? = null) = GradientDrawable().apply {
-        setColor(color); cornerRadius = dp(radius).toFloat()
-        if (stroke != null) setStroke(dp(1), stroke)
-    }
-    private fun text(value: String, size: Float, color: Int = white, medium: Boolean = false) = TextView(this).apply {
-        text = value; textSize = size; setTextColor(color)
-        typeface = Typeface.create(if (medium) "sans-serif-medium" else "sans-serif", Typeface.NORMAL)
-        includeFontPadding = false
-    }
+    private fun shape(color: Int, radius: Int = 24, stroke: Int? = null) = AppUi.shape(this, color, radius, stroke)
+    private fun text(value: String, size: Float, color: Int = ink, medium: Boolean = false) = AppUi.text(this, value, size, color, medium)
     private fun stack() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
     private fun LinearLayout.gap(value: Int) { addView(View(this@MainActivity), LinearLayout.LayoutParams(1, dp(value))) }
-    private fun button(label: String, primary: Boolean = true, networkAction: Boolean = false, action: () -> Unit) = Button(this).apply {
-        text = label; isAllCaps = false; textSize = 16f
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-        setTextColor(if (primary) bg else white)
-        background = shape(if (primary) mint else panel, 18)
-        minimumHeight = dp(56); setPadding(dp(16), dp(12), dp(16), dp(12))
-        setOnClickListener { action() }
-        isEnabled = !loading && (!networkAction || gate.nextAllowedAt() <= System.currentTimeMillis())
-        alpha = if (isEnabled) 1f else .5f
-    }
-    private fun badge(label: String, color: Int = mint) = text(label, 10f, color, true).apply {
-        letterSpacing = .10f; setPadding(dp(12), dp(8), dp(12), dp(8))
-        background = shape(panel, 20)
+    private fun button(label: String, primary: Boolean = true, networkAction: Boolean = false, action: () -> Unit) =
+        AppUi.button(this, label, primary, !loading && (!networkAction || gate.nextAllowedAt() <= System.currentTimeMillis()),
+            when (label) { "Yenile", "Kişiyi yenile" -> "refresh"; "Kişi ekle" -> "plus"; "Listeleri incele" -> "list"; else -> null }, action)
+    private fun badge(label: String, color: Int = accent) = text(label, 10f, color, true).apply {
+        letterSpacing = .06f; setPadding(dp(10), dp(7), dp(10), dp(7)); background = shape(AppUi.violetSoft, 12)
     }
     private var visibleScroll: ScrollView? = null
     private var screenIdentity = ""
@@ -168,106 +151,132 @@ class MainActivity : Activity() {
         screenIdentity = identity
         root.removeAllViews()
         val saved = account
-        val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false }
+        val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false; isVerticalScrollBarEnabled = false }
         visibleScroll = scroll
-        val page = stack().apply { setPadding(dp(24), dp(20), dp(24), dp(if (saved != null && !peopleScreen) 184 else if (saved != null) 96 else 28)) }
+        val page = stack().apply { setPadding(dp(22), dp(16), dp(22), dp(if (saved != null) 104 else 32)) }
         scroll.addView(page, ViewGroup.LayoutParams(-1, -2)); root.addView(scroll)
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        header.addView(text("it", 25f, bg, true).apply {
-            background = shape(mint, 16); gravity = Gravity.CENTER; contentDescription = "InstagramTracker"
+        header.addView(text("", 20f).apply {
+            background = AppUi.gradient(this@MainActivity, radius = 16); gravity = Gravity.CENTER
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+            setCompoundDrawablesWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "chart", AppUi.surface, 24), null, null, null)
+            contentDescription = "InstagramTracker"
         }, LinearLayout.LayoutParams(dp(48), dp(48)))
-        header.addView(text("  Tracker", 20f, white, true), LinearLayout.LayoutParams(0, -2, 1f))
-        header.addView(button("⋯", false) { options() }.apply {
-            contentDescription = "Seçenekler"; background = null; textSize = 26f; minimumWidth = dp(48)
-        }, LinearLayout.LayoutParams(dp(52), dp(52)))
-        page.addView(header); page.gap(22)
-        if (preview) { page.addView(badge("DEMO · ÖRNEK VERİ", lilac).apply { contentDescription = "Çevrimdışı demo. Veriler örnektir; Instagram isteği yok." }); page.gap(16) }
-        if (saved == null) {
-            page.addView(text("Hesabın,\nbir bakışta.", 36f, white, true)); page.gap(12)
-            page.addView(text("Takipçilerin ve takip ettiklerin. Tek yerde.", 16f, muted))
-            page.addView(OrbitView(this), LinearLayout.LayoutParams(-1, dp(140)))
-        } else if (peopleScreen) renderPeople(page, saved)
-        else {
-            page.addView(text("@${saved.profile.username}", 30f, white, true).apply {
-                maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END
-            }); page.gap(22)
-            val row = LinearLayout(this)
-            fun stat(label: String, value: Long, color: Int) = stack().apply {
-                background = shape(color, 26); minimumHeight = dp(148); setPadding(dp(18), dp(23), dp(18), dp(22))
-                addView(text(label, 13f, bg, true)); gap(30)
-                addView(text(number(value), if (number(value).length > 10) 22f else 32f, bg, true).apply {
-                    maxLines = 1
-                    if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 32, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
-                })
-            }
-            row.addView(stat("Takipçi", saved.profile.followers, mint), LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(12) })
-            row.addView(stat("Takip edilen", saved.profile.following, lilac), LinearLayout.LayoutParams(0, -2, 1f))
-            page.addView(row); page.gap(16)
-            page.addView(text("Son kayıt · ${date(saved.profile.observedAt)}", 12f, muted)); page.gap(18)
+        val brand = stack().apply { setPadding(dp(12), 0, 0, 0) }
+        brand.addView(text("Tracker", 21f, ink, true)); brand.gap(3); brand.addView(text("Sosyal çevren, bir arada.", 11f, muted))
+        header.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
+        header.addView(AppUi.iconButton(this, "more", "Seçenekler") { options() }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        page.addView(header); page.gap(24)
+        if (preview) { page.addView(badge("DEMO · ÖRNEK VERİ").apply { contentDescription = "Çevrimdışı demo. Veriler örnektir; Instagram isteği yok." }); page.gap(16) }
+        val pause = pauseMessage()
+        if (pause != null) {
+            val notice = stack().apply { background = shape(AppUi.peach, 20); setPadding(dp(18), dp(16), dp(18), dp(16)) }
+            notice.addView(text(if (gate.blockedUntil() > System.currentTimeMillis()) "Biraz ara verelim" else "Yalnız sen yenilediğinde", 16f, AppUi.coral, true))
+            notice.gap(6); notice.addView(text(pause, 13f, ink))
+            notice.contentDescription = "Sınırlama bilgisi"; notice.setOnClickListener { requestInfo() }
+            page.addView(notice); page.gap(16)
         }
+        if (saved == null) {
+            page.addView(text("Hesabın,\nbir bakışta.", 38f, ink, true)); page.gap(12)
+            page.addView(text("Takipçilerin ve takip ettiklerin. Tek yerde.", 16f, muted))
+            page.addView(OrbitView(this), LinearLayout.LayoutParams(-1, dp(204)))
+        } else if (peopleScreen) renderPeople(page, saved)
+        else renderOverview(page, saved)
         if (loading) {
             val progress = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-            progress.addView(ProgressBar(this).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(mint) }, LinearLayout.LayoutParams(dp(20), dp(20)))
+            progress.addView(ProgressBar(this).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(accent) }, LinearLayout.LayoutParams(dp(20), dp(20)))
             progress.addView(text("  Güncelleniyor…", 14f, muted)); page.addView(progress); page.gap(16)
         }
-        val pause = pauseMessage()
-        if (pause != null && (saved == null || peopleScreen)) {
-            val notice = stack().apply { background = shape(panel, 20); setPadding(dp(18), dp(16), dp(18), dp(16)) }
-            notice.addView(text(if (gate.blockedUntil() > System.currentTimeMillis()) "Biraz ara verelim" else "Yalnız sen yenilediğinde", 16f, lilac, true))
-            notice.gap(6); notice.addView(text(pause, 13f, muted))
-            notice.contentDescription = "Sınırlama bilgisi"; notice.setOnClickListener { requestInfo() }
-            page.addView(notice); page.gap(18)
-        }
-        message?.takeIf { it != pause }?.let { page.addView(text(it, 14f, lilac)); page.gap(14) }
-        val primaryHost = if (saved != null && !peopleScreen) stack().apply {
-            setBackgroundColor(bg); setPadding(dp(24), dp(12), dp(24), dp(8))
-        } else page
-        if (pause != null && saved != null && !peopleScreen) {
-            primaryHost.addView(text(pause, 13f, lilac).apply {
-                gravity = Gravity.CENTER; minimumHeight = dp(40); setOnClickListener { requestInfo() }
-                contentDescription = "Sınırlama bilgisi. $pause"
-            })
+        message?.takeIf { it != pause }?.let {
+            page.addView(text(it, 14f, accent).apply { background = shape(AppUi.violetSoft, 16); setPadding(dp(16), dp(14), dp(16), dp(14)) }); page.gap(14)
         }
         if (saved == null || needsConnection) {
-            primaryHost.addView(button(if (needsConnection) "Bağlantıyı yenile" else if (pendingMobile) "Bağlantıyı tamamla" else "Hesap bağla") {
+            page.addView(button(if (needsConnection) "Bağlantıyı yenile" else if (pendingMobile) "Bağlantıyı tamamla" else "Hesap bağla") {
                 if (pendingMobile && !needsConnection) startActivity(Intent(this, DesktopLinkActivity::class.java)) else connectionOptions()
             }, LinearLayout.LayoutParams(-1, -2))
         } else if (!peopleScreen) {
-            val freshUntil = saved.profile.observedAt + PeoplePolicy.FRESH_MS
-            val allowed = maxOf(gate.nextAllowedAt(), freshUntil)
-            primaryHost.addView(button("Yenile", networkAction = true) { refresh() }.apply {
-                isEnabled = !loading && allowed <= System.currentTimeMillis(); alpha = if (isEnabled) 1f else .5f
-            }, LinearLayout.LayoutParams(-1, -2))
+            val allowed = maxOf(gate.nextAllowedAt(), saved.profile.observedAt + PeoplePolicy.FRESH_MS)
+            val refreshRow = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+            val detail = stack()
+            detail.addView(text("Son kayıt", 11f, muted)); detail.gap(4); detail.addView(text(date(saved.profile.observedAt), 12f, ink, true))
+            refreshRow.addView(detail, LinearLayout.LayoutParams(0, -2, 1f))
+            refreshRow.addView(button("Yenile", false, networkAction = true) { refresh() }.apply {
+                isEnabled = !loading && allowed <= System.currentTimeMillis(); alpha = if (isEnabled) 1f else .48f
+            }, LinearLayout.LayoutParams(-2, -2))
+            page.addView(refreshRow)
             if (allowed > System.currentTimeMillis() && pause == null) {
-                primaryHost.gap(8); primaryHost.addView(text("Yeniden yenileme · ${clock(allowed)}", 12f, muted).apply { gravity = Gravity.CENTER })
+                page.gap(8); page.addView(text("Yeniden yenileme · ${clock(allowed)}", 11f, muted))
             }
         }
         if (gate.mobileLinkActive() || gate.prototypeActive()) {
-            page.gap(16)
-            page.addView(button("Yarım kalan bağlantıyı tamamla", false) {
-                if (gate.mobileLinkActive()) startActivity(Intent(this, DesktopLinkActivity::class.java))
-                else openLab()
+            page.gap(16); page.addView(button("Yarım kalan bağlantıyı tamamla", false) {
+                if (gate.mobileLinkActive()) startActivity(Intent(this, DesktopLinkActivity::class.java)) else openLab()
             }, LinearLayout.LayoutParams(-1, -2))
         }
-        if (saved == null) { page.gap(24); page.addView(text("Verilerin bu cihazda şifrelenir.", 12f, muted).apply { gravity = Gravity.CENTER; setOnClickListener { privacy() } }) }
+        if (saved == null) { page.gap(20); page.addView(text("Verilerin bu cihazda şifrelenir.", 12f, muted).apply { gravity = Gravity.CENTER; setOnClickListener { privacy() } }) }
         if (saved != null) {
-            if (!peopleScreen) root.addView(primaryHost, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM).apply { bottomMargin = dp(72) })
-            val navigation = LinearLayout(this).apply { background = shape(bg, 0); setPadding(dp(20), dp(8), dp(20), dp(8)); elevation = dp(8).toFloat() }
-            fun tab(label: String, selected: Boolean, action: () -> Unit) = button(label, false, action = action).apply {
-                background = shape(if (selected) panel else bg, 16); setTextColor(if (selected) mint else muted); isSelected = selected
+            val navigation = LinearLayout(this).apply {
+                background = shape(panel, 28, AppUi.line); setPadding(dp(8), dp(7), dp(8), dp(7)); elevation = dp(6).toFloat()
             }
-            navigation.addView(tab("Özet", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f).apply { marginEnd = dp(10) })
-            navigation.addView(tab("Kişiler", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f))
-            root.addView(navigation, FrameLayout.LayoutParams(-1, dp(72), Gravity.BOTTOM))
+            fun tab(label: String, icon: String, selected: Boolean, action: () -> Unit) = button(label, false, action = action).apply {
+                background = AppUi.touch(this@MainActivity, shape(if (selected) AppUi.violetSoft else panel, 21))
+                setTextColor(if (selected) accent else muted); isSelected = selected; textSize = 13f
+                setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, icon, if (selected) accent else muted, 20), null, null, null)
+                compoundDrawablePadding = dp(8)
+            }
+            navigation.addView(tab("Özet", "home", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f).apply { marginEnd = dp(6) })
+            navigation.addView(tab("Kişiler", "people", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, dp(52), 1f))
+            root.addView(navigation, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM).apply {
+                leftMargin = dp(22); rightMargin = dp(22); bottomMargin = dp(12)
+            })
         }
-        scroll.post { scroll.scrollTo(0, position) }
-        scheduleGateWake()
+        scroll.post { scroll.scrollTo(0, position) }; scheduleGateWake()
+    }
+
+    private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
+        page.addView(text("Bir bakışta", 30f, ink, true)); page.gap(10)
+        val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        identity.addView(AppUi.avatar(this, saved.profile.username, 28))
+        identity.addView(text("@${saved.profile.username}", 15f, muted).apply { setPadding(dp(10), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
+        page.addView(identity); page.gap(18)
+        val row = LinearLayout(this)
+        fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
+            val foreground = if (purple) AppUi.surface else ink
+            background = AppUi.touch(this@MainActivity, if (purple) AppUi.gradient(this@MainActivity) else shape(AppUi.peach, 26))
+            setPadding(dp(17), dp(18), dp(17), dp(18)); minimumHeight = dp(156)
+            addView(text(label, 13f, foreground, true)); gap(16)
+            addView(text(number(value), 38f, foreground, true).apply {
+                maxLines = 1
+                if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 38, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+            }); gap(10)
+            addView(text("Listeyi aç", 11f, foreground).apply {
+                setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, AppUi.Icon(this@MainActivity, "arrow", foreground, 16), null)
+            })
+            contentDescription = "$label: ${number(value)}. Listeyi aç"; isFocusable = true
+            setOnClickListener { openLists(saved.profile, direction) }
+        }
+        row.addView(stat("Takipçi", saved.profile.followers, FollowDirection.FOLLOWERS, true), LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
+        row.addView(stat("Takip edilen", saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
+        page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        val quick = LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL; background = AppUi.touch(this@MainActivity, shape(panel, 22, AppUi.line))
+            setPadding(dp(16), dp(16), dp(16), dp(16)); isFocusable = true
+            setOnClickListener { peopleScreen = true; selectedPersonId = null; message = null; render() }
+            contentDescription = "Kişiler. ${saved.people.size} kayıtlı profil. Kişilere git"
+        }
+        quick.addView(AppUi.avatar(this, "K", 42, AppUi.mint, AppUi.teal))
+        val quickText = stack().apply { setPadding(dp(12), 0, dp(8), 0) }
+        quickText.addView(text("Çevrene göz at", 16f, ink, true)); quickText.gap(5)
+        quickText.addView(text(if (saved.people.isEmpty()) "İlk kişini ekle, birlikte inceleyelim." else "${saved.people.size} kayıtlı profil", 12f, muted))
+        quick.addView(quickText, LinearLayout.LayoutParams(0, -2, 1f))
+        quick.addView(text("", 12f).apply { setCompoundDrawablesWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "chevron", muted, 18), null, null, null) })
+        page.addView(quick); page.gap(20)
     }
 
     private fun clock(time: Long) = SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
     private fun connectionOptions(replacePending: Boolean = false) {
         if (preview) { android.widget.Toast.makeText(this, "Demo modunda hesap bağlantısı yok.", android.widget.Toast.LENGTH_SHORT).show(); return }
-        val labels = arrayOf("Bilgisayardan bağlan", "Instagram ile giriş")
+        val labels = arrayOf("Bilgisayardan bağlan · Mobil oturum", "Instagram ile giriş · Web deneyi")
         AlertDialog.Builder(this).setTitle("Hesabını bağla").setItems(labels) { _, index ->
             if (replacePending) {
                 try { MobileSessions(this).discardPending(); DesktopLink(this).clear(); pendingMobile = false }
@@ -327,53 +336,66 @@ class MainActivity : Activity() {
     private fun date(time: Long) = SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
     private fun number(value: Long) = NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR")).format(value)
     private fun delta(value: Long) = (if (value > 0) "+" else "") + number(value)
-    private fun openLists(profile: Profile) {
-        startActivity(Intent(this, FollowListActivity::class.java).putExtra("target_id", profile.userId).putExtra("offline_preview", preview))
+    private fun openLists(profile: Profile, direction: FollowDirection = FollowDirection.FOLLOWERS) {
+        startActivity(Intent(this, FollowListActivity::class.java).putExtra("target_id", profile.userId).putExtra("initial_direction", direction.name).putExtra("offline_preview", preview))
     }
 
     private fun renderPeople(page: LinearLayout, saved: SavedAccount) {
         val person = saved.people.firstOrNull { it.latest.userId == selectedPersonId }
         if (person == null) {
             selectedPersonId = null
-            page.addView(text("Seçtiğin kişiler", 29f, white, true)); page.gap(10)
-            page.gap(10)
-            page.addView(button("Kişi ekle", networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-1, -2))
-            page.gap(12)
-            page.addView(text("${saved.people.size} kişi", 12f, muted)); page.gap(22)
+            page.addView(text("Seçtiğin kişiler", 30f, ink, true)); page.gap(8)
+            page.addView(text("Merak ettiğin profiller, sana özel bir alan.", 14f, muted)); page.gap(20)
+            val actions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+            actions.addView(text("${saved.people.size} kişi", 13f, muted), LinearLayout.LayoutParams(0, -2, 1f))
+            actions.addView(button("Kişi ekle", networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-2, -2))
+            page.addView(actions); page.gap(20)
             if (saved.people.isEmpty()) {
-                page.addView(text("İlk kişini eklemeye hazırsın.", 20f, lilac, true)); page.gap(8)
-                page.addView(text("İzlemek istediğin profili seç.", 14f, muted))
+                val empty = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(24), dp(28), dp(24), dp(28)) }
+                empty.addView(AppUi.avatar(this, "+", 56, AppUi.mint, AppUi.teal)); empty.gap(18)
+                empty.addView(text("İlk kişini eklemeye hazırsın.", 20f, ink, true)); empty.gap(8)
+                empty.addView(text("Bir profil ekle; listelerine ve zaman içindeki değişimlerine buradan ulaş.", 14f, muted))
+                page.addView(empty)
             }
-            for (entry in saved.people) {
+            for ((index, entry) in saved.people.withIndex()) {
                 val p = entry.latest
-                val card = stack().apply { background = shape(panel); setPadding(dp(18), dp(18), dp(18), dp(18)) }
-                card.addView(text("@${p.username}", 20f, white, true)); card.gap(8)
-                card.addView(text("${number(p.followers)} takipçi · ${number(p.following)} takip edilen", 14f, mint))
-                card.gap(8); card.addView(text("${date(p.observedAt)}${entry.group.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()}", 12f, muted))
-                if (entry.watching) { card.gap(8); card.addView(text("Değişiklik bildirimi açık", 12f, lilac)) }
-                card.gap(12)
+                val card = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(18), dp(18), dp(18), dp(16)) }
+                val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+                identity.addView(AppUi.avatar(this, p.username, 46, if (index % 2 == 0) AppUi.violetSoft else AppUi.peach, if (index % 2 == 0) accent else AppUi.coral))
+                val name = stack().apply { setPadding(dp(12), 0, 0, 0) }
+                name.addView(text("@${p.username}", 17f, ink, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
+                name.gap(5); name.addView(text(entry.group.ifBlank { "Kayıtlı profil" }, 12f, muted))
+                identity.addView(name, LinearLayout.LayoutParams(0, -2, 1f)); card.addView(identity); card.gap(18)
+                card.addView(text("${number(p.followers)} takipçi · ${number(p.following)} takip edilen", 14f, ink, true)); card.gap(8)
+                card.addView(text("Son kayıt · ${date(p.observedAt)}", 11f, muted))
+                if (entry.watching) { card.gap(8); card.addView(text("Değişiklik bildirimi açık", 12f, AppUi.teal)) }
+                card.gap(16)
                 card.addView(button("Analizi aç · @${p.username}", false) { selectedPersonId = p.userId; rangeDays = 0; message = null; render() }, LinearLayout.LayoutParams(-1, -2))
-                page.addView(card); page.gap(12)
+                page.addView(card); page.gap(14)
             }
             return
         }
         val p = person.latest
-        page.addView(button("Tüm kişiler", false) { selectedPersonId = null; message = null; render() }); page.gap(18)
-        page.addView(text("@${p.username}", 29f, white, true)); page.gap(8)
-        page.addView(text(person.group.ifBlank { "KİŞİ ANALİZİ" }, 12f, lilac, true)); page.gap(22)
+        page.addView(button("Tüm kişiler", false) { selectedPersonId = null; message = null; render() }.apply {
+            background = null; setPadding(0, dp(8), dp(12), dp(8))
+            setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "back", accent, 18), null, null, null)
+            compoundDrawablePadding = dp(6)
+        }); page.gap(12)
+        page.addView(text("@${p.username}", 29f, ink, true)); page.gap(8)
+        page.addView(badge(person.group.ifBlank { "PROFİL ANALİZİ" })); page.gap(20)
         page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(12)
-        val stats = stack().apply { background = shape(panel); setPadding(dp(20), dp(20), dp(20), dp(20)) }
+        val stats = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(20), dp(20), dp(20), dp(20)) }
         for ((label, value) in listOf("Takipçi" to number(p.followers), "Takip edilen" to number(p.following), "Gönderi" to (p.posts?.let { number(it) } ?: "Bilgi yok"))) {
             val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-            row.addView(text(label, 14f, muted), LinearLayout.LayoutParams(0, -2, 1f)); row.addView(text(value, 25f, mint, true))
-            stats.addView(row); stats.gap(12)
+            row.addView(text(label, 14f, muted), LinearLayout.LayoutParams(0, -2, 1f)); row.addView(text(value, 25f, accent, true))
+            stats.addView(row); stats.gap(14)
         }
         page.addView(stats); page.gap(12)
         page.addView(text("Son başarılı okuma: ${date(p.observedAt)}", 12f, muted)); page.gap(16)
         if (person.history.size >= 2) {
             val previous = person.history[person.history.lastIndex - 1]
             page.addView(text("Son kayda göre", 12f, muted)); page.gap(6)
-            page.addView(text("${delta(p.followers - previous.followers)} takipçi · ${delta(p.following - previous.following)} takip edilen", 17f, white, true))
+            page.addView(text("${delta(p.followers - previous.followers)} takipçi · ${delta(p.following - previous.following)} takip edilen", 17f, ink, true))
             page.gap(6); page.addView(text("${date(previous.observedAt)} → ${date(p.observedAt)}", 12f, muted))
         } else page.addView(text("Henüz karşılaştırma yok.", 14f, muted))
         page.gap(20)
@@ -382,7 +404,7 @@ class MainActivity : Activity() {
             alpha = if (isEnabled) 1f else .5f
         }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
         val watch = android.widget.Switch(this).apply {
-            setText(R.string.watch_toggle); textSize = 16f; setTextColor(white)
+            setText(R.string.watch_toggle); textSize = 16f; setTextColor(ink)
             isChecked = person.watching; minimumHeight = dp(56)
             setOnClickListener {
                 isChecked = person.watching
@@ -391,14 +413,14 @@ class MainActivity : Activity() {
             }
         }
         page.addView(watch, LinearLayout.LayoutParams(-1, -2))
-        if (person.watching) page.addView(text("${person.intervalHours} saatte bir", 13f, lilac).apply {
+        if (person.watching) page.addView(text("${person.intervalHours} saatte bir", 13f, accent).apply {
             minimumHeight = dp(48); gravity = Gravity.CENTER_VERTICAL; setOnClickListener { watchSettings(person) }
         })
         if (person.watching && !ChangeNotifications(this, preview).allowed()) {
-            page.addView(text("Bildirim izni kapalı.", 13f, lilac))
+            page.addView(text("Bildirim izni kapalı.", 13f, accent))
         }
         page.gap(24)
-        page.addView(text("Gözlem geçmişi", 22f, white, true)); page.gap(10)
+        page.addView(text("Gözlem geçmişi", 22f, ink, true)); page.gap(10)
         val filters = LinearLayout(this)
         for ((label, days) in listOf("7 gün" to 7, "30 gün" to 30, "Tümü" to 0)) {
             filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
@@ -407,13 +429,15 @@ class MainActivity : Activity() {
         val observations = person.history.filter { rangeDays == 0 || it.observedAt >= System.currentTimeMillis() - rangeDays * 86400000L }
         if (observations.isNotEmpty()) {
             val metric = LinearLayout(this)
-            metric.addView(button("Takipçi grafiği", chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
-            metric.addView(button("Takip edilen grafiği", !chartFollowers) { chartFollowers = false; render() }, LinearLayout.LayoutParams(0, -2, 1f))
+            metric.addView(button("Takipçi", chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
+            metric.addView(button("Takip edilen", !chartFollowers) { chartFollowers = false; render() }, LinearLayout.LayoutParams(0, -2, 1f))
             page.addView(metric); page.gap(12)
             if (observations.size >= 2) {
-                page.addView(HistoryChartView(this, observations, chartFollowers, mint, muted), LinearLayout.LayoutParams(-1, dp(210)))
+                page.addView(HistoryChartView(this, observations, chartFollowers, accent, muted).apply {
+                    background = shape(panel, 20, AppUi.line); setPadding(dp(12), dp(8), dp(12), dp(8))
+                }, LinearLayout.LayoutParams(-1, dp(224)))
                 val first = observations.first(); val last = observations.last()
-                page.addView(text("Dönem net farkı: ${delta(last.followers - first.followers)} takipçi, ${delta(last.following - first.following)} takip edilen", 13f, lilac)); page.gap(10)
+                page.addView(text("Dönem net farkı: ${delta(last.followers - first.followers)} takipçi, ${delta(last.following - first.following)} takip edilen", 13f, accent)); page.gap(10)
             }
             page.addView(button("Kayıtları gör", false) {
                 val records = observations.takeLast(10).asReversed().joinToString("\n\n") {
@@ -423,7 +447,7 @@ class MainActivity : Activity() {
             })
         } else page.addView(text("Bu tarih aralığında kayıt yok. Tümü ile önceki gözlemleri görebilirsin.", 14f, muted))
         page.gap(12)
-        page.addView(text("Özel notun", 18f, white, true)); page.gap(8)
+        page.addView(text("Özel notun", 18f, ink, true)); page.gap(8)
         if (person.note.isNotBlank()) { page.addView(text(person.note, 14f, muted)); page.gap(10) }
         page.addView(button("Not ve grup düzenle", false) { editPerson(person) }, LinearLayout.LayoutParams(-1, -2)); page.gap(10)
         page.addView(button("Kişiyi kaldır", false) {
@@ -440,7 +464,9 @@ class MainActivity : Activity() {
     }
 
     private fun input(hintValue: String, limit: Int) = EditText(this).apply {
-        hint = hintValue; setTextColor(white); setHintTextColor(muted); textSize = 16f
+        hint = hintValue; setTextColor(ink); setHintTextColor(muted); textSize = 16f
+        background = shape(panel, 14, AppUi.line); setPadding(dp(14), dp(14), dp(14), dp(14))
+        minimumHeight = dp(52)
         filters = arrayOf(InputFilter.LengthFilter(limit))
         inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
         if (android.os.Build.VERSION.SDK_INT >= 26) importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
@@ -586,7 +612,7 @@ class MainActivity : Activity() {
 
     private fun pauseMessage(): String? {
         if (!gate.restrictionPending()) return null
-        return if (gate.blockedUntil() > System.currentTimeMillis()) "Yeni deneme · ${clock(gate.blockedUntil())}"
+        return if (gate.blockedUntil() > System.currentTimeMillis()) "Yerel mola · ${date(gate.blockedUntil())}"
         else "Otomatik deneme kapalı. Hazır olduğunda yenileyebilirsin."
     }
     private val gateWake = Runnable {
@@ -695,7 +721,7 @@ class MainActivity : Activity() {
         val page = stack().apply { setBackgroundColor(bg) }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), dp(8), dp(12), dp(8)) }
         header.addView(button("Vazgeç", false) { leaveLogin() }, LinearLayout.LayoutParams(-2, dp(48)))
-        header.addView(text("  instagram.com", 16f, mint, true))
+        header.addView(text("  instagram.com", 16f, accent, true))
         page.addView(header)
         loginStatus = text("Girişini tamamla, sonra Devam et'e dokun.", 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
         page.addView(loginStatus)

@@ -54,7 +54,7 @@ class PeopleScreenTest {
     }
     @Test fun navigatingPeopleAndHistoryDoesNotReserveNetworkAndSurvivesRecreation() {
         launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
-        awaitLabel("@deniz.demo"); click("7 gün"); click("Takip edilen grafiği")
+        awaitLabel("@deniz.demo"); click("7 gün"); click("Takip edilen")
         scenario!!.onActivity { activity ->
             val labels = all(activity.window.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(labels.contains("DEMO · ÖRNEK VERİ"))

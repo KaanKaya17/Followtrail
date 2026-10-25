@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.9 — 2026-10-25 (arayüz önizlemesi)
+
+- Sıcak açık zemin, beyaz yüzeyler, mor/mercan/yeşil vurgular ve ortak görsel bileşenler. Ana sayfa, kişi kartları, profil analizi, listeler ve bağlantı ekranları yenilendi.
+- Sayı kartından ilgili listeye doğrudan erişim; belirgin alt gezinme, isim baş harfleriyle profil satırları ve daha sade işlem alanları.
+- Yalnız alınmış hesaplarda yerel arama. Arama yeni istek göndermez; yazı ve filtre ekran yeniden oluşturulduğunda korunur. Klavye açıkken sonuçlara alan bırakılır.
+- Bağlantıda üç aşamalı ilerleme; kısıtlama ekranında gün ve saat içeren açık Yerel mola metni.
+- Okuyucular, sayfalama sözleşmesi, oturum kasaları ve istek kapısı değiştirilmedi. Çalışan 0.1.8 kaynak/APK yedeği korundu. Yeni sürümün cihaz ve görsel doğrulama kapsamı `docs/VALIDATION.md` içindedir.
+
 ## 0.1.8 — 2026-10-24 (elle liste okuma önizlemesi)
 
 - Seçilen hedefin takipçi/takip edilen listesini tek açık istekle sayfa sayfa okuma; gizli sayfalama, web/GraphQL yedeği veya otomatik giriş yok.

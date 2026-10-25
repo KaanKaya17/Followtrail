@@ -43,7 +43,9 @@ class FollowListFlowTest {
         }
         assertTrue("Missing label: $text", found)
     }
+    @Suppress("DEPRECATION")
     @Test fun manualPagesPersistWithoutAutomaticRequestsAcrossTabsAndRecreation() {
+        InstrumentationRegistry.getInstrumentation().setInTouchMode(false)
         launch(); val gate = RequestGate(context, "preview_gate")
         assertEquals(0L, gate.attempts()); scenario!!.recreate(); assertEquals(0L, gate.attempts())
         click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
@@ -61,6 +63,22 @@ class FollowListFlowTest {
         awaitText("Alınan hesap: 3 · Sayfa: 2"); assertEquals(3L, gate.attempts())
         val bytes = context.noBackupFilesDir.resolve("previewlists.enc").readBytes().toString(Charsets.ISO_8859_1)
         assertFalse(bytes.contains("kisi501.demo"))
+    }
+    @Test fun localSearchFiltersLoadedUsersWithoutRequestsAndRestoresQuery() {
+        launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        scenario!!.onActivity { activity ->
+            views(activity.window.decorView).filterIsInstance<android.widget.EditText>().single().setText("501")
+            val adapter = views(activity.window.decorView).filterIsInstance<android.widget.ListView>().single().adapter
+            assertEquals(listOf("501"), (0 until adapter.count).mapNotNull { (adapter.getItem(it) as? FollowUser)?.id })
+        }
+        scenario!!.recreate(); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        scenario!!.onActivity { activity ->
+            val search = views(activity.window.decorView).filterIsInstance<android.widget.EditText>().single()
+            assertEquals("501", search.text.toString()); search.setText("missing")
+            val adapter = views(activity.window.decorView).filterIsInstance<android.widget.ListView>().single().adapter
+            assertTrue((0 until adapter.count).none { adapter.getItem(it) is FollowUser })
+        }
+        assertEquals(1L, RequestGate(context, "preview_gate").attempts())
     }
     @Test fun existingRestrictionBlocksPageAndPreservesLastSnapshot() {
         launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
