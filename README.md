@@ -2,7 +2,9 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.9**. Açık tema, canlı mor/mercan/yeşil vurgular, doğrudan liste açan sayı kartları, yenilenen kişi ekranları ve alınan hesaplarda yerel arama eklendi. Çalışan 0.1.8 kaynağı `checkpoint/0.1.8-live-20261025` etiketiyle korunur. Seçilen profilin takipçi/takip edilen listelerini elle birer sayfa okuma ve alınan kayıtları karşılaştırma deneyi eklendi. Mobil oturum bağlantısı gerekir; eski web bağlantısından liste okunmaz. 25 Ekim fiziksel telefon testinde kullanıcı kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi. Çok sayfalı canlı okuma ve uzun süreli oturum henüz sınanmadı; önceki 429 ve yerel mola korunur. [Adım adım liste testi](docs/FOLLOW-LISTS-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.10**. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Yeni veri toplama, oturum veya kayıt biçimi değişikliği yoktur. Çalışan 0.1.8 ve önceki 0.1.9 kaynak/APK yedekleri korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
+
+25 Ekim fiziksel telefon testinde kullanıcı, mobil bağlantıyla kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi. Bu canlı sonuç 0.1.8'e aittir; yeni arayüz kontrolleri ayrı debug paketi ve sentetik veri kullanır. Çok sayfalı canlı devam ve uzun süreli oturum henüz sınanmadı. [Liste testi](docs/FOLLOW-LISTS-TEST.md).
 
 ## Kullanım
 

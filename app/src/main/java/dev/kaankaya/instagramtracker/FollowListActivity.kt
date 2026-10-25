@@ -45,6 +45,7 @@ class FollowListActivity : Activity() {
     private var visibleSearch: EditText? = null
     private var actionDock: View? = null
     private var statusCard: View? = null
+    private var navigationChrome: List<View> = emptyList()
     private var keyboardVisible = false
     private val bg = AppUi.background
     private val fg = AppUi.ink
@@ -84,7 +85,7 @@ class FollowListActivity : Activity() {
     private fun render() {
         if (isDestroyed || !::target.isInitialized) return
         val searchFocused = visibleSearch?.isFocused == true
-        visibleSearch = null; actionDock = null; statusCard = null
+        visibleSearch = null; actionDock = null; statusCard = null; navigationChrome = emptyList()
         val first = visibleList?.firstVisiblePosition ?: 0
         val top = visibleList?.getChildAt(0)?.top ?: 0
         val root = column().apply {
@@ -104,6 +105,7 @@ class FollowListActivity : Activity() {
                 }
                 actionDock?.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
                 statusCard?.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
+                navigationChrome.forEach { it.visibility = if (keyboardVisible) View.GONE else View.VISIBLE }
                 insets
             }
         }
@@ -111,9 +113,11 @@ class FollowListActivity : Activity() {
         val header = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
         header.addView(AppUi.iconButton(this, "back", getString(R.string.list_back)) { finish() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         val title = column().apply { setPadding(dp(12), 0, 0, 0) }
-        title.addView(AppUi.text(this, "Bağlantılar", 22f, fg, true)); title.gap(4)
+        title.addView(AppUi.heading(this, "Listeler", 22f)); title.gap(4)
         title.addView(AppUi.text(this, "@${target.username}", 12f, AppUi.muted).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
-        header.addView(title, LinearLayout.LayoutParams(0, -2, 1f)); root.addView(header); root.gap(18)
+        header.addView(title, LinearLayout.LayoutParams(0, -2, 1f))
+        header.addView(AppUi.iconButton(this, "info", getString(R.string.list_info_title)) { showScope() }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        val toolbarBlock = column().apply { addView(header); gap(16) }; root.addView(toolbarBlock)
         if (preview) { root.addView(AppUi.text(this, getString(R.string.list_demo), 10f, AppUi.violet, true)); root.gap(10) }
         val tabs = LinearLayout(this).apply { background = AppUi.shape(this@FollowListActivity, AppUi.violetSoft, 18); setPadding(dp(4), dp(4), dp(4), dp(4)) }
         FollowDirection.entries.forEach { selected -> tabs.addView(button(directionName(selected), !loading) {
@@ -121,33 +125,48 @@ class FollowListActivity : Activity() {
         }.apply {
             isSelected = direction == selected
             background = AppUi.touch(this@FollowListActivity, AppUi.shape(this@FollowListActivity, if (isSelected) AppUi.surface else AppUi.violetSoft, 14))
-            setTextColor(if (isSelected) AppUi.violet else AppUi.muted); minimumHeight = dp(46); minHeight = dp(46)
+            setTextColor(if (isSelected) AppUi.violet else AppUi.muted); minimumHeight = dp(48); minHeight = dp(48)
             setPadding(dp(8), dp(10), dp(8), dp(10)); textSize = 13f
         }, LinearLayout.LayoutParams(0, -2, 1f)) }
-        root.addView(tabs); root.gap(14)
+        val tabsBlock = column().apply { addView(tabs); gap(14) }; root.addView(tabsBlock)
+        navigationChrome = listOf(toolbarBlock, tabsBlock)
+        navigationChrome.forEach { it.visibility = if (keyboardVisible) View.GONE else View.VISIBLE }
         val run = snapshot?.run(direction)
         val status = column().apply { setPadding(dp(14), dp(12), dp(14), dp(12)); background = AppUi.shape(this@FollowListActivity, AppUi.surface, 18, AppUi.line) }
+        status.addView(AppUi.text(this, "Cihazdaki kayıt", 11f, AppUi.muted, true)); status.gap(6)
         status.addView(AppUi.text(this, if (run == null) getString(R.string.list_not_read) else getString(R.string.list_count, run.users.size, run.pages.size), 13f, fg, true))
         if (run != null) {
             status.gap(5)
-            status.addView(AppUi.text(this, getString(when (run.coverage()) {
-                FollowCoverage.MORE -> R.string.list_more
-                FollowCoverage.END_OBSERVED -> R.string.list_end
-                FollowCoverage.LIMITED -> R.string.list_limited
-                FollowCoverage.UNKNOWN -> R.string.list_unknown
-                FollowCoverage.STALLED -> R.string.list_stalled
-            }), 12f, if (run.coverage() == FollowCoverage.END_OBSERVED) AppUi.teal else AppUi.violet))
+            status.addView(AppUi.text(this, coverageText(run.coverage()), 12f,
+                if (run.coverage() == FollowCoverage.END_OBSERVED) AppUi.teal else AppUi.violet))
             status.gap(4)
-            status.addView(AppUi.text(this, getString(R.string.list_observed, SimpleDateFormat("d MMM HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(run.latest.observedAt))), 10f, AppUi.muted))
+            status.addView(AppUi.text(this, getString(R.string.list_observed, SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(run.latest.observedAt))), 10f, AppUi.muted))
         }
         statusCard = status; status.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
         val listHeader = column().apply { setBackgroundColor(bg) }
         listHeader.addView(status); listHeader.gap(10)
-        message?.let { listHeader.addView(AppUi.text(this, it, 13f, AppUi.coral)); listHeader.gap(8) }
+        if (AppUi.offline(this) == true) {
+            listHeader.addView(AppUi.notice(this, "Çevrimdışı görüntülüyorsun", "Alınmış kayıtları inceleyebilirsin. Yeni sayfa için internet bağlantısı gerekir.")); listHeader.gap(10)
+        }
+        message?.let { root.addView(AppUi.notice(this, "Son işlem", it, warning = true)); root.gap(10) }
+        if (loading) {
+            val progress = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL; setPadding(0, dp(8), 0, dp(8)) }
+            progress.addView(android.widget.ProgressBar(this).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(AppUi.violet) }, LinearLayout.LayoutParams(dp(20), dp(20)))
+            progress.addView(AppUi.text(this, "  Sayfa okunuyor…", 13f, AppUi.violet)); root.addView(progress)
+        }
         val empty = column().apply { gravity = android.view.Gravity.CENTER; setPadding(dp(20), dp(24), dp(20), dp(24)) }
         if (run == null) { empty.addView(AppUi.avatar(this, "·", 52, AppUi.mint, AppUi.teal)); empty.gap(12) }
-        empty.addView(AppUi.text(this, if (run == null) "Listeni keşfet" else "Gösterilecek hesap yok", 17f, fg, true).apply { gravity = android.view.Gravity.CENTER })
-        empty.gap(6); empty.addView(AppUi.text(this, if (run == null) "Hazır olduğunda ilk sayfayı oku." else "Yalnız alınan kayıtlar burada görünür.", 12f, AppUi.muted).apply { gravity = android.view.Gravity.CENTER })
+        val emptyTitle = AppUi.text(this, "", 17f, fg, true).apply { gravity = android.view.Gravity.CENTER }
+        val emptyDetail = AppUi.text(this, "", 12f, AppUi.muted).apply { gravity = android.view.Gravity.CENTER }
+        empty.addView(emptyTitle); empty.gap(6); empty.addView(emptyDetail)
+        val searchSummary = AppUi.text(this, "", 11f, AppUi.muted).apply { setPadding(dp(2), 0, 0, dp(8)); accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
+        fun updateSearchState(count: Int) {
+            empty.visibility = if (count == 0) View.VISIBLE else View.GONE
+            emptyTitle.text = when { run == null -> "Listeni keşfet"; query.isNotBlank() -> "Aramana uygun hesap yok"; else -> "Bu kayıtta hesap yok" }
+            emptyDetail.text = when { run == null -> "Hazır olduğunda ilk sayfayı oku."; query.isNotBlank() -> "Farklı bir ad dene. Arama yeni veri çekmez."; else -> "Yalnız alınan sayfanın kayıtları gösterilir." }
+            searchSummary.visibility = if (query.isBlank()) View.GONE else View.VISIBLE
+            searchSummary.text = getString(R.string.list_search_summary, count, run?.users?.size ?: 0)
+        }
         fun filtered() = run?.users.orEmpty().filter {
             query.isBlank() || it.username.orEmpty().contains(query, true) || it.name.orEmpty().contains(query, true)
         }
@@ -184,8 +203,9 @@ class FollowListActivity : Activity() {
         }
         visibleList = list
         if (run != null && run.users.isNotEmpty()) {
+            val searchRow = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
             val search = EditText(this).apply {
-                hint = "Alınan hesaplarda ara"; contentDescription = "Alınan hesaplarda ara"; textSize = 13f
+                hint = getString(R.string.list_search_hint); contentDescription = "Alınan hesaplarda ara"; textSize = 13f
                 setSingleLine(true); setTextColor(fg); setHintTextColor(AppUi.muted)
                 background = AppUi.shape(this@FollowListActivity, AppUi.surface, 16, AppUi.line)
                 setPadding(dp(14), dp(12), dp(14), dp(12)); minimumHeight = dp(48)
@@ -202,15 +222,17 @@ class FollowListActivity : Activity() {
                 if (android.os.Build.VERSION.SDK_INT >= 26) importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
                 addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { query = s.toString(); items = filtered(); empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE; adapter.notifyDataSetChanged() }
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { query = s.toString(); items = filtered(); updateSearchState(items.size); adapter.notifyDataSetChanged() }
                     override fun afterTextChanged(s: Editable?) = Unit
                 })
             }
             visibleSearch = search
             if (searchFocused) { search.requestFocus(); search.setSelection(search.text.length) }
-            root.addView(search); root.gap(10)
+            searchRow.addView(search, LinearLayout.LayoutParams(0, -2, 1f))
+            searchRow.addView(AppUi.iconButton(this, "close", "Aramayı temizle") { search.setText(""); search.requestFocus() }, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(8) })
+            root.addView(searchRow); root.gap(8); root.addView(searchSummary); root.gap(2)
         }
-        empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        updateSearchState(items.size)
         listHeader.addView(empty)
         list.addHeaderView(listHeader, null, false); list.adapter = adapter
         list.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
@@ -237,8 +259,10 @@ class FollowListActivity : Activity() {
             actions.gap(8); actions.addView(secondary)
         }
         if (!loading && gate.nextAllowedAt() > System.currentTimeMillis()) {
-            actions.gap(6); actions.addView(AppUi.text(this, getString(R.string.list_wait,
-                SimpleDateFormat("HH:mm:ss", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextAllowedAt()))), 11f, AppUi.muted))
+            val waitText = if (gate.blockedUntil() > System.currentTimeMillis()) {
+                getString(R.string.list_pause, SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.blockedUntil())))
+            } else getString(R.string.list_wait, SimpleDateFormat("HH:mm:ss", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextAllowedAt())))
+            actions.gap(6); actions.addView(AppUi.text(this, waitText, 11f, AppUi.muted))
         }
         actions.gap(6); actions.addView(AppUi.text(this, getString(R.string.list_scope), 10f, AppUi.muted))
         actionDock = actions; actions.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
@@ -248,6 +272,22 @@ class FollowListActivity : Activity() {
         if (wait > 0) main.postDelayed(wake, wait)
     }
     private val wake = Runnable { render() }
+    private fun coverageText(value: FollowCoverage) = getString(when (value) {
+        FollowCoverage.MORE -> R.string.list_more
+        FollowCoverage.END_OBSERVED -> R.string.list_end
+        FollowCoverage.LIMITED -> R.string.list_limited
+        FollowCoverage.UNKNOWN -> R.string.list_unknown
+        FollowCoverage.STALLED -> R.string.list_stalled
+    })
+    private fun showScope() {
+        val run = snapshot?.run(direction)
+        val description = if (run == null) getString(R.string.list_not_read) else
+            getString(R.string.list_count, run.users.size, run.pages.size) + "\n" + coverageText(run.coverage()) + "\n" +
+                getString(R.string.list_observed, SimpleDateFormat("d MMM yyyy · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(run.latest.observedAt)))
+        AlertDialog.Builder(this).setTitle(R.string.list_info_title)
+            .setMessage(description + "\n\n" + getString(R.string.list_info_body))
+            .setPositiveButton(R.string.list_close, null).show()
+    }
     private fun directionName(value: FollowDirection) = getString(if (value == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following)
     private fun userLabel(user: FollowUser) = (user.username?.let { "@$it" } ?: getString(R.string.list_username_unknown)) +
         user.name?.takeIf { it.isNotBlank() }?.let { "\n$it" }.orEmpty()

@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.10 — 2026-10-25 (arayüz ve durum açıklamaları)
+
+- Alt gezinme içerik akışından ayrıldı; büyük yazıda kendi yüksekliğini alır ve sayfa içeriğini örtmez. Grup etiketleri metne göre boyutlanır; geçmiş, bildirim ve notlar ayrı kartlarda gösterilir.
+- Kayıt zamanı öne alındı. Listeye Kaydın kapsamı açıklaması, arama eşleşme sayısı ve aramayı temizleme eklendi. Aramada sonuç bulunamaması ve alınmış boş sayfa ayrı anlatılır.
+- Yerel bağlantı durumundan çevrimdışı kayıt açıklaması; sunucuya bağlantı sınaması veya yeni ağ isteği eklenmedi. Yükleme ve mola bilgileri belirginleştirildi.
+- Klavye açıkken üst gezinme ve alt işlemler gizlenerek arama sonuçlarına alan açılır; klavye kapatılınca geri gelir. Başlık erişilebilirlik işaretleri ve klavye odağı çerçevesi eklendi.
+- Oturum, veri okuyucuları, kayıt sözleşmeleri ve istek kapısı korundu. Çalışan sürümler ayrı etiket/APK/kaynak yedeğindedir. Kontrol kapsamı `docs/VALIDATION.md` içindedir.
+
 ## 0.1.9 — 2026-10-25 (arayüz önizlemesi)
 
 - Sıcak açık zemin, beyaz yüzeyler, mor/mercan/yeşil vurgular ve ortak görsel bileşenler. Ana sayfa, kişi kartları, profil analizi, listeler ve bağlantı ekranları yenilendi.

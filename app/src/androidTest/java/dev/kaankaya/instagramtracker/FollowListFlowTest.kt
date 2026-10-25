@@ -77,8 +77,26 @@ class FollowListFlowTest {
             assertEquals("501", search.text.toString()); search.setText("missing")
             val adapter = views(activity.window.decorView).filterIsInstance<android.widget.ListView>().single().adapter
             assertTrue((0 until adapter.count).none { adapter.getItem(it) is FollowUser })
+            val labels = views(activity.window.decorView).filterIsInstance<TextView>().map { it.text.toString() }
+            assertTrue(labels.contains("Aramana uygun hesap yok")); assertFalse(labels.contains("Bu kayıtta hesap yok"))
+            search.setText("")
+            assertEquals(2, (0 until adapter.count).count { adapter.getItem(it) is FollowUser })
         }
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
+    }
+    @Test fun cachedLimitedAndEmptyPagesKeepTheirMeaningWithoutRequests() {
+        val account = vault.read()!!
+        val partial = FollowPageParser.parse(org.json.JSONObject("""{"status":"ok","users":[{"pk":"501","username":"kisi501.demo"}],"should_limit_list_of_followers":true}"""),
+            "200", FollowDirection.FOLLOWERS, null, 1000)
+        lists.commit(account.session, partial)
+        val empty = FollowPageParser.parse(org.json.JSONObject("""{"status":"ok","users":[],"next_max_id":null}"""),
+            "200", FollowDirection.FOLLOWING, null, 2000)
+        val saved = lists.commit(account.session, empty)
+        scenario = ActivityScenario.launch(Intent(context, FollowListActivity::class.java).putExtra("target_id", "200").putExtra("offline_preview", true))
+        awaitText("Alınan hesap: 1 · Sayfa: 1"); awaitText(context.getString(R.string.list_limited))
+        click("Takip edilenler"); awaitText("Alınan hesap: 0 · Sayfa: 1"); awaitText("Bu kayıtta hesap yok")
+        scenario!!.recreate(); awaitText("Alınan hesap: 0 · Sayfa: 1")
+        assertEquals(saved, lists.read(account.session, "200")); assertEquals(0L, RequestGate(context, "preview_gate").attempts())
     }
     @Test fun existingRestrictionBlocksPageAndPreservesLastSnapshot() {
         launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
