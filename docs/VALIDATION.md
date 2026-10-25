@@ -4,6 +4,9 @@
 
 ## 0.1.11 — son değişiklikler ve favoriler
 
+- İmzalı önizleme: 1.300.725 bayt; SHA-256 `c1b6d017f6a3f3296fd7af4f546b82e741a8c2893ec75fa6a679ed1dd638f5cd`. Derleme girdisi `74b3670eec502da9c63fa3c662110140a60455cf`. Gömülü VCS kaydı kaynak commit ile eşleşti. Öncekiyle aynı sertifika SHA-256 ve v2/v3 imzaları doğrulandı. Üretim paket denetimi geçti; yeni izin veya debug/demo taşıması yok. Paket, kaynak manifesti ve test özeti `artifacts/` altındadır.
+- 720×1600/1,0 yazı ölçeğinde ayrı debug demoda yıldız, favorinin başa gelmesi, yenilemede korunması ve akıştan gezinme görsel olarak incelendi. Sentetik profil yenileme ve sentetik liste okumasından sonra iki tür akış girdisi de görüldü. Görseller `artifacts/ui-0.1.11-activity.png`, `ui-0.1.11-favorites.png` ve `ui-0.1.11-activity-all.png` altındadır; gerçek Instagram ekranı değildir.
+
 - Önceki kaynak `aa64108c679b49bfd367695901894e01aed66ab4`, `checkpoint/0.1.10-stable-20261025` etiketi ve ayrı APK/kaynak ZIP yedeğinde korundu. Mevcut canlı 0.1.8 ve arayüz yedekleri de korunur.
 - 41 JVM testi geçti. Yeni beş test eski v2/v3/v4 kişi kayıtlarında favorinin varsayılan false olmasını, strict Boolean sınırını, oturum/geçmiş/ayarların korunmasını, sabit kimlik/sıralama, yenilemede favorinin korunması, akışın yalnız anlamlı sayı farkları ve sahipli liste sayfalarından oluşması, yabancı/değişmiş oturum kapsamı ve 20 girdilik sınırı kapsar.
 - API 35 / Android 15 üzerinde 65 cihaz testi geçti; 68,461 saniye. Gerçek Activity/Keystore üzerinden favoriye ekleme/çıkarma, başa sıralama, yeniden oluşma, açık sahte yenilemede bayrağın korunması ve istek sayısının değişmemesi doğrulandı. Akıştan analiz açılması ve kayıtlı liste sayfasının yeniden açılışta görünmesi de yeni istek olmadan geçti. Çıktı `artifacts/validation-0.1.11-device.txt` içindedir.
