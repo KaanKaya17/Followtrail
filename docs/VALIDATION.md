@@ -4,6 +4,8 @@
 
 ## 0.1.12 — profil bilgisi takibi
 
+- İmzalı APK: 1.313.013 bayt; SHA-256 `0bc947f27b0a167751fb80af02ff7e415a8b819f52335a9ebc6a1e67e42efc7b`. Derleme girdisi `d280b5244283a2175278c4eee7249f378b72738f`; gömülü VCS kaydı eşleşti. Öncekiyle aynı sertifika SHA-256, v2/v3 imzaları ve üretim paket denetimi doğrulandı. Yeni izin veya üretim APK içinde demo taşıması yok. Kaynak dosya hash manifesti ve doğrulama özeti artifacts/source-0.1.12-manifest.json ve artifacts/validation-0.1.12-summary.json altında. Son belge commit'i uygulama kaynaklarını değiştirmez.
+
 - Görsel kontrol 720×1600 / 1,0 yazı ölçeğinde ayrı debug paketinde sentetik verilerle yapıldı. Profil kartı, yenilemeden sonraki biyografi, iki olaylı geçmiş ve önceki/yeni değer penceresi incelendi. Bu kontrolde Android kaynak metnindeki satır ayırıcıları düzeltildi; iş mantığı değişmedi. Görseller artifacts/ui-0.1.12-*.png altındadır.
 
 - Çalışan 0.1.11, `checkpoint/0.1.11-working-20261025` etiketi ve ayrı `InstagramTracker-Backups/0.1.11-working-20261025` APK/kaynak ZIP yedeğinde korundu. Oturum verisi yedeğe alınmadı.
