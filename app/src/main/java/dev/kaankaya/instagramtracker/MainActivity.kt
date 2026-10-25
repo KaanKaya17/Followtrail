@@ -265,6 +265,7 @@ class MainActivity : Activity() {
         row.addView(stat("Takipçi", saved.profile.followers, FollowDirection.FOLLOWERS, true), LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
         row.addView(stat("Takip edilen", saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
         page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        renderRecentActivity(page, saved)
         val quick = LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL; background = AppUi.touch(this@MainActivity, shape(panel, 22, AppUi.line))
             setPadding(dp(16), dp(16), dp(16), dp(16)); isFocusable = true
@@ -278,6 +279,78 @@ class MainActivity : Activity() {
         quick.addView(quickText, LinearLayout.LayoutParams(0, -2, 1f))
         quick.addView(text("", 12f).apply { setCompoundDrawablesWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "chevron", muted, 18), null, null, null) })
         page.addView(quick); page.gap(20)
+    }
+
+    private fun favoriteButton(person: TrackedPerson) = AppUi.iconButton(this,
+        if (person.favorite) "star_filled" else "star",
+        getString(if (person.favorite) R.string.favorite_remove else R.string.favorite_add, person.latest.username)) {
+        val id = person.latest.userId
+        if (savePeople(reschedule = false) { people -> people.map { if (it.latest.userId == id) it.copy(favorite = !it.favorite) else it } }) {
+            val selected = account?.people?.firstOrNull { it.latest.userId == id }
+            if (selected != null) {
+                if (selected.favorite && peopleScreen && selectedPersonId == null) screenIdentity = ""
+                android.widget.Toast.makeText(this, getString(if (selected.favorite) R.string.favorite_added else R.string.favorite_removed,
+                    selected.latest.username), android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+        render()
+    }.apply {
+        isSelected = person.favorite
+        if (person.favorite) background = AppUi.touch(this@MainActivity, shape(AppUi.violetSoft, 16))
+    }
+    private fun activityDetail(item: ActivityItem): String = when (item) {
+        is ActivityItem.Counts -> listOfNotNull(
+            item.followersDelta.takeIf { it != 0L }?.let { getString(R.string.activity_followers, delta(it)) },
+            item.followingDelta.takeIf { it != 0L }?.let { getString(R.string.activity_following, delta(it)) }).joinToString(" · ")
+        is ActivityItem.ListRead -> getString(R.string.activity_list_page,
+            getString(if (item.direction == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following), item.pageNumber)
+    }
+    private fun openActivity(item: ActivityItem) {
+        val saved = account ?: return
+        val profile = (listOf(saved.profile) + saved.people.map { it.latest }).firstOrNull { it.userId == item.profileId } ?: return
+        when (item) {
+            is ActivityItem.Counts -> { peopleScreen = true; selectedPersonId = item.profileId; rangeDays = 0; message = null; render() }
+            is ActivityItem.ListRead -> openLists(profile, item.direction)
+        }
+    }
+    private fun renderRecentActivity(page: LinearLayout, saved: SavedAccount) {
+        var listsUnavailable = false
+        val snapshot = try { FollowListVault(this, if (preview) "previewlists" else "followlists").current(saved.session) }
+            catch (_: Exception) { listsUnavailable = true; null }
+        val entries = RecentActivity.items(saved, snapshot)
+        val card = AppUi.card(this)
+        card.addView(AppUi.heading(this, getString(R.string.activity_title), 21f)); card.gap(6)
+        card.addView(text(getString(R.string.activity_subtitle), 12f, muted)); card.gap(14)
+        if (entries.isEmpty()) {
+            card.addView(text(getString(R.string.activity_empty), 14f, muted))
+        } else {
+            for (item in entries.take(3)) {
+                val row = LinearLayout(this).apply {
+                    gravity = Gravity.CENTER_VERTICAL; minimumHeight = dp(76); setPadding(0, dp(10), 0, dp(10))
+                    background = AppUi.touch(this@MainActivity, shape(panel, 14)); isFocusable = true
+                    tag = "activity:${item.key}"; contentDescription = "@${item.username}. ${activityDetail(item)}. ${date(item.observedAt)}"
+                    setOnClickListener { openActivity(item) }
+                }
+                row.addView(AppUi.avatar(this, item.username, 36, if (item is ActivityItem.Counts) AppUi.mint else AppUi.violetSoft,
+                    if (item is ActivityItem.Counts) AppUi.teal else accent))
+                val labels = stack().apply { setPadding(dp(10), 0, 0, 0) }
+                labels.addView(text("@${item.username}", 14f, ink, true)); labels.gap(5)
+                labels.addView(text(activityDetail(item), 13f, if (item is ActivityItem.Counts) AppUi.teal else accent)); labels.gap(5)
+                labels.addView(text(getString(R.string.activity_observed, date(item.observedAt)), 10f, muted))
+                row.addView(labels, LinearLayout.LayoutParams(0, -2, 1f)); card.addView(row)
+            }
+            card.gap(10)
+            card.addView(button(getString(R.string.activity_all), false) {
+                val rows = entries.map { "@${it.username}\n${activityDetail(it)}\n${date(it.observedAt)}" }.toTypedArray()
+                AlertDialog.Builder(this).setTitle(R.string.activity_title).setItems(rows) { _, index -> openActivity(entries[index]) }
+                    .setNeutralButton(R.string.activity_scope) { _, _ ->
+                        AlertDialog.Builder(this).setTitle(R.string.activity_scope).setMessage(R.string.activity_scope_body)
+                            .setPositiveButton(R.string.list_close, null).show()
+                    }.setNegativeButton(R.string.list_close, null).show()
+            }, LinearLayout.LayoutParams(-1, -2))
+        }
+        if (listsUnavailable) { card.gap(10); card.addView(text(getString(R.string.activity_lists_unavailable), 12f, AppUi.coral)) }
+        page.addView(card); page.gap(20)
     }
 
     private fun clock(time: Long) = SimpleDateFormat("HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
@@ -354,7 +427,7 @@ class MainActivity : Activity() {
             page.addView(AppUi.heading(this, "Seçtiğin kişiler", 30f)); page.gap(8)
             page.addView(text("Merak ettiğin profiller, sana özel bir alan.", 14f, muted)); page.gap(20)
             val actions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-            actions.addView(text("${saved.people.size} kişi", 13f, muted), LinearLayout.LayoutParams(0, -2, 1f))
+            actions.addView(text(getString(R.string.people_summary, saved.people.size, saved.people.count { it.favorite }), 13f, muted), LinearLayout.LayoutParams(0, -2, 1f))
             actions.addView(button("Kişi ekle", networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-2, -2))
             page.addView(actions); page.gap(20)
             if (saved.people.isEmpty()) {
@@ -364,7 +437,7 @@ class MainActivity : Activity() {
                 empty.addView(text("Bir profil ekle; listelerine ve zaman içindeki değişimlerine buradan ulaş.", 14f, muted))
                 page.addView(empty)
             }
-            for ((index, entry) in saved.people.withIndex()) {
+            for ((index, entry) in PeoplePolicy.favoritesFirst(saved.people).withIndex()) {
                 val p = entry.latest
                 val card = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(18), dp(18), dp(18), dp(16)) }
                 val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -372,7 +445,9 @@ class MainActivity : Activity() {
                 val name = stack().apply { setPadding(dp(12), 0, 0, 0) }
                 name.addView(text("@${p.username}", 17f, ink, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
                 name.gap(5); name.addView(text(entry.group.ifBlank { "Kayıtlı profil" }, 12f, muted))
-                identity.addView(name, LinearLayout.LayoutParams(0, -2, 1f)); card.addView(identity); card.gap(18)
+                identity.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
+                identity.addView(favoriteButton(entry), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(8) })
+                card.addView(identity); card.gap(18)
                 card.addView(text("${number(p.followers)} takipçi · ${number(p.following)} takip edilen", 14f, ink, true)); card.gap(8)
                 card.addView(text("Son kayıt · ${date(p.observedAt)}", 11f, muted))
                 if (entry.watching) { card.gap(8); card.addView(text("Değişiklik bildirimi açık", 12f, AppUi.teal)) }
@@ -388,7 +463,10 @@ class MainActivity : Activity() {
             setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "back", accent, 18), null, null, null)
             compoundDrawablePadding = dp(6)
         }); page.gap(12)
-        page.addView(AppUi.heading(this, "@${p.username}", 27f)); page.gap(8)
+        val personHeading = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        personHeading.addView(AppUi.heading(this, "@${p.username}", 27f), LinearLayout.LayoutParams(0, -2, 1f))
+        personHeading.addView(favoriteButton(person), LinearLayout.LayoutParams(dp(48), dp(48)))
+        page.addView(personHeading); page.gap(8)
         page.addView(badge(person.group.ifBlank { "PROFİL ANALİZİ" })); page.gap(20)
         page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(12)
         val stats = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(20), dp(20), dp(20), dp(20)) }
@@ -545,9 +623,9 @@ class MainActivity : Activity() {
             }
         }
     }
-    private fun savePeople(update: (List<TrackedPerson>) -> List<TrackedPerson>): Boolean {
+    private fun savePeople(reschedule: Boolean = true, update: (List<TrackedPerson>) -> List<TrackedPerson>): Boolean {
         val saved = account ?: return false
-        return try { account = vault.update(saved.session) { it.copy(people = update(it.people)) }; syncMonitoring(); true }
+        return try { account = vault.update(saved.session) { it.copy(people = update(it.people)) }; if (reschedule) syncMonitoring(); true }
         catch (_: Exception) { message = "Kişiler kaydedilemedi. Önceki kayıtlar korunuyor."; false }
     }
     private fun editPerson(person: TrackedPerson) {

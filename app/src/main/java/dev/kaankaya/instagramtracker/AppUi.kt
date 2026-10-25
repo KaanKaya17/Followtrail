@@ -145,6 +145,11 @@ object AppUi {
                 "compare" -> { path(4f, 7f, 20f, 7f, 16f, 3f); path(20f, 17f, 4f, 17f, 8f, 21f) }
                 "close" -> { path(6f, 6f, 18f, 18f); path(18f, 6f, 6f, 18f) }
                 "info" -> { canvas.drawCircle(12f, 12f, 9f, paint); path(12f, 11f, 12f, 17f); canvas.drawCircle(12f, 7f, .4f, paint) }
+                "star", "star_filled" -> {
+                    if (name == "star_filled") paint.style = Paint.Style.FILL
+                    path(12f, 3f, 14.8f, 8.7f, 21f, 9.6f, 16.5f, 14f, 17.6f, 20.5f, 12f, 17.5f, 6.4f, 20.5f, 7.5f, 14f, 3f, 9.6f, 9.2f, 8.7f, 12f, 3f)
+                    paint.style = Paint.Style.STROKE
+                }
                 else -> { path(3f, 17f, 9f, 11f, 13f, 14f, 21f, 5f); path(15f, 5f, 21f, 5f, 21f, 11f) }
             }
             canvas.restoreToCount(saved)

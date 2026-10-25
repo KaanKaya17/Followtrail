@@ -16,6 +16,7 @@ object AccountCodec {
     fun encode(account: SavedAccount): String {
         val people = JSONArray()
         for (person in account.people) people.put(JSONObject().put("note", person.note).put("group", person.group)
+            .put("favorite", person.favorite)
             .put("watching", person.watching).put("intervalHours", person.intervalHours).put("nextCheckAt", person.nextCheckAt)
             .put("history", JSONArray().apply { person.history.forEach { put(profile(it)) } }))
         val result = JSONObject().put("version", 4).put("id", account.session.userId)
@@ -59,7 +60,8 @@ object AccountCodec {
             val hours = if (version < 3) 1 else person.getInt("intervalHours")
             val nextCheck = if (version < 3) 0L else person.getLong("nextCheckAt")
             require(hours in listOf(1, 6, 24) && nextCheck >= 0)
-            TrackedPerson(history, note, group, watching, hours, nextCheck)
+            val favorite = if (!person.has("favorite")) false else person.get("favorite") as? Boolean ?: error("Invalid favorite setting")
+            TrackedPerson(history, note, group, watching, hours, nextCheck, favorite)
         }
         require(people.map { it.latest.userId }.distinct().size == people.size)
         return SavedAccount(session, own, people)

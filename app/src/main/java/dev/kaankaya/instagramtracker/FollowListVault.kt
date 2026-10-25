@@ -51,9 +51,10 @@ object FollowListCodec {
 class FollowListVault(context: Context, slot: String = "followlists") {
     companion object { private val lock = Any() }
     private val record = EncryptedRecord(context, slot)
-    fun read(session: Session, target: String): FollowSnapshot? = synchronized(lock) {
-        record.read()?.let(FollowListCodec::decode)?.takeIf { it.matches(session, target) }
+    fun current(session: Session): FollowSnapshot? = synchronized(lock) {
+        record.read()?.let(FollowListCodec::decode)?.takeIf { it.matches(session, it.target) }
     }
+    fun read(session: Session, target: String): FollowSnapshot? = current(session)?.takeIf { it.target == target }
     fun commit(session: Session, page: FollowPage): FollowSnapshot = synchronized(lock) {
         val next = (read(session, page.target) ?: FollowSnapshot(session.userId, session.mobileBinding, page.target)).record(page)
         val text = FollowListCodec.encode(next)

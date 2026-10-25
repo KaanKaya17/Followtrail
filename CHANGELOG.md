@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## 0.1.11 — 2026-10-25 (son değişiklikler ve favoriler)
+
+- Ana sayfada Son değişiklikler: mevcut kişi geçmişindeki takipçi/takip edilen net farkları ve mevcut liste kaydındaki sayfa okumaları gözlem zamanına göre gösterilir. İlk üç kayıt kartta, en fazla 20 kayıt tam akışta görünür. Kayda dokunmak ilgili analizi veya listeyi açar; istek başlatmaz.
+- Kişi listesi ve analizde yıldızla favoriye ekleme/çıkarma. Favoriler listede önce gelir; kendi içlerinde mevcut kişi sırası korunur. Favori durumu şifreli kişi kaydına bağlıdır ve yenilemelerde korunur.
+- Favori alanı mevcut v4 kayıt sözleşmesine isteğe bağlı Boolean olarak eklendi. Eski kayıtlarda varsayılan false; oturum, geçmiş, not ve izleme ayarları korunur. Favori değiştirmek bildirim işini yeniden planlamaz.
+- Okuyucular, ağ istekleri ve mola kuralları değişmedi. Akış ayrı bir olay günlüğü tutmaz; saklanan gözlemlerden türetilir. Liste etkinliği son hedefin mevcut kaydıyla sınırlıdır.
+
 ## 0.1.10 — 2026-10-25 (arayüz ve durum açıklamaları)
 
 - Alt gezinme içerik akışından ayrıldı; büyük yazıda kendi yüksekliğini alır ve sayfa içeriğini örtmez. Grup etiketleri metne göre boyutlanır; geçmiş, bildirim ve notlar ayrı kartlarda gösterilir.

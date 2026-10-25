@@ -2,6 +2,16 @@
 
 25 Ekim 2026. Sürümler ayrı değerlendirilir; Windows prototipinin canlı başarısı Android başarısı olarak sayılmaz.
 
+## 0.1.11 — son değişiklikler ve favoriler
+
+- Önceki kaynak `aa64108c679b49bfd367695901894e01aed66ab4`, `checkpoint/0.1.10-stable-20261025` etiketi ve ayrı APK/kaynak ZIP yedeğinde korundu. Mevcut canlı 0.1.8 ve arayüz yedekleri de korunur.
+- 41 JVM testi geçti. Yeni beş test eski v2/v3/v4 kişi kayıtlarında favorinin varsayılan false olmasını, strict Boolean sınırını, oturum/geçmiş/ayarların korunmasını, sabit kimlik/sıralama, yenilemede favorinin korunması, akışın yalnız anlamlı sayı farkları ve sahipli liste sayfalarından oluşması, yabancı/değişmiş oturum kapsamı ve 20 girdilik sınırı kapsar.
+- API 35 / Android 15 üzerinde 65 cihaz testi geçti; 68,461 saniye. Gerçek Activity/Keystore üzerinden favoriye ekleme/çıkarma, başa sıralama, yeniden oluşma, açık sahte yenilemede bayrağın korunması ve istek sayısının değişmemesi doğrulandı. Akıştan analiz açılması ve kayıtlı liste sayfasının yeniden açılışta görünmesi de yeni istek olmadan geçti. Çıktı `artifacts/validation-0.1.11-device.txt` içindedir.
+- Release/debug/test APK derlemesi ve lint geçti: sıfır hata, üç mevcut bağımlılık sürüm bildirimi. Ağ okuyucuları, oturum kasaları, bildirim motoru ve RequestGate önceki sürümle aynı; ayrıntı `artifacts/preservation-0.1.11.json` içindedir.
+- AccountCodec v4 isteğe bağlı favorite alanını saklar; eksik alan false, geçersiz tür reddedilir. Eski APK kayıt biçimini açabilir; favori alanını kullanmaz ve kendi kaydını yeniden yazarsa bu tercihi saklamaz. Oturum veya geçmiş biçimi değiştirilmedi. Liste kasasına yalnız mevcut kullanıcıya ait geçerli kaydı okuyan current yöntemi eklendi; mevcut tek hedef/saklama sınırı sürer.
+- Akışta ayrı olay deposu veya yeni sorgu yoktur. Kişi başına saklanan son 90 gözlem ve mevcut son hedefin sayfaları kullanılır. Profil sayıları değişmeyen gözlemler veya yalnız gönderi değişikliği akış girdisi üretmez. Tarihler okuma zamanıdır, kesin Instagram olay zamanı değildir. Favoriler izleme sıklığını veya sırasını değiştirmez.
+- Bu geliştirmede gerçek Instagram isteği gönderilmedi. Kontroller ayrı debug paketi/sentetik veri ve mevcut API 35 emülatöründe yapıldı; API 24, GitHub CI ve fiziksel telefonda canlı yenileme bu sürümde doğrulanmadı.
+
 ## 0.1.10 — arayüz, durum ve kullanılabilirlik
 
 - İmzalı önizleme: 1.292.533 bayt; SHA-256 `851f6727535a4e092785d921269f4db8add7569fac54bbb7abbc6c1140c1081b`. Derleme girdisi kaynak commit'i `aa32276692ab26190bb3428d764c1c510d07d0ac`. Bu APK'nın AGP VCS kaydı, görev yeniden çalıştırıldığında da `NO_VALID_GIT_FOUND` bildirdi; gömülü commit doğrulaması olarak sunulmaz. Kaynak SHA-256 manifesti ve derleme günlükleri ayrıca tutulur. Önceki sertifikayla v2/v3 ve üretim paket denetimi geçti: dört mevcut izin, kapalı debug/backup/cleartext, native/demo taşıması yok.
