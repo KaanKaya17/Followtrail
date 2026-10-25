@@ -1,4 +1,13 @@
-# 0.1.15 diyaloglarını inceleme
+# 0.1.16 kişi, liste ve fotoğraf kontrolleri
+
+1. APK'yı uygulamayı kaldırmadan güncelle. Mevcut oturum, kişiler, favoriler ve otomasyon seçimlerini kontrol et.
+2. Kişiler ekranında her kartın sağ üstündeki çöp kutusuna bas. Onayda doğru kullanıcı adı görünmeli. Önce Vazgeç de; kişi kalmalı. Yalnız kaldırmak istediğin test kişisinde Kaldır de; diğer kişiler ve ayarları kalmalı. Uygulamayı tekrar açınca kaldırılan kişi gelmemeli. Analiz altındaki Kişiyi kaldır aynı işlemi yapar.
+3. Alınmış takipçi/takip edilen listesinde arama yapıp bir sonuca dokun. O kullanıcının Instagram profili uygun uygulama veya tarayıcıda açılmalı. Geri dönünce arama ve liste kalmalı; kişi otomatik eklenmemeli ve profil/liste okuma sayacı artmamalı. Görseller kendi ayrı CDN trafiğine sahiptir.
+4. Yanıtta görsel bağlantısı varsa kendi hesabında, kişi kartlarında/analizinde ve görünür liste üyelerinde fotoğraf gelmeli. Bağlantı yoksa veya erişilemiyorsa harfli simge kalır; otomatik yeni profil isteği yapılmaz. Eski kayıtta URL yoksa ancak sıradaki normal başarılı okuma bunu sağlayabilir.
+5. Fotoğraflar geldikten sonra interneti kapatıp aynı ekranları ve uygulamayı yeniden aç. Sistem önbelleği temizlemediyse aynı adres/kimlikteki görseller önbellekten görünmeli. Çevrimdışı açılış yeni profil gözlemi üretmemeli. Listeyi hızla kaydırıp farklı kişilerin fotoğraflarının karışmadığını kontrol et.
+6. Büyük sistem yazısında silme/favori düğmelerini, uzun kullanıcı adlarını ve profil bağlantısına dokunmayı kontrol et. Bu sürümün önceki otomasyon/bildirim regresyon adımları ayrıca geçerlidir.
+
+## 0.1.15 diyaloglarını inceleme
 
 1. Güncellemeyi mevcut uygulamanın üzerine kur; kaldırma/veri temizleme yapma. Kayıtlar ve otomasyon seçimleri kalmalı.
 2. Otomasyonu ayarla penceresi yumuşak mor zeminli, yuvarlatılmış köşeli olmalı. Seçimler ve Başlat/İptal/Nasıl çalışır? okunmalı; sistem yazısını büyütüp kaydırmayı da dene.

@@ -1,4 +1,9 @@
 <resources>
+    <string name="person_remove_description">Kişiyi sil · @%1$s</string>
+    <string name="person_remove_confirm">@%1$s için bu cihazdaki profil geçmişi, not, favori, izleme ayarı ve liste kayıtları silinir. Instagram hesabında işlem yapılmaz.</string>
+    <string name="profile_link_missing">Bu kayıtta geçerli kullanıcı adı yok; profil bağlantısı açılamıyor.</string>
+    <string name="profile_link_unavailable">Instagram bağlantısını açabilecek bir uygulama bulunamadı.</string>
+    <string name="profile_open_description">Instagram profilini aç · @%1$s</string>
     <string name="auto_title">Otomatik takip</string>
     <string name="auto_enabled">Liste otomasyonu açık</string>
     <string name="auto_disabled">Liste otomasyonu kapalı</string>
@@ -60,9 +65,9 @@
     <string name="profile_field_missing">Bu alan henüz kayıtta yok. Sonraki başarılı okumada gelirse başlangıç kaydı oluşur.</string>
     <string name="profile_field_null">Instagram bu alanı boş bilgi olarak döndürdü; silindiği varsayılmadı.</string>
     <string name="profile_field_unavailable">Bu alan beklenen biçimde veya kayıt bütçesi içinde alınamadı. Sayı kaydı korundu.</string>
-    <string name="profile_picture_available">Fotoğraf karşılaştırma bilgisi alındı. Görsel indirilmez; yalnız kimlik veya varsayılan fotoğraf durumu karşılaştırılır.</string>
+    <string name="profile_picture_available">Fotoğraf değişiklikleri kimlik veya varsayılan fotoğraf durumuyla karşılaştırılır. Görünür fotoğraf, bağlantısı varsa ayrıca önbellekten veya görsel sunucusundan gösterilir.</string>
     <string name="profile_picture_unknown">Bu yanıtta karşılaştırılabilir fotoğraf kimliği yok. Yalnız bağlantı farkından fotoğraf değişikliği üretilmez.</string>
-    <string name="profile_picture_evidence">Instagram’ın döndürdüğü fotoğraf kimliği veya varsayılan fotoğraf durumu farklı gözlendi. Görseller indirilmedi; aynı görselin yeniden yüklenmiş olması da mümkündür.</string>
+    <string name="profile_picture_evidence">Instagram’ın döndürdüğü fotoğraf kimliği veya varsayılan fotoğraf durumu farklı gözlendi. Bildirim görsel karşılaştırmasına dayanmaz; aynı görselin yeniden yüklenmiş olması da mümkündür.</string>
     <string name="profile_edit_values">Önceki değer:\n%1$s\n\nYeni değer:\n%2$s</string>
     <string name="profile_observation_range">Önceki gözlem: %1$s\nYeni gözlem: %2$s\n\nDeğişiklik bu iki okuma arasında gözlendi. Kesin değişim anı bilinmiyor.</string>
     <string name="profile_history">Profil geçmişi</string>

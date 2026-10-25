@@ -1,5 +1,17 @@
 # Veri ve ağ sınırları
 
+## 0.1.16 güncel görsel ve dış bağlantı davranışı
+
+Görünür hesap fotoğrafları, mevcut profil/liste yanıtındaki HTTPS cdninstagram.com veya fbcdn.net bağlantısından indirilebilir. Ek üye/profil API sorgusu yapılmaz. Bu ayrı görsel istemcisine Instagram oturumu, Authorization veya çerez verilmez; otomatik yönlendirme ve bağlantı tekrarı kapalıdır. En çok iki görünür görsel yüklemesi ve sınırlı bekleme kuyruğu vardır. Ekrandan ayrılma/satırın yeniden kullanılması yüklemeyi iptal eder. Eksik, erişilemeyen, süresi bitmiş veya uygun biçimde olmayan görsel harfli simgeyle kalır; hesap/liste okuması bundan başarısız sayılmaz.
+
+256 piksele kadar örneklenmiş küçük PNG görseller uygulamanın özel cacheDir alanında en fazla 8 MiB/128 dosya hedefiyle tutulur. Dosya adlarında kaynak URL, kullanıcı adı veya oturum bulunmaz; bağlı hesap, hedef, fotoğraf adresi/kimliği hash ile ayrılır. Bu geçici görsel dosyaları ayrıca şifrelenmez. Hesap/liste metaverileri önceki Keystore/AES-GCM kayıtlarında kalır; bulut yedekleme kapalıdır. Sistem önbelleği temizleyebilir. Harici depolamaya veya kendi sunucumuza fotoğraf gönderilmez. Kişiyi kaldırma ilgili görsel önbelleğini, bağlantıyı kaldırma bu uygulamanın görsel önbelleğini temizler.
+
+Görsel kaydı aynı adres/kimlikle tekrar kullanılır; ayrı fotoğraf tazelik garantisi veya görsel benzerlik analizi yoktur. Profil fotoğrafı değişikliği bildirimi mevcut fotoğraf kimliği/varsayılan fotoğraf metaverisiyle hesaplanır. Görsel indirmenin başarısı yeni profil gözlemi/bildirim üretmez. CDN trafiği İstek bilgileri bölümündeki profil/liste deneme sayacına dahil değildir. Önceki sürümlere ait aşağıdaki “resim indirilmez” açıklamaları 0.1.16 için geçerli değildir.
+
+Liste üyesine dokunmak, gözlenen kullanıcı adından sabit Instagram HTTPS profil bağlantısını sistemin uygun uygulaması/tarayıcısında açar. Bu dış uygulama kendi oturum ve ağ davranışını yönetir; APK'nın oturumu intent'e eklenmez. Eksik kullanıcı adında hesap kimliğinden veya görünen addan profil tahmin edilmez.
+
+## Önceki sürümlerin kayıt ve taşıma sözleşmeleri
+
 0.1.7 tanı kaydı yalnız başlatılan mantıksal profil okuma sayısı, zamanlar, HTTP durum sayısı ve sabit kısıtlama sınıfını tutar; hesap adı/kimliği, URL, IP, parola, çerez, ham istek/yanıt eklenmez. Bu sayaç giriş sayfası/Windows trafiğini ve Instagram'ın genel sayacını kapsamaz. Sunucunun bilinen Retry-After tarihi ile uygulamanın kendi molası ayrı alanlardır. Açılışta kendi hesap yenilemesi varsayılan kapalı; aynı profilin 15 dakika içindeki verisi kayıt zamanını değiştirmeden tekrar kullanılır. Kişi bazındaki açık izleme tercihi ayrı kalır.
 
 0.1.6 mobil aktarımı: Windows'ta kullanıcının önceden oluşturduğu oturum yalnız bellekte DPAPI'den açılır, APK'nın Keystore açık anahtarına RSA-OAEP/AES-GCM ile şifrelenip ADB'den aktarılır. Parola/kod veya düz metin oturum dosyası aktarılmaz. Aktarım Instagram isteği başlatmaz. APK izinli mobil yetkilendirme/cihaz/çerez durumunu ve varsa kayıtlı USDID imza anahtarını Keystore ile şifreli iki yerel bankada tutar. Başarılı içe aktarma sonrası dış dizindeki şifreli zarf, açık istek ve geçici alıcı anahtar temizlenir; normal bitirme de temizlik yapar. Süreç ölümü temizliği tamamlamayabilir; ekranı yeniden açıp bitirmek kurtarma yoludur. Başarılı profil yanıtından sonra mobil HTTPS okumaları doğrudan i.instagram.com'a gider. Windows kaynak oturumu korunur. Ayrıntılar [MOBILE-PORT.md](MOBILE-PORT.md).

@@ -64,6 +64,29 @@ class FollowListFlowTest {
         val bytes = context.noBackupFilesDir.resolve("previewlists.enc").readBytes().toString(Charsets.ISO_8859_1)
         assertFalse(bytes.contains("kisi501.demo"))
     }
+    @Test fun tappingAFilteredMemberOpensItsObservedInstagramProfileWithoutAnotherRead() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        val filter = android.content.IntentFilter(Intent.ACTION_VIEW).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE); addDataScheme("https")
+            addDataAuthority("www.instagram.com", null); addDataPath("/kisi502.demo/", android.os.PatternMatcher.PATTERN_LITERAL)
+        }
+        // A second monitor blocks any unexpected external navigation too, so failure cannot leave the test app.
+        val expected = instrumentation.addMonitor(filter, android.app.Instrumentation.ActivityResult(0, null), true)
+        val fallback = instrumentation.addMonitor(android.content.IntentFilter(Intent.ACTION_VIEW).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE); addDataScheme("https")
+        }, android.app.Instrumentation.ActivityResult(0, null), true)
+        try {
+            scenario!!.onActivity { activity ->
+                views(activity.window.decorView).filterIsInstance<android.widget.EditText>().single().setText("502")
+                val list = views(activity.window.decorView).filterIsInstance<android.widget.ListView>().single()
+                list.performItemClick(null, list.headerViewsCount, 0)
+            }
+            assertEquals(1, expected.hits); assertEquals(0, fallback.hits)
+            assertEquals(1L, RequestGate(context, "preview_gate").attempts())
+            assertEquals(2, vault.read()!!.people.size)
+        } finally { instrumentation.removeMonitor(expected); instrumentation.removeMonitor(fallback) }
+    }
     @Test fun localSearchFiltersLoadedUsersWithoutRequestsAndRestoresQuery() {
         launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
         scenario!!.onActivity { activity ->

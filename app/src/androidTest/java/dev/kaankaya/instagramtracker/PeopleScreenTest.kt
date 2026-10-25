@@ -252,6 +252,22 @@ class PeopleScreenTest {
         assertFalse(vault.read()!!.automation.enabled); assertTrue(vault.read()!!.people.all { it.watching })
         assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
     }
+    @Test fun cardDeleteConfirmsAndRemovesOnlyThatPersonsWatchAndLists() {
+        val vault = SessionVault(context, "previewaccount"); val seed = PreviewMode.seed(true)!!
+        vault.write(seed.copy(people = seed.people.map { it.copy(favorite = true, watching = true) },
+            automation = ListAutomation(true, setOf("200", "201"))))
+        val gate = RequestGate(context, "preview_gate"); gate.limited(null)
+        val lists = FollowListVault(context, "previewlists")
+        for (id in listOf("200", "201")) lists.commit(seed.session, FollowPageParser.parse(org.json.JSONObject(
+            """{"status":"ok","users":[],"next_max_id":null}"""), id, FollowDirection.FOLLOWERS, null, System.currentTimeMillis()))
+        launch(); click("Kişiler"); val before = vault.read()!!
+        clickDescription("Kişiyi sil · @deniz.demo"); dialogClick("Vazgeç"); assertEquals(before, vault.read())
+        clickDescription("Kişiyi sil · @deniz.demo"); dialogClick("Kaldır")
+        assertEquals(before.people.filter { it.latest.userId == "201" }, vault.read()!!.people)
+        assertEquals(setOf("201"), vault.read()!!.automation.targets); assertNull(lists.read(seed.session, "200")); assertNotNull(lists.read(seed.session, "201"))
+        scenario!!.recreate(); awaitLabel("@ada.demo"); assertEquals(1, vault.read()!!.people.size)
+        assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
+    }
     @Test fun addEditAndRemoveUseTheRealDialogsAndEncryptedStorage() {
         launch(); click("Kişiler"); click("Kişi ekle")
         setText("@kullanıcıadı veya profil bağlantısı", "@efe.demo")
