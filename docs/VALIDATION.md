@@ -4,6 +4,8 @@
 
 ## 0.1.13 — kontrol aralıkları ve takip durumu
 
+- İmzalı APK: 1,321,205 bayt; SHA-256 `892be282ff2299b2f2cb648f5a475b748b72f8c0d0f946b93de236705770ca53`. Derleme girdisi `34898556000930069fa858150355d02fc5efb620`; gömülü VCS kaydı kaynak commit ile eşleşti. Öncekiyle aynı sertifika SHA-256, v2/v3 imzaları ve üretim paket denetimi geçti. Yeni izin, native kütüphane veya üretim APK içinde debug/demo taşıması yok. Kaynak manifesti ve test/paket özeti artifacts/source-0.1.13-manifest.json ve artifacts/validation-0.1.13-summary.json altında. Son belge commit'i uygulama kaynaklarını değiştirmez.
+
 - Son tam API 35 / Android 15 emülatör koşusu 72/72 test, sıfır başarısızlıkla geçti (121,025 saniye). 720×1280, 320 dpi ve 1,3 yazı ölçeği kullanıldı. Çıktı artifacts/validation-0.1.13-device-final.txt içindedir. Yeni cihaz kapsamı 15/30 dakika ve 12 saat tercihlerinin gerçek Activity/Keystore ile korunması, yerel durum düğmesinde sıfır yeni istek, 429 durumunda işin iptali ve yeniden açılışta molanın korunmasını içerir. Ortak 15 dakikalık rezervasyon, sıradaki ikinci kişi, her metadata alanının tek başına Android bildirimi ve Activity kapalıyken gerçek Android işinin biyografi/fotoğraf bilgisi bildirimi de geçti. HTTPS yanıtları sentetiktir.
 - 720×1600 / 1,0 yazı ölçeğinde ayrı debug demoda altı aralığın tamamının seçilebilir olduğu, izlemeyi açma, durum kartı ve yerel yenilemeden sonraki yeni hedef zaman görsel olarak incelendi. Zamanı gelmiş demo işinin sentetik okuması sonrası yeni kayıt/hedef görüldü. Görseller artifacts/ui-0.1.13-intervals.png ve artifacts/ui-0.1.13-watch-status.png altındadır.
 
