@@ -1,4 +1,12 @@
-# 0.1.16 kişi, liste ve fotoğraf kontrolleri
+# 0.1.17 profil açma ve geri dönme
+
+1. Güncellemeyi mevcut uygulamanın üzerine kur. Kendi takipçi veya takip edilen listende bir kişiye dokun: profil APK'nın içinde açılmalı. Instagram yalnız ayrı Instagram’da aç düğmesiyle açılmalı.
+2. Önceden kaydedilmiş taze profil ek istek olmadan gösterilir. Kayıt yoksa veya eskiyse ilk açılışta aynı istek/mola kurallarıyla profil okunabilir. Hemen önce liste okunmuşsa 15 saniyelik aralık veya mevcut 429 molası nedeniyle yalnız bilinen liste bilgileri görünür; hazır olduğunda Profili getir düğmesini kullan. Eksik sayılar sıfır gösterilmez.
+3. Profilin geri oku listeye dönmeli; arama ve sıra korunmalı. Fotoğraflar yüklenirken takipçi listesinin kendi Geri okunu ve sistem geri düğmesini de dene; uygulama kapanmamalı. Ana ekranın sistem geri düğmesiyle normal çıkışını çökme olarak değerlendirme.
+4. Açtığın kişi otomatik olarak Kişiler listesine eklenmemeli. İstersen Kişilere ekle düğmesiyle kaydet; mevcut kişiler/notlar/favoriler kalmalı ve yeni kişinin otomatik izlemesi kapalı olmalı.
+5. Ekranı döndürüp dış Instagram’dan geri gel: kendiliğinden ikinci profil isteği başlamamalı. Yeni profil kayıtlı değilse ayrıntılar kalıcı bir inceleme geçmişine eklenmez; ekran yeniden oluşturulurken bellek korunur, süreç ölümünde yeniden okuma için açık eylem gerekir.
+
+## 0.1.16 kişi, liste ve fotoğraf kontrolleri
 
 1. APK'yı uygulamayı kaldırmadan güncelle. Mevcut oturum, kişiler, favoriler ve otomasyon seçimlerini kontrol et.
 2. Kişiler ekranında her kartın sağ üstündeki çöp kutusuna bas. Onayda doğru kullanıcı adı görünmeli. Önce Vazgeç de; kişi kalmalı. Yalnız kaldırmak istediğin test kişisinde Kaldır de; diğer kişiler ve ayarları kalmalı. Uygulamayı tekrar açınca kaldırılan kişi gelmemeli. Analiz altındaki Kişiyi kaldır aynı işlemi yapar.

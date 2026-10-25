@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## 0.1.17 — 2026-10-26 (uygulama içi profil ve geri dönüş düzeltmesi)
+
+- Liste üyesine dokunmak uygulama içindeki profil ekranını açar. Liste kaydındaki kimlik/fotoğraf/ad gösterilir; taze kayıt varsa tekrar sorgulanmaz. İlk profil okuması mevcut istek/mola kuralları izin verirse yapılır; izin vermiyorsa kullanıcı Profili getir ile devam edebilir. Geri dönüş ve ekran döndürme otomatik tekrar başlatmaz. Instagram’da aç ayrı düğmedir.
+- Kayıtlı olmayan kişi otomatik eklenmez veya izlemeye alınmaz. Kişilere ekle açık eylemdir; kayıtlı kişinin listeleri buradan açılabilir. Geçici profil ayrıntıları ekran ömründe tutulur, eski kişi/hesap kayıt biçimi değiştirilmez.
+- Gerçek Android 13 telefon kaydında takipçi listesinden çıkarken fotoğraf istemcisinin TLS bağlantı havuzunu ana iş parçacığında kapatmasının NetworkOnMainThreadException ürettiği doğrulandı. Görsel iptali/istemci temizliği ortak arka plan sahibine taşındı; ekran kapanışı önce teslimi durdurur. Düzeltme aynı görsel sahibini kullanan bütün ekranları kapsar.
+
 ## 0.1.16 — 2026-10-25 (kişi silme, profil bağlantıları ve fotoğraflar)
 
 - Kişi kartlarında erişilebilir silme düğmesi; mevcut analiz ekranıyla aynı onaylı kaldırma akışı. Yalnız seçilen kişinin profil geçmişi, favori/not/izleme ayarı, otomasyon seçimi, bildirimleri ve liste kayıtları kaldırılır; Instagram hesabında işlem yapılmaz.

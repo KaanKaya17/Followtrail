@@ -365,14 +365,9 @@ class FollowListActivity : Activity() {
     }
     private fun cancel() { generation++; source.cancel(); pending?.cancel(true); pending = null; loading = false }
     private fun openProfile(user: FollowUser) {
-        val url = ProfileLinks.url(user.username)
-        if (url == null) {
-            android.widget.Toast.makeText(this, R.string.profile_link_missing, android.widget.Toast.LENGTH_SHORT).show(); return
-        }
-        try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE)) }
-        catch (_: android.content.ActivityNotFoundException) {
-            android.widget.Toast.makeText(this, R.string.profile_link_unavailable, android.widget.Toast.LENGTH_SHORT).show()
-        }
+        startActivity(Intent(this, MemberProfileActivity::class.java).putExtra("viewer_id", reference.userId)
+            .putExtra("list_target_id", target.userId).putExtra("list_direction", direction.name)
+            .putExtra("member_id", user.id).putExtra("offline_preview", preview))
     }
     override fun onPause() { if (::source.isInitialized) cancel(); main.removeCallbacks(wake); super.onPause() }
     override fun onResume() {

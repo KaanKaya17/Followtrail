@@ -64,7 +64,7 @@ class FollowListFlowTest {
         val bytes = context.noBackupFilesDir.resolve("previewlists.enc").readBytes().toString(Charsets.ISO_8859_1)
         assertFalse(bytes.contains("kisi501.demo"))
     }
-    @Test fun tappingAFilteredMemberOpensItsObservedInstagramProfileWithoutAnotherRead() {
+    @Test fun tappingAFilteredMemberOpensInsideTheAppAndExternalNavigationNeedsItsButton() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
         val filter = android.content.IntentFilter(Intent.ACTION_VIEW).apply {
@@ -76,16 +76,38 @@ class FollowListFlowTest {
         val fallback = instrumentation.addMonitor(android.content.IntentFilter(Intent.ACTION_VIEW).apply {
             addCategory(Intent.CATEGORY_BROWSABLE); addDataScheme("https")
         }, android.app.Instrumentation.ActivityResult(0, null), true)
+        val internal = instrumentation.addMonitor(MemberProfileActivity::class.java.name, null, false)
         try {
             scenario!!.onActivity { activity ->
                 views(activity.window.decorView).filterIsInstance<android.widget.EditText>().single().setText("502")
                 val list = views(activity.window.decorView).filterIsInstance<android.widget.ListView>().single()
                 list.performItemClick(null, list.headerViewsCount, 0)
             }
+            val activity = internal.waitForActivityWithTimeout(5000) as? MemberProfileActivity
+            assertNotNull("An internal profile must open", activity)
+            assertEquals(0, expected.hits); assertEquals(0, fallback.hits)
+            instrumentation.runOnMainSync {
+                views(activity!!.window.decorView).filterIsInstance<Button>().single { it.text == "Instagram’da aç" }.performClick()
+            }
             assertEquals(1, expected.hits); assertEquals(0, fallback.hits)
             assertEquals(1L, RequestGate(context, "preview_gate").attempts())
             assertEquals(2, vault.read()!!.people.size)
-        } finally { instrumentation.removeMonitor(expected); instrumentation.removeMonitor(fallback) }
+            instrumentation.runOnMainSync {
+                views(activity!!.window.decorView).single { it.contentDescription == "Listeye dön" }.performClick()
+            }
+            awaitText("Alınan hesap: 2 · Sayfa: 1")
+            scenario!!.onActivity { original ->
+                assertEquals("502", views(original.window.decorView).filterIsInstance<android.widget.EditText>().single().text.toString())
+            }
+        } finally { instrumentation.removeMonitor(expected); instrumentation.removeMonitor(fallback); instrumentation.removeMonitor(internal) }
+    }
+    @Test fun theListToolbarBackFinishesNormallyWithPhotosAndAPendingGateWake() {
+        launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        scenario!!.onActivity { activity -> views(activity.window.decorView).single { it.contentDescription == "Geri" }.performClick() }
+        val deadline = android.os.SystemClock.elapsedRealtime() + 5000
+        while (scenario!!.state != androidx.lifecycle.Lifecycle.State.DESTROYED && android.os.SystemClock.elapsedRealtime() < deadline) Thread.sleep(20)
+        assertEquals(androidx.lifecycle.Lifecycle.State.DESTROYED, scenario!!.state)
+        assertEquals(1L, RequestGate(context, "preview_gate").attempts())
     }
     @Test fun localSearchFiltersLoadedUsersWithoutRequestsAndRestoresQuery() {
         launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")

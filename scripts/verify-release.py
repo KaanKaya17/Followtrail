@@ -34,6 +34,9 @@ def verify(apk: Path, sdk: Path) -> dict:
     lists = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'FollowListActivity' in block]
     if len(lists) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', lists[0]):
         raise ValueError('Follow lists must be non-exported')
+    members = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'MemberProfileActivity' in block]
+    if len(members) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', members[0]):
+        raise ValueError('Member profiles must be non-exported')
     for attribute in ('allowBackup', 'usesCleartextTraffic'):
         if not re.search(r'android:' + attribute + r'\([^)]*\)=\(type 0x12\)0x0\s', manifest):
             raise ValueError(attribute + ' must be explicitly disabled')
