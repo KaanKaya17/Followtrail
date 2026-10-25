@@ -1,4 +1,21 @@
 <resources>
+    <string name="profile_username_changed">Kullanıcı adı değişti</string>
+    <string name="profile_bio_changed">Biyografi değişti</string>
+    <string name="profile_picture_changed">Profil fotoğrafı bilgisi değişti</string>
+    <string name="profile_details_title">Profil bilgileri</string>
+    <string name="profile_bio_label">Kayıtlı biyografi</string>
+    <string name="profile_empty_bio">(Boş biyografi)</string>
+    <string name="profile_field_missing">Bu alan henüz kayıtta yok. Sonraki başarılı okumada gelirse başlangıç kaydı oluşur.</string>
+    <string name="profile_field_null">Instagram bu alanı boş bilgi olarak döndürdü; silindiği varsayılmadı.</string>
+    <string name="profile_field_unavailable">Bu alan beklenen biçimde veya kayıt bütçesi içinde alınamadı. Sayı kaydı korundu.</string>
+    <string name="profile_picture_available">Fotoğraf karşılaştırma bilgisi alındı. Görsel indirilmez; yalnız kimlik veya varsayılan fotoğraf durumu karşılaştırılır.</string>
+    <string name="profile_picture_unknown">Bu yanıtta karşılaştırılabilir fotoğraf kimliği yok. Yalnız bağlantı farkından fotoğraf değişikliği üretilmez.</string>
+    <string name="profile_picture_evidence">Instagram’ın döndürdüğü fotoğraf kimliği veya varsayılan fotoğraf durumu farklı gözlendi. Görseller indirilmedi; aynı görselin yeniden yüklenmiş olması da mümkündür.</string>
+    <string name="profile_edit_values">Önceki değer:\n%1$s\n\nYeni değer:\n%2$s</string>
+    <string name="profile_observation_range">Önceki gözlem: %1$s\nYeni gözlem: %2$s\n\nDeğişiklik bu iki okuma arasında gözlendi. Kesin değişim anı bilinmiyor.</string>
+    <string name="profile_history">Profil geçmişi</string>
+    <string name="profile_history_empty">Henüz karşılaştırılabilir profil değişikliği yok. İlk bilinen değer başlangıç kaydıdır. Takip yalnız saklanan başarılı gözlemleri kapsar.</string>
+    <string name="profile_watch_scope">Takipçi ve takip edilen sayıları, kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi izlenir.</string>
     <string name="favorite_add">Favoriye ekle · @%1$s</string>
     <string name="favorite_remove">Favorilerden çıkar · @%1$s</string>
     <string name="favorite_added">@%1$s favorilere eklendi.</string>
@@ -13,7 +30,7 @@
     <string name="activity_observed">Gözlem · %1$s</string>
     <string name="activity_all">Tümünü gör</string>
     <string name="activity_scope">Akış hakkında</string>
-    <string name="activity_scope_body">Son 20 kayıtlı gözlem gösterilir. Sayı farkı iki başarılı okuma arasındadır; değişimin kesin zamanı veya kimlerin takipten çıktığı değildir. Liste etkinliği son incelenen profilin mevcut sayfa kayıtlarıyla sınırlıdır. Akışı açmak yeni istek göndermez.</string>
+    <string name="activity_scope_body">Son 20 kayıtlı gözlem gösterilir. Sayı ve profil farkları bilinen başarılı okumalar arasındadır; değişimin kesin zamanı veya kimlerin takipten çıktığı değildir. Liste etkinliği son incelenen profilin mevcut sayfa kayıtlarıyla sınırlıdır. Akışı açmak yeni istek göndermez.</string>
     <string name="activity_lists_unavailable">Liste kaydı açılamadı. Akış yalnız profil geçmişini gösteriyor.</string>
     <string name="list_search_hint">Kayıtlarda ara</string>
     <string name="list_search_summary">Eşleşen: %1$d · Kayıt: %2$d</string>

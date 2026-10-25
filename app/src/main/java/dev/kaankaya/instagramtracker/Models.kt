@@ -6,7 +6,7 @@ import java.util.Locale
 
 data class Session(val userId: String, val cookie: String, val userAgent: String, val mobileBinding: String? = null)
 data class Profile(val userId: String, val username: String, val followers: Long, val following: Long, val observedAt: Long,
-    val posts: Long? = null)
+    val posts: Long? = null, val details: ProfileDetails = ProfileDetails())
 data class SavedAccount(val session: Session, val profile: Profile, val people: List<TrackedPerson> = emptyList())
 
 data class TrackedPerson(val history: List<Profile>, val note: String = "", val group: String = "",
@@ -90,12 +90,12 @@ object ProfileParser {
         val id = InstagramIdentity.id(user.opt("id"))
         val profile = Profile(id, username(user), count(user.optJSONObject("edge_followed_by")?.opt("count")),
             count(user.optJSONObject("edge_follow")?.opt("count")), time,
-            optionalCount(user.optJSONObject("edge_owner_to_timeline_media")?.opt("count")))
+            optionalCount(user.optJSONObject("edge_owner_to_timeline_media")?.opt("count")), ProfileDetailsParser.parse(user))
         if (!profile.username.equals(expectedUsername, ignoreCase = true)) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT)
         return profile
     }
     fun user(user: JSONObject, time: Long): Profile = Profile(InstagramIdentity.id(user.opt("pk")), username(user),
-        count(user.opt("follower_count")), count(user.opt("following_count")), time, optionalCount(user.opt("media_count")))
+        count(user.opt("follower_count")), count(user.opt("following_count")), time, optionalCount(user.opt("media_count")), ProfileDetailsParser.parse(user))
     private fun username(user: JSONObject): String = (user.opt("username") as? String)
         ?.takeIf { ProfileInput.validUsername(it) } ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
     private fun count(value: Any?): Long = when (value) {
@@ -117,7 +117,7 @@ class ApiFailure(val kind: Kind) : Exception(kind.name) {
     enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, TOO_SOON, CONNECTION, CANCELLED, INVALID_RESPONSE, WRONG_ACCOUNT, NOT_FOUND, STORAGE, MOBILE_REQUIRED, CAPACITY }
     fun userMessage(): String = when (kind) {
         Kind.MOBILE_REQUIRED -> "Listeler için mobil bağlantı gerekiyor. Seçenekler → Bağlantıyı yönet → Bilgisayardan bağlan yolunu kullan."
-        Kind.CAPACITY -> "Bu okuma için cihaz kayıt sınırına ulaşıldı. Önceki sayfalar korundu; okuma tamamlanmış sayılmadı."
+        Kind.CAPACITY -> "Bu okuma için cihaz kayıt sınırına ulaşıldı. Önceki kayıtlar korundu; yeni okuma kaydedilemedi."
         Kind.SESSION_EXPIRED -> "Bağlantının süresi dolmuş. Hesabını yeniden bağla."
         Kind.VERIFICATION -> "Instagram ek doğrulama istiyor. Bağlantıyı yenileyerek tamamlayabilirsin."
         Kind.LIMITED -> "Instagram şu anda yenilemeyi sınırlıyor. Biraz sonra tekrar dene."

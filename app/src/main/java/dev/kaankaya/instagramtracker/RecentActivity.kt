@@ -11,6 +11,12 @@ sealed interface ActivityItem {
         val previousAt: Long, override val observedAt: Long, val followersDelta: Long, val followingDelta: Long) : ActivityItem {
         override val key get() = "counts:$profileId:$previousAt:$observedAt"
     }
+    data class ProfileChanged(val edit: ProfileEdit) : ActivityItem {
+        override val profileId get() = edit.profileId
+        override val username get() = edit.username
+        override val observedAt get() = edit.observedAt
+        override val key get() = edit.key
+    }
     data class ListRead(override val profileId: String, override val username: String, override val observedAt: Long,
         val direction: FollowDirection, val pageNumber: Int) : ActivityItem {
         override val key get() = "list:$profileId:${direction.path}:$pageNumber:$observedAt"
@@ -27,6 +33,7 @@ object RecentActivity {
             if (followers != 0L || following != 0L) entries += ActivityItem.Counts(after.userId, after.username,
                 before.observedAt, after.observedAt, followers, following)
         }
+        account.people.forEach { person -> entries += ProfileChanges.history(person.history).map { ActivityItem.ProfileChanged(it) } }
         if (lists != null && lists.matches(account.session, lists.target)) {
             val target = (listOf(account.profile) + account.people.map { it.latest }).firstOrNull { it.userId == lists.target }
             if (target != null) FollowDirection.entries.forEach { direction ->

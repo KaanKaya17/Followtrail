@@ -1,24 +1,25 @@
 package dev.kaankaya.instagramtracker
 
-data class CountChange(val ownerId: String, val profile: Profile, val followersDelta: Long, val followingDelta: Long)
+data class ObservedProfileChange(val ownerId: String, val profile: Profile, val followersDelta: Long, val followingDelta: Long, val edits: List<ProfileEdit> = emptyList())
 
 object MonitorPolicy {
     const val POLL_MS = 15 * 60 * 1000L
     fun due(people: List<TrackedPerson>, now: Long): TrackedPerson? = people.filter { it.watching && it.nextCheckAt <= now }
         .minByOrNull { it.nextCheckAt }
-    fun change(owner: String, person: TrackedPerson?, profile: Profile): CountChange? {
+    fun change(owner: String, person: TrackedPerson?, profile: Profile): ObservedProfileChange? {
         if (person == null || !person.watching) return null
         val followers = profile.followers - person.latest.followers
         val following = profile.following - person.latest.following
-        return if (followers == 0L && following == 0L) null else CountChange(owner, profile, followers, following)
+        val edits = if (profile.observedAt > person.latest.observedAt) ProfileChanges.latest(person.history, profile) else emptyList()
+        return if (followers == 0L && following == 0L && edits.isEmpty()) null else ObservedProfileChange(owner, profile, followers, following, edits)
     }
 }
 
-data class ObservationCommit(val account: SavedAccount, val change: CountChange?)
+data class ObservationCommit(val account: SavedAccount, val change: ObservedProfileChange?)
 
 object Observations {
-    fun deliver(vault: SessionVault, session: Session, change: CountChange, allowed: () -> Boolean,
-        notify: (CountChange) -> Unit, cancelled: () -> Boolean = { false }) {
+    fun deliver(vault: SessionVault, session: Session, change: ObservedProfileChange, allowed: () -> Boolean,
+        notify: (ObservedProfileChange) -> Unit, cancelled: () -> Boolean = { false }) {
         vault.inspect { current ->
             if (!cancelled() && current?.session == session && current.people.any {
                     it.watching && it.latest.userId == change.profile.userId && it.latest.observedAt == change.profile.observedAt
@@ -27,7 +28,7 @@ object Observations {
     }
     fun person(vault: SessionVault, session: Session, profile: Profile, existingRequired: Boolean,
         watchRequired: Boolean = false, cancelled: () -> Boolean = { false }): ObservationCommit {
-        var change: CountChange? = null
+        var change: ObservedProfileChange? = null
         val updated = vault.update(session) { current ->
             if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
             val person = current.people.firstOrNull { it.latest.userId == profile.userId }
@@ -41,7 +42,7 @@ object Observations {
 
 /** One due profile per invocation, no retries, and the same gate used by foreground reads. */
 class MonitorEngine(private val vault: SessionVault, private val gate: RequestGate, private val api: InstagramApi,
-    private val canNotify: () -> Boolean, private val notify: (CountChange) -> Unit) {
+    private val canNotify: () -> Boolean, private val notify: (ObservedProfileChange) -> Unit) {
     fun tick(now: Long = System.currentTimeMillis(), cancelled: () -> Boolean = { false }) {
         if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now) return
         val saved = vault.read() ?: return

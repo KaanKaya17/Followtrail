@@ -20,13 +20,13 @@ class ChangeNotifications(private val context: Context, private val preview: Boo
         manager.areNotificationsEnabled() && (Build.VERSION.SDK_INT < 26 || manager.getNotificationChannel(CHANNEL)?.importance != NotificationManager.IMPORTANCE_NONE)
     fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel(CHANNEL,
-            "Profil sayı değişiklikleri", NotificationManager.IMPORTANCE_DEFAULT).apply {
-            description = "Seçtiğin kişilerde gözlemlenen takipçi ve takip edilen sayı farkları."
+            "Profil değişiklikleri", NotificationManager.IMPORTANCE_DEFAULT).apply {
+            description = "Seçtiğin kişilerde gözlemlenen sayı, kullanıcı adı, biyografi ve fotoğraf bilgisi değişiklikleri."
         })
     }
     @Suppress("DEPRECATION")
     private fun builder(): Notification.Builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, CHANNEL) else Notification.Builder(context)
-    fun post(change: CountChange) {
+    fun post(change: ObservedProfileChange) {
         ensureChannel()
         if (!allowed()) return
         val intent = Intent(context, MainActivity::class.java).setData(Uri.parse("instagramtracker://observation/${change.ownerId}/${change.profile.userId}"))
@@ -36,11 +36,20 @@ class ChangeNotifications(private val context: Context, private val preview: Boo
         val pending = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val format = NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR"))
         fun delta(value: Long) = (if (value > 0) "+" else "") + format.format(value)
+        val details = mutableListOf<String>()
+        if (change.followersDelta != 0L || change.followingDelta != 0L)
+            details += "Takipçi ${delta(change.followersDelta)} · Takip edilen ${delta(change.followingDelta)}"
+        change.edits.forEach { edit -> details += context.getString(when (edit.field) {
+            ProfileChangeField.USERNAME -> R.string.profile_username_changed
+            ProfileChangeField.BIOGRAPHY -> R.string.profile_bio_changed
+            ProfileChangeField.PICTURE -> R.string.profile_picture_changed
+        }) }
         val public = builder().setSmallIcon(R.drawable.ic_notification).setContentTitle("InstagramTracker")
-            .setContentText(if (preview) "Demo: örnek profilde sayı değişikliği." else "İzlediğin bir profilde sayı değişikliği gözlendi.").build()
+            .setContentText(if (preview) "Demo: örnek profilde değişiklik." else "İzlediğin bir profilde değişiklik gözlendi.").build()
         val notification = builder().setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("${if (preview) "DEMO · " else ""}@${change.profile.username} · sayı değişikliği")
-            .setContentText("Takipçi ${delta(change.followersDelta)} · Takip edilen ${delta(change.followingDelta)}")
+            .setContentTitle("${if (preview) "DEMO · " else ""}@${change.profile.username} · profil değişikliği")
+            .setContentText(details.joinToString(" · "))
+            .setStyle(Notification.BigTextStyle().bigText(details.joinToString("\n")))
             .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public).setContentIntent(pending)
             .setAutoCancel(true).setOnlyAlertOnce(true).setCategory(Notification.CATEGORY_STATUS).build()
         try { manager.notify(tag(change.ownerId, change.profile.userId), 0, notification) }
