@@ -36,7 +36,7 @@ Doğrulama, ağsız profil/vault/gate testleri ile yerel TLS/HTTP2 sunucusu ve A
 Takipçi ve takip edilen sayfaları aynı kalıcı RequestGate, tek etkin okuma, 15 saniyelik alt aralık ve HTTP/2 tek gönderim sözleşmesini kullanır. Her düğme yalnız bir friendships/v1 sayfası ister; otomatik cursor döngüsü, GraphQL/web yedeği veya giriş yoktur. İlk sayfa için istenen 50 kayıt araştırma tercihidir; Instagram kotası değildir. Liste başarısı önceki kısıtlamayı temizleyip otomasyonu açmaz. should_limit_list_of_followers, has_more ve next_max_id eksik/null/değer olarak korunur; listeye özel HTTP 200 sınırlaması HTTP 429 diye kaydedilmez. Bu durumda alınan sayfa sınırlı işaretlenir ve devam düğmesi sunulmaz. Genel HTTP 429/bekleme/feedback mevcut kalıcı politikayı uygular. Yeni canlı veri isteği bu geliştirmede yapılmadı.
 
 
-## 0.1.14 isteğe bağlı liste otomasyonu
+## 0.1.14 isteğe bağlı liste otomasyonu (ilk sürüm)
 
 Kullanıcının yeni talebiyle seçilen hedeflerde otomatik cursor devamı eklendi. Bu, 0.1.8'deki elle tek sayfa modunun yerine geçmez: tek çağrı halen tek sayfadır; yeni uygulama kuyruğu sayfalar arasında kalıcı duraklama/rezervasyon uygular. Her Android işinde bir profil veya bir liste sayfası; bütün otomatik işler için en az 15 dakika bütçe. Profil ve liste işlerinin ikisi de hazırsa dönüşümlü seçim yapılır. Üretim okuyucularının uç, sayfa boyutu, tek etkin istek ve HTTP yanıt sınırı değişmedi.
 
@@ -45,3 +45,11 @@ Güncel taramada cursor yalnız MORE durumunda ilerler; LIMITED/UNKNOWN/STALLED 
 Rezervasyon, mevcut oturum/hedef ve beklenen önceki sayfa gözlemiyle bağlanır. Hedef kaldırılır, otomasyon kapatılır, oturum değişir veya manuel yeni okuma araya girerse geç otomatik sayfa eski kaydı ezmez. Kapasite hatasında önceki liste korunur; kaydedilemeyen yönde yeni otomatik sayfa alınmaz. Rezervasyon/hata kaydı da sığmıyorsa kapasite molası aynı RequestGate'de ayrı bayrakla tutulur; liste temizliği yalnız bu bayrağı kaldırır, Instagram kısıtlamasını kaldırmaz.
 
 Bu geliştirmede gerçek Instagram isteği gönderilmedi; testler sentetik taşıma kullanır. Önce az sayıda küçük, kullanıcının kontrolündeki hesapla fiziksel cihaz testi gerekir. Uzun taramalar sırasında üyelik değişebilir; END_OBSERVED yalnız gözlenen sunucu sayfalama sonudur, eksiksizlik veya atomiklik ispatı değildir.
+
+## 0.1.15 aynı hedefte ardışık sayfalar
+
+0.1.14'teki tek sayfa/tur sınırı değişti: bir tur tek profil veya aynı hedefte en fazla 6 liste sayfası okur. Takipçi/takip edilen yönleri uygunsa dönüşümlüdür; tur içinde başka hedefe geçilmez. Otomatik tur başlangıçları ortak en az 15 dakika bütçesini korur. İstek başlangıçları arasında mevcut kalıcı en az 15 saniye alt aralık ve tek etkin taşıma korunur. Turun ilk 90 saniyesinde yeni istek başlatılabilir; bu süre monotonik saatle ölçülür, devam eden istek kendi taşıma zaman aşımını kullanır. Android durdurması kalan sayfaları sonraki uygun işe bırakır. 6 sayfa/90 saniye yerel kaynak sınırlarıdır, sunucunun güvenli kotası değildir.
+
+Her sayfa hemen şifreli kasaya kaydedilir. Turun az önce kaydettiği değişmemiş MORE kaydı, yalnız o tur içinde devam rezervasyonunun 15 dakikalık sonraki-iş hedefini beklemeden ilerleyebilir. Son sayfası gözlenmiş bir yönün 24 saatlik yeniden tarama hedefi bu yolla aşılamaz. Elle yeniden okuma, silme, oturum/seçim değişimi, iptal, izin kaybı veya genel mola sonraki isteği durdurur. Ortak taşıma başka okumayla meşgulse bu tur biter; bu yerel TOO_SOON sinyali bir 24 saatlik sunucu hatası diye kaydedilmez.
+
+İlk beklenen hata veya HTTP 200 LIMITED/UNKNOWN/STALLED sonucu bütün turu durdurur; diğer yöne yedek istek yoktur. Alınan sayfalar korunur. 429, doğrulama ve kapasite politikası değişmedi. Uçlar, oturum aktarımı, sayfa boyutu tercihi ve fark bildirimi koşulları değişmedi. Canlı Instagram çok sayfalı davranışı bu geliştirmede ölçülmedi.

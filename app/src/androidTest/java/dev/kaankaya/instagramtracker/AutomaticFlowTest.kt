@@ -27,12 +27,20 @@ class AutomaticFlowTest {
     private var now = System.currentTimeMillis()
     private var phase = 0
     private var requests = 0
+    private var onPause: () -> Unit = {}
+    private val runtime = object : AutomaticRuntime {
+        override fun now() = now
+        override fun elapsed() = now
+        override fun pause(milliseconds: Long, cancelled: () -> Boolean): Boolean {
+            now += milliseconds; onPause(); return !cancelled()
+        }
+    }
     private fun saved() = SavedAccount(session, Profile("100", "own", 3, 1, 1000),
         listOf(TrackedPerson(listOf(Profile("200", "friend", 3, 1, 1000)), "note", "group", favorite = true)),
         ListAutomation(true, setOf("200")))
     @Before fun prepare() {
         check(context.packageName.endsWith(".debug")); preferences.edit().clear().commit(); lists.clear()
-        now = System.currentTimeMillis(); phase = 0; requests = 0; vault.write(saved())
+        now = System.currentTimeMillis(); phase = 0; requests = 0; onPause = {}; vault.write(saved())
     }
     @After fun cleanup() {
         vault.clear(); lists.clear(); preferences.edit().clear().commit(); ChangeNotifications(context).clear()
@@ -50,12 +58,12 @@ class AutomaticFlowTest {
     }
     private fun api() = InstagramApi(gate()) { throw AssertionError("This test must not send a profile request") }
     private fun engine(source: FollowListSource, notify: (Session, Profile, ListDifference) -> Unit = { _, _, _ -> }) =
-        AutomaticEngine(vault, lists, gate(), api(), source, { true }, { throw AssertionError("No profile notification expected") }, notify)
+        AutomaticEngine(vault, lists, gate(), api(), source, { true }, { throw AssertionError("No profile notification expected") }, notify, runtime)
     private fun shell(command: String) = instrumentation.uiAutomation.executeShellCommand(command).use {
         android.os.ParcelFileDescriptor.AutoCloseInputStream(it).bufferedReader().readText()
     }
-    private fun await(message: String, predicate: () -> Boolean) {
-        val deadline = SystemClock.elapsedRealtime() + 5000
+    private fun await(message: String, timeout: Long = 5000, predicate: () -> Boolean) {
+        val deadline = SystemClock.elapsedRealtime() + timeout
         while (SystemClock.elapsedRealtime() < deadline) { if (predicate()) return; Thread.sleep(30) }
         fail(message)
     }
@@ -72,12 +80,12 @@ class AutomaticFlowTest {
             val count = requests; engine.tick(now); assertEquals(count, requests)
             now += MonitorPolicy.POLL_MS
         }
-        repeat(3) { step() }
+        step()
         assertEquals(3, requests)
         assertEquals(listOf("1", "2", "3"), FollowListVault(context, "autolists").read(session, "200")!!.followers!!.users.map { it.id })
         assertTrue(context.getSystemService(NotificationManager::class.java).activeNotifications.none { it.tag.startsWith("list:") })
         phase = 1; now += ListAutomationPolicy.RESCAN_MS
-        repeat(3) { step() }
+        step()
         assertEquals(6, requests); assertEquals(6L, gate().attempts())
         val target = FollowListVault(context, "autolists").target(session, "200")!!
         val difference = ListAutomationPolicy.difference(target, FollowDirection.FOLLOWERS)!!
@@ -101,6 +109,105 @@ class AutomaticFlowTest {
         assertNull(lists.read(session.copy(userId = "999"), "200"))
         assertNull(lists.read(session.copy(mobileBinding = "b".repeat(32)), "200"))
         lists.clearTarget(session, "100"); assertEquals(first, lists.read(session, "200"))
+    }
+    @Test fun aHundredFollowersAndFollowingFinishInOneSpacedRound() {
+        val order = mutableListOf<Pair<FollowDirection, Long>>()
+        val start = now
+        val transport = source { id, direction, cursor ->
+            order += direction to now
+            if (direction == FollowDirection.FOLLOWING) page(id, direction, cursor, listOf("999"))
+            else page(id, direction, cursor, (if (cursor == null) 1..50 else 51..100).map { it.toString() },
+                if (cursor == null) "page2" else null)
+        }
+        engine(transport).tick(now)
+        assertEquals(listOf(FollowDirection.FOLLOWERS, FollowDirection.FOLLOWING, FollowDirection.FOLLOWERS), order.map { it.first })
+        assertEquals(listOf(start, start + 15000, start + 30000), order.map { it.second })
+        val snapshot = lists.read(session, "200")!!
+        assertEquals(100, snapshot.followers!!.users.size); assertEquals(FollowCoverage.END_OBSERVED, snapshot.followers!!.coverage())
+        assertEquals(FollowCoverage.END_OBSERVED, snapshot.following!!.coverage())
+        engine(transport).tick(now); assertEquals(3, requests)
+    }
+    @Test fun sixPageCapResumesSavedCursorsAfterRestartWithoutSwitchingTargets() {
+        vault.write(saved().copy(people = saved().people + TrackedPerson(listOf(Profile("300", "other", 1, 1, 1000))),
+            automation = ListAutomation(true, linkedSetOf("200", "300"))))
+        val transport = source { id, direction, cursor ->
+            assertEquals("200", id)
+            page(id, direction, cursor, listOf(requests.toString()), "cursor$requests")
+        }
+        engine(transport).tick(now); assertEquals(6, requests); assertNull(lists.read(session, "300"))
+        val snapshot = lists.read(session, "200")!!
+        assertEquals(3, snapshot.followers!!.pages.size); assertEquals(3, snapshot.following!!.pages.size)
+        // Keep only this target selected so the next round can prove persisted continuation.
+        vault.update(session) { it.copy(automation = it.automation.copy(targets = setOf("200"))) }
+        now += MonitorPolicy.POLL_MS
+        var resumed: String? = null
+        val second = source { id, direction, cursor ->
+            if (resumed == null) resumed = cursor
+            page(id, direction, cursor, listOf("99"))
+        }
+        engine(second).tick(now)
+        assertEquals("cursor5", resumed); assertEquals(8, requests)
+        assertEquals(4, FollowListVault(context, "autolists").read(session, "200")!!.followers!!.pages.size)
+    }
+    @Test fun uncertainLimitedAndStalledPagesStopTheWholeRound() {
+        for (coverage in listOf(FollowCoverage.UNKNOWN, FollowCoverage.LIMITED, FollowCoverage.STALLED)) {
+            prepare()
+            val transport = source { id, direction, cursor ->
+                when (coverage) {
+                    FollowCoverage.UNKNOWN -> page(id, direction, cursor, listOf("1")).copy(next = FollowField(false, null), hasMore = FollowField(false, null))
+                    FollowCoverage.LIMITED -> page(id, direction, cursor, listOf("1")).copy(limited = FollowField(true, true))
+                    else -> page(id, direction, cursor, emptyList(), "empty")
+                }
+            }
+            engine(transport).tick(now); assertEquals(1, requests)
+            assertEquals(coverage, lists.read(session, "200")!!.followers!!.coverage()); assertNull(lists.read(session, "200")!!.following)
+        }
+    }
+    @Test fun secondRequest429PreservesTheFirstPageAndStopsContinuation() {
+        val transport = source { id, direction, cursor ->
+            if (requests == 2) { gate().limited(null, now); throw ApiFailure(ApiFailure.Kind.LIMITED) }
+            page(id, direction, cursor, listOf("1"), "next")
+        }
+        assertEquals(ApiFailure.Kind.LIMITED, assertThrows(ApiFailure::class.java) { engine(transport).tick(now) }.kind)
+        assertEquals(2, requests); assertEquals(1, lists.read(session, "200")!!.followers!!.pages.size)
+        assertNull(lists.read(session, "200")!!.following); assertTrue(gate().manualOnly())
+        now += ListAutomationPolicy.RESCAN_MS; engine(transport).tick(now); assertEquals(2, requests)
+    }
+    @Test fun changesDuringTheGapStopBeforeTheNextRequestAndKeepCommittedPages() {
+        for (action in listOf("cancel", "disable", "session", "clear", "manual", "hold")) {
+            prepare(); var cancelled = false
+            onPause = {
+                onPause = {}
+                when (action) {
+                    "cancel" -> cancelled = true
+                    "disable" -> vault.update(session) { it.copy(automation = ListAutomation()) }
+                    "session" -> vault.write(saved().copy(session = session.copy(userAgent = "new-UA")))
+                    "clear" -> lists.clear()
+                    "manual" -> lists.commit(session, page("200", FollowDirection.FOLLOWERS, null, listOf("99"), time = now + 1))
+                    "hold" -> gate().setMobileLinkActive(true)
+                }
+            }
+            engine(source { id, direction, cursor -> page(id, direction, cursor, listOf("1"), "next") }).tick(now, { cancelled })
+            assertEquals(action, 1, requests)
+            if (action != "clear") assertEquals(if (action == "manual") listOf("99") else listOf("1"),
+                lists.read(session, "200")!!.followers!!.users.map { it.id })
+        }
+    }
+    @Test fun elapsedRoundBudgetStopsNewRequestsEvenBeforeThePageCap() {
+        val transport = source { id, direction, cursor -> now += 35000; page(id, direction, cursor, listOf(requests.toString()), "next$requests") }
+        engine(transport).tick(now)
+        assertEquals(3, requests); assertEquals(2, lists.read(session, "200")!!.followers!!.pages.size)
+    }
+    @Test fun aBusyManualRequestEndsTheRoundWithoutDiscardingTheSavedCursor() {
+        var lease: AutoCloseable? = null
+        onPause = { onPause = {}; lease = gate().claim() }
+        try {
+            val transport = source { id, direction, cursor -> page(id, direction, cursor, listOf("1"), "next") }
+            assertEquals(ApiFailure.Kind.TOO_SOON, assertThrows(ApiFailure::class.java) { engine(transport).tick(now) }.kind)
+            assertEquals(1, requests); val target = lists.target(session, "200")!!
+            assertTrue(target.followers.continuing); assertNull(target.following.failure)
+            assertTrue(target.following.nextAt < now + ListAutomationPolicy.RESCAN_MS)
+        } finally { lease?.close() }
     }
     @Test fun serverRestrictionSurvivesRestartAndStopsFurtherAutomaticRequests() {
         val transport = source { _, _, _ -> gate().observedStatus(429); gate().limited("3600", now); throw ApiFailure(ApiFailure.Kind.LIMITED) }
@@ -207,7 +314,7 @@ class AutomaticFlowTest {
         assertEquals(saved().people, vault.read()!!.people)
         assertTrue(vault.read()!!.automation.ownNextCheckAt >= now + ListAutomationPolicy.OWN_PROFILE_MS)
     }
-    @Test fun realAndroidJobReadsAnOwnListWithNoActivityOpenAndDoesNotBurstPages() {
+    @Test fun realAndroidJobCompletesBothDirectionsAndContinuationInOneActivationWithNoActivityOpen() {
         if (Build.VERSION.SDK_INT >= 33) shell("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")
         val seed = PreviewMode.seed(true)!!
         val previewVault = SessionVault(context, "previewaccount"); val previewLists = FollowListVault(context, "previewlists")
@@ -219,8 +326,14 @@ class AutomaticFlowTest {
         shell("cmd jobscheduler run -f ${context.packageName} ${PreviewMode.JOB_ID}")
         await("The Android job did not save its first list page") { previewLists.read(seed.session, "100")?.followers != null }
         assertEquals(1L, previewGate.attempts()); assertEquals(1, previewLists.read(seed.session, "100")!!.followers!!.pages.size)
-        shell("cmd jobscheduler run -f ${context.packageName} ${PreviewMode.JOB_ID}")
-        assertEquals(1L, previewGate.attempts())
+        val firstAt = previewGate.lastAttemptAt()
+        await("The same Android job did not finish both lists", 45000) {
+            val snapshot = previewLists.read(seed.session, "100")
+            snapshot?.followers?.coverage() == FollowCoverage.END_OBSERVED && snapshot.following?.coverage() == FollowCoverage.END_OBSERVED
+        }
+        assertEquals(3L, previewGate.attempts()); assertTrue(previewGate.lastAttemptAt() - firstAt >= 30000)
+        assertEquals(3, previewLists.read(seed.session, "100")!!.followers!!.users.size)
+        shell("cmd jobscheduler run -f ${context.packageName} ${PreviewMode.JOB_ID}"); assertEquals(3L, previewGate.attempts())
         previewVault.update(seed.session) { it.copy(automation = ListAutomation()) }
         assertFalse(PreviewMode.sync(context, previewVault.read(), previewGate))
         assertNull(context.getSystemService(JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))

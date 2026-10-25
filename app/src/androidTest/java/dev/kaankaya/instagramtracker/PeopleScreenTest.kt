@@ -238,13 +238,16 @@ class PeopleScreenTest {
                 "pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
         }
         val gate = RequestGate(context, "preview_gate"); gate.limited(null)
-        launch(); click("Otomasyonu ayarla"); dialogClick("Seçilenlerde başlat")
+        launch(); click("Otomasyonu ayarla"); dialogClick("Başlat")
         awaitLabel("Liste otomasyonu açık")
         val vault = SessionVault(context, "previewaccount"); val saved = vault.read()!!
         assertEquals(setOf("100", "200", "201"), saved.automation.targets)
         assertTrue(saved.people.all { it.watching }); assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
         scenario!!.recreate(); awaitLabel("Liste otomasyonu açık")
         assertEquals(saved, vault.read()); assertEquals(0L, gate.attempts())
+        click("Otomasyon durumu"); dialogClick("Yenile"); dialogClick("Nasıl çalışır?"); dialogClick("Liste kayıtlarını temizle")
+        dialogClick("İptal")
+        assertEquals(saved, vault.read()); assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
         click("Liste otomasyonunu durdur"); awaitLabel("Liste otomasyonu kapalı")
         assertFalse(vault.read()!!.automation.enabled); assertTrue(vault.read()!!.people.all { it.watching })
         assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())

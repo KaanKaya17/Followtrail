@@ -80,6 +80,19 @@ class ListAutomationTest {
         assertTrue(AutomaticQueue.next(noPeople, archive, 4000000) is AutomaticTask.Own)
         assertThrows(Exception::class.java) { AutomaticQueue.next(account, archive.copy(owner = "999"), 4000000) }
     }
+    @Test fun onlyTheExactContinuingRunCanBypassTheNextRoundDeadline() {
+        val target = ListAutomationPolicy.record(ListTarget("200"), session, page(1000, listOf("1"), next = "next"))
+        val direction = FollowDirection.FOLLOWERS
+        val run = target.snapshot!!.followers!!
+        assertNull(AutomaticQueue.page(target, direction, 2000))
+        assertEquals("next", AutomaticQueue.page(target, direction, 2000, run)!!.cursor)
+        val restarted = ListAutomationPolicy.record(target, session, page(3000, listOf("2"), next = "new"))
+        assertNull(AutomaticQueue.page(restarted, direction, 4000, run))
+        val ended = ListAutomationPolicy.record(target, session, page(3000, listOf("2"), cursor = "next"))
+        assertNull(AutomaticQueue.page(ended, direction, 4000, ended.snapshot!!.followers))
+        val capacity = target.withScan(direction, target.followers.copy(failure = ApiFailure.Kind.CAPACITY))
+        assertNull(AutomaticQueue.page(capacity, direction, 2000, run))
+    }
     @Test fun capacityPausedDirectionIsSkippedWhileOtherWorkCanContinue() {
         val account = saved().copy(automation = ListAutomation(true, setOf("200")))
         val archive = ListArchive("100", session.mobileBinding, listOf(ListTarget("200", followers = ListScan(failure = ApiFailure.Kind.CAPACITY))))

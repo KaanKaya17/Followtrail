@@ -9,5 +9,28 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowBackground">#FAF9F6</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:alertDialogTheme">@style/TrackerDialogTheme</item>
+    </style>
+    <style name="TrackerDialogTheme" parent="android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#674BD8</item>
+        <item name="android:colorControlHighlight">#18674BD8</item>
+        <item name="android:colorBackground">#F8F5FF</item>
+        <item name="android:colorBackgroundFloating">#F8F5FF</item>
+        <item name="android:textColorPrimary">#252339</item>
+        <item name="android:textColorSecondary">#6F6D81</item>
+        <item name="android:windowBackground">@drawable/dialog_surface</item>
+        <item name="android:backgroundDimAmount">0.38</item>
+        <item name="android:windowMinWidthMajor">90%</item>
+        <item name="android:windowMinWidthMinor">92%</item>
+        <item name="android:buttonBarButtonStyle">@style/TrackerDialogButton</item>
+    </style>
+    <style name="TrackerDialogButton" parent="android:style/Widget.Material.Button.Borderless">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">#674BD8</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
     </style>
 </resources>

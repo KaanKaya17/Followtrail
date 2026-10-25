@@ -1,4 +1,14 @@
-# 0.1.11 arayüzünü inceleme
+# 0.1.15 diyaloglarını inceleme
+
+1. Güncellemeyi mevcut uygulamanın üzerine kur; kaldırma/veri temizleme yapma. Kayıtlar ve otomasyon seçimleri kalmalı.
+2. Otomasyonu ayarla penceresi yumuşak mor zeminli, yuvarlatılmış köşeli olmalı. Seçimler ve Başlat/İptal/Nasıl çalışır? okunmalı; sistem yazısını büyütüp kaydırmayı da dene.
+3. Otomasyon durumu → Yenile yalnız yerel kayıtları yeniden gösterir. Satıra basmak kayıtlı listeyi açar. Liste kayıtlarını temizle artık Nasıl çalışır? içinde; ayrı onayı İptal edince veri kalmalı.
+4. Kişi ekle ve Not ve grup pencerelerini klavye açıkken dene. Alanlar, kaydırma ve Kaydet/Vazgeç düğmeleri erişilebilir olmalı. Kişiyi kaldır onayından vazgeç.
+5. Değişiklik bildirimi ve Kaydın kapsamı pencerelerini aç. Uzun açıklamalar kaydırılmalı; sistem Geri düğmesi pencereyi kapatmalı.
+
+Bu görsel inceleme için yeni Instagram verisi çekmek gerekmez. Çok sayfalı otomasyon denemesi [ayrı kılavuzda](AUTOMATION-TEST.md).
+
+## Önceki ana ekran kontrolleri
 
 1. `InstagramTracker-0.1.11.apk` dosyasını mevcut uygulamanın üzerine güncelleme olarak kur. Uygulamayı kaldırma veya verilerini temizleme. Yeni arayüz için hesabını yeniden bağlaman gerekmez.
 2. Ana sayfada kendi kullanıcı adını ve önceki sayıları kontrol et. İki renkli sayı kartı, ilgili takipçi/takip edilen ekranını açar; bu geçiş okuma başlatmaz.

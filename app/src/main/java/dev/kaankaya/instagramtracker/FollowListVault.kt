@@ -75,20 +75,20 @@ class FollowListVault(context: Context, slot: String = "followlists") {
     private fun matches(target: ListTarget, task: AutomaticTask.Page) =
         target.snapshot?.run(task.direction)?.latest?.observedAt == task.previousObservation &&
             (if (target.scan(task.direction).continuing) target.snapshot?.run(task.direction)?.cursor() else null) == task.cursor
-    fun reserve(session: Session, task: AutomaticTask.Page, now: Long) = synchronized(lock) {
+    fun reserve(session: Session, task: AutomaticTask.Page, now: Long, continuationOf: FollowRun? = null) = synchronized(lock) {
         val archive = archive(session)
         val target = archive.targets.firstOrNull { it.target == task.target } ?: ListTarget(task.target)
-        if (!matches(target, task) || target.scan(task.direction).nextAt > now) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        if (!matches(target, task) || AutomaticQueue.page(target, task.direction, now, continuationOf) != task) throw ApiFailure(ApiFailure.Kind.CANCELLED)
         write(archive.replace(target.withScan(task.direction, target.scan(task.direction).copy(attemptAt = now, nextAt = now + MonitorPolicy.POLL_MS))))
     }
-    fun commitAutomatic(session: Session, task: AutomaticTask.Page, attemptAt: Long, page: FollowPage): ListDifference? = synchronized(lock) {
+    fun commitAutomatic(session: Session, task: AutomaticTask.Page, attemptAt: Long, page: FollowPage): ListPageCommit = synchronized(lock) {
         val archive = archive(session)
         val target = archive.targets.firstOrNull { it.target == task.target } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
         if (!matches(target, task) || target.scan(task.direction).attemptAt != attemptAt) throw ApiFailure(ApiFailure.Kind.CANCELLED)
         require(page.target == task.target && page.direction == task.direction && page.inputCursor == task.cursor)
         val next = ListAutomationPolicy.record(target, session, page)
         write(archive.replace(next))
-        ListAutomationPolicy.difference(next, task.direction)?.takeIf { it.added.isNotEmpty() || it.missing.isNotEmpty() }
+        ListPageCommit(next, ListAutomationPolicy.difference(next, task.direction)?.takeIf { it.added.isNotEmpty() || it.missing.isNotEmpty() })
     }
     fun failed(session: Session, task: AutomaticTask.Page, attemptAt: Long, failure: ApiFailure.Kind) = synchronized(lock) {
         val archive = archive(session)

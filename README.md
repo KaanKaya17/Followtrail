@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.14**. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Profil geçmişinde kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi mevcut profil yanıtından alınır; görsel dosyası indirilmez. İsteğe bağlı liste otomasyonu ayrıca aşağıda açıklanır. Eski oturum ve kayıtlar korunur. Çalışan 0.1.8 ve önceki 0.1.9 kaynak/APK yedekleri korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.15**. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Profil geçmişinde kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi mevcut profil yanıtından alınır; görsel dosyası indirilmez. İsteğe bağlı liste otomasyonu ayrıca aşağıda açıklanır. Eski oturum ve kayıtlar korunur. Çalışan 0.1.8 ve önceki 0.1.9 kaynak/APK yedekleri korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
 
 25 Ekim fiziksel telefon testinde kullanıcı, mobil bağlantıyla kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi. Bu canlı sonuç 0.1.8'e aittir; yeni arayüz kontrolleri ayrı debug paketi ve sentetik veri kullanır. Çok sayfalı canlı devam ve uzun süreli oturum henüz sınanmadı. [Liste testi](docs/FOLLOW-LISTS-TEST.md).
 
@@ -27,13 +27,13 @@ Bağlantı için Windows'taki mobil oturumu şifreli aktarma ve önceki uygulama
 
 ## Liste otomasyonu
 
-Özet → **Otomatik takip → Otomasyonu ayarla**. Kendi hesabını ve izlenecek kayıtlı kişileri seçip **Seçilenlerde başlat** de. Bir kez açıldıktan sonra İlk sayfa / Sonraki sayfa düğmelerine basmak gerekmez. Mobil bağlantı ve açık bildirim izni gerekir. Eski sürüm güncellemesinde varsayılan kapalıdır; mevcut kişi profil ayarları korunur.
+Özet → **Otomatik takip → Otomasyonu ayarla**. Kendi hesabını ve izlenecek kayıtlı kişileri seçip **Başlat** de. Bir kez açıldıktan sonra İlk sayfa / Sonraki sayfa düğmelerine basmak gerekmez. Mobil bağlantı ve açık bildirim izni gerekir. Eski sürüm güncellemesinde varsayılan kapalıdır; mevcut kişi profil ayarları korunur.
 
 - Kendi hesabın seçiliyse profili yaklaşık saatte bir kontrol için sıraya girer; seçili kişilerin profil bildirimleri mevcut aralıklarıyla açılır.
 - Takipçi/takip edilen sayfaları sırayla okunur; cursor ve rezervasyon cihazda kalır. Normal uygulama kapanışı sonrası sonraki iş kaldığı yerden devam edebilir. Zorla durdurma sonrası Android uygulamanın yeniden açılmasını gerektirebilir.
-- Profil ve liste işleri aynı en az 15 dakikalık otomatik bütçeyi paylaşır; her iş yalnız bir okuma yapar. İkisi de hazırsa dönüşümlü çalışır. Büyük/çok listelerde tarama saatler veya günler sürebilir; 15 dakika her kişinin tam listesinin yenilenmesi değildir.
+- Profil ve liste turları ortak en az 15 dakika aralığıyla başlar; ikisi de hazırsa dönüşümlüdür. Bir liste turunda aynı hedefin iki yönü en fazla 6 sayfa ilerler; istek başlangıçları arasında en az 15 saniye vardır. İlk 90 saniyeden sonra yeni istek başlatılmaz; devam eden istek kendi zaman aşımını kullanır. Büyük/çok listelerde tarama saatler veya günler sürebilir; 15 dakika her kişinin tam listesinin yenilenmesi değildir.
 - Liste sonu gözlendikten sonra yeni tarama 24 saat sonrasına hedeflenir. İlk okuma başlangıçtır; iki ayrı okumada da liste sonu gözlendiyse fark bildirimi üretilebilir. Bu, Instagram sonuçlarının eksiksiz/aynı anda alındığını kanıtlamaz. Bildirimler kesin takip/takipten çıkış iddiası değildir.
-- **Otomasyon durumu** ilerlemeyi/hataları gösterir; satırdan kayıtlı liste açılır. **Nasıl çalışır?** molayı/kapsamı açıklar. Liste otomasyonunu durdurmak kişilerin ayrı profil bildirimlerini kapatmaz.
+- **Otomasyon durumu** ilerlemeyi/hataları gösterir; satırdan kayıtlı liste açılır. **Yenile** yalnız yerel durumu günceller. **Nasıl çalışır?** molayı/kapsamı açıklar ve onaylı liste temizliğini içerir. Liste otomasyonunu durdurmak kişilerin ayrı profil bildirimlerini kapatmaz.
 - Önceki/güncel liste okumaları en fazla 21 hedef için aynı şifreli 512 KiB bütçeyi paylaşır. Dolarsa önceki kayıt korunur; kaydedilemeyen yönde tarama duraklar. Gerekirse onaylı **Liste kayıtlarını temizle** ile başlangıçları kaldırabilirsin; bu işlem Instagram 429 molasını sıfırlamaz.
 
 [Test adımları ve sınırlar](docs/AUTOMATION-TEST.md).
@@ -59,7 +59,7 @@ Prototip açıkken otomatik kontroller duraklar. **Denemeyi bitir** tarayıcı v
 
 ## İstekler ve sınırlama
 
-Bütün profil okumaları aynı kalıcı en az 15 saniye aralığını ve tek etkin bağlantıyı kullanır. Kayıtlı aynı profilin 15 dakika içindeki başarılı gözlemi yeni istek göndermeden kullanılır. Bu süreler Instagram güvenli kota garantisi değildir. [İstek politikası, 429 dayanakları ve test sınırı](docs/REQUEST-POLICY.md). Otomatik okumalar ortak 15 dakikalık bütçeyi paylaşır; her arka plan çalışmasında yalnız sıradaki bir profil veya liste sayfası sorgulanır. 20 kişi açıkken herkesin saatte bir kontrol edilmesi beklenmemelidir. Kişi bazındaki süre başarısız istekten önce de ayrılır. Toplu takipçi taraması, farklı uçlara tekrar deneme veya otomatik yeniden giriş yoktur. Düğmeler istek sırasında kapanır; ekranın eski isteği iptal edilirse geç yanıt kaydedilmez.
+Bütün profil okumaları aynı kalıcı en az 15 saniye aralığını ve tek etkin bağlantıyı kullanır. Kayıtlı aynı profilin 15 dakika içindeki başarılı gözlemi yeni istek göndermeden kullanılır. Bu süreler Instagram güvenli kota garantisi değildir. [İstek politikası, 429 dayanakları ve test sınırı](docs/REQUEST-POLICY.md). Otomatik okumalar ortak 15 dakikalık bütçeyi paylaşır; her arka plan çalışmasında sıradaki bir profil veya aynı hedefin en fazla 6 liste sayfası sorgulanır (en az 15 saniye aralıklı, 90 saniyelik yeni istek başlatma bütçesi). 20 kişi açıkken herkesin saatte bir kontrol edilmesi beklenmemelidir. Kişi bazındaki süre başarısız istekten önce de ayrılır. Sınırsız tarama, farklı uçlara tekrar deneme veya otomatik yeniden giriş yoktur. İlk hata veya sınırlı/belirsiz sayfa liste turunu durdurur. Düğmeler istek sırasında kapanır; ekranın eski isteği iptal edilirse geç yanıt kaydedilmez.
 
 Bildirim izni/kanalı kapalıysa arka plan sorgusu yapılmaz. Oturum veya doğrulama hatasında otomatik çalışma yeniden bağlantıya kadar durur. İzlemeyi kapatmak, kişiyi silmek veya bağlantıyı kaldırmak ilgili işi/bildirimi iptal eder. Bildirim ayrıntıları kilit ekranında gizli olarak işaretlenir; son görünüm Android ve kullanıcının sistem ayarlarına bağlıdır. Bildirim yalnız iki gözlem arasındaki net farkı gösterir; aradaki bütün hareketleri göstermez.
 

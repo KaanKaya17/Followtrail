@@ -382,18 +382,23 @@ class MainActivity : Activity() {
             AlertDialog.Builder(this).setTitle(R.string.auto_progress).setItems(descriptions.toTypedArray()) { _, index ->
                 val (profile, direction) = rows[index]; openLists(profile, direction)
             }.setNeutralButton(R.string.auto_how) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_progress)
-                .setMessage(gateReason + "\n\n" + getString(R.string.auto_full_scope)).setPositiveButton(R.string.list_close, null).show() }
+                .setMessage(gateReason + "\n\n" + getString(R.string.auto_full_scope)).setPositiveButton(R.string.list_close, null)
                 .setNegativeButton(R.string.auto_clear_cache) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_clear_cache)
                     .setMessage(R.string.auto_clear_cache_confirm).setNegativeButton(R.string.list_cancel, null)
                     .setPositiveButton(R.string.auto_clear_cache) { _, _ ->
                         try {
-                            FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
-                            gate.clearListCapacityPause(); syncMonitoring()
+                            vault.inspect { current ->
+                                if (current?.session != saved.session) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                                FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
+                                gate.clearListCapacityPause()
+                            }
+                            syncMonitoring()
                             archive.targets.forEach { ChangeNotifications(this, preview).cancelLists(saved.session.userId, it.target) }
                             message = getString(R.string.auto_cache_cleared)
                         }
                         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }; render()
-                    }.show() }
+                    }.show() }.show() }
+                .setNegativeButton(R.string.auto_refresh_status) { _, _ -> automationProgress() }
                 .setPositiveButton(R.string.list_close, null).show()
         } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(); render() }
     }
