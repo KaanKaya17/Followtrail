@@ -112,6 +112,20 @@ class AvatarImagesTest {
             assertTrue("Visible avatar did not start loading", entered.await(5, TimeUnit.SECONDS)); assertEquals(1, calls.get())
         } finally { scenario.close() }
     }
+    @Test fun lifecycleCancellationAndFetcherCleanupNeverRunOnTheUiThread() {
+        val entered = CountDownLatch(1); val cancelled = CountDownLatch(1); val closed = CountDownLatch(1)
+        val onUi = java.util.concurrent.atomic.AtomicBoolean(false)
+        val images = loader(object : AvatarFetcher {
+            override fun open(url: okhttp3.HttpUrl) = object : AvatarDownload {
+                override fun read(): ByteArray? { entered.countDown(); try { cancelled.await(5, TimeUnit.SECONDS) } catch (_: InterruptedException) { }; return null }
+                override fun cancel() { if (Looper.myLooper() == Looper.getMainLooper()) onUi.set(true); cancelled.countDown() }
+            }
+            override fun close() { if (Looper.myLooper() == Looper.getMainLooper()) onUi.set(true); closed.countDown() }
+        })
+        images.load(source) { fail("Cancelled image") }; assertTrue(entered.await(5, TimeUnit.SECONDS))
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { images.close(); images.close() }
+        assertTrue(cancelled.await(5, TimeUnit.SECONDS)); assertTrue(closed.await(5, TimeUnit.SECONDS)); assertFalse(onUi.get())
+    }
     @Test fun aReboundAvatarCannotShowThePreviousPersonsLateImage() {
         val entered = CountDownLatch(1); val release = CountDownLatch(1)
         val images = loader(AvatarFetcher { url -> object : AvatarDownload {

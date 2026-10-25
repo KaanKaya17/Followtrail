@@ -1,5 +1,11 @@
 # Veri ve ağ sınırları
 
+## 0.1.17 uygulama içi üye profili
+
+Listeye dokunmak artık dış uygulamayı açmaz. Yeni, dışa kapalı profil ekranı bağlı viewer ve yerel listedeki üye kimliğini doğrular. Kayıtlı taze profil tekrar okunmaz; eski/kayıtsız profil ilk açılışta mevcut profil okuyucusuyla bir kez okunabilir. İstek aralığı, 429 ve bağlantı/doğrulama molaları korunur. Geri dönüş/yeniden oluşturma otomatik tekrar değildir. Instagram’a gitmek ayrı düğmedir; bu intent oturum bilgisi taşımaz.
+
+Kayıtlı olmayan profil kendiliğinden kişi veya otomatik izleme hedefine dönüşmez. Ayrıntılar yalnız ekran belleğinde tutulur; Kişilere ekle seçilirse mevcut şifreli kişi kaydına açık kullanıcı eylemiyle eklenir. Kayıtlı kişide yeni başarılı gözlem mevcut geçmiş/bildirim kurallarını kullanır. Yeni izin, servis veya veri biçimi yoktur.
+
 ## 0.1.16 güncel görsel ve dış bağlantı davranışı
 
 Görünür hesap fotoğrafları, mevcut profil/liste yanıtındaki HTTPS cdninstagram.com veya fbcdn.net bağlantısından indirilebilir. Ek üye/profil API sorgusu yapılmaz. Bu ayrı görsel istemcisine Instagram oturumu, Authorization veya çerez verilmez; otomatik yönlendirme ve bağlantı tekrarı kapalıdır. En çok iki görünür görsel yüklemesi ve sınırlı bekleme kuyruğu vardır. Ekrandan ayrılma/satırın yeniden kullanılması yüklemeyi iptal eder. Eksik, erişilemeyen, süresi bitmiş veya uygun biçimde olmayan görsel harfli simgeyle kalır; hesap/liste okuması bundan başarısız sayılmaz.

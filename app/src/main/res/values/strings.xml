@@ -3,7 +3,7 @@
     <string name="person_remove_confirm">@%1$s için bu cihazdaki profil geçmişi, not, favori, izleme ayarı ve liste kayıtları silinir. Instagram hesabında işlem yapılmaz.</string>
     <string name="profile_link_missing">Bu kayıtta geçerli kullanıcı adı yok; profil bağlantısı açılamıyor.</string>
     <string name="profile_link_unavailable">Instagram bağlantısını açabilecek bir uygulama bulunamadı.</string>
-    <string name="profile_open_description">Instagram profilini aç · @%1$s</string>
+    <string name="profile_open_description">Profili aç · @%1$s</string>
     <string name="auto_title">Otomatik takip</string>
     <string name="auto_enabled">Liste otomasyonu açık</string>
     <string name="auto_disabled">Liste otomasyonu kapalı</string>

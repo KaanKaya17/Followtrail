@@ -107,6 +107,12 @@ class AvatarCache(context: Context, slot: String = "avatars") {
 
 /** Activity-owned image work: two downloads, bounded queue, reusable rows and cancellable visibility. */
 class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAvatarFetcher(), slot: String = "avatars") : AutoCloseable {
+    companion object {
+        // TLS socket close can write close_notify. Lifecycle callers must never run it on the UI thread.
+        private val cleanup = java.util.concurrent.Executors.newSingleThreadExecutor { task ->
+            Thread(task, "avatar-cleanup").apply { isDaemon = true }
+        }
+    }
     private val main = Handler(Looper.getMainLooper())
     private val executor = ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(20))
     private val cache = AvatarCache(context, slot)
@@ -122,7 +128,8 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
         lateinit var future: FutureTask<Unit>
         fun active() = !cancelled.get() && !closed
         fun cancel() {
-            cancelled.set(true); download?.cancel(); future.cancel(true); executor.remove(future)
+            cancelled.set(true); download?.let { exchange -> cleanup.execute { exchange.cancel() } }
+            future.cancel(true); executor.remove(future)
             synchronized(jobs) { jobs.remove(this) }
         }
         fun run() {
@@ -178,7 +185,11 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
         failures.snapshot().keys.filter { prefix == null || it.startsWith(prefix) }.forEach { failures.remove(it) }
         cache.clear(owner, target)
     }
-    override fun close() { closed = true; cancelAll(); executor.shutdownNow(); fetcher.close(); main.removeCallbacksAndMessages(null); memory.evictAll() }
+    override fun close() {
+        if (closed) return
+        closed = true; cancelAll(); executor.shutdownNow(); main.removeCallbacksAndMessages(null); memory.evictAll()
+        cleanup.execute { fetcher.close() }
+    }
 }
 
 class ProfileAvatarView(context: Context, size: Int = 44) : FrameLayout(context) {

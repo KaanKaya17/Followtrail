@@ -40,7 +40,7 @@ object PreviewMode {
         override fun getInputStream(): InputStream {
             val id = if (name.isNotBlank()) (300 + name.hashCode().toLong().let { kotlin.math.abs(it) } % 100000).toString()
                 else url.path.split('/').getOrNull(4) ?: "100"
-            val username = when (id) { "100" -> "benim.demo"; "200" -> "deniz.demo"; "201" -> "ada.demo"; else -> name.ifBlank { "ornek.demo" } }
+            val username = when (id) { "100" -> "benim.demo"; "200" -> "deniz.demo"; "201" -> "ada.demo"; "501", "502", "503", "504" -> "kisi$id.demo"; else -> name.ifBlank { "ornek.demo" } }
             val followers = if (id == "200") 1356 else if (id == "201") 2056 else 988
             val user = if (name.isNotBlank()) JSONObject().put("id", id).put("username", username)
                 .put("edge_followed_by", JSONObject().put("count", followers))
@@ -48,6 +48,7 @@ object PreviewMode {
             else JSONObject().put("pk", id).put("username", username).put("follower_count", followers)
                 .put("following_count", 365).put("media_count", 46)
             user.put("biography", "Yeni duraklar, yeni hikâyeler. ☀️\nİstanbul")
+                .put("profile_pic_url", "https://cdninstagram.com/offline-demo/$id.png")
                 .put("profile_pic_id", "demo-picture-2").put("has_anonymous_profile_picture", false)
             val body = JSONObject().put("status", "ok").apply {
                 if (name.isNotBlank()) put("data", JSONObject().put("user", user)) else put("user", user)
