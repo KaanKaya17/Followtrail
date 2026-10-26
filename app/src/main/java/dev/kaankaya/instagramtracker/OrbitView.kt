@@ -35,9 +35,9 @@ class OrbitView(context: Context) : View(context) {
         paint.typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
         paint.textAlign = Paint.Align.CENTER
         paint.textSize = size*.12f
-        canvas.drawText("merhaba", cx, cy+size*.04f, paint)
+        canvas.drawText(context.getString(R.string.welcome_hello), cx, cy+size*.04f, paint)
         paint.textSize = size*.038f
         paint.color = AppUi.muted
-        canvas.drawText("ÇEVRENİ YAKINDAN TANI", cx, cy+size*.13f, paint)
+        canvas.drawText(context.getString(R.string.welcome_circle), cx, cy+size*.13f, paint)
     }
 }

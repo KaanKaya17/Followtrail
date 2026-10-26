@@ -1,0 +1,11 @@
+<resources>
+    <string name="language_menu">Language / Dil</string>
+    <string name="language_title">App language</string>
+    <string name="language_save_failed">Could not save your language preference. Please try again.</string>
+    <string name="welcome_hello">hello</string>
+    <string name="welcome_circle">GET TO KNOW YOUR CIRCLE</string>
+    <string name="limit_wait_signal">Instagram wait response</string>
+    <string name="limit_feedback_signal">Instagram action restriction</string>
+    <string name="limit_prototype_signal">HTTP 429 / prototype page</string>
+    <string name="limit_legacy_signal">Restriction recorded by an earlier version</string>
+</resources>

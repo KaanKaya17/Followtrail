@@ -12,7 +12,6 @@ import android.view.View
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 /** Plots only actual observations, spaced by their observation times. No inferred daily samples. */
 @SuppressLint("ViewConstructor") // Created programmatically with an explicit observation series; never inflated from XML.
@@ -25,10 +24,10 @@ class HistoryChartView(context: Context, private val observations: List<Profile>
     private val areaGradient = LinearGradient(0f, 0f, 0f, 1f, (accent and 0x00ffffff) or 0x28000000,
         accent and 0x00ffffff, Shader.TileMode.CLAMP)
     private val values = observations.map { if (followers) it.followers else it.following }
-    private val number = NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR"))
-    private fun date(time: Long) = SimpleDateFormat("d MMM HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(time))
+    private val number = NumberFormat.getIntegerInstance(AppLanguage.locale(context))
+    private fun date(time: Long) = SimpleDateFormat("d MMM HH:mm", AppLanguage.locale(context)).format(Date(time))
     init {
-        contentDescription = (if (followers) "Takipçi" else "Takip edilen") + " geçmiş grafiği. Yatay eksen gözlem zamanı, dikey eksen kişi sayısı. " +
+        contentDescription = (if (followers) context.getString(R.string.ui_followers) else context.getString(R.string.ui_following)) + context.getString(R.string.ui_history_chart_horizontal_axis_observation_time_vertical) +
             observations.zip(values).joinToString("; ") { (p, v) -> "${date(p.observedAt)}: ${number.format(v)}" }
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
     }
@@ -54,7 +53,7 @@ class HistoryChartView(context: Context, private val observations: List<Profile>
         canvas.drawLine(left, top, left, bottom, paint); canvas.drawLine(left, bottom, right, bottom, paint)
         canvas.drawText(number.format(high), 0f, y(high) + 4 * d, paint)
         if (low != high) canvas.drawText(number.format(low), 0f, bottom, paint)
-        canvas.drawText("Kişi sayısı", 0f, 12 * d, paint)
+        canvas.drawText(context.getString(R.string.ui_account_count), 0f, 12 * d, paint)
         canvas.drawText(date(observations.first().observedAt), left, bottom + 17 * d, paint)
         val end = date(observations.last().observedAt)
         canvas.drawText(end, maxOf(left, right - paint.measureText(end)), bottom + 32 * d, paint)

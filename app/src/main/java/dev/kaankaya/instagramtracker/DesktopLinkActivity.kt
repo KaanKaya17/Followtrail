@@ -1,6 +1,5 @@
 package dev.kaankaya.instagramtracker
 
-import android.app.Activity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,11 +9,10 @@ import android.widget.ScrollView
 import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
-class DesktopLinkActivity : Activity() {
+class DesktopLinkActivity : LocalizedActivity() {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private lateinit var gate: RequestGate
@@ -68,15 +66,15 @@ class DesktopLinkActivity : Activity() {
         page.addView(header, LinearLayout.LayoutParams(-1, dp(56)).apply { bottomMargin = dp(16) })
         val step = if (staged != null) 3 else if (prepared) 2 else 1
         val steps = LinearLayout(this)
-        listOf("1 · Hazırla", "2 · Aktar", "3 · Bağlan").forEachIndexed { index, title ->
+        listOf(getString(R.string.ui_1_prepare), getString(R.string.ui_2_transfer), getString(R.string.ui_3_connect)).forEachIndexed { index, title ->
             steps.addView(AppUi.text(this, title, 11f, if (step == index + 1) AppUi.violet else AppUi.muted, step == index + 1).apply {
                 gravity = android.view.Gravity.CENTER; setPadding(dp(6), dp(12), dp(6), dp(12))
                 background = AppUi.shape(this@DesktopLinkActivity, if (step == index + 1) AppUi.violetSoft else AppUi.background, 14)
             }, LinearLayout.LayoutParams(0, -2, 1f))
         }
         page.addView(steps, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(22) })
-        label(if (staged != null) "Aktarım hazır." else if (prepared) "Sıra bilgisayarında." else getString(R.string.desktop_link_title), 32f, accent)
-        label(if (staged != null) "Hazır olduğunda sayılarını al." else if (prepared) "Aktarımı çalıştır, sonra buradan devam et." else getString(R.string.desktop_link_intro), 16f)
+        label(if (staged != null) getString(R.string.ui_transfer_ready) else if (prepared) getString(R.string.ui_continue_on_your_computer) else getString(R.string.desktop_link_title), 32f, accent)
+        label(if (staged != null) getString(R.string.ui_load_your_counts_when_you_are_ready) else if (prepared) getString(R.string.ui_run_the_transfer_then_continue_here) else getString(R.string.desktop_link_intro), 16f)
         val mark = TextView(this).apply {
             text = ""; setPadding(dp(32), dp(32), dp(32), dp(32))
             setCompoundDrawablesWithIntrinsicBounds(null, AppUi.Icon(this@DesktopLinkActivity, if (staged != null) "check" else "link", accent, 48), null, null)
@@ -89,7 +87,7 @@ class DesktopLinkActivity : Activity() {
         else if (status.isNotEmpty()) label(status, 14f, AppUi.violet)
         val remaining = gate.nextPrototypeAt() - System.currentTimeMillis()
         if (staged != null && remaining > 0) label(getString(R.string.desktop_link_pause,
-            SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextPrototypeAt()))), 14f, AppUi.violet)
+            SimpleDateFormat("d MMM · HH:mm", AppLanguage.locale(this)).format(Date(gate.nextPrototypeAt()))), 14f, AppUi.violet)
         when {
             staged != null -> action(R.string.desktop_link_read, !attempted && remaining <= 0) {
                 val reference = staged ?: return@action
@@ -111,18 +109,18 @@ class DesktopLinkActivity : Activity() {
             }
         }
         if (staged != null) action(R.string.desktop_link_switch, primary = false) {
-            android.app.AlertDialog.Builder(this).setTitle("Başka hesap bağlansın mı?")
-                .setMessage("Bekleyen aktarım kaldırılır. Bağlı hesabın ve bekleme süren korunur.")
-                .setNegativeButton("Vazgeç", null).setPositiveButton("Devam et") { _, _ ->
+            android.app.AlertDialog.Builder(this).setTitle(getString(R.string.ui_confirm_connect_another_account))
+                .setMessage(getString(R.string.ui_the_pending_transfer_will_be_removed_your))
+                .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_continue)) { _, _ ->
                     execute({ MobileSessions(this).discardPending(); link.clear() }) {
                         staged = null; prepared = false; attempted = false; ""
                     }
                 }.show()
         }
         action(R.string.desktop_link_help, primary = false) {
-            android.app.AlertDialog.Builder(this).setTitle("Bilgisayardan bağlan")
-                .setMessage("1. Bilgisayardaki InstagramCounter uygulamasında test hesabını bağla.\n\n2. InstagramTracker klasöründe scripts/link-desktop.ps1 dosyasını çalıştır.\n\n3. Burada Aktarımı al'a dokun. Parola veya oturum bilgisi kopyalaman gerekmez.")
-                .setPositiveButton("Anladım", null).show()
+            android.app.AlertDialog.Builder(this).setTitle(getString(R.string.ui_connect_from_computer))
+                .setMessage(getString(R.string.ui_1_connect_your_test_account_in_instagramcounter))
+                .setPositiveButton(getString(R.string.ui_got_it), null).show()
         }
         val scroll = ScrollView(this).apply {
             setBackgroundColor(AppUi.background); isFillViewport = true
@@ -147,8 +145,8 @@ class DesktopLinkActivity : Activity() {
                 if (!isDestroyed && ticket == generation) {
                     busy = false
                     status = result.fold(onSuccess = { value ->
-                        try { success(value) } catch (_: Exception) { ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
-                    }, onFailure = { failure -> if ((failure as? ApiFailure)?.kind == ApiFailure.Kind.LIMITED) "" else (failure as? ApiFailure)?.userMessage() ?: getString(R.string.desktop_link_error) })
+                        try { success(value) } catch (_: Exception) { ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@DesktopLinkActivity) }
+                    }, onFailure = { failure -> if ((failure as? ApiFailure)?.kind == ApiFailure.Kind.LIMITED) "" else (failure as? ApiFailure)?.userMessage(this@DesktopLinkActivity) ?: getString(R.string.desktop_link_error) })
                     render()
                 }
             }
@@ -157,13 +155,13 @@ class DesktopLinkActivity : Activity() {
     private fun close() {
         ++generation; pending?.cancel(true); api.cancel()
         try { link.clear(); gate.setMobileLinkActive(false); finish() }
-        catch (_: Exception) { busy = false; status = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(); render() }
+        catch (_: Exception) { busy = false; status = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@DesktopLinkActivity); render() }
     }
     override fun onStop() {
         super.onStop()
-        if (busy) { ++generation; pending?.cancel(true); api.cancel(); busy = false; status = ApiFailure(ApiFailure.Kind.CANCELLED).userMessage() }
+        if (busy) { ++generation; pending?.cancel(true); api.cancel(); busy = false; status = ApiFailure(ApiFailure.Kind.CANCELLED).userMessage(this@DesktopLinkActivity) }
     }
-    override fun onResume() { super.onResume(); if (::gate.isInitialized && !busy) render() }
+    override fun onResume() { super.onResume(); if (!recreatingForLanguage && ::gate.isInitialized && !busy) render() }
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("attempted", attempted)
         staged?.let { outState.putString("binding", it.mobileBinding); outState.putString("owner", it.userId); outState.putString("ua", it.userAgent) }

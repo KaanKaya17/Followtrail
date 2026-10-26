@@ -1,7 +1,6 @@
 package dev.kaankaya.instagramtracker
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
@@ -20,12 +19,11 @@ import android.widget.TextView
 import android.widget.ImageView
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
 /** Manual list experiment. Opening/reopening this screen never sends a request. */
-class FollowListActivity : Activity() {
+class FollowListActivity : LocalizedActivity() {
     private val worker = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
     private lateinit var gate: RequestGate
@@ -60,7 +58,7 @@ class FollowListActivity : Activity() {
         preview = PreviewMode.enabled(this)
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
-        queuedRead = ForegroundReadQueue(gate) { reason -> message = reason; render() }
+        queuedRead = ForegroundReadQueue(this, gate) { reason -> message = reason; render() }
         accountVault = SessionVault(this, if (preview) "previewaccount" else "account")
         lists = FollowListVault(this, if (preview) "previewlists" else "followlists")
         source = PreviewMode.followLists(gate, preview)
@@ -119,7 +117,7 @@ class FollowListActivity : Activity() {
         val header = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
         header.addView(AppUi.iconButton(this, "back", getString(R.string.list_back)) { finish() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         val title = column().apply { setPadding(dp(12), 0, 0, 0) }
-        title.addView(AppUi.heading(this, "Listeler", 22f)); title.gap(4)
+        title.addView(AppUi.heading(this, getString(R.string.ui_lists), 22f)); title.gap(4)
         title.addView(AppUi.text(this, "@${target.username}", 12f, AppUi.muted).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
         header.addView(title, LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(AppUi.iconButton(this, "info", getString(R.string.list_info_title)) { showScope() }, LinearLayout.LayoutParams(dp(48), dp(48)))
@@ -139,26 +137,26 @@ class FollowListActivity : Activity() {
         navigationChrome.forEach { it.visibility = if (keyboardVisible) View.GONE else View.VISIBLE }
         val run = snapshot?.run(direction)
         val status = column().apply { setPadding(dp(14), dp(12), dp(14), dp(12)); background = AppUi.shape(this@FollowListActivity, AppUi.surface, 18, AppUi.line) }
-        status.addView(AppUi.text(this, "Cihazdaki kayıt", 11f, AppUi.muted, true)); status.gap(6)
+        status.addView(AppUi.text(this, getString(R.string.ui_saved_on_this_device), 11f, AppUi.muted, true)); status.gap(6)
         status.addView(AppUi.text(this, if (run == null) getString(R.string.list_not_read) else getString(R.string.list_count, run.users.size, run.pages.size), 13f, fg, true))
         if (run != null) {
             status.gap(5)
             status.addView(AppUi.text(this, coverageText(run.coverage()), 12f,
                 if (run.coverage() == FollowCoverage.END_OBSERVED) AppUi.teal else AppUi.violet))
             status.gap(4)
-            status.addView(AppUi.text(this, getString(R.string.list_observed, SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(run.latest.observedAt))), 10f, AppUi.muted))
+            status.addView(AppUi.text(this, getString(R.string.list_observed, SimpleDateFormat("d MMM · HH:mm", AppLanguage.locale(this)).format(Date(run.latest.observedAt))), 10f, AppUi.muted))
         }
         statusCard = status; status.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
         val listHeader = column().apply { setBackgroundColor(bg) }
         listHeader.addView(status); listHeader.gap(10)
         if (AppUi.offline(this) == true) {
-            listHeader.addView(AppUi.notice(this, "Çevrimdışı görüntülüyorsun", "Alınmış kayıtları inceleyebilirsin. Yeni sayfa için internet bağlantısı gerekir.")); listHeader.gap(10)
+            listHeader.addView(AppUi.notice(this, getString(R.string.ui_you_are_viewing_offline), getString(R.string.ui_you_can_view_saved_records_an_internet))); listHeader.gap(10)
         }
-        message?.let { root.addView(AppUi.notice(this, "Son işlem", it, warning = true)); root.gap(10) }
+        message?.let { root.addView(AppUi.notice(this, getString(R.string.ui_last_action), it, warning = true)); root.gap(10) }
         if (loading) {
             val progress = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL; setPadding(0, dp(8), 0, dp(8)) }
             progress.addView(android.widget.ProgressBar(this).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(AppUi.violet) }, LinearLayout.LayoutParams(dp(20), dp(20)))
-            progress.addView(AppUi.text(this, "  Liste güncelleniyor…", 13f, AppUi.violet)); root.addView(progress)
+            progress.addView(AppUi.text(this, getString(R.string.ui_updating_list), 13f, AppUi.violet)); root.addView(progress)
         }
         val empty = column().apply { gravity = android.view.Gravity.CENTER; setPadding(dp(20), dp(24), dp(20), dp(24)) }
         if (run == null) { empty.addView(AppUi.avatar(this, "·", 52, AppUi.mint, AppUi.teal)); empty.gap(12) }
@@ -168,8 +166,8 @@ class FollowListActivity : Activity() {
         val searchSummary = AppUi.text(this, "", 11f, AppUi.muted).apply { setPadding(dp(2), 0, 0, dp(8)); accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
         fun updateSearchState(count: Int) {
             empty.visibility = if (count == 0) View.VISIBLE else View.GONE
-            emptyTitle.text = when { run == null -> "Listeni keşfet"; query.isNotBlank() -> "Aramana uygun hesap yok"; else -> "Bu kayıtta hesap yok" }
-            emptyDetail.text = when { run == null -> "Hazır olduğunda ilk sayfayı oku."; query.isNotBlank() -> "Farklı bir ad dene. Arama yeni veri çekmez."; else -> "Yalnız alınan sayfanın kayıtları gösterilir." }
+            emptyTitle.text = when { run == null -> getString(R.string.ui_explore_your_list); query.isNotBlank() -> getString(R.string.ui_no_accounts_match_your_search); else -> getString(R.string.ui_no_accounts_in_this_record) }
+            emptyDetail.text = when { run == null -> getString(R.string.ui_read_the_first_page_when_you_are); query.isNotBlank() -> getString(R.string.ui_try_another_name_search_does_not_fetch); else -> getString(R.string.ui_only_records_from_downloaded_pages_are_shown) }
             searchSummary.visibility = if (query.isBlank()) View.GONE else View.VISIBLE
             searchSummary.text = getString(R.string.list_search_summary, count, run?.users?.size ?: 0)
         }
@@ -201,7 +199,7 @@ class FollowListActivity : Activity() {
                 holder.initial.bind(avatars, reference.userId, user.id, user.username ?: user.name ?: "?", user.picture,
                     tint = if (position % 2 == 0) AppUi.violetSoft else AppUi.mint, foreground = if (position % 2 == 0) AppUi.violet else AppUi.teal)
                 holder.name.text = user.username?.let { "@$it" } ?: getString(R.string.list_username_unknown)
-                holder.detail.text = user.name?.takeIf { it.isNotBlank() } ?: "Ad bilgisi yok"
+                holder.detail.text = user.name?.takeIf { it.isNotBlank() } ?: getString(R.string.ui_no_name_provided)
                 row.contentDescription = user.username?.let { getString(R.string.profile_open_description, it) } ?: getString(R.string.list_username_unknown)
                 return row
             }
@@ -215,7 +213,7 @@ class FollowListActivity : Activity() {
         if (run != null && run.users.isNotEmpty()) {
             val searchRow = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
             val search = EditText(this).apply {
-                hint = getString(R.string.list_search_hint); contentDescription = "Alınan hesaplarda ara"; textSize = 13f
+                hint = getString(R.string.list_search_hint); contentDescription = getString(R.string.ui_search_downloaded_accounts); textSize = 13f
                 setSingleLine(true); setTextColor(fg); setHintTextColor(AppUi.muted)
                 background = AppUi.shape(this@FollowListActivity, AppUi.surface, 16, AppUi.line)
                 setPadding(dp(14), dp(12), dp(14), dp(12)); minimumHeight = dp(48)
@@ -239,7 +237,7 @@ class FollowListActivity : Activity() {
             visibleSearch = search
             if (searchFocused) { search.requestFocus(); search.setSelection(search.text.length) }
             searchRow.addView(search, LinearLayout.LayoutParams(0, -2, 1f))
-            searchRow.addView(AppUi.iconButton(this, "close", "Aramayı temizle") { search.setText(""); search.requestFocus() }, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(8) })
+            searchRow.addView(AppUi.iconButton(this, "close", getString(R.string.ui_clear_search)) { search.setText(""); search.requestFocus() }, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(8) })
             root.addView(searchRow); root.gap(8); root.addView(searchSummary); root.gap(2)
         }
         updateSearchState(items.size)
@@ -262,20 +260,20 @@ class FollowListActivity : Activity() {
         })
         else {
             val row = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
-            row.addView(button("Listeyi güncelle", allowed, true) { requestUpdate() }, LinearLayout.LayoutParams(0, -2, 1f))
-            row.addView(AppUi.iconButton(this, "more", "Liste işlemleri") { showActions() }, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginStart = dp(8) })
+            row.addView(button(getString(R.string.ui_update_list), allowed, true) { requestUpdate() }, LinearLayout.LayoutParams(0, -2, 1f))
+            row.addView(AppUi.iconButton(this, "more", getString(R.string.ui_list_actions)) { showActions() }, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginStart = dp(8) })
             actions.addView(row)
         }
         if (!loading && gate.nextAllowedAt() > System.currentTimeMillis()) {
             val waitText = if (gate.blockedUntil() > System.currentTimeMillis()) {
-                getString(R.string.list_pause, SimpleDateFormat("d MMM · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(gate.blockedUntil())))
-            } else getString(R.string.list_wait, SimpleDateFormat("HH:mm:ss", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextAllowedAt())))
+                getString(R.string.list_pause, SimpleDateFormat("d MMM · HH:mm", AppLanguage.locale(this)).format(Date(gate.blockedUntil())))
+            } else getString(R.string.list_wait, SimpleDateFormat("HH:mm:ss", AppLanguage.locale(this)).format(Date(gate.nextAllowedAt())))
             actions.gap(6); actions.addView(AppUi.text(this, waitText, 11f, AppUi.muted))
         }
-        if (run != null) { actions.gap(6); actions.addView(AppUi.text(this, "${run.users.size} hesap alındı · " + when (run.coverage()) {
-            FollowCoverage.MORE -> if (loading) "devamı okunuyor" else "devamı var"
-            FollowCoverage.END_OBSERVED -> "liste sonu görüldü"
-            else -> "okuma sınırlı"
+        if (run != null) { actions.gap(6); actions.addView(AppUi.text(this, getString(R.string.ui_accounts_downloaded, run.users.size) + when (run.coverage()) {
+            FollowCoverage.MORE -> if (loading) getString(R.string.ui_reading_more) else getString(R.string.ui_more_available)
+            FollowCoverage.END_OBSERVED -> getString(R.string.ui_list_end_observed)
+            else -> getString(R.string.ui_read_limited)
         }, 11f, AppUi.muted)) }
         actionDock = actions; actions.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
         root.addView(actions)
@@ -296,12 +294,12 @@ class FollowListActivity : Activity() {
     }
     private fun showActions() {
         val run = snapshot?.run(direction)
-        val choices = mutableListOf("Kaydın kapsamı", getString(R.string.list_first))
+        val choices = mutableListOf(getString(R.string.ui_record_coverage), getString(R.string.list_first))
         if (run?.coverage() == FollowCoverage.MORE) choices += getString(R.string.list_next)
         if (snapshot?.let(FollowAnalysis::compare) != null) choices += getString(R.string.list_compare_action)
-        AlertDialog.Builder(this).setTitle("Liste işlemleri").setItems(choices.toTypedArray()) { _, index ->
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_list_actions)).setItems(choices.toTypedArray()) { _, index ->
             when (choices[index]) {
-                "Kaydın kapsamı" -> showScope()
+                getString(R.string.ui_record_coverage) -> showScope()
                 getString(R.string.list_first) -> {
                     if (run == null) read(null) else AlertDialog.Builder(this).setTitle(R.string.list_restart).setMessage(R.string.list_restart_message)
                         .setNegativeButton(R.string.list_cancel, null).setPositiveButton(R.string.list_first) { _, _ -> read(null) }.show()
@@ -309,7 +307,7 @@ class FollowListActivity : Activity() {
                 getString(R.string.list_next) -> read(run?.cursor())
                 else -> compare()
             }
-        }.setNegativeButton("Kapat", null).show()
+        }.setNegativeButton(getString(R.string.ui_close), null).show()
     }
     private fun coverageText(value: FollowCoverage) = getString(when (value) {
         FollowCoverage.MORE -> R.string.list_more
@@ -322,7 +320,7 @@ class FollowListActivity : Activity() {
         val run = snapshot?.run(direction)
         val description = if (run == null) getString(R.string.list_not_read) else
             getString(R.string.list_count, run.users.size, run.pages.size) + "\n" + coverageText(run.coverage()) + "\n" +
-                getString(R.string.list_observed, SimpleDateFormat("d MMM yyyy · HH:mm", Locale.forLanguageTag("tr-TR")).format(Date(run.latest.observedAt)))
+                getString(R.string.list_observed, SimpleDateFormat("d MMM yyyy · HH:mm", AppLanguage.locale(this)).format(Date(run.latest.observedAt)))
         AlertDialog.Builder(this).setTitle(R.string.list_info_title)
             .setMessage(description + "\n\n" + getString(R.string.list_info_body))
             .setNeutralButton(R.string.auto_list_differences) { _, _ -> showListDifferences() }
@@ -333,8 +331,8 @@ class FollowListActivity : Activity() {
         val difference = record?.let { ListAutomationPolicy.difference(it, direction) }
         val body = if (difference == null) getString(R.string.auto_no_comparison) else {
             getString(R.string.auto_difference_counts, difference.added.size.toString(), difference.missing.size.toString()) + "\n\n" +
-                "Yeni görülenler:\n" + difference.added.joinToString("\n", transform = ::userLabel).ifEmpty { "Yok" } +
-                "\n\nBu okumada görünmeyenler:\n" + difference.missing.joinToString("\n", transform = ::userLabel).ifEmpty { "Yok" }
+                getString(R.string.ui_newly_seen_n) + difference.added.joinToString("\n", transform = ::userLabel).ifEmpty { getString(R.string.ui_none) } +
+                getString(R.string.ui_n_nmissing_from_this_read_n) + difference.missing.joinToString("\n", transform = ::userLabel).ifEmpty { getString(R.string.ui_none) }
         }
         AlertDialog.Builder(this).setTitle(R.string.auto_list_differences).setMessage(body + "\n\n" + getString(R.string.auto_difference_scope))
             .setPositiveButton(R.string.list_close, null).show()
@@ -347,7 +345,7 @@ class FollowListActivity : Activity() {
     private fun read(cursor: String?, continuous: Boolean = false) {
         if (loading) return
         if (gate.automationHeld()) { message = getString(R.string.list_finish_connection); render(); return }
-        if (!preview && reference.mobileBinding == null) { message = ApiFailure(ApiFailure.Kind.MOBILE_REQUIRED).userMessage(); render(); return }
+        if (!preview && reference.mobileBinding == null) { message = ApiFailure(ApiFailure.Kind.MOBILE_REQUIRED).userMessage(this@FollowListActivity); render(); return }
         val selected = direction
         val ticket = ++generation
         loading = true; message = null; render()
@@ -368,7 +366,7 @@ class FollowListActivity : Activity() {
                 loading = false
                 result.onSuccess { snapshot = it }.onFailure {
                     snapshot = try { lists.read(reference, target.userId) } catch (_: Exception) { snapshot }
-                    message = (it as ApiFailure).userMessage()
+                    message = (it as ApiFailure).userMessage(this@FollowListActivity)
                 }
                 render()
             }
@@ -394,11 +392,11 @@ class FollowListActivity : Activity() {
     override fun onPause() { if (::queuedRead.isInitialized) queuedRead.cancel(false); if (::source.isInitialized) cancel(); main.removeCallbacks(wake); super.onPause() }
     override fun onResume() {
         super.onResume()
-        if (!::target.isInitialized) return
+        if (recreatingForLanguage || !::target.isInitialized) return
         try {
             if (!currentAccount(accountVault.read())) { finish(); return }
             snapshot = lists.read(reference, target.userId)
-        } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
+        } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@FollowListActivity) }
         render()
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("direction", direction.name); outState.putString("query", query); super.onSaveInstanceState(outState) }

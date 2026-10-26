@@ -1,0 +1,13 @@
+<resources>
+    <string name="language_menu">Dil / Language</string>
+    <string name="language_title">Uygulama dili</string>
+    <string name="language_turkish" translatable="false">Türkçe</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_save_failed">Dil tercihi kaydedilemedi. Tekrar deneyebilirsin.</string>
+    <string name="welcome_hello">merhaba</string>
+    <string name="welcome_circle">ÇEVRENİ YAKINDAN TANI</string>
+    <string name="limit_wait_signal">Instagram bekleme yanıtı</string>
+    <string name="limit_feedback_signal">Instagram eylem kısıtlaması</string>
+    <string name="limit_prototype_signal">HTTP 429 / prototip sayfası</string>
+    <string name="limit_legacy_signal">Önceki sürümde kaydedilen sınırlama</string>
+</resources>

@@ -209,7 +209,7 @@ class ProfileAvatarView(context: Context, size: Int = 44) : FrameLayout(context)
     fun bind(loader: AvatarImages, owner: String, id: String, username: String, url: String?, revision: String? = null,
         tint: Int = AppUi.violetSoft, foreground: Int = AppUi.violet) {
         job?.cancel(); job = null; loaded = false; image.setImageDrawable(null)
-        initial.text = username.trimStart('@').take(1).uppercase(java.util.Locale.forLanguageTag("tr-TR"))
+        initial.text = username.trimStart('@').take(1).uppercase(AppLanguage.locale(context))
         initial.setTextColor(foreground); initial.background = AppUi.shape(context, tint, 100)
         images = loader; source = url?.let { AvatarSource(owner, id, it, revision) }
         start()
