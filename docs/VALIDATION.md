@@ -1,5 +1,17 @@
 # Doğrulama kaydı
 
+## 0.1.24 — parola anahtarı yanıtındaki HTTP 405
+
+- Kullanıcı 0.1.23 girişinde yaklaşık bir dakika sonra genel desteklenmeyen-adım uyarısı ve İstek bilgileri içinde HTTP 405 bildirdi. Fiziksel telefon bağlı değildi; canlı yanıt veya başlık alınmadı. Beşinci isteğin anahtar sorgusu olması bu zamanlamayla uyumludur, kullanıcının kesin yanıt içeriği bilinmiyor.
+- Şifreleme anahtarı uç noktası test yanıtını 405/HTML + anahtar kimliği/açık anahtar başlıkları yaptığımızda önceki kod aynı UNSUPPORTED hatasıyla durdu (artifacts/validation-0.1.24-reproduction.txt, 1 test/1 beklenen regresyon hatası). Yereldeki instagrapi mixins/password.py password_publickeys bu GET yanıtında status/body başarı koşulu aramadan başlıkları okur. Android’in yanıtı genel JSON/2xx isteği olarak ele alması somut uyarlama hatasıydı.
+- Düzeltme yalnız PASSWORD_KEY işleminde, 2xx/405 ve iki gerekli başlık bulunduğunda başlık okumasına izin verir; anahtarın biçimi şifreleme üreticisinde doğrulanır. 429, doğrulama yanıtı, eksik anahtar veya parola girişindeki 405’te devam yoktur. Uç/yöntem değiştirerek tekrar deneme eklenmedi. USDID kayıt hedefi mevcut GraphQL kaynak varsayılanı b.i.instagram.com ile eşlendi.
+- Son kaynakta 74 JVM testi sıfır hata; assembleDebug, assembleDebugAndroidTest, testDebugUnitTest, lintRelease, assembleRelease başarılı. Lint sıfır hata/dört önceki uyarı; 509 Türkçe/English kaynak ve değişken/çoğul sözleşmesi geçti.
+- Emülatörde **35/35** test, **41,586 saniye**: PhoneLoginFlow 9, PhoneLoginScreen 3, MobileConnection 14, RequestControl 4, DesktopLinkScreen 2, LanguageFlow 3. Sentetik taşıma kullanıldı. 405 + geçerli başlıkla profil/iki liste ve kod devamı; 200 boş gövdeli anahtar; 429/Retry-After; 403; eksik anahtar; gövdede challenge_required; gerçek parola adımında 405; tanıda son adım/HTTP’nin korunması; iptal/yanlış sahip/mevcut kayıt/mola regresyonları geçti. Kanıt artifacts/validation-0.1.24-regression.txt. Tam test paketi koşulmadı.
+- Hata ekranına P01–P09 sabit işlem kodu ve son HTTP durumu eklenir; yalnız süreç belleği, ham başlık/gövde, hesap kimliği, parola veya kod içermez. Yeni izin/servis/bağımlılık yoktur. Telefon girişi ekranının mevcut korumaları sürer.
+- İmzalı APK artifacts/InstagramTracker-0.1.24.apk: **1.538.483 bayt**, code25, SHA-256 `8d8174b17dd35d469e6d09127bba25c72d15f1b985ff262493743ec119464010`. Gömülü kaynak `c9e3f5614ddb3d83284afa41326eb3f5a4226025` eşleşti. Aynı sertifika `51f1412a8c037617d98df7b0e1dce84a3e825765d4cdc442b9b59a8d8f00fb75` ve imza doğrulandı; verify-release.py geçti. Önceki 0.1.23 APK/kaynak arşivi InstagramTracker-Backups/0.1.23-before-key-header-fix-20261026 altında hash ile korundu; çalışan 0.1.22 yedeği de korunur. Son belge commit’i APK kaynağını değiştirmez.
+- Canlı Instagram girişi, fiziksel cihaz, bütün doğrulama çeşitleri, uzun arka plan/pil, CPU/tepe bellek ve GitHub CI bu düzeltmede doğrulanmadı. Kullanıcıya aynı uygulamanın üzerine güncelleme ve mevcut mola dolduğunda tek yeniden deneme adımları verilir. Yeni hata olursa yalnız görünen hata, tanı adımı ve HTTP durumu istenir.
+
+
 ## 0.1.23 — telefondan bağlantı önizlemesi
 
 - Çalışan 0.1.22 APK ve kaynak arşivi InstagramTracker-Backups/0.1.22-before-phone-login-20261026 altında korundu. APK SHA-256 `b5b54624b6be47af58228940bd8dda85badaa1f48b6deb58c522ee89451cde4e` eski artifacts dosyası ve yedekte eşleşti. Kaynak etiketi checkpoint/0.1.22-before-phone-login-20261026, kaynak `22710a364ddf3597239a0fb0844c43bc988f377f`. Fiziksel telefona kurulum/veri temizliği yapılmadı.
