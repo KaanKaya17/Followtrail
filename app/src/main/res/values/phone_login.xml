@@ -1,4 +1,5 @@
 <resources>
+    <string name="phone_failure_detail">Tanı (son istek): %1$s · HTTP: %2$s</string>
     <string name="phone_menu">Telefondan bağlan · Bilgisayar gerekmez</string>
     <string name="phone_title">Hesabını telefonda bağla</string>
     <string name="phone_intro">Bilgisayar, USB veya oturum dosyası gerekmez. Girişini bu cihazda tamamla; varsa doğrulama kodunu sonraki adımda girebilirsin.</string>

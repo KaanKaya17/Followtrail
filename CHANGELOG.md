@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## 0.1.24 — 2026-10-26 (giriş anahtarı yanıtı)
+
+- Kullanıcı 0.1.23 telefon girişinde yaklaşık bir dakika sonra HTTP 405 ve genel giriş adımı uyarısı bildirdi. Şifreleme anahtarı sorgusundaki 405/HTML + geçerli anahtar başlıkları aynı hatayı emülatörde yeniden üretti. Canlı yanıt/başlıklar alınmadığı için kullanıcının yanıtının kesin içeriği bilinmiyor.
+- Mevcut instagrapi kaynak sözleşmesine uygun olarak yalnız parola anahtarı sorgusunda geçerli anahtar başlıkları bulunan 2xx/405 yanıtı kullanılabilir. Anahtar olmadan, 429/doğrulama yanıtında veya gerçek parola girişindeki 405’te devam edilmez. 405 sonrası farklı uç/yöntem denemesi ya da otomatik yeniden giriş eklenmedi.
+- Cihaz kaydı GraphQL hedefi mevcut kaynaktaki b.i.instagram.com adresiyle eşlendi. Hata ekranına yalnız son giriş adımının sabit tanı kodu (P01–P09) ve HTTP durumu eklendi; parola/kod/ham yanıt veya hesap bilgisi bu tanıya dahil edilmez ve tanı süreç belleğindedir.
+- Önceki oturum/kayıtlar ve 429 molası korunur; yeni izin veya bağımlılık yoktur. Güncel canlı Instagram kabulü kullanıcı testiyle doğrulanacaktır.
+
 ## 0.1.23 — 2026-10-26 (bilgisayarsız telefon girişi önizlemesi)
 
 - Hesap bağla menüsünde ilk seçenek Telefondan bağlan: yerel kullanıcı adı/e-posta, parola ve gerektiğinde kod adımı. Bilgisayar/USB/oturum dosyası gerektirmez. Önceki çalışan bilgisayar aktarımı ve web seçeneği korunur.

@@ -1,10 +1,10 @@
-# Telefondan giriş — 0.1.23 önizleme
+# Telefondan giriş — 0.1.24 önizleme
 
 Bilgisayar, USB, ek cihaz veya dosya aktarımı bu giriş yolu için gerekmez. APK mevcut uygulamanın üzerine güncellenir; uygulamayı silmek/verisini temizlemek gerekmez. Önceki çalışan 0.1.22 APK ve kaynak yedeği korunur. Android eski sürüme veri kaybetmeden doğrudan geri kurmaya izin vermeyebilir; yedek APK bulunması otomatik veri geri dönüşü demek değildir.
 
 ## Temel deneme
 
-1. 0.1.23 APK’yı mevcut uygulamanın üzerine kur. Mevcut hesabın, kişiler ve geçmişin açıldığını kontrol et.
+1. 0.1.24 APK’yı mevcut uygulamanın üzerine kur. Mevcut hesabın, kişiler ve geçmişin açıldığını kontrol et.
 2. İlk kurulumda **Hesap bağla**; bağlı hesabın varsa **⋯ → Bağlantıyı yönet → Başka hesap bağla** seç. **Telefondan bağlan · Bilgisayar gerekmez** yolunu aç.
 3. Erişim/parola/oturum açıklamalarını oku. Kendi kontrolündeki test hesabının kullanıcı adını veya e-postasını ve parolasını girip **Giriş yap** de. Parola/kodu geliştiriciye gönderme.
 4. Ekranı açık tut. İlk kurulumun adımları mevcut istek aralığıyla ilerlediğinden yaklaşık iki dakika veya daha uzun sürebilir. Bekleme mesajı sıradaki adımın süresini gösterir. İşlem sürerken arka plana geçmek iptal eder.
@@ -28,3 +28,10 @@ Bilgisayar, USB, ek cihaz veya dosya aktarımı bu giriş yolu için gerekmez. A
 Parametre şablonları mevcut Windows ortamında sabitlenmiş instagrapi 3.2.0 mixins/bloks.py içindeki 11 giriş adımından uyarlanmıştır. MIT lisansı uygulama varlıklarında korunur. Donanım attestation anahtarı yokluğu upstream biçimde bildirilir; sunucu kabulü zorlanmaz. Kapsam dışındaki doğrulama biçimleri açık hatayla durur; yeni uç/kimlik/cihaz denemesi yapılmaz.
 
 Şablon kaynağı: yerelde kurulu instagrapi 3.2.0 mixins/bloks.py; SHA-256 `4270138a044eb45b3229a92abff26a4799d86f40affe1147c08ee11130e9a222`. Şablonlar kimlik/parola/kod içermez; bu alanlar yalnız çalışma sırasında doldurulur. Giriş beklerken ekranın kendiliğinden kapanması önlenir; form ve kod bekleme ekranında bu bayrak kaldırılır.
+
+
+## 0.1.24 hata tanısı
+
+Hata ekranında Son istek tanısı P01–P09 ve HTTP durumu gösterilir. P01 cihaz kaydı, P02 giriş bağlamı, P03 cihaz meydan okuması, P04 OAuth hazırlığı, P05 parola şifreleme anahtarı, P06 parola girişi, P07 yalnız sunucunun yönlendirdiği eski giriş adımı, P08 kod/doğrulama, P09 profil doğrulamasıdır. Bu kayıt yalnız süreç belleğindedir; uygulama kapatılırsa kaybolur. Geliştiriciye yalnız hata metni, bu kod ve HTTP durumunu ilet; parola/kod paylaşma.
+
+P05’teki HTTP 405, geçerli anahtar başlıkları varsa başlık okumasının tamamlanmasını engellemez. Bu istisna yalnız anahtar sorgusundadır; girişin başarıyla tamamlandığı anlamına gelmez. 429, ek doğrulama, eksik anahtar ve parola girişinde 405 sonrasında akış durur. Uygulamanın 15 dakika yeni giriş aralığı ve varsa daha uzun Instagram molası güncellemeyle kaldırılmaz.

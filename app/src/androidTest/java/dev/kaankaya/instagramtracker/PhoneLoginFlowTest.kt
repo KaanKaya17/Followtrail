@@ -75,9 +75,23 @@ class PhoneLoginFlowTest {
                     path.endsWith("qe/sync/") -> {
                         headers["ig-set-password-encryption-key-id"] = "7"
                         headers["ig-set-password-encryption-pub-key"] = keys.public.encoded.toByteString().base64()
-                        "" // Upstream reads these headers without requiring a JSON response body.
+                        status = 405
+                        when (mode) {
+                            "key-ok" -> { status = 200; "" }
+                            "key-limited" -> { status = 429; headers["Retry-After"] = "7200"; "<html>Too many requests</html>" }
+                            "key-forbidden" -> { status = 403; "<html>Forbidden</html>" }
+                            "key-missing" -> { headers.remove("ig-set-password-encryption-pub-key"); "<html>Method Not Allowed</html>" }
+                            "key-checkpoint" -> """{"message":"challenge_required"}"""
+                            else -> "<html>Method Not Allowed</html>" // Upstream uses key headers without requiring a successful status/body.
+                        }
                     }
                     path.endsWith("send_login_request/") -> when (mode) {
+                        "password-method" -> {
+                            status = 405
+                            headers["ig-set-password-encryption-key-id"] = "7"
+                            headers["ig-set-password-encryption-pub-key"] = keys.public.encoded.toByteString().base64()
+                            "<html>Method Not Allowed</html>"
+                        }
                         "ap" -> program(PhoneBloks.AP_ENTRY, "entry-context").toString()
                         "two" -> JSONObject().put("two_factor_required", true).put("two_factor_info", JSONObject().put("two_step_verification_context", "two-context")).toString()
                         "mismatch" -> loginEnvelope(true).toString()
@@ -115,6 +129,7 @@ class PhoneLoginFlowTest {
         assertTrue(password.all { it == '\u0000' }); assertEquals("123", ready.session.owner); assertEquals(5L, ready.profile.followers)
         MobileSessionCodec.decode(MobileSessionCodec.encode(ready.session))
         assertEquals(7, t.requests.size); assertTrue(t.times.zipWithNext().all { (a, b) -> b - a >= 15_000 })
+        assertEquals("b.i.instagram.com", t.requests.first().url.host)
         assertEquals(start + MonitorPolicy.POLL_MS, gate.nextPrototypeAt())
         assertEquals(old, vault.read()); assertFalse(sessions.exists())
         assertEquals("server-claim", ready.session.headers["X-IG-WWW-Claim"])
@@ -223,6 +238,23 @@ class PhoneLoginFlowTest {
             initVerify(public); update("${header[0]}.${header[1]}".toByteArray()); verify(header[2].decodeBase64()!!.toByteArray())
         })
     }
+    @Test fun passwordKeyHeadersDoNotExcuseRestrictionsMissingKeysOrFailedPasswordRequests() {
+        for ((mode, expected) in listOf("key-limited" to ApiFailure.Kind.LIMITED, "key-forbidden" to ApiFailure.Kind.VERIFICATION,
+            "key-missing" to ApiFailure.Kind.CONNECTION, "key-checkpoint" to ApiFailure.Kind.VERIFICATION,
+            "password-method" to ApiFailure.Kind.CONNECTION)) {
+            clean(); vault.write(old); now = 2_000_000_000_000L
+            val t = transport(mode); val flow = client(t)
+            assertEquals(expected, assertThrows(ApiFailure::class.java) { flow.login("own", "synthetic-password".toCharArray()) }.kind)
+            val passwordAttempted = mode == "password-method"
+            assertEquals(if (passwordAttempted) 6 else 5, t.requests.size)
+            assertEquals(if (passwordAttempted) PhoneLoginOperation.PASSWORD else PhoneLoginOperation.PASSWORD_KEY, flow.diagnostic!!.operation)
+            assertEquals(if (mode == "key-limited") 429 else if (mode == "key-forbidden") 403 else 405, flow.diagnostic!!.status)
+            assertEquals(old, vault.read()); assertFalse(sessions.exists())
+            if (mode == "key-limited") assertEquals(now + 7200_000, gate.blockedUntil())
+        }
+        clean(); vault.write(old); now = 2_000_000_000_000L
+        assertTrue(client(transport("key-ok")).login("own", "synthetic-password".toCharArray()) is PhoneLoginResult.Ready)
+    }
     @Test fun lateLoginCannotReplaceAConnectionChangedDuringAuthentication() {
         val entered = CountDownLatch(1); val release = CountDownLatch(1)
         val t = transport(wait = { entered.countDown(); check(release.await(5, TimeUnit.SECONDS)) })
@@ -236,6 +268,8 @@ class PhoneLoginFlowTest {
             vault.write(other); release.countDown()
             await { controller.ui.phase == PhoneLoginPhase.ERROR }
             assertEquals(ApiFailure.Kind.CANCELLED, controller.ui.failure)
+            assertEquals(PhoneLoginOperation.PROFILE, controller.ui.diagnostic!!.operation)
+            assertEquals(200, controller.ui.diagnostic!!.status)
             assertEquals(other, vault.read()); assertNull(sessions.pending()); assertFalse(sessions.exists())
         } finally { release.countDown() }
     }
