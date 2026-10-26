@@ -1,5 +1,11 @@
 # Veri ve ağ sınırları
 
+## 0.1.18 geçici profil önbelleği ve açık kullanıcı işlemleri
+
+Son incelenen en fazla 20 profil, tam oturum referansı ve hedef kimliğiyle süreç belleğinde kısa süre tutulur. Tazelik başarılı gözlem zamanından 15 dakika hesaplanır; ekranda açmak süreyi uzatmaz. Disk/SharedPreferences veya dış sunucuya yeni profil arşivi yazılmaz. Kişiyi kaldırma ilgili owner/hedefi, bağlantıyı kaldırma bütün geçici profilleri temizler. Uygulama süreci kapanırsa önbellek kaybolur. Eski oturum/başka viewer verisi yeni oturum için kullanılmaz.
+
+Değişiklikleri izle, kullanıcının açık eylemiyle kişiyi mevcut şifreli kasaya ekleyebilir ve bildirim izniyle profil izlemesini açar. Yalnız profil açmak bunu yapmaz. Kısa bekleme kuyruğu ekran belleğindedir, bir açık kullanıcı işlemini temsil eder; ekrandan ayrılma/iptal, 429/doğrulama ve genel duraklama onu sonlandırır. Listeyi güncelle aynı izinli uçtan aktif yönde kontrollü devam sayfaları alabilir. Yeni izin, reklam/analitik veya ağ hedefi eklenmedi.
+
 ## 0.1.17 uygulama içi üye profili
 
 Listeye dokunmak artık dış uygulamayı açmaz. Yeni, dışa kapalı profil ekranı bağlı viewer ve yerel listedeki üye kimliğini doğrular. Kayıtlı taze profil tekrar okunmaz; eski/kayıtsız profil ilk açılışta mevcut profil okuyucusuyla bir kez okunabilir. İstek aralığı, 429 ve bağlantı/doğrulama molaları korunur. Geri dönüş/yeniden oluşturma otomatik tekrar değildir. Instagram’a gitmek ayrı düğmedir; bu intent oturum bilgisi taşımaz.

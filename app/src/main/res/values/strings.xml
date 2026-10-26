@@ -126,7 +126,7 @@
     <string name="list_username_unknown">Kullanıcı adı belirtilmedi</string>
     <string name="list_finish_connection">Önce yarım kalan bağlantı işlemini tamamla.</string>
     <string name="list_storage_error">Kayıtlı bağlantı veya hedef açılamadı. Geri dönüp bağlantını kontrol et.</string>
-    <string name="watch_toggle">Değişiklik bildirimi</string>
+    <string name="watch_toggle">Değişiklikleri izle</string>
     <string name="connection_next_try">Yeni bağlantı denemesi · %1$s</string>
     <string name="connection_ready">Hazır olduğunda bağlantıyı tamamlamayı bir kez deneyebilirsin.</string>
     <string name="connection_tls_error">Güvenli bağlantı doğrulanamadı. Giriş durduruldu.</string>

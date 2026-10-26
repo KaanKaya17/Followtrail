@@ -1,4 +1,15 @@
-# 0.1.17 profil açma ve geri dönme
+# 0.1.18 basitlik, kullanım ve hız kontrolleri
+
+1. Mevcut kurulumun üzerine güncelle. Kişiler, notlar, favoriler, bağlantı ve izleme aralıkları kalmalı. Ana sayfada son değişiklikler daha yukarıda, favoriler yatay kısa geçişlerde görünmeli. Favoriye dokunmak kayıtlı kişinin analizini açmalı; yeni istek göndermemeli.
+2. Kısa izleme kartındaki üç noktadan Otomasyonu ayarla / Otomasyon durumu / Liste otomasyonunu durdur seçeneklerine ulaş. Duraklama varsa İzleme açık yerine gerçek bekleme nedeni görünmeli. Liste otomasyonunun açık tercihi ile o anda çalışabilir olması aynı şey değildir.
+3. Bir liste üyesinin profilini açıp normal başarılı okuma al. Geri dönüp aynı profili 15 dakika içinde tekrar aç: ayrıntılar hemen gelmeli ve ek profil isteği olmamalı. Bu geçici önbellek süreç belleğindedir; uygulamayı zorla durdurup süreci kapatmak onu temizler. Son kayıt zamanı ileri alınmamalı.
+4. Normal kısa aralıkta açılan profil veya bastığın Yenile/Listeyi güncelle işlemi için İşlemin sırada kartı ve geri sayım görünmeli. Süre dolunca bir kez devam etmeli; Bekleyen işlemi iptal et veya geri çıkış yeni okumayı önlemeli. 429/doğrulama molasında bu otomatik devam açılmamalı. Mola/sayaç sıfırlama yapma.
+5. Listeyi güncelle düğmesiyle aktif yöndeki sayfalar alınırken arama yap. Yeni sayfa gelince arama metni ve kaydırma korunmalı; hesap/sayfa sayısı ilerlemeli. Tek tur en fazla altı sayfadır; kalan varsa tekrar güncelleme veya seçili arka plan otomasyonu gerekir. İlk hata/sınırlamada tur durmalı; alınanlar kalmalı.
+6. Liste işlemleri menüsünde ayrıntı, tek sayfa okuma ve uygunken karşılaştırma korunur. İlk sayfayı yeniden okumak mevcut kayıt varsa onay ister. Yeni üye profili yine APK içinde, Instagram yalnız ayrı düğmeyle açılmalı.
+7. Geçici ve kayıtlı profilin sayı/biyografi düzenini karşılaştır. Yeni kişide Değişiklikleri izle seçilirse bildirim izni ardından yalnız o kişi kaydedilip profil izlemesi açılmalı. Yalnız kişilere ekle izlemesi kapalı kayıt oluşturmalı. Mevcut kişiler/favoriler/aralıklar kalmalı.
+8. Büyük sistem yazısı, çevrimdışı görüntüleme, profil/listeden geri dönüş ve fotoğraf yüklenirken çıkış kontrollerini tekrarla. Bildirim ve uzun süreli arka plan kontrolleri için önceki otomasyon testleri geçerlidir.
+
+## 0.1.17 profil açma ve geri dönme
 
 1. Güncellemeyi mevcut uygulamanın üzerine kur. Kendi takipçi veya takip edilen listende bir kişiye dokun: profil APK'nın içinde açılmalı. Instagram yalnız ayrı Instagram’da aç düğmesiyle açılmalı.
 2. Önceden kaydedilmiş taze profil ek istek olmadan gösterilir. Kayıt yoksa veya eskiyse ilk açılışta aynı istek/mola kurallarıyla profil okunabilir. Hemen önce liste okunmuşsa 15 saniyelik aralık veya mevcut 429 molası nedeniyle yalnız bilinen liste bilgileri görünür; hazır olduğunda Profili getir düğmesini kullan. Eksik sayılar sıfır gösterilmez.

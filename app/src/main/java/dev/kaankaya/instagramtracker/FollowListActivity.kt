@@ -33,6 +33,7 @@ class FollowListActivity : Activity() {
     private lateinit var lists: FollowListVault
     private lateinit var source: FollowListSource
     private lateinit var avatars: AvatarImages
+    private lateinit var queuedRead: ForegroundReadQueue
     private lateinit var reference: Session
     private lateinit var target: Profile
     private var snapshot: FollowSnapshot? = null
@@ -59,6 +60,7 @@ class FollowListActivity : Activity() {
         preview = PreviewMode.enabled(this)
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
+        queuedRead = ForegroundReadQueue(gate) { reason -> message = reason; render() }
         accountVault = SessionVault(this, if (preview) "previewaccount" else "account")
         lists = FollowListVault(this, if (preview) "previewlists" else "followlists")
         source = PreviewMode.followLists(gate, preview)
@@ -87,7 +89,7 @@ class FollowListActivity : Activity() {
     private fun LinearLayout.gap(n: Int) { addView(View(this@FollowListActivity), LinearLayout.LayoutParams(1, dp(n))) }
     private data class UserRow(val initial: ProfileAvatarView, val name: TextView, val detail: TextView)
     private fun render() {
-        if (isDestroyed || !::target.isInitialized) return
+        if (isDestroyed || isFinishing || !::target.isInitialized) return
         val searchFocused = visibleSearch?.isFocused == true
         visibleSearch = null; actionDock = null; statusCard = null; navigationChrome = emptyList()
         val first = visibleList?.firstVisiblePosition ?: 0
@@ -124,7 +126,7 @@ class FollowListActivity : Activity() {
         val toolbarBlock = column().apply { addView(header); gap(16) }; root.addView(toolbarBlock)
         if (preview) { root.addView(AppUi.text(this, getString(R.string.list_demo), 10f, AppUi.violet, true)); root.gap(10) }
         val tabs = LinearLayout(this).apply { background = AppUi.shape(this@FollowListActivity, AppUi.violetSoft, 18); setPadding(dp(4), dp(4), dp(4), dp(4)) }
-        FollowDirection.entries.forEach { selected -> tabs.addView(button(directionName(selected), !loading) {
+        FollowDirection.entries.forEach { selected -> tabs.addView(button(directionName(selected), !loading && !queuedRead.pending) {
             direction = selected; query = ""; visibleList = null; visibleSearch = null; message = null; render()
         }.apply {
             isSelected = direction == selected
@@ -156,7 +158,7 @@ class FollowListActivity : Activity() {
         if (loading) {
             val progress = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL; setPadding(0, dp(8), 0, dp(8)) }
             progress.addView(android.widget.ProgressBar(this).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(AppUi.violet) }, LinearLayout.LayoutParams(dp(20), dp(20)))
-            progress.addView(AppUi.text(this, "  Sayfa okunuyor…", 13f, AppUi.violet)); root.addView(progress)
+            progress.addView(AppUi.text(this, "  Liste güncelleniyor…", 13f, AppUi.violet)); root.addView(progress)
         }
         val empty = column().apply { gravity = android.view.Gravity.CENTER; setPadding(dp(20), dp(24), dp(20), dp(24)) }
         if (run == null) { empty.addView(AppUi.avatar(this, "·", 52, AppUi.mint, AppUi.teal)); empty.gap(12) }
@@ -252,22 +254,17 @@ class FollowListActivity : Activity() {
         if (first > 0) list.setSelectionFromTop(first, top)
         else if (top < 0) list.post { list.scrollListBy(-top) }
         val actions = column().apply { setPadding(0, dp(12), 0, 0) }
-        val allowed = !loading && gate.nextAllowedAt() <= System.currentTimeMillis() && !gate.automationHeld()
-        fun restart() {
-            AlertDialog.Builder(this).setTitle(R.string.list_restart).setMessage(R.string.list_restart_message)
-                .setNegativeButton(R.string.list_cancel, null).setPositiveButton(R.string.list_first) { _, _ -> read(null) }.show()
-        }
-        if (loading) actions.addView(button(getString(R.string.list_cancel), primary = true) { cancel(); message = getString(R.string.list_cancelled); render() })
-        else if (run?.coverage() == FollowCoverage.MORE) actions.addView(button(getString(R.string.list_next), allowed, true) { read(run.cursor()) })
-        else if (run == null) actions.addView(button(getString(R.string.list_first), allowed, true) { read(null) })
-        else actions.addView(button(getString(R.string.list_restart_action), allowed, true) { restart() })
-        if (run != null) {
-            val secondary = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
-            secondary.addView(button(getString(R.string.list_compare_action), !loading && snapshot?.let(FollowAnalysis::compare) != null) { compare() }, LinearLayout.LayoutParams(0, -2, 1f))
-            if (run.coverage() == FollowCoverage.MORE) secondary.addView(AppUi.iconButton(this, "refresh", getString(R.string.list_restart)) { restart() }.apply {
-                isEnabled = allowed; alpha = if (allowed) 1f else .48f
-            }, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginStart = dp(8) })
-            actions.gap(8); actions.addView(secondary)
+        val allowed = !loading && !queuedRead.pending && !gate.automationHeld() && !gate.requiresConnection() && gate.blockedUntil() <= System.currentTimeMillis()
+        if (queuedRead.pending) actions.addView(queuedRead.view(this))
+        else if (loading) actions.addView(button(getString(R.string.list_cancel), primary = true) {
+            cancel(); snapshot = try { lists.read(reference, target.userId) } catch (_: Exception) { snapshot }
+            message = getString(R.string.list_cancelled); render()
+        })
+        else {
+            val row = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
+            row.addView(button("Listeyi güncelle", allowed, true) { requestUpdate() }, LinearLayout.LayoutParams(0, -2, 1f))
+            row.addView(AppUi.iconButton(this, "more", "Liste işlemleri") { showActions() }, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginStart = dp(8) })
+            actions.addView(row)
         }
         if (!loading && gate.nextAllowedAt() > System.currentTimeMillis()) {
             val waitText = if (gate.blockedUntil() > System.currentTimeMillis()) {
@@ -275,7 +272,11 @@ class FollowListActivity : Activity() {
             } else getString(R.string.list_wait, SimpleDateFormat("HH:mm:ss", Locale.forLanguageTag("tr-TR")).format(Date(gate.nextAllowedAt())))
             actions.gap(6); actions.addView(AppUi.text(this, waitText, 11f, AppUi.muted))
         }
-        actions.gap(6); actions.addView(AppUi.text(this, getString(R.string.list_scope), 10f, AppUi.muted))
+        if (run != null) { actions.gap(6); actions.addView(AppUi.text(this, "${run.users.size} hesap alındı · " + when (run.coverage()) {
+            FollowCoverage.MORE -> if (loading) "devamı okunuyor" else "devamı var"
+            FollowCoverage.END_OBSERVED -> "liste sonu görüldü"
+            else -> "okuma sınırlı"
+        }, 11f, AppUi.muted)) }
         actionDock = actions; actions.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
         root.addView(actions)
         main.removeCallbacks(wake)
@@ -283,6 +284,33 @@ class FollowListActivity : Activity() {
         if (wait > 0) main.postDelayed(wake, wait)
     }
     private val wake = Runnable { render() }
+    private fun requestUpdate() {
+        if (loading || queuedRead.pending) return
+        val selected = direction
+        fun start() {
+            if (direction != selected || isFinishing || isDestroyed) return
+            val current = try { lists.read(reference, target.userId)?.run(direction) } catch (_: Exception) { null }
+            read(current?.takeIf { it.coverage() == FollowCoverage.MORE }?.cursor(), continuous = true)
+        }
+        if (queuedRead.canWait() && queuedRead.enqueue { start() }) render() else start()
+    }
+    private fun showActions() {
+        val run = snapshot?.run(direction)
+        val choices = mutableListOf("Kaydın kapsamı", getString(R.string.list_first))
+        if (run?.coverage() == FollowCoverage.MORE) choices += getString(R.string.list_next)
+        if (snapshot?.let(FollowAnalysis::compare) != null) choices += getString(R.string.list_compare_action)
+        AlertDialog.Builder(this).setTitle("Liste işlemleri").setItems(choices.toTypedArray()) { _, index ->
+            when (choices[index]) {
+                "Kaydın kapsamı" -> showScope()
+                getString(R.string.list_first) -> {
+                    if (run == null) read(null) else AlertDialog.Builder(this).setTitle(R.string.list_restart).setMessage(R.string.list_restart_message)
+                        .setNegativeButton(R.string.list_cancel, null).setPositiveButton(R.string.list_first) { _, _ -> read(null) }.show()
+                }
+                getString(R.string.list_next) -> read(run?.cursor())
+                else -> compare()
+            }
+        }.setNegativeButton("Kapat", null).show()
+    }
     private fun coverageText(value: FollowCoverage) = getString(when (value) {
         FollowCoverage.MORE -> R.string.list_more
         FollowCoverage.END_OBSERVED -> R.string.list_end
@@ -316,7 +344,7 @@ class FollowListActivity : Activity() {
         user.name?.takeIf { it.isNotBlank() }?.let { "\n$it" }.orEmpty()
     private fun currentAccount(account: SavedAccount?) = account?.session == reference &&
         (account.profile.userId == target.userId || account.people.any { it.latest.userId == target.userId })
-    private fun read(cursor: String?) {
+    private fun read(cursor: String?, continuous: Boolean = false) {
         if (loading) return
         if (gate.automationHeld()) { message = getString(R.string.list_finish_connection); render(); return }
         if (!preview && reference.mobileBinding == null) { message = ApiFailure(ApiFailure.Kind.MOBILE_REQUIRED).userMessage(); render(); return }
@@ -327,27 +355,21 @@ class FollowListActivity : Activity() {
             val result = try {
                 accountVault.inspect { if (!currentAccount(it)) throw ApiFailure(ApiFailure.Kind.CANCELLED) }
                 if (gate.requiresConnection()) throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
-                val page = source.read(reference, target.userId, selected, cursor)
-                Result.success(page)
+                val result = ForegroundListScan(accountVault, lists, gate, source).read(reference, target.userId, selected, cursor,
+                    pages = if (continuous) 6 else 1, cancelled = { ticket != generation || Thread.currentThread().isInterrupted },
+                    progress = { updated -> main.post {
+                        if (!isDestroyed && !isFinishing && ticket == generation) { snapshot = updated; render() }
+                    } }, notify = { _, difference -> ChangeNotifications(this, preview).postList(reference, target, difference) })
+                Result.success(result)
             } catch (failure: ApiFailure) { Result.failure(failure) }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)) }
             main.post {
                 if (isDestroyed || ticket != generation) return@post
                 loading = false
-                result.onSuccess { page ->
-                    try {
-                        accountVault.inspect { current ->
-                            if (!currentAccount(current)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-                            snapshot = lists.commit(reference, page)
-                            if (current!!.automation.enabled && target.userId in current.automation.targets) {
-                                val difference = lists.target(reference, target.userId)?.let { ListAutomationPolicy.difference(it, selected) }
-                                if (difference != null && (difference.added.isNotEmpty() || difference.missing.isNotEmpty()))
-                                    ChangeNotifications(this, preview).postList(reference, target, difference)
-                            }
-                        }
-                    } catch (failure: ApiFailure) { message = failure.userMessage() }
-                    catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
-                }.onFailure { message = (it as ApiFailure).userMessage() }
+                result.onSuccess { snapshot = it }.onFailure {
+                    snapshot = try { lists.read(reference, target.userId) } catch (_: Exception) { snapshot }
+                    message = (it as ApiFailure).userMessage()
+                }
                 render()
             }
         }
@@ -369,7 +391,7 @@ class FollowListActivity : Activity() {
             .putExtra("list_target_id", target.userId).putExtra("list_direction", direction.name)
             .putExtra("member_id", user.id).putExtra("offline_preview", preview))
     }
-    override fun onPause() { if (::source.isInitialized) cancel(); main.removeCallbacks(wake); super.onPause() }
+    override fun onPause() { if (::queuedRead.isInitialized) queuedRead.cancel(false); if (::source.isInitialized) cancel(); main.removeCallbacks(wake); super.onPause() }
     override fun onResume() {
         super.onResume()
         if (!::target.isInitialized) return
