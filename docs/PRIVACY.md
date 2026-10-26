@@ -1,5 +1,13 @@
 # Veri ve ağ sınırları
 
+## 0.1.25 yerel kapsam ve kayıt kapasitesi
+
+Uygulamanın vaadi kayıtlı gözlemleri karşılaştırmaktır; kesin takipten çıkış/olay saati değildir. Durum ve grafik kapsamı yalnız mevcut yerel kayıttan hesaplanır; bu arayüzler ek Instagram sorgusu yapmaz. Grafik aralığı gerçek ilk/son gözlem ve kayıt sayısıyla gösterilir; 7/30 gün filtresi ve 90 gözlem saklama sınırı takvim geçmişi garantisi değildir.
+
+Kişi sınırı 100, kişi başına en çok son 90 başarılı gözlemdir. Hesap/kişi şifreli dosyasının açık veri bütçesi 2 MiB’ye çıkarıldı; şifre çözmeden önce aynı bütçe + 28 bayt sınırı kullanılır. Diğer EncryptedRecord kullanıcıları ve liste kayıtları varsayılan 512 KiB sınırını korur. Kapasite aşımı önceki dosyayı değiştirmez; çok veya benzersiz metaveri bütçeyi daha erken doldurabilir. Bu değerler Instagram sınırı değildir. Kişiler ilk 20 kartla gösterilir ve yerel eylemle genişler; yeni ağ işi başlatılmaz. Önceki dosya biçimi okunur, yeni biçim sürümü yoktur; 20’den fazla kişi içeren dosya eski APK’nın sınırına uymaz.
+
+Hızlı izlemenin süre/istek kuralları değişmedi; arayüzde en erken hedef, ortak istek sırası ve görünmez ekranda duraklama açıklanır. Daha çok kaydedilmiş kişi daha çok eşzamanlı istek yetkisi vermez; aynı iş bütçesinde kontrol sırası uzayabilir. Yeni veri hedefi, izin, sunucu veya analitik yoktur. Aşağıdaki eski sürüm kapasite açıklamaları tarihsel sözleşmelerdir.
+
 ## 0.1.23 telefondan giriş
 
 Yeni yerel giriş formunda kullanıcı adı/e-posta, parola ve istenirse doğrulama kodu cihaz belleğinde işlenir. Parola sunucunun verdiği anahtarla RSA/AES-GCM biçiminde hazırlanıp HTTPS üzerinden Instagram’a gönderilir; düz metin dosya, log, işlem geçmişi veya analitik kaydı üretilmez. Kod ve ara doğrulama bağlamı yalnız süreç belleğinde kalır. Sistem parola yöneticisi kullanıcı adı/parola için kullanılabilir; uygulama kod alanına otomatik doldurma ipucu vermez. Alanlar Android durum kaydına dahil edilmez. Giriş ekranı FLAG_SECURE ile ekran görüntüsü/kayıt koruması ister. İşletim sistemi veya parola yöneticisinin davranışı uygulamanın saklama vaadi değildir.

@@ -66,6 +66,7 @@ class MainActivity : LocalizedActivity() {
     private var loginLoaded = false
     private var peopleScreen = false
     private var selectedPersonId: String? = null
+    private var visiblePeople = 20
     private var rangeDays = 0
     private var chartFollowers = true
     private var preview = false
@@ -101,6 +102,7 @@ class MainActivity : LocalizedActivity() {
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         peopleScreen = savedInstanceState?.getBoolean("people") ?: false
         selectedPersonId = savedInstanceState?.getString("person")
+        visiblePeople = (savedInstanceState?.getInt("visiblePeople", 20) ?: 20).coerceIn(20, PeoplePolicy.MAX_PEOPLE)
         rangeDays = savedInstanceState?.getInt("range") ?: 0
         pendingWatchId = savedInstanceState?.getString("pendingWatch")
         pendingWatchOwner = savedInstanceState?.getString("pendingOwner")
@@ -290,6 +292,7 @@ class MainActivity : LocalizedActivity() {
 
     private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
         page.addView(AppUi.heading(this, getString(R.string.ui_at_a_glance), 30f)); page.gap(10)
+        page.addView(text(getString(R.string.product_observation_scope), 12f, muted)); page.gap(12)
         val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         identity.addView(avatar(saved.profile, 36))
         identity.addView(text("@${saved.profile.username}", 15f, muted).apply { setPadding(dp(10), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
@@ -423,10 +426,13 @@ class MainActivity : LocalizedActivity() {
             val seconds = quickWatch.secondsLeft
             val remaining = String.format(AppLanguage.locale(this), "%02d:%02d", seconds / 60, seconds % 60)
             return if (quickWatch.busy) getString(R.string.quick_busy, remaining)
+                else if (quickWatch.waitingForSlot) getString(R.string.quick_delayed, remaining)
+                else if (quickWatch.secondsToCheck == 0L) getString(R.string.quick_due, remaining)
                 else getString(R.string.quick_status, remaining, quickWatch.secondsToCheck.toString())
         }
         quickWatch.status = ::label
         quickWatch.label = text(label(), 13f, muted).also { card.addView(it) }; card.gap(10)
+        card.addView(text(getString(R.string.quick_visible_scope), 12f, muted)); card.gap(10)
         card.addView(button(getString(R.string.quick_stop), false) { quickWatch.stop() }); card.gap(8)
         card.addView(button(getString(R.string.timeline_title), false) { openTimeline(id) })
         page.addView(card); page.gap(18)
@@ -734,7 +740,8 @@ class MainActivity : LocalizedActivity() {
             val actions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
             actions.addView(text(getString(R.string.people_summary, saved.people.size, saved.people.count { it.favorite }), 13f, muted), LinearLayout.LayoutParams(0, -2, 1f))
             actions.addView(button(getString(R.string.ui_add_person), networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-2, -2))
-            page.addView(actions); page.gap(20)
+            page.addView(actions); page.gap(12)
+            page.addView(text(getString(R.string.people_capacity_scope, PeoplePolicy.MAX_PEOPLE), 12f, muted)); page.gap(20)
             if (saved.people.isEmpty()) {
                 val empty = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(24), dp(28), dp(24), dp(28)) }
                 empty.addView(AppUi.avatar(this, "+", 56, AppUi.mint, AppUi.teal)); empty.gap(18)
@@ -742,7 +749,7 @@ class MainActivity : LocalizedActivity() {
                 empty.addView(text(getString(R.string.ui_add_a_profile_to_view_its_lists), 14f, muted))
                 page.addView(empty)
             }
-            for ((index, entry) in PeoplePolicy.favoritesFirst(saved.people).withIndex()) {
+            for ((index, entry) in PeoplePolicy.favoritesFirst(saved.people).take(visiblePeople).withIndex()) {
                 val p = entry.latest
                 val card = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(18), dp(18), dp(18), dp(16)) }
                 val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -763,6 +770,9 @@ class MainActivity : LocalizedActivity() {
                 card.addView(button(getString(R.string.ui_open_analysis, p.username), false) { selectedPersonId = p.userId; rangeDays = 0; message = null; render() }, LinearLayout.LayoutParams(-1, -2))
                 page.addView(card); page.gap(14)
             }
+            if (saved.people.size > visiblePeople) page.addView(button(getString(R.string.people_more), false) {
+                visiblePeople = (visiblePeople + 20).coerceAtMost(PeoplePolicy.MAX_PEOPLE); render()
+            })
             return
         }
         val p = person.latest
@@ -800,12 +810,21 @@ class MainActivity : LocalizedActivity() {
         }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
         val historyCard = AppUi.card(this)
         historyCard.addView(AppUi.heading(this, getString(R.string.ui_observation_history), 22f)); historyCard.gap(10)
+        historyCard.addView(text(getString(R.string.history_retention_scope, PeoplePolicy.MAX_HISTORY), 12f, muted)); historyCard.gap(10)
         val filters = LinearLayout(this)
         for ((label, days) in listOf(getString(R.string.ui_7_days) to 7, getString(R.string.ui_30_days) to 30, getString(R.string.ui_all) to 0)) {
             filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
         }
         historyCard.addView(filters); historyCard.gap(10)
         val observations = person.history.filter { rangeDays == 0 || it.observedAt >= System.currentTimeMillis() - rangeDays * 86400000L }
+        val coverage = ObservationCoverage.of(observations)
+        if (coverage.count > 0) {
+            val minutes = coverage.spanMinutes
+            val summary = if (coverage.count == 1) getString(R.string.history_single_scope, date(coverage.firstAt!!))
+                else getString(R.string.history_actual_scope, coverage.count, minutes / 1440, minutes % 1440 / 60, minutes % 60,
+                    date(coverage.firstAt!!), date(coverage.lastAt!!))
+            historyCard.addView(text(summary, 13f, ink)); historyCard.gap(10)
+        }
         if (observations.isNotEmpty()) {
             val metric = LinearLayout(this)
             metric.addView(button(getString(R.string.ui_followers), chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
@@ -1326,6 +1345,7 @@ class MainActivity : LocalizedActivity() {
         if (::quickWatch.isInitialized) quickWatch.save(outState)
         outState.putString("pendingQuickTarget", pendingQuickTarget)
         outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
+        outState.putInt("visiblePeople", visiblePeople)
         outState.putString("pendingWatch", pendingWatchId); outState.putString("pendingOwner", pendingWatchOwner); outState.putInt("pendingMinutes", pendingWatchMinutes)
         outState.putString("pendingAutomationOwner", pendingAutomationOwner)
         pendingAutomationTargets?.let { outState.putStringArrayList("pendingAutomationTargets", ArrayList(it)) }

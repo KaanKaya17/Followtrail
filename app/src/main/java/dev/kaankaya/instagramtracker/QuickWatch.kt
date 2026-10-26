@@ -37,6 +37,7 @@ class QuickWatch(private val vault: SessionVault, private val lists: FollowListV
     val active get() = target != null && runtime.elapsed() < until
     val secondsLeft get() = ((until - runtime.elapsed()).coerceAtLeast(0) + 999) / 1000
     val secondsToCheck get() = ((next - runtime.elapsed()).coerceAtLeast(0) + 999) / 1000
+    val waitingForSlot get() = active && !busy && runtime.elapsed() >= next && gate.nextAllowedAt() > runtime.now()
 
     fun start(session: Session, target: String) {
         stop(false); reference = session; this.target = target

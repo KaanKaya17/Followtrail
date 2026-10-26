@@ -85,4 +85,15 @@ class QuickWatchFlowTest {
         instrumentation.runOnMainSync { quick.pause() }
         assertFalse(gate.quickWatchActive()); assertTrue(gate.reserveAutomatic())
     }
+    @Test fun aDueCheckReportsTheSharedSlotDelayInsteadOfPromisingAnImmediateResult() {
+        val quick = controller()
+        instrumentation.runOnMainSync { quick.start(vault.read()!!.session, "201") }
+        await { calls.get() == 1 && !quick.busy }
+        elapsed += 60_000; now += 60_000
+        gate.begin(now)
+        assertEquals(0L, quick.secondsToCheck); assertTrue(quick.waitingForSlot)
+        Thread.sleep(1100); assertEquals(1, calls.get())
+        elapsed += 15_000; now += 15_000
+        await { calls.get() == 2 }; assertFalse(quick.waitingForSlot)
+    }
 }

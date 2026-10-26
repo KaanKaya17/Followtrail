@@ -89,4 +89,15 @@ class ProfileChangesTest {
         assertEquals(saved, AccountCodec.decode(encoded))
         println("Full 20x90 history with shared 7500-byte biography: ${encoded.toByteArray().size} bytes")
     }
+    @Test fun aHundredFullHistoriesFitTheExpandedAccountBudgetAndRoundtrip() {
+        val bio = "a".repeat(7500)
+        val people = (1..100).map { id -> TrackedPerson((1..90).map { index ->
+            p(index * 1000L, ProfileText.known(bio), "photo", "https://cdn.example/pic?token=$index").copy(userId = id.toString())
+        }, favorite = id == 1) }
+        val saved = account(listOf(p())).copy(people = people)
+        val encoded = AccountCodec.encode(saved)
+        assertTrue(encoded.toByteArray().size < SessionVault.ACCOUNT_BYTES)
+        assertEquals(saved, AccountCodec.decode(encoded))
+        println("100x90 observations with shared biography and 90 rotating URLs: ${encoded.toByteArray().size} bytes")
+    }
 }

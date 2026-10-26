@@ -10,11 +10,11 @@ object AccountCodec {
         require(minutes in WatchIntervals.minutes)
         return legacyHourChoices.first { it * 60 >= minutes }
     }
-    private fun profile(p: Profile, details: List<ProfileDetails>): JSONObject = JSONObject().put("pk", p.userId).put("username", p.username)
+    private fun profile(p: Profile, details: Map<ProfileDetails, Int>): JSONObject = JSONObject().put("pk", p.userId).put("username", p.username)
         .put("follower_count", p.followers).put("following_count", p.following).put("observedAt", p.observedAt)
         .apply {
             p.posts?.let { put("media_count", it) }
-            if (p.details != ProfileDetails()) put("detailsRef", details.indexOf(p.details).also { require(it >= 0) })
+            if (p.details != ProfileDetails()) put("detailsRef", details.getValue(p.details))
         }
     private fun profile(json: JSONObject, details: List<ProfileDetails> = emptyList()): Profile {
         val time = json.getLong("observedAt")
@@ -26,8 +26,8 @@ object AccountCodec {
         }
         return ProfileParser.user(json, time).copy(details = data)
     }
-    private fun text(field: ProfileText, texts: List<String>) = JSONObject().put("state", field.state.name).apply {
-        field.value?.let { put("valueRef", texts.indexOf(it).also { ref -> require(ref >= 0) }) }
+    private fun text(field: ProfileText, texts: Map<String, Int>) = JSONObject().put("state", field.state.name).apply {
+        field.value?.let { put("valueRef", texts.getValue(it)) }
     }
     private fun text(body: JSONObject, texts: List<String>): ProfileText {
         val state = ProfileTextState.valueOf(body.getString("state"))
@@ -37,7 +37,7 @@ object AccountCodec {
         require(value == null || (value.length <= ProfileDetailsParser.TEXT_BYTES && value.toByteArray(Charsets.UTF_8).size <= ProfileDetailsParser.TEXT_BYTES))
         return ProfileText(state, value)
     }
-    private fun encodeDetails(value: ProfileDetails, texts: List<String>) = JSONObject().put("biography", text(value.biography, texts))
+    private fun encodeDetails(value: ProfileDetails, texts: Map<String, Int>) = JSONObject().put("biography", text(value.biography, texts))
         .put("pictureId", text(value.pictureId, texts)).put("pictureUrl", text(value.pictureUrl, texts)).apply {
             value.anonymousPicture?.let { put("anonymous", it) }
         }
@@ -48,21 +48,23 @@ object AccountCodec {
         val details = (listOf(account.profile) + account.people.flatMap { it.history }).map { it.details }
             .filter { it != ProfileDetails() }.distinct()
         val texts = details.flatMap { listOfNotNull(it.biography.value, it.pictureId.value, it.pictureUrl.value) }.distinct()
+        val detailRefs = details.withIndex().associate { it.value to it.index }
+        val textRefs = texts.withIndex().associate { it.value to it.index }
         val people = JSONArray()
         for (person in account.people) people.put(JSONObject().put("note", person.note).put("group", person.group)
             .put("favorite", person.favorite)
             .put("watching", person.watching).put("intervalMinutes", person.intervalMinutes)
             // v4 compatibility for older APKs: round up to their supported interval, never speed up a downgrade.
             .put("intervalHours", legacyHours(person.intervalMinutes)).put("nextCheckAt", person.nextCheckAt)
-            .put("history", JSONArray().apply { person.history.forEach { put(profile(it, details)) } }))
+            .put("history", JSONArray().apply { person.history.forEach { put(profile(it, detailRefs)) } }))
         val result = JSONObject().put("version", 4).put("id", account.session.userId)
             .put("cookie", account.session.cookie).put("ua", account.session.userAgent)
             .apply { account.session.mobileBinding?.let { put("mobileBinding", it) } }
-            .put("profile", profile(account.profile, details)).put("people", people)
+            .put("profile", profile(account.profile, detailRefs)).put("people", people)
             .apply { if (account.automation != ListAutomation()) put("listAutomation", JSONObject()
                 .put("enabled", account.automation.enabled).put("targets", JSONArray(account.automation.targets.toList()))
                 .put("ownNextCheckAt", account.automation.ownNextCheckAt).put("lastWorkWasList", account.automation.lastWorkWasList)) }
-            .apply { if (details.isNotEmpty()) put("profileDetails", JSONArray().apply { details.forEach { put(encodeDetails(it, texts)) } })
+            .apply { if (details.isNotEmpty()) put("profileDetails", JSONArray().apply { details.forEach { put(encodeDetails(it, textRefs)) } })
                 if (texts.isNotEmpty()) put("profileTexts", JSONArray(texts))
             }.toString()
         // Validate at the owning boundary on both read and write.

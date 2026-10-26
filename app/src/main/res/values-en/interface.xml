@@ -3,7 +3,7 @@
     <string name="ui_refresh_person">"Refresh person"</string>
     <string name="ui_add_person">"Add person"</string>
     <string name="ui_view_lists">"View lists"</string>
-    <string name="ui_your_social_circle_together">"Your social circle, together."</string>
+    <string name="ui_your_social_circle_together">Saved observations, together.</string>
     <string name="ui_options">"Options"</string>
     <string name="ui_demo_sample_data">"DEMO · SAMPLE DATA"</string>
     <string name="ui_offline_demo_sample_data_no_instagram_requests">"Offline demo. Sample data; no Instagram requests."</string>
@@ -14,7 +14,7 @@
     <string name="ui_you_are_viewing_offline">"You are viewing offline"</string>
     <string name="ui_showing_records_on_this_device_an_internet">"Showing records on this device. An internet connection is needed for new data."</string>
     <string name="ui_your_account_nat_a_glance">"Your account,\nat a glance."</string>
-    <string name="ui_your_followers_and_following_in_one_place">"Your followers and following. In one place."</string>
+    <string name="ui_your_followers_and_following_in_one_place">Save profile and list observations, then compare changes over time.</string>
     <string name="ui_updating">"  Updating…"</string>
     <string name="ui_reconnect_account">"Reconnect account"</string>
     <string name="ui_complete_connection">"Complete connection"</string>
