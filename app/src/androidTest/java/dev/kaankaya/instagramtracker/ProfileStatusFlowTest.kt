@@ -75,6 +75,19 @@ class ProfileStatusFlowTest {
         }
         error("Missing status $text: ${status(id)?.text}")
     }
+    private fun awaitDialog(text: String): String {
+        fun content() = instrumentation.uiAutomation.windows.flatMap { window ->
+            fun labels(node: android.view.accessibility.AccessibilityNodeInfo?): List<String> = if (node == null) emptyList() else
+                listOfNotNull(node.text?.toString()) + (0 until node.childCount).flatMap { labels(node.getChild(it)) }
+            labels(window.root)
+        }.joinToString("\n")
+        val deadline = SystemClock.elapsedRealtime() + 7000
+        var body = content()
+        while (!body.contains(text) && SystemClock.elapsedRealtime() < deadline) {
+            Thread.sleep(30); body = content()
+        }
+        assertTrue(body.take(1200), body.contains(text)); return body
+    }
     @Test fun ownAndPeopleSummariesSeparateSuccessfulProfileTimeFromPendingListPages() {
         val before = vault.read(); val archive = lists.archive(before!!.session)
         launch(); click("Kişiler")
@@ -84,17 +97,7 @@ class ProfileStatusFlowTest {
         click("Analizi aç · @deniz.demo"); await("Liste devamı bekliyor", "200")
         scenario!!.onActivity { activity -> views(activity.window.decorView).single { it.tag == "profile-status:200" }.performClick() }
         instrumentation.waitForIdleSync()
-        fun dialogText() = instrumentation.uiAutomation.windows.flatMap { window ->
-            fun labels(node: android.view.accessibility.AccessibilityNodeInfo?): List<String> = if (node == null) emptyList() else
-                listOfNotNull(node.text?.toString()) + (0 until node.childCount).flatMap { labels(node.getChild(it)) }
-            labels(window.root)
-        }.joinToString("\n")
-        val deadline = SystemClock.elapsedRealtime() + 7000
-        var body = dialogText()
-        while (!body.contains("Son başarılı profil okuması") && SystemClock.elapsedRealtime() < deadline) {
-            Thread.sleep(30); body = dialogText()
-        }
-        assertTrue(body.take(1200), body.contains("Son başarılı profil okuması"))
+        val body = awaitDialog("Son başarılı profil okuması")
         assertTrue(body.take(1200), body.contains("Takip edilenler · Henüz kayıt yok"))
         assertTrue(body.contains("ek Instagram isteği göndermez"))
         assertEquals(0L, gate.attempts()); assertEquals(before, vault.read()); assertEquals(archive, lists.archive(before.session))
@@ -138,6 +141,18 @@ class ProfileStatusFlowTest {
                 person.latest.copy(observedAt = System.currentTimeMillis(), followers = p.followers + 1))
         }) }
         scenario!!.recreate(); await("Liste güncellemesi sırada", "200")
+        assertEquals(0L, gate.attempts())
+    }
+
+    @Test fun unreadableListArchiveIsUnknownRatherThanAnEmptyOrInitialList() {
+        val saved = vault.read()!!
+        EncryptedRecord(context, "previewlists").write("{")
+        launch(); click("Kişiler"); await("Liste durumu okunamadı", "200")
+        scenario!!.onActivity { activity -> views(activity.window.decorView).single { it.tag == "profile-status:200" }.performClick() }
+        val body = awaitDialog("Liste durumu okunamadı")
+        assertFalse(body.contains("Takipçiler · Henüz kayıt yok"))
+        assertFalse(body.contains("Takip edilenler · Henüz kayıt yok"))
+        assertEquals(saved, vault.read()); assertEquals("{", EncryptedRecord(context, "previewlists").read())
         assertEquals(0L, gate.attempts())
     }
 

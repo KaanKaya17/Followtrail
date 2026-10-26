@@ -171,7 +171,8 @@ class ProfileStatusCards(private val context: Context, private val vault: Sessio
         if (quick().first == p.userId) body += context.getString(R.string.quick_hint)
         else state.eligibleAt?.let { body += context.getString(R.string.watch_target_at, ObservationTimes.format(context, it)) }
         val target = value.archive?.targets?.firstOrNull { it.target == p.userId }
-        for (direction in FollowDirection.entries) {
+        if (value.archive == null) body += context.getString(R.string.profile_status_lists_unavailable)
+        else for (direction in FollowDirection.entries) {
             val label = context.getString(if (direction == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following)
             val run = target?.snapshot?.run(direction)
             body += if (run == null) context.getString(R.string.profile_status_list_missing, label)
@@ -186,12 +187,21 @@ class ProfileStatusCards(private val context: Context, private val vault: Sessio
             body += context.getString(R.string.profile_status_last_failure, ObservationTimes.format(context, it.analyzedAt),
                 it.failure?.let { kind -> ApiFailure(kind).userMessage(context) }.orEmpty())
         }
-        if (value.archive == null) body += context.getString(R.string.profile_status_lists_unavailable)
         body += context.getString(R.string.profile_status_scope)
-        AlertDialog.Builder(context).setTitle(context.getString(R.string.profile_status_title, p.username)).setMessage(body.joinToString("\n\n"))
-            .setPositiveButton(R.string.list_close, null)
-            .setNeutralButton(R.string.timeline_title) { _, _ -> timeline(p.userId) }
-            .setNegativeButton(R.string.list_open) { _, _ -> openLists(p) }.show()
+        val content = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(AppUi.dp(context, 20), AppUi.dp(context, 12), AppUi.dp(context, 20), AppUi.dp(context, 12))
+            addView(AppUi.text(context, body.joinToString("\n\n"), 14f))
+        }
+        val historyButton = AppUi.button(context, context.getString(R.string.timeline_title), false) {}
+        val listsButton = AppUi.button(context, context.getString(R.string.list_open), false) {}
+        for (button in listOf(historyButton, listsButton)) content.addView(button,
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = AppUi.dp(context, 12) })
+        val scroll = android.widget.ScrollView(context).apply { addView(content) }
+        val dialog = AlertDialog.Builder(context).setTitle(context.getString(R.string.profile_status_title, p.username))
+            .setView(scroll).setPositiveButton(R.string.list_close, null).show()
+        historyButton.setOnClickListener { dialog.dismiss(); timeline(p.userId) }
+        listsButton.setOnClickListener { dialog.dismiss(); openLists(p) }
     }
     fun close() { pause(); bindings.clear(); snapshot = null; main.removeCallbacksAndMessages(null); worker.shutdownNow() }
 }
