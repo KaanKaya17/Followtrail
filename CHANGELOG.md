@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## 0.1.22 — 2026-10-26 (tek bakışta kontrol durumu)
+
+- Kendi hesap özetinde, kişi kartlarında ve kişi analizinde dokunulabilir kontrol durumu: son başarılı profil okuması, kısa bekleme nedeni ve varsa liste ilerlemesi. İlk dakika Az önce, ilk saat dakika cinsinden; daha eski veya ileri cihaz saatli kayıtlar tam tarih/saatle gösterilir.
+- Hızlı kontrol, planlanan/sıradaki kontrol, son karşılaştırmada fark olmaması, hata, bildirim izni, bağlantı, çevrimdışı ve Instagram molası ayrı gösterilir. Bir başka profilin hızlı oturumu sürerken normal otomatik kontrollerin beklediği de belirtilir. Kalıcı yarım liste, aktif ağ okuması diye sunulmaz.
+- Dokununca başarılı profil saati, en erken yerel hedef, iki listenin ayrı kapsamı/alınan hesap sayısı/son sayfa zamanı ve varsa son hata açılır. Zaman çizelgesi ve Listeleri incele düğmeleri mevcut ekranları açar. Tamamlanmış listeler yeni sayısal değişim veya günlük süre yüzünden tekrar uygunsa Liste güncellemesi sırada görünür.
+- Özet ekran görünürken yaklaşık 30 saniyede mevcut şifreli kayıtlardan güncellenir; yeni profil/liste isteği, bildirim, iş rezervasyonu veya kalıcı veri üretmez. Ekran yeniden kurulmadan yalnız metinler güncellenir; arka planda bu arayüz döngüsü durur. Mevcut otomasyon, istek molası ve bildirim/fark hesapları değişmedi. Türkçe/English desteklenir.
+
 ## 0.1.21 — 2026-10-26 (hızlı izleme ve işlem geçmişi)
 
 - Kendi hesabında veya kayıtlı kişide Hızlı izle: uygulama görünürken, tek hedef için 15 dakikalık oturum boyunca 60 saniyelik profil tazeliği hedefi. Süre ekran döndürme/arka plana geçişle uzamaz. Ekran görünmezken hızlı oturum duraklar; normal Android işi devam edebilir. Hızlı izleme sona erince seçilen hedefin 15 dakikalık profil/liste otomasyonu açık kalır.

@@ -1,0 +1,35 @@
+<resources>
+    <string name="profile_status_open">Open check status</string>
+    <string name="profile_status_title">@%1$s · Check status</string>
+    <string name="profile_status_loading">Loading check status…</string>
+    <string name="profile_status_unavailable">Check status unavailable</string>
+    <string name="profile_status_last">Last checked · %1$s</string>
+    <string name="profile_status_just_now">Last checked · Just now</string>
+    <string name="profile_status_off">Automatic checks off</string>
+    <string name="profile_status_lists_only">List automation on · Profile monitoring off</string>
+    <string name="profile_status_notifications">Waiting for notification permission</string>
+    <string name="profile_status_limited">Instagram cooldown · No automatic retry</string>
+    <string name="profile_status_connection">Reconnect your account</string>
+    <string name="profile_status_link">Account connection in progress</string>
+    <string name="profile_status_paused">Automatic checks paused</string>
+    <string name="profile_status_offline">Waiting for an internet connection</string>
+    <string name="profile_status_checking">Quick check in progress</string>
+    <string name="profile_status_quick">Quick watch active</string>
+    <string name="profile_status_failed">Last check did not finish · View details</string>
+    <string name="profile_status_unchanged">No differences in the last profile comparison</string>
+    <string name="profile_status_due">Check queued · Waiting for Android</string>
+    <string name="profile_status_scheduled">Automatic check scheduled</string>
+    <string name="profile_status_lists_unavailable">List status unavailable</string>
+    <string name="profile_status_lists_failed">List check waiting · Last read failed</string>
+    <string name="profile_status_lists_observed">Both list ends observed</string>
+    <string name="profile_status_lists_limited">List read limited or uncertain</string>
+    <string name="profile_status_lists_pending">More list pages pending</string>
+    <string name="profile_status_lists_initial">Initial list reads queued</string>
+    <string name="profile_status_list_missing">%1$s · No saved read yet</string>
+    <string name="profile_status_list_detail">%1$s · Accounts downloaded: %2$s\nLast page: %3$s\n%4$s</string>
+    <string name="profile_status_last_failure">Last failure · %1$s\n%2$s</string>
+    <string name="profile_status_scope">This view sends no additional Instagram requests. Last checked means a successful profile read; list times are separate. It updates roughly every 30 seconds while visible. Check targets may be delayed.</string>
+    <plurals name="profile_status_minutes"><item quantity="one">Last checked · %1$d minute ago</item><item quantity="other">Last checked · %1$d minutes ago</item></plurals>
+    <string name="profile_status_other_quick">Waiting for the other profile’s quick watch</string>
+    <string name="profile_status_lists_due">List refresh queued</string>
+</resources>

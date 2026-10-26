@@ -26,7 +26,6 @@
     <string name="ui_overview">"Home"</string>
     <string name="ui_people">"People"</string>
     <string name="ui_at_a_glance">"At a glance"</string>
-    <string name="ui_saved_overview">"Saved overview · %1$s"</string>
     <string name="ui_open_list">"Open list"</string>
     <string name="ui_open_list_description">"%1$s: %2$s. Open list"</string>
     <string name="ui_followers">"Followers"</string>
@@ -82,7 +81,6 @@
     <string name="ui_saved_profile">"Saved profile"</string>
     <string name="ui_followers_following">"%1$s followers · %2$s following"</string>
     <string name="ui_last_record">"Last record · %1$s"</string>
-    <string name="ui_change_notifications_on">"Change notifications on"</string>
     <string name="ui_open_analysis">"Open analysis · @%1$s"</string>
     <string name="ui_all_people">"All people"</string>
     <string name="ui_profile_analysis">"PROFILE ANALYSIS"</string>

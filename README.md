@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.21**. Türkçe/English, görünür uygulamada 60 saniyelik hızlı kontrol hedefi ve saatli işlem geçmişi. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Profil geçmişinde kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi mevcut profil yanıtından alınır; görünür profil fotoğrafları mevcut bağlantıdan oturum bilgisi gönderilmeden yüklenip özel cihaz önbelleğinde tutulabilir. İsteğe bağlı liste otomasyonu ayrıca aşağıda açıklanır. Eski oturum ve kayıtlar korunur. Önceki çalışan 0.1.20 kaynak/APK yedeği ve Git etiketi korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.22**. Türkçe/English, görünür uygulamada 60 saniyelik hızlı kontrol hedefi ve saatli işlem geçmişi. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Profil geçmişinde kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi mevcut profil yanıtından alınır; görünür profil fotoğrafları mevcut bağlantıdan oturum bilgisi gönderilmeden yüklenip özel cihaz önbelleğinde tutulabilir. İsteğe bağlı liste otomasyonu ayrıca aşağıda açıklanır. Eski oturum ve kayıtlar korunur. Önceki çalışan 0.1.21 kaynak/APK yedeği ve Git etiketi korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
 
 25 Ekim fiziksel telefon testinde kullanıcı, mobil bağlantıyla kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi. Bu canlı sonuç 0.1.8'e aittir; yeni arayüz kontrolleri ayrı debug paketi ve sentetik veri kullanır. Çok sayfalı canlı devam ve uzun süreli oturum henüz sınanmadı. [Liste testi](docs/FOLLOW-LISTS-TEST.md).
 
@@ -27,6 +27,12 @@ Bağlantı için Windows'taki mobil oturumu şifreli aktarma ve önceki uygulama
 - Tek kişiyi kaldırma o kişinin geçmiş ve notunu siler. **Bağlantıyı kaldır** bu uygulamadaki oturumu ve bütün kişileri siler; diğer Instagram oturumlarını kapatmaz.
 
 - **Takip durumu:** son başarılı profil okuması, seçilen aralık, sıradaki kontrol için en erken hedef ve bekleme nedeni. İzin, bağlantı, Instagram molası, ortak bütçe ve kişi sırası ayrı gösterilir. **Durumu güncelle** yalnız cihaz kaydını/sistem durumunu okur ve mevcut işi eşler; Instagram isteği göndermez. Ekran kendiliğinden canlı güncellenmez. [Kontrol ve bildirim testleri](docs/WATCH-STATUS-TEST.md).
+
+## Tek bakışta kontrol durumu
+
+Kendi hesabında, kişi kartlarında ve kişi analizinde kısa durum alanına dokun: son başarılı profil okuması, mevcut bekleme nedeni, iki listenin ayrı okuma zamanı/kapsamı ve varsa son hata görünür. Yarım liste için Liste devamı bekliyor yazması o anda ağ isteği çalıştığı anlamına gelmez. İki liste sonunun gözlenmesi Instagram sonuçlarının eksiksizliğini kanıtlamaz. Güncelleme sırası ve profil karşılaştırma sonucu ayrı gösterilir.
+
+Bu alan ekran görünürken yaklaşık 30 saniyede yalnız cihazdaki kayıtları tekrar okur. Yeni Instagram sorgusu veya otomasyon ayarı oluşturmaz. Güncel durum açıldığında ağ ve Android işi değişmiş olabilir; saatler/yerel hedefler kesin çalışma sözü değildir. [Test adımları](docs/PROFILE-STATUS-TEST.md).
 
 ## Hızlı izleme ve işlem geçmişi
 

@@ -71,3 +71,8 @@ Bu inceleme için yeni veri çekmek gerekmez. Profil veya liste okuma düğmesin
 ## 0.1.21 hızlı kontrol ve zaman çizelgesi
 
 [Hızlı izleme testleri](QUICK-WATCH-TEST.md): Türkçe/English, görünür kalan süre, bitirme, gözlem/işlenme zamanları ve ayrıntı penceresi; 720×1600 ve büyük yazı ölçeğinde kaydırma/düğmeler. Geçmiş açma/filtre/geri yeni profil isteği üretmemeli. Hızlı oturum, görünür ekran dışına çıkınca duraklamalı; ilk başlangıçtan 15 dakika geçince kart kapanmalı.
+
+
+## 0.1.22 tek bakışta durum
+
+[Kendi hesap/kişi durum testi](PROFILE-STATUS-TEST.md): kısa durum, son başarılı profil saati ile ayrı liste saatleri, dokunulabilir ayrıntı, yarım/sınırlı kayıt, hata/mola ayrımı ve Türkçe/English. Ekran görünürken yerel yenileme kaydırmayı veya ekranı yeniden kurmamalı; profil/liste isteği başlatmamalı.
