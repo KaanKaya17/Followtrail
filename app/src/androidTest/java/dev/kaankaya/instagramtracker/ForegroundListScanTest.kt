@@ -96,4 +96,14 @@ class ForegroundListScanTest {
             assertEquals(1, count); assertNotEquals(FollowCoverage.MORE, result.followers!!.coverage())
         }
     }
+    @Test fun anExistingManualPauseAllowsOneExplicitPageButNeverContinuesAutomatically() {
+        for (restriction in listOf(false, true)) {
+            setup()
+            if (restriction) gate().limited(null, now - 2 * 60 * 60 * 1000) else gate().pauseAutomatic()
+            val scanner = scan { cursor -> page(cursor, listOf("1"), "next") }
+            val result = scanner.read(session, "200", FollowDirection.FOLLOWERS, null, cancelled = { cancelled }, progress = {})
+            assertEquals(1, count); assertEquals("next", result.followers!!.cursor()); assertTrue(gate().manualOnly())
+            assertEquals(restriction, gate().restrictionPending())
+        }
+    }
 }

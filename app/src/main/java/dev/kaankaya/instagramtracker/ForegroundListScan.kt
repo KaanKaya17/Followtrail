@@ -38,7 +38,7 @@ class ForegroundListScan(private val vault: SessionVault, private val lists: Fol
             }
             progress(result!!)
             expected = result!!.run(direction)
-            if (expected!!.coverage() != FollowCoverage.MORE) return result!!
+            if (expected!!.coverage() != FollowCoverage.MORE || gate.manualOnly() || gate.restrictionPending()) return result!!
             cursor = expected!!.cursor()
         }
         return result!!
