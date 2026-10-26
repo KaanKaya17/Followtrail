@@ -362,7 +362,7 @@ class MainActivity : Activity() {
                 gravity = Gravity.CENTER; setPadding(dp(12), dp(12), dp(12), dp(12))
                 background = AppUi.touch(this@MainActivity, shape(AppUi.violetSoft, 20))
                 addView(avatar(person.latest, 40)); gap(8)
-                addView(text("@${person.latest.username}", 12f, accent, true).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+                addView(text("@${person.latest.username}", 12f, accent, true).apply { gravity = Gravity.CENTER; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
                 contentDescription = "Favoriyi aç · @${person.latest.username}"; isFocusable = true
                 setOnClickListener { peopleScreen = true; selectedPersonId = person.latest.userId; message = null; render() }
             }

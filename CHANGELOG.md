@@ -1,5 +1,9 @@
 # Değişiklikler
 
+## 0.1.19 — 2026-10-26 (favori hizalaması)
+
+- Ana ekrandaki favori kartlarında kullanıcı adı, profil görselinin altında ortalandı.
+
 ## 0.1.18 — 2026-10-26 (daha sade ve hızlı kullanım)
 
 - Son incelenen en fazla 20 profil için 15 dakikalık, oturuma bağlı bellek önbelleği. Geri dönüp yeniden açma yeni istek gerektirmez; okuma zamanı yenilenmez. Kayıtlı kişi/own profilinin daha yeni gözlemi tercih edilir. Kişiyi veya bağlantıyı kaldırmak ilgili önbelleği de temizler. Uygulama süreci kapanınca bu geçici önbellek kaybolur.
