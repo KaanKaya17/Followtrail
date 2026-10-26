@@ -14,7 +14,7 @@ import java.util.concurrent.Future
 
 /** A list member is a temporary profile, never an implicitly registered/watchable person. */
 class MemberProfileActivity : LocalizedActivity() {
-    private data class ProfileRead(val profile: Profile, val fetched: Boolean)
+    private data class ProfileRead(val profile: Profile, val fetched: Boolean, val startedAt: Long? = null)
     private data class Retained(val owner: String, val binding: String?, val member: FollowUser, val profile: Profile?)
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
@@ -158,12 +158,16 @@ class MemberProfileActivity : LocalizedActivity() {
         if (!readAllowed()) return
         attempted = true; loading = true; message = null; render(); val ticket = ++generation
         pending = worker.submit {
+            var startedAt: Long? = null
             val result = try {
                 val saved = vault.read()?.takeIf { it.session == reference } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 val cached = ViewedProfiles.latest(saved, member.id)
                 Result.success(if (cached != null && !PeoplePolicy.needsRefresh(cached, System.currentTimeMillis())) ProfileRead(cached, false)
-                    else ProfileRead(api.readId(reference, member.id), true))
-            } catch (failure: ApiFailure) { Result.failure(failure) }
+                    else { startedAt = System.currentTimeMillis(); ProfileRead(api.readId(reference, member.id), true, startedAt) })
+            } catch (failure: ApiFailure) {
+                vault.recordFailure(reference, member.id, startedAt, failure)
+                Result.failure(failure)
+            }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)) }
             main.post {
                 if (isDestroyed || isFinishing || ticket != generation) return@post
@@ -176,9 +180,9 @@ class MemberProfileActivity : LocalizedActivity() {
                             profile = fresh
                             if (!read.fetched) account = current
                             else if (current.profile.userId == member.id && fresh.observedAt > current.profile.observedAt)
-                                account = vault.update(reference) { it.copy(profile = fresh) }
+                                account = Observations.own(vault, reference, fresh, read.startedAt).account
                             else if (current.people.any { it.latest.userId == member.id }) {
-                                val commit = Observations.person(vault, reference, fresh, existingRequired = true)
+                                val commit = Observations.person(vault, reference, fresh, existingRequired = true, startedAt = read.startedAt)
                                 account = commit.account
                                 commit.change?.let { change -> Observations.deliver(vault, reference, change, ChangeNotifications(this, preview)::allowed, ChangeNotifications(this, preview)::post) }
                             }

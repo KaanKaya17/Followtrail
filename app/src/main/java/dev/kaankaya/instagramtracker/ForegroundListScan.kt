@@ -26,14 +26,22 @@ class ForegroundListScan(private val vault: SessionVault, private val lists: Fol
             }
             vault.inspect { if (!current(it)) throw ApiFailure(ApiFailure.Kind.CANCELLED) }
             if (lists.read(session, target)?.run(direction) != expected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+            val startedAt = runtime.now()
             val page = source.read(session, target, direction, cursor)
             if (page.target != target || page.direction != direction || page.inputCursor != cursor) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
             vault.inspect { saved ->
                 if (!current(saved)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-                result = lists.commitCurrent(session, page, expected)
-                if (saved!!.automation.enabled && target in saved.automation.targets) {
-                    lists.target(session, target)?.let { ListAutomationPolicy.difference(it, direction) }
-                        ?.takeIf { it.added.isNotEmpty() || it.missing.isNotEmpty() }?.let { notify(saved, it) }
+                val profile = if (target == saved!!.profile.userId) saved.profile else saved.people.first { it.latest.userId == target }.latest
+                result = lists.commitCurrent(session, page, expected, ListBasis.of(profile, direction))
+                val entry = lists.target(session, target)!!
+                val difference = ListAutomationPolicy.difference(entry, direction)
+                val run = result!!.run(direction)!!
+                vault.record(session, CheckEvent(target, profile.username, CheckKind.LIST, startedAt, page.observedAt, runtime.now(),
+                    entry.previous?.run(direction)?.latest?.observedAt, direction = direction, coverage = run.coverage(),
+                    pages = run.pages.size, accounts = run.users.size, added = difference?.added?.size, missing = difference?.missing?.size,
+                    newlySeen = CheckEvent.sample(difference?.added.orEmpty()), notSeen = CheckEvent.sample(difference?.missing.orEmpty())))
+                if (saved.automation.enabled && target in saved.automation.targets) {
+                    difference?.takeIf { it.added.isNotEmpty() || it.missing.isNotEmpty() }?.let { notify(saved, it) }
                 }
             }
             progress(result!!)

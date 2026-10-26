@@ -18,7 +18,7 @@ object MonitorScheduler {
     fun sync(context: Context, account: SavedAccount?, gate: RequestGate, jobId: Int = JOB_ID,
         service: Class<out JobService> = MonitorJobService::class.java): Boolean {
         val scheduler = context.getSystemService(JobScheduler::class.java)
-        if ((account?.people?.any { it.watching } != true && account?.automation?.enabled != true) || !ChangeNotifications(context).allowed() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) {
+        if ((account?.people?.any { it.watching } != true && account?.automation?.enabled != true) || !ChangeNotifications(context).allowed() || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) {
             scheduler.cancel(jobId); return false
         }
         if (scheduler.getPendingJob(jobId) != null) return true
@@ -45,13 +45,13 @@ open class MonitorJobService : JobService() {
     override fun onStartJob(params: JobParameters): Boolean {
         val notices = ChangeNotifications(this, preview)
         val gate = RequestGate(this, gateName)
-        if (!notices.allowed() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) { MonitorScheduler.cancel(this, jobId); return false }
+        if (!notices.allowed() || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) { MonitorScheduler.cancel(this, jobId); return false }
         active?.cancel()
         val run = Run(params, createApi(gate), createListSource(gate)); active = run
         run.future = worker.submit {
             val vault = SessionVault(this, vaultSlot)
             try { AutomaticEngine(vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
-                run.api, run.lists, notices::allowed, notices::post, notices::postList).tick(cancelled = run.cancelled::get) }
+                run.api, run.lists, notices::allowed, notices::post, notices::postList).cycle(cancelled = run.cancelled::get) }
             catch (_: ApiFailure) { /* The gate preserves restrictions and auth pauses; no immediate retries. */ }
             catch (_: Exception) { gate.pauseForConnection() }
             finally {

@@ -25,21 +25,21 @@ class InstagramApi(
     fun testWebConnection(session: Session): Profile {
         require(session.mobileBinding == null && session.userId.matches(Regex("[1-9][0-9]{0,29}")))
         return request(session, "https://www.instagram.com/api/v1/users/${session.userId}/info/", connectionTest = true) {
-            ProfileParser.parse(it, session.userId, System.currentTimeMillis())
+            ProfileParser.parse(it, session.userId, gate.now())
         }
     }
     fun readId(session: Session, userId: String): Profile {
         require(userId.matches(Regex("[1-9][0-9]{0,29}")))
         if (session.mobileBinding != null) return mobile.read(session, userId, null)
         return request(session, "https://www.instagram.com/api/v1/users/$userId/info/") {
-            ProfileParser.parse(it, userId, System.currentTimeMillis())
+            ProfileParser.parse(it, userId, gate.now())
         }
     }
     fun readUsername(session: Session, username: String): Profile {
         require(ProfileInput.validUsername(username))
         if (session.mobileBinding != null) return mobile.read(session, null, username)
         return request(session, "https://www.instagram.com/api/v1/users/web_profile_info/?username=$username") {
-            ProfileParser.byUsername(it, username, System.currentTimeMillis())
+            ProfileParser.byUsername(it, username, gate.now())
         }
     }
     private fun request(session: Session, address: String, connectionTest: Boolean = false, parse: (String) -> Profile): Profile {

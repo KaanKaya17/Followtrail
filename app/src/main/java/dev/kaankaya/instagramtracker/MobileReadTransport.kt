@@ -43,7 +43,7 @@ class MobileReadTransport(private val gate: RequestGate, private val sessions: M
             current(); lease = gate.claim()
             if (connectionTest) gate.beginPrototype() else gate.begin()
             val state = sessions.read(reference)
-            call = client.newCall(request(state, System.currentTimeMillis()))
+            call = client.newCall(request(state, gate.now()))
             synchronized(lock) { current(); active = call }
             call.execute().use { response ->
                 current(); gate.observedStatus(response.code)
@@ -55,7 +55,7 @@ class MobileReadTransport(private val gate: RequestGate, private val sessions: M
                 if (source.buffer.size > 1024 * 1024) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val json = try { JSONObject(source.readUtf8()) } catch (_: Exception) { null }
                 InstagramResponsePolicy.checkBody(gate, response.code, json, response.header("Retry-After"))
-                val result = parse(json ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE), System.currentTimeMillis())
+                val result = parse(json ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE), gate.now())
                 val updated = try { state.updated(response.headers.toMultimap()) }
                     catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT) }
                 synchronized(lock) {

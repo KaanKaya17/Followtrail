@@ -1,0 +1,43 @@
+<resources>
+    <string name="quick_start">Quick watch</string>
+    <string name="quick_hint">A 60-second profile check target for 15 minutes while the app is visible. Afterwards, background checks target a 15-minute interval.</string>
+    <string name="quick_title">Quick watch · @%1$s</string>
+    <string name="quick_status">%1$s remaining · Next check in %2$s s</string>
+    <string name="quick_busy">%1$s remaining · Checking and analyzing lists</string>
+    <string name="quick_stop">End quick watch</string>
+    <string name="quick_restriction">Quick watch cannot remove an existing cooldown or connection hold. Check Request information.</string>
+    <string name="timeline_title">Timeline</string>
+    <string name="timeline_menu">Check history</string>
+    <string name="timeline_subtitle">What was read and compared, and when.</string>
+    <string name="timeline_empty">Checks made after this update will appear here. Earlier profile observations remain in the analysis screen.</string>
+    <string name="timeline_scope">The latest 120 records are encrypted on this device. Times refer to device reads and comparisons, not exact Instagram event times. Times missing from older records are shown as not recorded.</string>
+    <string name="timeline_filter">Choose account</string>
+    <string name="timeline_all">All accounts</string>
+    <string name="timeline_unknown">Not recorded</string>
+    <string name="timeline_started">Action started: %1$s</string>
+    <string name="timeline_received">Data received: %1$s</string>
+    <string name="timeline_analyzed">Comparison saved: %1$s</string>
+    <string name="timeline_failed_at">Action ended: %1$s</string>
+    <string name="timeline_previous">Previous observation: %1$s</string>
+    <string name="timeline_window">This difference was observed between the previous and new reads. The exact change time is unknown.</string>
+    <string name="timeline_profile_initial">First profile record</string>
+    <string name="timeline_profile_unchanged">Profile checked · No comparable changes</string>
+    <string name="timeline_profile_changed">Profile change observed</string>
+    <string name="timeline_counts">Follower change: %1$s · Following change: %2$s</string>
+    <string name="timeline_list">%1$s · List read</string>
+    <string name="timeline_list_compared">%1$s · Lists compared</string>
+    <string name="timeline_list_counts">Pages: %1$d · Accounts downloaded: %2$d</string>
+    <string name="timeline_failure">Check could not complete</string>
+    <string name="timeline_observed">Observed · %1$s</string>
+    <string name="timeline_saved">Processed · %1$s</string>
+    <string name="timeline_profile_last">Last profile observation · %1$s</string>
+    <string name="timeline_open_profile">Open profile</string>
+    <string name="timeline_unavailable">Could not open check history. Profile and list records are stored separately.</string>
+    <string name="timeline_write_failed">The last action could not be added to history; check profile and list records separately.</string>
+    <string name="adaptive_scope">Profile counts are checked first. A count change prioritizes the relevant list; completed lists also retain a daily check. People can change even when counts stay the same. A background round uses up to six requests and a 90-second window for starting requests, at least 15 seconds apart. Android may delay work. Quick watch only runs while the app is visible and stops on the first error; 429 cooldowns are preserved.</string>
+    <string name="journal_privacy">Check and list-comparison history is also encrypted on this device. Up to 120 recent actions are retained; passwords and raw responses are not written to this history.</string>
+    <plurals name="timeline_member_sample">
+        <item quantity="one">History retains the first %1$d account in each direction; total differences are shown above. Open the list screen for all retained records from the latest read.</item>
+        <item quantity="other">History retains the first %1$d accounts in each direction; total differences are shown above. Open the list screen for all retained records from the latest read.</item>
+    </plurals>
+</resources>

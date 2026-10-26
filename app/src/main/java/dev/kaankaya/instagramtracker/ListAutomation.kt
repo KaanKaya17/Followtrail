@@ -3,7 +3,15 @@ package dev.kaankaya.instagramtracker
 data class ListAutomation(val enabled: Boolean = false, val targets: Set<String> = emptySet(), val ownNextCheckAt: Long = 0,
     val lastWorkWasList: Boolean = false)
 data class ListScan(val nextAt: Long = 0, val attemptAt: Long = 0, val continuing: Boolean = false,
-    val failure: ApiFailure.Kind? = null)
+    val failure: ApiFailure.Kind? = null, val basisCount: Long? = null, val basisAt: Long = 0)
+
+/** Profile observation used when a scan starts; never treated as proof that the list is complete. */
+data class ListBasis(val count: Long, val observedAt: Long) {
+    companion object {
+        fun of(profile: Profile, direction: FollowDirection) = ListBasis(
+            if (direction == FollowDirection.FOLLOWERS) profile.followers else profile.following, profile.observedAt)
+    }
+}
 data class ListTarget(val target: String, val snapshot: FollowSnapshot? = null, val previous: FollowSnapshot? = null,
     val followers: ListScan = ListScan(), val following: ListScan = ListScan()) {
     fun scan(direction: FollowDirection) = if (direction == FollowDirection.FOLLOWERS) followers else following
@@ -20,7 +28,7 @@ data class ListPageCommit(val target: ListTarget, val difference: ListDifference
 
 object ListAutomationPolicy {
     const val RESCAN_MS = 24 * 60 * 60 * 1000L
-    const val OWN_PROFILE_MS = 60 * 60 * 1000L
+    const val OWN_PROFILE_MS = MonitorPolicy.POLL_MS
     fun difference(target: ListTarget, direction: FollowDirection): ListDifference? {
         val before = target.previous?.run(direction) ?: return null
         val after = target.snapshot?.run(direction) ?: return null
@@ -41,7 +49,8 @@ object ListAutomationPolicy {
         val snapshot = (target.snapshot ?: FollowSnapshot(session.userId, session.mobileBinding, target.target)).record(page)
         val more = snapshot.run(page.direction)!!.coverage() == FollowCoverage.MORE
         return target.copy(snapshot = snapshot, previous = previous).withScan(page.direction,
-            ListScan(page.observedAt + if (more) MonitorPolicy.POLL_MS else RESCAN_MS, page.observedAt, more))
+            target.scan(page.direction).copy(nextAt = page.observedAt + if (more) MonitorPolicy.POLL_MS else RESCAN_MS,
+                attemptAt = page.observedAt, continuing = more, failure = null))
     }
 }
 
@@ -51,20 +60,26 @@ sealed interface AutomaticTask {
     data class Person(override val target: String, override val dueAt: Long) : AutomaticTask
     data class Own(override val target: String, override val dueAt: Long) : AutomaticTask
     data class Page(override val target: String, override val dueAt: Long, val direction: FollowDirection,
-        val cursor: String?, val previousObservation: Long?) : AutomaticTask
+        val cursor: String?, val previousObservation: Long?, val basis: ListBasis? = null) : AutomaticTask
 }
 
 object AutomaticQueue {
     /** Only the unchanged MORE run committed by this round can bypass its next-job deadline. */
-    fun page(target: ListTarget, direction: FollowDirection, now: Long, continuationOf: FollowRun? = null): AutomaticTask.Page? {
+    fun page(target: ListTarget, direction: FollowDirection, now: Long, continuationOf: FollowRun? = null,
+        basis: ListBasis? = null): AutomaticTask.Page? {
         val state = target.scan(direction)
         if (state.failure == ApiFailure.Kind.CAPACITY) return null
         val run = target.snapshot?.run(direction)
         val continuingRound = continuationOf != null && state.continuing && run == continuationOf && run.coverage() == FollowCoverage.MORE
-        if (state.nextAt > now && !continuingRound) return null
-        return AutomaticTask.Page(target.target, state.nextAt, direction, if (state.continuing) run?.cursor() else null, run?.latest?.observedAt)
+        val changed = !state.continuing && state.failure == null && basis != null &&
+            basis.observedAt > (if (state.basisCount == null) run?.latest?.observedAt ?: 0 else state.basisAt) &&
+            (state.basisCount == null || basis.count != state.basisCount)
+        val dueAt = if (changed) minOf(state.nextAt, basis!!.observedAt) else state.nextAt
+        if (dueAt > now && !continuingRound) return null
+        return AutomaticTask.Page(target.target, dueAt, direction, if (state.continuing) run?.cursor() else null,
+            run?.latest?.observedAt, basis)
     }
-    fun next(account: SavedAccount, archive: ListArchive, now: Long): AutomaticTask? {
+    fun next(account: SavedAccount, archive: ListArchive, now: Long, preferProfile: Boolean = false): AutomaticTask? {
         require(archive.matches(account.session))
         val tasks = account.people.filter { it.watching }.map { AutomaticTask.Person(it.latest.userId, it.nextCheckAt) }.toMutableList<AutomaticTask>()
         if (account.automation.enabled) {
@@ -72,12 +87,14 @@ object AutomaticQueue {
                 maxOf(account.automation.ownNextCheckAt, account.profile.observedAt + ListAutomationPolicy.OWN_PROFILE_MS))
             for (id in account.automation.targets) for (direction in FollowDirection.entries) {
                 val target = archive.targets.firstOrNull { it.target == id } ?: ListTarget(id)
-                page(target, direction, now)?.let { tasks += it }
+                val profile = if (id == account.profile.userId) account.profile else account.people.first { it.latest.userId == id }.latest
+                page(target, direction, now, basis = ListBasis.of(profile, direction))?.let { tasks += it }
             }
         }
         val ready = tasks.filter { it.dueAt <= now }
         val page = ready.filterIsInstance<AutomaticTask.Page>().minByOrNull { it.dueAt }
         val profile = ready.filterNot { it is AutomaticTask.Page }.minByOrNull { it.dueAt }
+        if (preferProfile && profile != null) return profile
         // A large first scan must not starve profile watches (or vice versa) under the shared budget.
         return if (page != null && profile != null) { if (account.automation.lastWorkWasList) profile else page }
             else page ?: profile

@@ -72,9 +72,14 @@ class FollowListVault(context: Context, slot: String = "followlists") {
         write(archive.replace(next))
         next.snapshot!!
     }
-    fun commitCurrent(session: Session, page: FollowPage, expected: FollowRun?): FollowSnapshot = synchronized(lock) {
+    fun commitCurrent(session: Session, page: FollowPage, expected: FollowRun?, basis: ListBasis? = null): FollowSnapshot = synchronized(lock) {
         if (read(session, page.target)?.run(page.direction) != expected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-        commit(session, page)
+        val archive = archive(session)
+        val target = archive.targets.firstOrNull { it.target == page.target } ?: ListTarget(page.target)
+        val state = target.scan(page.direction)
+        val prepared = if (page.inputCursor == null) target.withScan(page.direction, state.copy(basisCount = basis?.count, basisAt = basis?.observedAt ?: 0)) else target
+        val next = ListAutomationPolicy.record(prepared, session, page)
+        write(archive.replace(next)); next.snapshot!!
     }
     private fun matches(target: ListTarget, task: AutomaticTask.Page) =
         target.snapshot?.run(task.direction)?.latest?.observedAt == task.previousObservation &&
@@ -82,8 +87,11 @@ class FollowListVault(context: Context, slot: String = "followlists") {
     fun reserve(session: Session, task: AutomaticTask.Page, now: Long, continuationOf: FollowRun? = null) = synchronized(lock) {
         val archive = archive(session)
         val target = archive.targets.firstOrNull { it.target == task.target } ?: ListTarget(task.target)
-        if (!matches(target, task) || AutomaticQueue.page(target, task.direction, now, continuationOf) != task) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-        write(archive.replace(target.withScan(task.direction, target.scan(task.direction).copy(attemptAt = now, nextAt = now + MonitorPolicy.POLL_MS))))
+        if (!matches(target, task) || AutomaticQueue.page(target, task.direction, now, continuationOf, task.basis) != task) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        val state = target.scan(task.direction)
+        write(archive.replace(target.withScan(task.direction, state.copy(attemptAt = now, nextAt = now + MonitorPolicy.POLL_MS,
+            basisCount = if (task.cursor == null) task.basis?.count else state.basisCount,
+            basisAt = if (task.cursor == null) task.basis?.observedAt ?: 0 else state.basisAt))))
     }
     fun commitAutomatic(session: Session, task: AutomaticTask.Page, attemptAt: Long, page: FollowPage): ListPageCommit = synchronized(lock) {
         val archive = archive(session)

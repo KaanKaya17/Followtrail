@@ -66,3 +66,8 @@ Bu inceleme için yeni veri çekmek gerekmez. Profil veya liste okuma düğmesin
 - Ana sayfada Son değişiklikler, kayıtlı gözlemler arasındaki sayı farklarını tarihle göstermeli. İlk kayıt veya yalnız gönderi değişikliği takipçi değişikliği diye sunulmaz.
 - Akış kaydına dokunmak ilgili analizi/listeyi açmalı; Tümünü gör yalnız saklanan en son 20 girdiyi gösterir. Bu işlemler ve yıldızlar okuma sayacını artırmamalı.
 - Liste etkinliği son hedefin eldeki sayfa kayıtlarıyla sınırlıdır. Sayfa kaydı, yeni takipçi veya takipten çıkma olayı değildir. Mevcut geçmişin dışında eski hareketler tahmin edilmez.
+
+
+## 0.1.21 hızlı kontrol ve zaman çizelgesi
+
+[Hızlı izleme testleri](QUICK-WATCH-TEST.md): Türkçe/English, görünür kalan süre, bitirme, gözlem/işlenme zamanları ve ayrıntı penceresi; 720×1600 ve büyük yazı ölçeğinde kaydırma/düğmeler. Geçmiş açma/filtre/geri yeni profil isteği üretmemeli. Hızlı oturum, görünür ekran dışına çıkınca duraklamalı; ilk başlangıçtan 15 dakika geçince kart kapanmalı.

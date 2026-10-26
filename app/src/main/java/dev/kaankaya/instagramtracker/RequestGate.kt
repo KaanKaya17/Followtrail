@@ -27,16 +27,26 @@ object RetryPolicy {
     }
 }
 
-class RequestGate(context: Context, name: String = "request_gate") {
+class RequestGate(context: Context, name: String = "request_gate", private val clock: () -> Long = System::currentTimeMillis) {
+    fun now(): Long = clock()
     internal val context: Context = context.applicationContext
     // Activity recreation can create multiple owners of the same preferences.
     // Reserve requests across those instances, not only within one instance.
-    companion object { private val lock = Any(); private val active = mutableSetOf<String>(); const val AUTO_INTERVAL_MS = MonitorPolicy.POLL_MS }
+    companion object {
+        private val lock = Any(); private val active = mutableSetOf<String>(); private val quickOwners = mutableMapOf<String, Any>()
+        const val AUTO_INTERVAL_MS = MonitorPolicy.POLL_MS
+    }
     private val identity = "${context.packageName}:$name"
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
     fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0)) }
     fun automaticNextAllowedAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("auto_after", 0)) }
+    fun quickWatchActive(): Boolean = synchronized(lock) { identity in quickOwners }
+    fun claimQuickWatch(): AutoCloseable = synchronized(lock) {
+        if (identity in quickOwners) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        val owner = Any(); quickOwners[identity] = owner
+        AutoCloseable { synchronized(lock) { if (quickOwners[identity] === owner) quickOwners.remove(identity); Unit } }
+    }
     fun manualOnly(): Boolean = synchronized(lock) { preferences.getBoolean("manual_only", false) || blockedUntil() > 0 || listCapacityPaused() }
     fun listCapacityPaused(): Boolean = synchronized(lock) { preferences.getBoolean("list_capacity_pause", false) }
     fun pauseForListCapacity() = synchronized(lock) {
@@ -74,7 +84,7 @@ class RequestGate(context: Context, name: String = "request_gate") {
         if (!preferences.edit().putBoolean("prototype_active", active).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun nextPrototypeAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("prototype_after", 0)) }
-    fun beginPrototype(now: Long = System.currentTimeMillis()) = synchronized(lock) {
+    fun beginPrototype(now: Long = clock()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
         if (nextPrototypeAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
         begin(now)
@@ -88,15 +98,15 @@ class RequestGate(context: Context, name: String = "request_gate") {
         var closed = false
         AutoCloseable { synchronized(lock) { if (!closed) { active.remove(identity); closed = true }; Unit } }
     }
-    fun autoAllowed(profile: Profile, now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
+    fun autoAllowed(profile: Profile, now: Long = clock()): Boolean = synchronized(lock) {
         ownAutoRefresh() && !automationHeld() && !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && automaticNextAllowedAt() <= now
     }
-    fun reserveAutomatic(now: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
-        if (automationHeld() || manualOnly() || requiresConnection() || automaticNextAllowedAt() > now) return false
+    fun reserveAutomatic(now: Long = clock()): Boolean = synchronized(lock) {
+        if (quickWatchActive() || automationHeld() || manualOnly() || requiresConnection() || automaticNextAllowedAt() > now) return false
         if (!preferences.edit().putLong("auto_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
         true
     }
-    fun begin(now: Long = System.currentTimeMillis()) = synchronized(lock) {
+    fun begin(now: Long = clock()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
         if (nextAllowedAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
         val count = attempts()
@@ -106,7 +116,7 @@ class RequestGate(context: Context, name: String = "request_gate") {
             throw ApiFailure(ApiFailure.Kind.STORAGE)
         }
     }
-    fun limited(header: String?, now: Long = System.currentTimeMillis(), reason: String = "Instagram bekleme yanıtı") = synchronized(lock) {
+    fun limited(header: String?, now: Long = clock(), reason: String = "Instagram bekleme yanıtı") = synchronized(lock) {
         val repeats = (preferences.getInt("limit_streak", 0) + 1).coerceAtMost(6)
         val localPause = minOf(24 * 60 * 60 * 1000L, 60 * 60 * 1000L * (1L shl (repeats - 1)))
         val server = RetryPolicy.serverDeadline(header, now)

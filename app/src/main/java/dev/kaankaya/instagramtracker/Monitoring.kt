@@ -1,6 +1,7 @@
 package dev.kaankaya.instagramtracker
 
-data class ObservedProfileChange(val ownerId: String, val profile: Profile, val followersDelta: Long, val followingDelta: Long, val edits: List<ProfileEdit> = emptyList())
+data class ObservedProfileChange(val ownerId: String, val profile: Profile, val followersDelta: Long, val followingDelta: Long,
+    val edits: List<ProfileEdit> = emptyList(), val previousAt: Long? = null)
 
 object MonitorPolicy {
     const val POLL_MS = 15 * 60 * 1000L
@@ -11,13 +12,30 @@ object MonitorPolicy {
         val followers = profile.followers - person.latest.followers
         val following = profile.following - person.latest.following
         val edits = if (profile.observedAt > person.latest.observedAt) ProfileChanges.latest(person.history, profile) else emptyList()
-        return if (followers == 0L && following == 0L && edits.isEmpty()) null else ObservedProfileChange(owner, profile, followers, following, edits)
+        return if (followers == 0L && following == 0L && edits.isEmpty()) null else ObservedProfileChange(owner, profile, followers, following, edits, minOf(person.latest.observedAt, edits.minOfOrNull { it.previousAt } ?: person.latest.observedAt))
     }
 }
 
 data class ObservationCommit(val account: SavedAccount, val change: ObservedProfileChange?)
 
 object Observations {
+    fun own(vault: SessionVault, session: Session, profile: Profile, startedAt: Long? = null,
+        clock: () -> Long = System::currentTimeMillis, cancelled: () -> Boolean = { false }): ObservationCommit {
+        var before: Profile? = null
+        var change: ObservedProfileChange? = null
+        val updated = vault.update(session) { current ->
+            if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+            require(profile.userId == session.userId)
+            if (profile.observedAt <= current.profile.observedAt) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+            before = current.profile
+            change = MonitorPolicy.change(session.userId, TrackedPerson(listOf(current.profile), watching = true), profile)
+            current.copy(profile = profile)
+        }
+        vault.record(session, CheckEvent(profile.userId, profile.username, CheckKind.PROFILE, startedAt, profile.observedAt,
+            clock(), before?.observedAt, before?.let { profile.followers - it.followers }, before?.let { profile.following - it.following },
+            change?.edits?.map { it.field }?.toSet().orEmpty()))
+        return ObservationCommit(updated, change)
+    }
     fun deliver(vault: SessionVault, session: Session, change: ObservedProfileChange, allowed: () -> Boolean,
         notify: (ObservedProfileChange) -> Unit, cancelled: () -> Boolean = { false }) {
         vault.inspect { current ->
@@ -27,29 +45,42 @@ object Observations {
         }
     }
     fun person(vault: SessionVault, session: Session, profile: Profile, existingRequired: Boolean,
-        watchRequired: Boolean = false, cancelled: () -> Boolean = { false }): ObservationCommit {
+        watchRequired: Boolean = false, cancelled: () -> Boolean = { false }, startedAt: Long? = null,
+        analyzedAt: () -> Long = System::currentTimeMillis): ObservationCommit {
         var change: ObservedProfileChange? = null
+        var before: Profile? = null
+        var fields = emptySet<ProfileChangeField>()
+        var comparisonAt: Long? = null
         val updated = vault.update(session) { current ->
             if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
             val person = current.people.firstOrNull { it.latest.userId == profile.userId }
+            before = person?.latest
             if ((existingRequired && person == null) || (watchRequired && person?.watching != true)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-            change = MonitorPolicy.change(session.userId, person, profile)
+            val observedChange = MonitorPolicy.change(session.userId, person?.copy(watching = true), profile)
+            change = observedChange.takeIf { person?.watching == true }
+            fields = observedChange?.edits?.map { it.field }?.toSet().orEmpty()
+            comparisonAt = observedChange?.previousAt ?: before?.observedAt
             current.copy(people = PeoplePolicy.record(current.people, profile))
         }
+        vault.record(session, CheckEvent(profile.userId, profile.username, CheckKind.PROFILE, startedAt, profile.observedAt,
+            analyzedAt(), comparisonAt, before?.let { profile.followers - it.followers }, before?.let { profile.following - it.following },
+            fields))
         return ObservationCommit(updated, change)
     }
 }
 
 /** One due profile per invocation, no retries, and the same gate used by foreground reads. */
 class MonitorEngine(private val vault: SessionVault, private val gate: RequestGate, private val api: InstagramApi,
-    private val canNotify: () -> Boolean, private val notify: (ObservedProfileChange) -> Unit) {
-    fun tick(now: Long = System.currentTimeMillis(), cancelled: () -> Boolean = { false }, targetId: String? = null) {
+    private val canNotify: () -> Boolean, private val notify: (ObservedProfileChange) -> Unit,
+    private val clock: () -> Long = System::currentTimeMillis) {
+    fun tick(now: Long = System.currentTimeMillis(), cancelled: () -> Boolean = { false }, targetId: String? = null,
+        reserved: Boolean = false) {
         if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now) return
         val saved = vault.read() ?: return
         val selected = if (targetId == null) MonitorPolicy.due(saved.people, now) else
             saved.people.firstOrNull { it.latest.userId == targetId && it.watching && it.nextCheckAt <= now }
         if (selected == null) return
-        if (!gate.reserveAutomatic(now)) return
+        if (!reserved && !gate.reserveAutomatic(now)) return
         // Reserve this person's interval before transport, including transient failures.
         vault.update(saved.session) { current ->
             if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
@@ -59,10 +90,15 @@ class MonitorEngine(private val vault: SessionVault, private val gate: RequestGa
                 it.copy(nextCheckAt = now + WatchIntervals.durationMs(it.intervalMinutes)) else it })
         }
         if (cancelled()) return
-        val profile = api.readId(saved.session, selected.latest.userId)
-        val committed = Observations.person(vault, saved.session, profile, existingRequired = true, watchRequired = true, cancelled = cancelled)
-        committed.change?.let { change ->
-            Observations.deliver(vault, saved.session, change, canNotify, notify, cancelled)
+        try {
+            val profile = api.readId(saved.session, selected.latest.userId)
+            val committed = Observations.person(vault, saved.session, profile, existingRequired = true, watchRequired = true, cancelled = cancelled,
+                startedAt = now, analyzedAt = clock)
+            committed.change?.let { change ->
+                Observations.deliver(vault, saved.session, change, canNotify, notify, cancelled)
+            }
+        } catch (failure: ApiFailure) {
+            vault.recordFailure(saved.session, selected.latest.userId, now, failure, clock()); throw failure
         }
     }
 }

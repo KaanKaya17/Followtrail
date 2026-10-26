@@ -2,6 +2,16 @@
 
 Bu belge özel mobil/web profil okuyucularının sözleşmesidir. Bu uçlar resmî Graph API kotasıyla eş tutulmaz. 25 Ekim 2026'da kullanıcı fiziksel telefonda mobil sayaç ve ilk liste okumalarının çalıştığını bildirdi; aşağıdaki denetimler bir sorunsuzluk garantisi değildir. Kanıt kapsamı [VALIDATION.md](VALIDATION.md) içindedir.
 
+## 0.1.21 güncel otomatik kontrol sözleşmesi
+
+Aşağıdaki sürüm notlarından farklı olarak güncel arka plan işi tek ortak 15 dakikalık rezervasyonda toplam en fazla altı profil/liste isteği çalıştırır. İlk hazır profil öne alınır, devamında mevcut adil profil/liste kuyruğu kullanılır. Bütün istek başlangıçları en az 15 saniye aralıklıdır; ilk 90 saniye içinde yeni istek başlatılabilir. Altı istek/90 saniye yerel kaynak bütçesidir. Kendi hesap profili için hedef 15 dakikadır. Kullanıcı otomasyon kurarken seçtiği kişileri 15 dakikaya alır; güncelleme diğer eski aralıkları değiştirmez.
+
+Açık Hızlı izle eylemi yalnız bir hedefi, uygulama görünürken 15 dakika boyunca 60 saniyelik profil tazeliği hedefiyle okur. Bu yol o hedef için normal 15 dakika önbelleği yerine 60 saniyeyi kullanır; diğer ekranlar normal önbelleği korur. Aynı profil/liste okuyucuları, 15 saniyelik genel kapı, tek etkin taşıma, altı istek/90 saniye, kimlik/izin ve mola denetimleri kullanılır. Hızlı oturum sırasında arka plan rezervasyonu alınmaz; başlamış iş iptali görüp devam etmez. Ekrandan ayrılmak hızlı taşımayı iptal eder ve normal Android işini tekrar eşler; ayrı sürekli servis/wakelock yoktur. Oturum monotonik 15 dakika sonunda biter, yeniden oluşturma veya arka planda bekleme bunu uzatmaz. İlk hata veya belirsiz liste sonucu oturumu bitirir; 429/doğrulama molası temizlenmez. 60 saniye kesin süre veya güvenli Instagram kotası olarak doğrulanmadı.
+
+Liste başlangıcında profil sayısı ve gözlem tarihi şifreli liste kaydına bağlanır. Daha yeni profil sayısı farklıysa tamamlanmış ilgili yön erkene alınabilir. Sayılar aynıysa tamamlanmış liste günlük hedefe kadar yeniden okunmaz; üyelik değişiminin sayı aynıyken de olabileceği kabul edilir ve günlük tarama korunur. Yarım liste devam eder; hata/kapasite molaları sayı değişimiyle aşılmaz. Eski kayıtta dayanak yoksa daha yeni profil gözlemi bir kez başlangıç taraması gerektirebilir. Bir turda listeler bütçeyi tüketirse profilin sonraki kontrolü gecikir.
+
+İşlem geçmişi başarılı commit sonrası gözlem/karşılaştırma zamanlarını ve beklenen hata türünü ayrı şifreli kaydeder; isteğe bağlı geçmiş kaydı başarısızlığı başarılı profil/liste commit'ini geri almaz. Kaynak alan bilinmeyense tarih uydurulmaz. Eksik biyografi/fotoğraf alanlarından sonra fark görülürse önceki bilinen karşılaştırma tarihi korunur. Eski 0.1.13–0.1.18 alt bölümlerinin tek profil/saatlik kendi hesap ve erken tarama yok ifadeleri tarihsel davranıştır.
+
 ## Dayanak ve bilinmeyenler
 
 [RFC 6585, bölüm 4](https://www.rfc-editor.org/info/rfc6585/) HTTP 429'u istek sınırlaması olarak tanımlar; Retry-After zorunlu değildir. Sunucunun kullanıcıyı nasıl tanıdığı ve istekleri hangi kapsamda topladığı bu standartta belirlenmez. Dolayısıyla kendi uygulamamızda tek profil denemesi görülmesi, sunucunun sayacının da bir olduğunu göstermez. 429 tek başına hesabın ele geçirildiğini, parolanın yanlış olduğunu veya belirli bir saatte açılacağını kanıtlamaz.

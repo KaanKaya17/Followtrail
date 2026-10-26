@@ -1,0 +1,43 @@
+<resources>
+    <string name="quick_start">Hızlı izle</string>
+    <string name="quick_hint">Uygulama açıkken 15 dakika boyunca, 60 saniyelik profil kontrolü hedefi. Sonrasında 15 dakikalık arka plan hedefiyle devam eder.</string>
+    <string name="quick_title">Hızlı izleme · @%1$s</string>
+    <string name="quick_status">Kalan %1$s · Sıradaki kontrol %2$s sn sonra</string>
+    <string name="quick_busy">Kalan %1$s · Kontrol ve liste analizi sürüyor</string>
+    <string name="quick_stop">Hızlı izlemeyi bitir</string>
+    <string name="quick_restriction">Hızlı izleme mevcut mola veya bağlantı beklemesini kaldıramaz. İstek bilgilerini kontrol et.</string>
+    <string name="timeline_title">Zaman çizelgesi</string>
+    <string name="timeline_menu">İşlem geçmişi</string>
+    <string name="timeline_subtitle">Neyin ne zaman okunduğu ve karşılaştırıldığı.</string>
+    <string name="timeline_empty">Bu sürümden sonra yapılan kontroller burada görünecek. Önceki profil gözlemleri analiz ekranında korunur.</string>
+    <string name="timeline_scope">Son 120 kayıt bu cihazda şifrelenir. Saatler cihazın okuma ve karşılaştırma saatidir; Instagram’daki kesin olay saati değildir. Eski kayıtlarda tutulmayan saatler bilinmiyor olarak gösterilir.</string>
+    <string name="timeline_filter">Hesap seç</string>
+    <string name="timeline_all">Bütün hesaplar</string>
+    <string name="timeline_unknown">Kaydedilmedi</string>
+    <string name="timeline_started">İşlem başlangıcı: %1$s</string>
+    <string name="timeline_received">Veri alındı: %1$s</string>
+    <string name="timeline_analyzed">Karşılaştırma kaydedildi: %1$s</string>
+    <string name="timeline_failed_at">İşlem sonlandı: %1$s</string>
+    <string name="timeline_previous">Önceki gözlem: %1$s</string>
+    <string name="timeline_window">Bu fark önceki ve yeni gözlem arasında görüldü. Kesin değişim saati bilinmiyor.</string>
+    <string name="timeline_profile_initial">İlk profil kaydı</string>
+    <string name="timeline_profile_unchanged">Profil kontrolü · Karşılaştırılabilir değişiklik yok</string>
+    <string name="timeline_profile_changed">Profil değişikliği görüldü</string>
+    <string name="timeline_counts">Takipçi farkı: %1$s · Takip edilen farkı: %2$s</string>
+    <string name="timeline_list">%1$s · Liste okundu</string>
+    <string name="timeline_list_compared">%1$s · Listeler karşılaştırıldı</string>
+    <string name="timeline_list_counts">Sayfa: %1$d · Alınan hesap: %2$d</string>
+    <string name="timeline_failure">Kontrol tamamlanamadı</string>
+    <string name="timeline_observed">Görüldü · %1$s</string>
+    <string name="timeline_saved">İşlendi · %1$s</string>
+    <string name="timeline_profile_last">Son profil gözlemi · %1$s</string>
+    <string name="timeline_open_profile">Profili aç</string>
+    <string name="timeline_unavailable">İşlem geçmişi açılamadı. Profil ve liste kayıtları ayrı tutulur.</string>
+    <string name="timeline_write_failed">Son işlem geçmişe yazılamadı; profil ve liste kayıtlarını ayrıca kontrol edebilirsin.</string>
+    <string name="adaptive_scope">Önce profil sayıları kontrol edilir. Sayı değiştiğinde ilgili liste öne alınır; tamamlanmış listelerde günlük kontrol de korunur. Sayı aynı kalsa da kişiler değişebilir. Bir arka plan turu en fazla altı istek ve 90 saniyelik başlatma penceresi kullanır; istekler en az 15 saniye aralıklıdır. Android geciktirebilir. Hızlı izleme yalnız uygulama görünürken çalışır ve ilk hatada durur; 429 molaları korunur.</string>
+    <string name="journal_privacy">Kontrol ve liste karşılaştırma geçmişi de bu cihazda şifrelenir. En fazla son 120 işlem tutulur; parola veya ham yanıt bu geçmişe yazılmaz.</string>
+    <plurals name="timeline_member_sample">
+        <item quantity="one">Geçmişte her yöndeki ilk %1$d hesap saklanır; toplam fark sayısı yukarıdadır. Son okumanın tüm kayıtlarına liste ekranından ulaşabilirsin.</item>
+        <item quantity="other">Geçmişte her yöndeki ilk %1$d hesap saklanır; toplam fark sayısı yukarıdadır. Son okumanın tüm kayıtlarına liste ekranından ulaşabilirsin.</item>
+    </plurals>
+</resources>
