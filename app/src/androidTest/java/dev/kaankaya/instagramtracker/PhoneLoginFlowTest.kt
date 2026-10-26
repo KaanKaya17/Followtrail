@@ -44,7 +44,7 @@ class PhoneLoginFlowTest {
         clients.forEach { it.cancel() }; transports.forEach { it.close() }; clean()
     }
     private fun clean() {
-        sessions.clear(); vault.clear(); PhoneIdentity.clear(context)
+        sessions.clear(); vault.clear(); PhoneIdentity.clear(context); PhoneLoginJournal(context).clear()
         context.getSharedPreferences("request_gate", 0).edit().clear().commit()
     }
     private fun program(app: String, token: String) = JSONObject().put("layout", JSONObject().put("bloks_payload", JSONObject()
@@ -172,9 +172,12 @@ class PhoneLoginFlowTest {
             if (mode == "limited") {
                 assertEquals(ApiFailure.Kind.LIMITED, (failure as ApiFailure).kind)
                 val blocked = gate.blockedUntil(); assertEquals(now + 7200_000, blocked)
+                val diagnostic = PhoneLoginJournal(context).read()!!
+                assertEquals(PhoneLoginOperation.DEVICE, diagnostic.operation); assertEquals(429, diagnostic.status)
                 assertEquals(ApiFailure.Kind.LIMITED, assertThrows(ApiFailure::class.java) {
                     client(t).login("own", "synthetic-password".toCharArray()) }.kind)
                 assertEquals(blocked, gate.blockedUntil())
+                assertEquals(diagnostic, PhoneLoginJournal(context).read())
             } else assertEquals(PhoneLoginFailure.Reason.UNSUPPORTED, (failure as PhoneLoginFailure).reason)
             assertEquals(1, t.requests.size); assertEquals(old, vault.read()); assertFalse(sessions.exists())
         }
@@ -249,11 +252,25 @@ class PhoneLoginFlowTest {
             assertEquals(if (passwordAttempted) 6 else 5, t.requests.size)
             assertEquals(if (passwordAttempted) PhoneLoginOperation.PASSWORD else PhoneLoginOperation.PASSWORD_KEY, flow.diagnostic!!.operation)
             assertEquals(if (mode == "key-limited") 429 else if (mode == "key-forbidden") 403 else 405, flow.diagnostic!!.status)
+            val stored = PhoneLoginJournal(context).read()!!
+            assertEquals(flow.diagnostic!!.operation, stored.operation); assertEquals(flow.diagnostic!!.status, stored.status)
             assertEquals(old, vault.read()); assertFalse(sessions.exists())
             if (mode == "key-limited") assertEquals(now + 7200_000, gate.blockedUntil())
         }
         clean(); vault.write(old); now = 2_000_000_000_000L
         assertTrue(client(transport("key-ok")).login("own", "synthetic-password".toCharArray()) is PhoneLoginResult.Ready)
+    }
+    @Test fun aLocalInputFailureKeepsThePreviousDiagnosticAndClearingItKeepsTheRestriction() {
+        val journal = PhoneLoginJournal(context)
+        val before = SavedPhoneDiagnostic(PhoneLoginOperation.PASSWORD, now, 429)
+        journal.write(before); gate.limited("7200"); val until = gate.blockedUntil()
+        val t = transport()
+        assertEquals(PhoneLoginFailure.Reason.INPUT, assertThrows(PhoneLoginFailure::class.java) {
+            client(t).login("", charArrayOf()) }.reason)
+        assertTrue(t.requests.isEmpty()); assertEquals(before, PhoneLoginJournal(context).read())
+        assertEquals(setOf("operation", "at", "status"), context.getSharedPreferences("phone_login_diagnostic", 0).all.keys)
+        journal.write(before.copy(status = null)); assertNull(PhoneLoginJournal(context).read()!!.status)
+        journal.clear(); assertNull(PhoneLoginJournal(context).read()); assertEquals(until, gate.blockedUntil())
     }
     @Test fun lateLoginCannotReplaceAConnectionChangedDuringAuthentication() {
         val entered = CountDownLatch(1); val release = CountDownLatch(1)

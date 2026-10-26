@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## 0.1.26 — 2026-10-26 (kalıcı telefon giriş tanısı)
+
+- Son telefon giriş isteğinin sabit P kodu, başlangıç saati ve varsa HTTP durumu artık cihazda saklanır; ⋯ → İstek bilgileri içinde yeniden açılışta görülebilir. Tek kayıt tutulur. Ham istek/yanıt, URL, hesap bilgisi, parola veya kod saklanmaz. Bağlantıyı kaldırmak tanıyı da temizler; 429 molasını kaldırmaz.
+- Yerelde reddedilen boş giriş ve mola nedeniyle gönderilmeyen deneme önceki tanıyı değiştirmez. Yeni bir istek başlamış ama yanıt gelmemişse eski HTTP durumu ona taşınmaz. Eski sürümde yalnız bellekte kalan P kodu geriye dönük bulunamaz.
+- Giriş protokolü veya istek sıklığı değiştirilmedi; 429’un nedeni henüz doğrulanmadı ve canlı giriş denenmedi. Sonraki kullanıcı denemesindeki tanı, hangi adımın araştırılacağını belirleyecek.
+
 ## 0.1.25 — 2026-10-26 (gözlem kapsamı ve anlaşılır durum)
 
 - Karşılama, ana ekran ve tanıtım metni kayıtlı profil/liste gözlemlerini karşılaştırmayı vaat eder; kesin takipten çıkış/olay saati iddiası yoktur.

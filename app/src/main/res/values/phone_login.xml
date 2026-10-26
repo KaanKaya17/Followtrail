@@ -1,4 +1,7 @@
 <resources>
+    <string name="phone_diagnostic_saved">Son telefon giriş isteği · %1$s\nHTTP: %2$s\nİstek başlangıcı: %3$s\nBu bilgi yeniden açılışta korunur; parola, kod veya yanıt içeriği kaydedilmez.</string>
+    <string name="phone_diagnostic_empty">Kayıtlı telefon giriş tanısı yok. Önceki sürümlerin giriş adımları geriye dönük çıkarılamaz.</string>
+    <string name="phone_diagnostic_unavailable">Telefon giriş tanısı okunamadı.</string>
     <string name="phone_failure_detail">Tanı (son istek): %1$s · HTTP: %2$s</string>
     <string name="phone_menu">Telefondan bağlan · Bilgisayar gerekmez</string>
     <string name="phone_title">Hesabını telefonda bağla</string>
