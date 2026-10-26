@@ -1,5 +1,14 @@
 # Değişiklikler
 
+## 0.1.25 — 2026-10-26 (gözlem kapsamı ve anlaşılır durum)
+
+- Karşılama, ana ekran ve tanıtım metni kayıtlı profil/liste gözlemlerini karşılaştırmayı vaat eder; kesin takipten çıkış/olay saati iddiası yoktur.
+- Durum kartları her profilde Son kontrol, Veri kapsamı, Şu anki durum satırlarına ayrıldı. Otomasyon kapalı olsa da kayıtlı liste kapsamı görülür; liste devamı/güncelleme sırası ayrıntıda kalır. Kayıtlı 429 molası otomasyon kapalı etiketinin önüne alınır.
+- Hızlı izleme kartında 60 saniyenin en erken hedef olduğu, gecikme, ortak istek sırası ve ekran görünmezken duraklama belirtilir. Zamanlayıcı veya istek bütçesi hızlandırılmadı.
+- Grafik filtrelerinde gerçek kayıt sayısı, ilk/son tarih ve gün/saat/dakika aralığı; 90 gözlemin 90 gün olmadığı ve çizginin aradaki bütün olayları göstermediği açıklaması.
+- Kişi kapasitesi 100’e çıkarıldı; en çok 90 gözlem/kişi. Profil/kişi dosyası 2 MiB, liste dosyası aynı 512 KiB bütçesinde kalır. Kapasite aşımında eski dosya korunur. Hesap biçimi aynı; metaveri referansları tekrar tekrar aramak yerine bir kez indekslenir. Kişiler 20’şer kartla açılır, favoriler öndedir; genişletme ekran yeniden oluşunca korunur.
+- Ortak altı istek/90 saniye tur bütçesi, 15 saniye istek aralığı, bütün 429/doğrulama molaları ve telefon giriş akışı korunur. Daha fazla hedef kontrollerin daha geç sıraya gelmesi anlamına gelebilir.
+
 ## 0.1.24 — 2026-10-26 (giriş anahtarı yanıtı)
 
 - Kullanıcı 0.1.23 telefon girişinde yaklaşık bir dakika sonra HTTP 405 ve genel giriş adımı uyarısı bildirdi. Şifreleme anahtarı sorgusundaki 405/HTML + geçerli anahtar başlıkları aynı hatayı emülatörde yeniden üretti. Canlı yanıt/başlıklar alınmadığı için kullanıcının yanıtının kesin içeriği bilinmiyor.

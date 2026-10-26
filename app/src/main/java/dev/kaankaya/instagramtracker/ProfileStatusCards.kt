@@ -93,9 +93,9 @@ class ProfileStatusCards(private val context: Context, private val vault: Sessio
             (saved.automation.enabled && id in saved.automation.targets)
         val state = status(saved, id, now)
         val reason = when {
+            gate.restrictionPending() -> R.string.profile_status_limited
             !watching -> R.string.profile_status_off
             state.reason == WatchReason.NOTIFICATIONS_OFF -> R.string.profile_status_notifications
-            gate.restrictionPending() -> R.string.profile_status_limited
             state.reason == WatchReason.CONNECTION_REQUIRED -> R.string.profile_status_connection
             state.reason == WatchReason.CONNECTION_IN_PROGRESS -> R.string.profile_status_link
             state.reason == WatchReason.MANUAL_ONLY -> R.string.profile_status_paused
@@ -149,8 +149,15 @@ class ProfileStatusCards(private val context: Context, private val vault: Sessio
         if (binding.session != value.account.session) return
         val p = profile(value.account, binding.id) ?: return
         val now = System.currentTimeMillis()
-        binding.label.text = listOfNotNull(lastCheck(p.observedAt, now), headline(value, p.userId, now),
-            listLine(value, p.userId, now)).joinToString("\n")
+        val runs = FollowDirection.entries.map { direction -> value.archive?.targets?.firstOrNull { it.target == p.userId }?.snapshot?.run(direction) }
+        val scope = context.getString(when {
+            value.archive == null -> R.string.profile_status_lists_unavailable
+            runs.all { it == null } -> R.string.scope_profile_only
+            runs.all { it?.coverage() == FollowCoverage.END_OBSERVED } -> R.string.scope_two_ends
+            else -> R.string.scope_partial_lists
+        })
+        binding.label.text = listOf(lastCheck(p.observedAt, now), context.getString(R.string.scope_line, scope),
+            context.getString(R.string.current_state_line, headline(value, p.userId, now))).joinToString("\n")
         (binding.label.parent as? View)?.contentDescription = binding.label.text.toString() + ". " + context.getString(R.string.profile_status_open)
     }
     private fun details(binding: Binding) {
@@ -170,6 +177,7 @@ class ProfileStatusCards(private val context: Context, private val vault: Sessio
         }
         if (quick().first == p.userId) body += context.getString(R.string.quick_hint)
         else state.eligibleAt?.let { body += context.getString(R.string.watch_target_at, ObservationTimes.format(context, it)) }
+        listLine(value, p.userId, now)?.let { body += it }
         val target = value.archive?.targets?.firstOrNull { it.target == p.userId }
         if (value.archive == null) body += context.getString(R.string.profile_status_lists_unavailable)
         else for (direction in FollowDirection.entries) {

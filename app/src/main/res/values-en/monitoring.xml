@@ -1,8 +1,8 @@
 <resources>
     <string name="quick_start">Quick watch</string>
-    <string name="quick_hint">A 60-second profile check target for 15 minutes while the app is visible. Afterwards, background checks target a 15-minute interval.</string>
+    <string name="quick_hint">A 15-minute session while this app screen is visible. 60 seconds is the earliest target; results may take longer. Quick checks pause while the screen is hidden. Normal background targets continue afterwards.</string>
     <string name="quick_title">Quick watch · @%1$s</string>
-    <string name="quick_status">%1$s remaining · Next check in %2$s s</string>
+    <string name="quick_status">%1$s left · Earliest check target in %2$s s</string>
     <string name="quick_busy">%1$s remaining · Checking and analyzing lists</string>
     <string name="quick_stop">End quick watch</string>
     <string name="quick_restriction">Quick watch cannot remove an existing cooldown or connection hold. Check Request information.</string>

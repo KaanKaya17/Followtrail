@@ -12,8 +12,8 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /** Owns bounded, atomic Keystore encryption for account and mobile-session records. */
-class EncryptedRecord(context: Context, slot: String) {
-    init { require(slot.matches(Regex("[a-z]+"))) }
+class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int = 512 * 1024) {
+    init { require(slot.matches(Regex("[a-z]+"))); require(maxBytes in 1..2 * 1024 * 1024) }
     private val file = AtomicFile(File(context.noBackupFilesDir, "$slot.enc"))
     private val alias = "instagramtracker.$slot.v1"
     private val aad = "InstagramTracker/session/v1".toByteArray()
@@ -29,7 +29,7 @@ class EncryptedRecord(context: Context, slot: String) {
     }
     fun write(value: String) {
         val json = value.toByteArray(Charsets.UTF_8)
-        if (json.size > 512 * 1024) throw ApiFailure(ApiFailure.Kind.CAPACITY)
+        if (json.size > maxBytes) throw ApiFailure(ApiFailure.Kind.CAPACITY)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, key())
         cipher.updateAAD(aad)
@@ -46,7 +46,7 @@ class EncryptedRecord(context: Context, slot: String) {
             while (true) {
                 val count = input.read(buffer)
                 if (count < 0) break
-                require(output.size() <= 512 * 1024 + 28 - count)
+                require(output.size() <= maxBytes + 28 - count)
                 output.write(buffer, 0, count)
             }
             output.toByteArray()
@@ -65,8 +65,8 @@ class EncryptedRecord(context: Context, slot: String) {
 }
 
 class SessionVault(context: Context, slot: String = "account") {
-    companion object { private val lock = Any() }
-    private val record = EncryptedRecord(context, slot)
+    companion object { private val lock = Any(); const val ACCOUNT_BYTES = 2 * 1024 * 1024 }
+    private val record = EncryptedRecord(context, slot, ACCOUNT_BYTES)
     val journal = CheckJournal(context, "${slot}checks")
     fun record(session: Session, event: CheckEvent) = synchronized(lock) {
         val current = try { read() } catch (_: Exception) { null }

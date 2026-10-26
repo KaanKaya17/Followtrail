@@ -1,8 +1,8 @@
 <resources>
     <string name="quick_start">Hızlı izle</string>
-    <string name="quick_hint">Uygulama açıkken 15 dakika boyunca, 60 saniyelik profil kontrolü hedefi. Sonrasında 15 dakikalık arka plan hedefiyle devam eder.</string>
+    <string name="quick_hint">Uygulama ekranı görünürken 15 dakika izler. 60 saniye en erken hedeftir; sonuç her dakika gelmeyebilir. Ekran görünmezken duraklar. Sonra normal arka plan hedefiyle devam eder.</string>
     <string name="quick_title">Hızlı izleme · @%1$s</string>
-    <string name="quick_status">Kalan %1$s · Sıradaki kontrol %2$s sn sonra</string>
+    <string name="quick_status">Kalan %1$s · En erken kontrol hedefi %2$s sn sonra</string>
     <string name="quick_busy">Kalan %1$s · Kontrol ve liste analizi sürüyor</string>
     <string name="quick_stop">Hızlı izlemeyi bitir</string>
     <string name="quick_restriction">Hızlı izleme mevcut mola veya bağlantı beklemesini kaldıramaz. İstek bilgilerini kontrol et.</string>

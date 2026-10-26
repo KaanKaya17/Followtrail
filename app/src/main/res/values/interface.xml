@@ -3,7 +3,7 @@
     <string name="ui_refresh_person">"Kişiyi yenile"</string>
     <string name="ui_add_person">"Kişi ekle"</string>
     <string name="ui_view_lists">"Listeleri incele"</string>
-    <string name="ui_your_social_circle_together">"Sosyal çevren, bir arada."</string>
+    <string name="ui_your_social_circle_together">Kayıtlı gözlemler, bir arada.</string>
     <string name="ui_options">"Seçenekler"</string>
     <string name="ui_demo_sample_data">"DEMO · ÖRNEK VERİ"</string>
     <string name="ui_offline_demo_sample_data_no_instagram_requests">"Çevrimdışı demo. Veriler örnektir; Instagram isteği yok."</string>
@@ -14,7 +14,7 @@
     <string name="ui_you_are_viewing_offline">"Çevrimdışı görüntülüyorsun"</string>
     <string name="ui_showing_records_on_this_device_an_internet">"Cihazdaki kayıtlar gösteriliyor. Yeni veri almak için internet bağlantısı gerekir."</string>
     <string name="ui_your_account_nat_a_glance">"Hesabın,\nbir bakışta."</string>
-    <string name="ui_your_followers_and_following_in_one_place">"Takipçilerin ve takip ettiklerin. Tek yerde."</string>
+    <string name="ui_your_followers_and_following_in_one_place">Profil ve liste gözlemlerini kaydet, zaman içindeki farkları karşılaştır.</string>
     <string name="ui_updating">"  Güncelleniyor…"</string>
     <string name="ui_reconnect_account">"Bağlantıyı yenile"</string>
     <string name="ui_complete_connection">"Bağlantıyı tamamla"</string>

@@ -16,7 +16,7 @@ data class TrackedPerson(val history: List<Profile>, val note: String = "", val 
 }
 
 object PeoplePolicy {
-    const val MAX_PEOPLE = 20
+    const val MAX_PEOPLE = 100
     const val MAX_HISTORY = 90
     const val FRESH_MS = 15 * 60 * 1000L
     fun favoritesFirst(people: List<TrackedPerson>): List<TrackedPerson> = people.filter { it.favorite } + people.filterNot { it.favorite }

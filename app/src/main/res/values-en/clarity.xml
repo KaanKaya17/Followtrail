@@ -1,0 +1,16 @@
+<resources>
+    <string name="scope_line">Data coverage · %1$s</string>
+    <string name="current_state_line">Current status · %1$s</string>
+    <string name="scope_profile_only">Profile saved · No lists saved</string>
+    <string name="scope_two_ends">Profile · Both list ends observed</string>
+    <string name="scope_partial_lists">Profile and received list pages · Partial</string>
+    <string name="quick_visible_scope">60 seconds is the earliest check target, not a result every minute. Quick checks pause while this app screen is hidden, then resume within the remaining time. The 15-minute session is not extended.</string>
+    <string name="quick_delayed">%1$s left · Check delayed; waiting for the shared request slot</string>
+    <string name="quick_due">%1$s left · Check target reached; waiting to start</string>
+    <string name="history_retention_scope">Up to the last %1$d successful observations are retained; this is not a day limit. Frequent checks cover a shorter period. The line does not show every movement between records.</string>
+    <string name="history_single_scope">One record · %1$s\nNo comparable time interval yet.</string>
+    <string name="history_actual_scope">%1$d records · Recorded span: %2$d d %3$d h %4$d min\n%5$s → %6$s</string>
+    <string name="product_observation_scope">Compare saved profile and list observations. Results do not prove an unfollow or its exact time.</string>
+    <string name="people_capacity_scope">Save up to %1$d people. Profile history shares a 2 MiB budget; existing records remain if full. More people do not send more requests at once; their turn may take longer.</string>
+    <string name="people_more">Show more people</string>
+</resources>
