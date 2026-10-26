@@ -2,7 +2,7 @@
 
 Yerel Android uygulaması: kendi hesabının özeti ve seçerek eklediğin kişilerin sayı/geçmiş analizi.
 
-Geliştirme önizlemesi **0.1.22**. Türkçe/English, görünür uygulamada 60 saniyelik hızlı kontrol hedefi ve saatli işlem geçmişi. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Profil geçmişinde kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi mevcut profil yanıtından alınır; görünür profil fotoğrafları mevcut bağlantıdan oturum bilgisi gönderilmeden yüklenip özel cihaz önbelleğinde tutulabilir. İsteğe bağlı liste otomasyonu ayrıca aşağıda açıklanır. Eski oturum ve kayıtlar korunur. Önceki çalışan 0.1.21 kaynak/APK yedeği ve Git etiketi korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
+Geliştirme önizlemesi **0.1.23**. Türkçe/English, görünür uygulamada 60 saniyelik hızlı kontrol hedefi ve saatli işlem geçmişi. Açık tema ve canlı renkler; içeriği örtmeyen alt gezinme; kartlarda düzenlenmiş geçmiş, bildirimler ve notlar. Kayıt zamanı, liste kapsamı, arama sonucu ve çevrimdışı görüntüleme ayrı gösterilir. Profil geçmişinde kullanıcı adı, yanıtta varsa biyografi ve karşılaştırılabilir fotoğraf bilgisi mevcut profil yanıtından alınır; görünür profil fotoğrafları mevcut bağlantıdan oturum bilgisi gönderilmeden yüklenip özel cihaz önbelleğinde tutulabilir. İsteğe bağlı liste otomasyonu ayrıca aşağıda açıklanır. Eski oturum ve kayıtlar korunur. Önceki çalışan 0.1.22 kaynak/APK yedeği ve Git etiketi korunur. [Arayüzü inceleme](docs/UI-TEST.md) · [Doğrulama kaydı](docs/VALIDATION.md).
 
 25 Ekim fiziksel telefon testinde kullanıcı, mobil bağlantıyla kendi sayaçlarının, kendi takip edilen listesinin ve arkadaşının ilk takipçi sayfasının geldiğini bildirdi. Bu canlı sonuç 0.1.8'e aittir; yeni arayüz kontrolleri ayrı debug paketi ve sentetik veri kullanır. Çok sayfalı canlı devam ve uzun süreli oturum henüz sınanmadı. [Liste testi](docs/FOLLOW-LISTS-TEST.md).
 
@@ -15,7 +15,7 @@ Son incelenen profiller 15 dakika boyunca, en fazla 20 kayıtla süreç belleği
 - **Son değişiklikler:** ana sayfada kayıtlı kişilerin sayı farkları ve mevcut liste sayfaları, okuma zamanına göre gösterilir. İlk üç kayıt ve Tümünü gör ile en fazla 20 kayıt; analiz/liste açılışı yeni istek göndermez. Akış saklanan geçmişe dayanır, kesin takip/çıkış zamanı değildir.
 - **Favoriler:** kişi kartı veya analizde yıldız. Favoriler kişi listesinin başında görünür; bayrak hesap/kişi kimliğine bağlı olarak şifreli saklanır. Açıp kapatmak okuma veya bildirim kontrolü başlatmaz. İzleme önceliği bu sürümde değişmez.
 
-Bağlantı için Windows'taki mobil oturumu şifreli aktarma ve önceki uygulama içi HTTPS web girişi seçenekleri vardır. Mobil aktarım aşağıda açıklanır. Web girişinde uygulama parola alanını okumaz; gerekli oturum çerezlerini kullanır. Instagram giriş/doğrulama veya kısıtlama uygulayabilir. Kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
+**Hesap bağla → Telefondan bağlan · Bilgisayar gerekmez** yeni bağlantı seçeneğidir. Kullanıcı adı/e-posta, parola ve gerekirse doğrulama koduyla yalnız telefonda giriş yapılır. Parola bu cihazda bellekte işlenir; dosyaya/loga yazılmaz. Başarılı oturum cihazda şifrelenir. Instagram kabulü bu sürüm için canlı hesapla henüz doğrulanmadı. [Telefon giriş testi](docs/PHONE-LOGIN-TEST.md). Windows aktarımı ve önceki web girişi ayrıca korunur; bilgisayar bu yeni yol için gerekmez. Instagram giriş/doğrulama veya kısıtlama uygulayabilir. Kişisel hesap uçları resmî geliştirici API sözleşmesi değildir ve değişebilir.
 
 - **Dil:** sağ üstteki Seçenekler → Dil / Language üzerinden Türkçe veya English seçilebilir. Tercih yeniden açılışta korunur. Ekranlar, yeni bildirimler, tarih ve sayı biçimi seçilen dili kullanır; profil içerikleri ve özel notlar çevrilmez.
 - **Özet:** hesap, iki sayaç, son kayıt zamanı ve tek Yenile düğmesi. Son 15 dakikadaki kayıt tekrar kullanılır. Açılışta otomatik yenileme varsayılan kapalı; Seçenekler → Yenileme ayarları ile açılabilir. Kayıt en az 15 dakika eski olmalı ve sınırlama bulunmamalıdır.
@@ -57,9 +57,17 @@ Ekrandan ayrılınca hızlı okuma iptal edilir; oturum süresi uzamaz. Seçilen
 
 ## Bağlantı seçenekleri
 
+### Yalnız telefonda bağlantı (0.1.23 önizleme)
+
+**Hesap bağla → Telefondan bağlan · Bilgisayar gerekmez**. Kullanıcı adı/e-posta ve parolayı gir; Instagram isterse bir sonraki ekranda kodu tamamla. SMS, doğrulama uygulaması ve yedek kod yöntemleri için ayrı seçim vardır. Desteklenmeyen ek doğrulama adımı otomatik aşılmaz; kullanıcı Instagram’da kontrol eder.
+
+Bu, Windows’ta kullanılan sabitlenmiş instagrapi 3.2.0 CAA giriş sözleşmesinin yerel Android uyarlamasıdır; resmî OAuth/API izni değildir. İlk kurulum birkaç dakika sürebilir: adımlar arasında mevcut en az 15 saniye aralığı korunur. Bir giriş denemesi en çok 10 dakika/18 istekle sınırlıdır. Yeni parola ile giriş denemeleri en az 15 dakika aralıklıdır; 429 ve sunucu beklemesi daha uzun olabilir. Giriş ekranı açıkken otomasyon bekler. İstek sürerken arka plana geçmek iptal eder; kod beklerken başka uygulamaya gidip dönülebilir. Ekran döndürme devam eden denemeyi bellekte korur; süreç kapanması yeni deneme gerektirir.
+
+Hesap yalnız sahibi doğrulanmış oturumdan başarılı profil okumasından sonra bağlanır. Aynı hesabın kişi/geçmiş kayıtları korunur; hata veya iptal eski hesabı değiştirmez. Instagram oturumu iptal ederse yeniden giriş gerekir; kesin bitiş tarihi bilinmez. Oturum, cihaz kimliği ve imza anahtarı Keystore ile şifrelenir; parola/kod saklanmaz. Instagram’ın telefonda açık oturumu başka uygulamadan alınmaz. Canlı Instagram’ın bu yolu kabulü henüz sınanmadı; emülatör testleri sentetik yanıtlardır. [Akış ve testler](docs/PHONE-LOGIN-TEST.md).
+
 ### Windows'taki mobil bağlantıyı APK'ya taşıma
 
-**Hesap bağla → Bilgisayardan bağlan**, Windows prototipinde kurulmuş oturumu Android'e taşır. Bağlantı yönetimi, gizlilik, yenileme tercihleri ve istek bilgileri sağ üstteki **⋯** menüsündedir. İlk eşleştirme bilgisayar/ADB gerektirir; başarılı okumadan sonra APK bağımsız çalışır. Bu sürüm Android içinde yeni mobil parola/CAA girişi uygulamaz; WebView girişi ayrı seçenek olarak kalır.
+**Hesap bağla → Bilgisayardan bağlan**, Windows prototipinde kurulmuş oturumu Android'e taşır. Bağlantı yönetimi, gizlilik, yenileme tercihleri ve istek bilgileri sağ üstteki **⋯** menüsündedir. İlk eşleştirme bilgisayar/ADB gerektirir; başarılı okumadan sonra APK bağımsız çalışır. Bu önceki yöntem alternatif olarak korunur; telefondan yeni giriş yukarıdaki ayrı seçenektir.
 
 1. APK'da **Bağlantıyı hazırla**. Cihaza özel anahtar ve 10 dakikalık aktarım isteği oluşturulur.
 2. Aynı Windows kullanıcısında `scripts/link-desktop.ps1` çalıştır. Önceden çalışan `InstagramCounter` ortamı ve DPAPI oturumu gerekir. Script oturumu yalnız bellekte açar, bu cihaza özel anahtarla şifreler ve ADB'den aktarır. Giriş/profil isteği, sunucu, parola/kod kopyalama yoktur. Birden fazla cihaz varsa `-Serial`; debug paket için `-DebugApp` kullanılır.

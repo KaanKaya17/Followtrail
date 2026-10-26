@@ -73,7 +73,11 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     fun requiresConnection(): Boolean = synchronized(lock) { preferences.getBoolean("requires_connection", false) }
     fun prototypeActive(): Boolean = synchronized(lock) { preferences.getBoolean("prototype_active", false) }
     fun mobileLinkActive(): Boolean = synchronized(lock) { preferences.getBoolean("mobile_link_active", false) }
-    fun automationHeld(): Boolean = prototypeActive() || mobileLinkActive()
+    fun phoneLoginActive(): Boolean = synchronized(lock) { preferences.getBoolean("phone_login_active", false) }
+    fun setPhoneLoginActive(value: Boolean) = synchronized(lock) {
+        if (!preferences.edit().putBoolean("phone_login_active", value).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
+    fun automationHeld(): Boolean = prototypeActive() || mobileLinkActive() || phoneLoginActive()
     fun setMobileLinkActive(active: Boolean) = synchronized(lock) {
         if (!preferences.edit().putBoolean("mobile_link_active", active).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }

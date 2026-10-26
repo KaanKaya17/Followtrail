@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.23 — 2026-10-26 (bilgisayarsız telefon girişi önizlemesi)
+
+- Hesap bağla menüsünde ilk seçenek Telefondan bağlan: yerel kullanıcı adı/e-posta, parola ve gerektiğinde kod adımı. Bilgisayar/USB/oturum dosyası gerektirmez. Önceki çalışan bilgisayar aktarımı ve web seçeneği korunur.
+- Windows prototipinde kullanılan instagrapi 3.2.0 CAA sözleşmesinin Android uyarlaması; şifreli parola hazırlama, kalıcı cihaz/imza kimliği, SMS/doğrulama uygulaması/yedek kod akışları. Instagram’ın bu uyarlamayı canlı kabulü henüz doğrulanmadı; resmî API/OAuth desteği iddiası yoktur.
+- Bağlantı yalnız kimliği doğrulanmış oturumdan başarılı profil okumasıyla kaydedilir. Aynı hesabın kişiler/geçmişi korunur; başarısız/iptal giriş mevcut hesabı değiştirmez. Parola/kod saklanmaz; oturum ve cihaz kimliği Keystore ile şifrelenir. Giriş ekranı ekran görüntüsüne kapalıdır.
+- Ekran döndürmede devam eden giriş bellekte korunur. İstek sırasında arka plana geçmek iptal eder; kod beklerken diğer uygulamaya gidilebilir. Ortak istek aralığı, 429/sunucu beklemesi ve yeni giriş molası korunur; giriş sırasında otomasyon bekler. Otomatik yeniden giriş yoktur.
+- Türkçe/English yardım, gizlilik ve bağlantı yönlendirmeleri güncellendi. Yeni Android izni, servis veya bağımlılık eklenmedi. 0.1.22 kaynak/APK yedeği korunur. [Test adımları](docs/PHONE-LOGIN-TEST.md).
+
 ## 0.1.22 — 2026-10-26 (tek bakışta kontrol durumu)
 
 - Kendi hesap özetinde, kişi kartlarında ve kişi analizinde dokunulabilir kontrol durumu: son başarılı profil okuması, kısa bekleme nedeni ve varsa liste ilerlemesi. İlk dakika Az önce, ilk saat dakika cinsinden; daha eski veya ileri cihaz saatli kayıtlar tam tarih/saatle gösterilir.

@@ -261,9 +261,10 @@ class MainActivity : LocalizedActivity() {
                 page.gap(8); page.addView(text(getString(R.string.ui_refresh_available_after, clock(allowed)), 11f, muted))
             }
         }
-        if (gate.mobileLinkActive() || gate.prototypeActive()) {
+        if (gate.mobileLinkActive() || gate.prototypeActive() || gate.phoneLoginActive()) {
             page.gap(16); page.addView(button(getString(R.string.ui_finish_the_pending_connection), false) {
-                if (gate.mobileLinkActive()) startActivity(Intent(this, DesktopLinkActivity::class.java)) else openLab()
+                if (gate.phoneLoginActive()) startActivity(Intent(this, PhoneLoginActivity::class.java))
+                else if (gate.mobileLinkActive()) startActivity(Intent(this, DesktopLinkActivity::class.java)) else openLab()
             }, LinearLayout.LayoutParams(-1, -2))
         }
         if (saved == null) { page.gap(20); page.addView(text(getString(R.string.ui_your_data_is_encrypted_on_this_device), 12f, muted).apply { gravity = Gravity.CENTER; setOnClickListener { privacy() } }) }
@@ -640,13 +641,17 @@ class MainActivity : LocalizedActivity() {
     private fun clock(time: Long) = SimpleDateFormat("HH:mm", AppLanguage.locale(this)).format(Date(time))
     private fun connectionOptions(replacePending: Boolean = false) {
         if (preview) { android.widget.Toast.makeText(this, getString(R.string.ui_account_connection_is_unavailable_in_demo_mode), android.widget.Toast.LENGTH_SHORT).show(); return }
-        val labels = arrayOf(getString(R.string.ui_connect_from_computer_mobile_session), getString(R.string.ui_sign_in_with_instagram_web_experiment))
+        val labels = arrayOf(getString(R.string.phone_menu), getString(R.string.ui_connect_from_computer_mobile_session), getString(R.string.ui_sign_in_with_instagram_web_experiment))
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_connect_your_account)).setItems(labels) { _, index ->
-            if (replacePending) {
+            if (replacePending && index != 0) {
                 try { MobileSessions(this).discardPending(); DesktopLink(this).clear(); pendingMobile = false }
                 catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return@setItems }
             }
-            if (index == 0) startActivity(Intent(this, DesktopLinkActivity::class.java)) else startLogin()
+            when (index) {
+                0 -> startActivity(Intent(this, PhoneLoginActivity::class.java))
+                1 -> startActivity(Intent(this, DesktopLinkActivity::class.java))
+                else -> startLogin()
+            }
         }.setNegativeButton(getString(R.string.ui_cancel), null).show()
     }
     private fun options() {
@@ -1170,7 +1175,7 @@ class MainActivity : LocalizedActivity() {
                         ViewedProfiles.clear()
                         avatars.remove()
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
-                        if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear() }
+                        if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); gate.setPhoneLoginActive(false) }
                         FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
                         gate.clearListCapacityPause()
                         vault.clear(); ChangeNotifications(this, preview).clear(); true

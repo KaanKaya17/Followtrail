@@ -1,0 +1,34 @@
+<resources>
+    <string name="phone_menu">Telefondan bağlan · Bilgisayar gerekmez</string>
+    <string name="phone_title">Hesabını telefonda bağla</string>
+    <string name="phone_intro">Bilgisayar, USB veya oturum dosyası gerekmez. Girişini bu cihazda tamamla; varsa doğrulama kodunu sonraki adımda girebilirsin.</string>
+    <string name="phone_access">Bağlantı, erişebildiğin profil bilgilerini ve takipçi/takip edilen listelerini okumak için kullanılır. Bu resmî Instagram izin ekranı değildir; hesabının oturum bilgisi uygulamada kullanılır.</string>
+    <string name="phone_contact">Kullanıcı adı veya e-posta</string>
+    <string name="phone_password">Instagram parolası</string>
+    <string name="phone_start">Giriş yap</string>
+    <string name="phone_password_notice">Parola giriş sırasında bellekte işlenir; dosyaya veya loga yazılmaz. Başarılı oturum bu cihazda şifrelenir. Yeni bağlantı doğrulanmadan önceki hesabın ve kayıtların korunur.</string>
+    <string name="phone_session_notice">Oturum için kesin bitiş tarihi verilmez. Instagram oturumu geçersiz kılarsa tekrar bağlanman gerekir. Bağlantıyı uygulamadaki Bağlantıyı yönet menüsünden kaldırabilirsin.</string>
+    <string name="phone_connected">Hesap bağlandı.</string>
+    <string name="phone_attention">Bağlantı bilgisi</string>
+    <string name="phone_input_error">Kullanıcı adı/e-posta ve parolanı kontrol et. Boş giriş veya desteklenmeyen uzunluk kabul edilmedi.</string>
+    <string name="phone_credentials_error">Instagram giriş bilgilerini kabul etmedi. Otomatik tekrar yapılmadı; bilgilerini ve yerel bekleme saatini kontrol et.</string>
+    <string name="phone_unsupported">Instagram bu giriş adımını beklenen biçimde tamamlamadı. Otomatik tekrar veya farklı giriş yoluna geçiş yapılmadı. Instagram’da hesabının ek onay isteyip istemediğini kontrol et.</string>
+    <string name="phone_code_error">Kodla doğrulama tamamlanamadı. Kodu kontrol edip aynı açık doğrulama oturumunda yeniden gönderebilirsin.</string>
+    <string name="phone_expired">Bu giriş denemesinin süresi veya adım bütçesi doldu. Mevcut mola izin verdiğinde yeni bir giriş başlat.</string>
+    <string name="phone_open_instagram">Instagram’da kontrol et</string>
+    <string name="phone_wait">İlk bağlantı birkaç dakika sürebilir. İstekler mevcut aralıkla sırayla gönderilir; bitene kadar bu ekranı açık tut. Arka plana geçmek devam eden işlemi iptal eder.</string>
+    <string name="phone_method_hint">Hesabında açık olan doğrulama yöntemini seç. Kod ekranı hazır olduğunda kodunu gir; giriş parolanı tekrar göndermeyeceğiz.</string>
+    <string name="phone_method_totp">Doğrulama uygulaması</string>
+    <string name="phone_method_sms">SMS kodu</string>
+    <string name="phone_method_backup">Yedek kod</string>
+    <string name="phone_code_hint">Instagram’ın istediği e-posta/SMS veya doğrulama uygulaması kodunu gir. Kodunu almak için bu ekrandan ayrılıp geri dönebilirsin; yeni giriş başlatılmaz.</string>
+    <string name="phone_code">Doğrulama kodu</string>
+    <string name="phone_verify">Kodu doğrula</string>
+    <string name="phone_code_notice">Kod yalnız bu açık giriş denemesinde kullanılır; kaydedilmez. Sayfa yeniden oluşturulursa giriş bağlamı yalnız uygulama belleğinde korunur. Uygulama tamamen kapanırsa yeni deneme gerekir.</string>
+    <string name="phone_preparing">Bağlantı hazırlanıyor…</string>
+    <string name="phone_signing_in">Giriş bilgileri doğrulanıyor…</string>
+    <string name="phone_verifying">Hesap doğrulaması sürüyor…</string>
+    <string name="phone_reading_profile">Oturum açıldı. Profil bilgilerin kontrol ediliyor…</string>
+    <string name="phone_close_error">Bağlantı ekranı kapatılamadı. Tekrar geri dönmeyi dene.</string>
+    <plurals name="phone_spacing"><item quantity="one">Sıradaki adım için %1$d saniye bekleniyor.</item><item quantity="other">Sıradaki adım için %1$d saniye bekleniyor.</item></plurals>
+</resources>
