@@ -1,0 +1,35 @@
+<resources>
+    <string name="profile_status_open">Kontrol durumunu aç</string>
+    <string name="profile_status_title">@%1$s · Kontrol durumu</string>
+    <string name="profile_status_loading">Kontrol durumu yükleniyor…</string>
+    <string name="profile_status_unavailable">Kontrol durumu okunamadı</string>
+    <string name="profile_status_last">Son kontrol · %1$s</string>
+    <string name="profile_status_just_now">Son kontrol · Az önce</string>
+    <string name="profile_status_off">Otomatik kontrol kapalı</string>
+    <string name="profile_status_lists_only">Liste otomasyonu açık · Profil izlemesi kapalı</string>
+    <string name="profile_status_notifications">Bildirim izni bekleniyor</string>
+    <string name="profile_status_limited">Instagram molası · Otomatik deneme yok</string>
+    <string name="profile_status_connection">Hesabı yeniden bağlamak gerekiyor</string>
+    <string name="profile_status_link">Hesap bağlantısı hazırlanıyor</string>
+    <string name="profile_status_paused">Otomatik kontrol duraklatıldı</string>
+    <string name="profile_status_offline">İnternet bağlantısı bekleniyor</string>
+    <string name="profile_status_checking">Hızlı kontrol sürüyor</string>
+    <string name="profile_status_quick">Hızlı izleme açık</string>
+    <string name="profile_status_failed">Son kontrol tamamlanamadı · Ayrıntılara bak</string>
+    <string name="profile_status_unchanged">Son profil karşılaştırmasında fark yok</string>
+    <string name="profile_status_due">Kontrol sırada · Android bekleniyor</string>
+    <string name="profile_status_scheduled">Otomatik kontrol planlandı</string>
+    <string name="profile_status_lists_unavailable">Liste durumu okunamadı</string>
+    <string name="profile_status_lists_failed">Liste kontrolü bekliyor · Son okumada hata var</string>
+    <string name="profile_status_lists_observed">İki liste sonu da gözlendi</string>
+    <string name="profile_status_lists_limited">Liste okuması sınırlı veya belirsiz</string>
+    <string name="profile_status_lists_pending">Liste devamı bekliyor</string>
+    <string name="profile_status_lists_initial">İlk liste okumaları sırada</string>
+    <string name="profile_status_list_missing">%1$s · Henüz kayıt yok</string>
+    <string name="profile_status_list_detail">%1$s · Alınan hesap: %2$s\nSon sayfa: %3$s\n%4$s</string>
+    <string name="profile_status_last_failure">Son hata · %1$s\n%2$s</string>
+    <string name="profile_status_scope">Bu alan ek Instagram isteği göndermez. Son kontrol başarılı profil okumasıdır; liste saatleri ayrıdır. Görünürken yaklaşık 30 saniyede güncellenir. Kontrol hedefleri gecikebilir.</string>
+    <plurals name="profile_status_minutes"><item quantity="one">Son kontrol · %1$d dakika önce</item><item quantity="other">Son kontrol · %1$d dakika önce</item></plurals>
+    <string name="profile_status_other_quick">Diğer profilin hızlı izlemesi bekleniyor</string>
+    <string name="profile_status_lists_due">Liste güncellemesi sırada</string>
+</resources>

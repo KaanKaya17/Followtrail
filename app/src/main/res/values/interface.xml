@@ -26,7 +26,6 @@
     <string name="ui_overview">"Özet"</string>
     <string name="ui_people">"Kişiler"</string>
     <string name="ui_at_a_glance">"Bir bakışta"</string>
-    <string name="ui_saved_overview">"Kayıtlı özet · %1$s"</string>
     <string name="ui_open_list">"Listeyi aç"</string>
     <string name="ui_open_list_description">"%1$s: %2$s. Listeyi aç"</string>
     <string name="ui_followers">"Takipçi"</string>
@@ -82,7 +81,6 @@
     <string name="ui_saved_profile">"Kayıtlı profil"</string>
     <string name="ui_followers_following">"%1$s takipçi · %2$s takip edilen"</string>
     <string name="ui_last_record">"Son kayıt · %1$s"</string>
-    <string name="ui_change_notifications_on">"Değişiklik bildirimi açık"</string>
     <string name="ui_open_analysis">"Analizi aç · @%1$s"</string>
     <string name="ui_all_people">"Tüm kişiler"</string>
     <string name="ui_profile_analysis">"PROFİL ANALİZİ"</string>

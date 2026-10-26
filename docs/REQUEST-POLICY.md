@@ -2,6 +2,10 @@
 
 Bu belge özel mobil/web profil okuyucularının sözleşmesidir. Bu uçlar resmî Graph API kotasıyla eş tutulmaz. 25 Ekim 2026'da kullanıcı fiziksel telefonda mobil sayaç ve ilk liste okumalarının çalıştığını bildirdi; aşağıdaki denetimler bir sorunsuzluk garantisi değildir. Kanıt kapsamı [VALIDATION.md](VALIDATION.md) içindedir.
 
+## 0.1.22 yerel durum sunumu
+
+Profil durum özeti yalnız hesap/liste/işlem geçmişi kasalarını ve mevcut kapı/izin/ağ durumunu okur. Görünür ekranda yaklaşık 30 saniyelik yenileme yerel işçide yapılır; tek yenileme aynı ekrandaki bütün kartların kayıtlarını paylaşır. Ekrandan ayrılınca zamanlayıcı durur. Bu sunum profil/liste HTTP isteği göndermez, gate rezervasyonu almaz, otomatik işi eşlemez ve kayıt yazmaz. Durum ayrıntıları da salt okunurdur. Zaman çizelgesi yereldir; Listeleri incele yalnız mevcut liste ekranını açar. Görünür fotoğrafların önceki CDN/önbellek davranışı değişmez. Kontrol sıklığı ve 429/oturum molaları 0.1.21 ile aynıdır.
+
 ## 0.1.21 güncel otomatik kontrol sözleşmesi
 
 Aşağıdaki sürüm notlarından farklı olarak güncel arka plan işi tek ortak 15 dakikalık rezervasyonda toplam en fazla altı profil/liste isteği çalıştırır. İlk hazır profil öne alınır, devamında mevcut adil profil/liste kuyruğu kullanılır. Bütün istek başlangıçları en az 15 saniye aralıklıdır; ilk 90 saniye içinde yeni istek başlatılabilir. Altı istek/90 saniye yerel kaynak bütçesidir. Kendi hesap profili için hedef 15 dakikadır. Kullanıcı otomasyon kurarken seçtiği kişileri 15 dakikaya alır; güncelleme diğer eski aralıkları değiştirmez.

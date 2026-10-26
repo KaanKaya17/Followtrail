@@ -51,6 +51,7 @@ class MainActivity : LocalizedActivity() {
     private lateinit var avatars: AvatarImages
     private lateinit var queuedRead: ForegroundReadQueue
     private lateinit var quickWatch: QuickWatch
+    private lateinit var profileStatuses: ProfileStatusCards
     private lateinit var root: FrameLayout
     private var account: SavedAccount? = null
     private var loading = true
@@ -119,6 +120,8 @@ class MainActivity : LocalizedActivity() {
                 syncMonitoring(); render()
             }
         })
+        profileStatuses = ProfileStatusCards(this, vault, FollowListVault(this, if (preview) "previewlists" else "followlists"),
+            gate, preview, { quickWatch.target.takeIf { quickWatch.active } to quickWatch.busy }, ::openTimeline, { openLists(it) })
         if (BuildConfig.DEBUG && intent.getBooleanExtra("connection_lab_preview", false)) {
             intent.removeExtra("connection_lab_preview")
             startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", true))
@@ -144,6 +147,7 @@ class MainActivity : LocalizedActivity() {
     override fun onResume() {
         super.onResume()
         visible = true
+        if (::profileStatuses.isInitialized) profileStatuses.resume()
         if (recreatingForLanguage) return
         if (!::gate.isInitialized || web != null || loading) return
         try { account = vault.read(); pendingMobile = !preview && MobileSessions(this).pending() != null; needsConnection = gate.requiresConnection() }
@@ -187,6 +191,7 @@ class MainActivity : LocalizedActivity() {
         val position = if (identity == screenIdentity) visibleScroll?.scrollY ?: 0 else 0
         screenIdentity = identity
         if (::queuedRead.isInitialized && queuedRead.pending && queuedScreen != identity) queuedRead.cancel(false)
+        if (::profileStatuses.isInitialized) profileStatuses.clear()
         root.removeAllViews()
         val saved = account
         val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false; isVerticalScrollBarEnabled = false }
@@ -288,7 +293,7 @@ class MainActivity : LocalizedActivity() {
         identity.addView(avatar(saved.profile, 36))
         identity.addView(text("@${saved.profile.username}", 15f, muted).apply { setPadding(dp(10), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
         page.addView(identity); page.gap(8)
-        page.addView(text(getString(R.string.ui_saved_overview, date(saved.profile.observedAt)), 11f, muted)); page.gap(18)
+        page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(18)
         val row = LinearLayout(this)
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
             val foreground = if (purple) AppUi.surface else ink
@@ -748,7 +753,7 @@ class MainActivity : LocalizedActivity() {
                 card.addView(identity); card.gap(18)
                 card.addView(text(getString(R.string.ui_followers_following, number(p.followers), number(p.following)), 14f, ink, true)); card.gap(8)
                 card.addView(text(getString(R.string.ui_last_record, date(p.observedAt)), 11f, muted))
-                if (entry.watching) { card.gap(8); card.addView(text(getString(R.string.ui_change_notifications_on), 12f, AppUi.teal)) }
+                card.gap(10); card.addView(profileStatuses.view(saved.session, p.userId))
                 card.gap(16)
                 card.addView(button(getString(R.string.ui_open_analysis, p.username), false) { selectedPersonId = p.userId; rangeDays = 0; message = null; render() }, LinearLayout.LayoutParams(-1, -2))
                 page.addView(card); page.gap(14)
@@ -767,7 +772,8 @@ class MainActivity : LocalizedActivity() {
         personHeading.addView(favoriteButton(person), LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(personHeading); page.gap(8)
         page.addView(badge(person.group.ifBlank { getString(R.string.ui_profile_analysis) })); page.gap(20)
-        page.addView(ProfileSummary.view(this, p)); page.gap(16)
+        page.addView(ProfileSummary.view(this, p)); page.gap(12)
+        page.addView(profileStatuses.view(saved.session, p.userId)); page.gap(16)
         val fastActions = LinearLayout(this)
         fastActions.addView(button(getString(R.string.quick_start), false) { startQuickWatch(p.userId) }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
         fastActions.addView(button(getString(R.string.timeline_title), false) { openTimeline(p.userId) }, LinearLayout.LayoutParams(0, -2, 1f))
@@ -1322,6 +1328,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     override fun onDestroy() {
+        if (::profileStatuses.isInitialized) profileStatuses.close()
         if (::quickWatch.isInitialized) quickWatch.close()
         if (::avatars.isInitialized) avatars.close()
         ++generation; main.removeCallbacksAndMessages(null); api.cancel()
@@ -1336,6 +1343,7 @@ class MainActivity : LocalizedActivity() {
     }
     override fun onPause() {
         visible = false
+        if (::profileStatuses.isInitialized) profileStatuses.pause()
         if (::quickWatch.isInitialized) { quickWatch.pause(); if (::vault.isInitialized) syncMonitoring() }
         super.onPause()
     }
