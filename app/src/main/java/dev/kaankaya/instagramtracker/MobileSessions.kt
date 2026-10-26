@@ -28,8 +28,9 @@ class MobileSessions(context: Context, namespace: String = "mobile") {
         values().firstOrNull { it?.binding == reference.mobileBinding && it?.owner == reference.userId }
             ?: throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
     }
-    fun discardPending(): Unit = synchronized(lock) {
+    fun discardPending(expected: Session? = null): Unit = synchronized(lock) {
         val binding = preferences.getString("binding", null)
+        if (expected != null && binding != expected.mobileBinding) return@synchronized
         if (binding != null && account.read()?.session?.mobileBinding != binding) {
             values().forEachIndexed { index, state -> if (state?.binding == binding) banks[index].clear() }
         }

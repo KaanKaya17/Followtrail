@@ -73,7 +73,7 @@
     <string name="ui_app_cooldown_until">"App cooldown until: %1$s"</string>
     <string name="ui_the_local_cooldown_has_ended">"The local cooldown has ended."</string>
     <string name="ui_this_time_does_not_guarantee_instagram_access">"This time does not guarantee Instagram access will resume. No automatic retry follows the cooldown."</string>
-    <string name="ui_the_counter_covers_profile_and_list_page">"The counter covers profile and list-page read attempts. It excludes profile images, the sign-in page and traffic from the Windows app. It is not Instagram’s total counter or proof the server received a request. Passwords, cookies and raw responses are not logged."</string>
+    <string name="ui_the_counter_covers_profile_and_list_page">"The counter covers phone sign-in steps and profile/list-page read attempts. It excludes profile images, web sign-in pages and Windows app traffic. It is not Instagram’s total counter or proof the server received a request. Passwords, cookies and raw responses are not logged."</string>
     <string name="ui_people_you_choose">"People you choose"</string>
     <string name="ui_a_space_for_the_profiles_you_care">"A space for the profiles you care about."</string>
     <string name="ui_ready_to_add_your_first_person">"Ready to add your first person."</string>
@@ -123,7 +123,7 @@
     <string name="ui_local_cooldown">"Local cooldown · %1$s"</string>
     <string name="ui_automatic_retries_are_off_refresh_when_you">"Automatic retries are off. Refresh when you are ready."</string>
     <string name="ui_privacy_in_plain_language">"Privacy, in plain language"</string>
-    <string name="ui_web_sign_in_uses_instagram_s_own">"Web sign-in uses Instagram’s own page; the app does not read the password field. Computer transfer does not ask for your password; the existing mobile session arrives over ADB, encrypted to this device’s key.\n\n"</string>
+    <string name="ui_web_sign_in_uses_instagram_s_own">"Phone sign-in processes your password in memory on this device; it is not written to files or logs. Verification codes are not saved. A successful session is encrypted on the device. This is not an official Instagram permission screen. Computer transfer and the previous web sign-in remain separate options.\n\n"</string>
     <string name="ui_your_session_chosen_people_history_and_notes">"Your session, chosen people, history and notes are encrypted with Android Keystore. WebView may create temporary browser data during sign-in; it is cleared when the connection completes or is cancelled.\n\n"</string>
     <string name="ui_requests_go_to_instagram_we_have_no">"Requests go to Instagram. We have no server, ads, analytics or data collection SDK. Cloud backup and device transfer are disabled.\n\n"</string>
     <string name="ui_visible_profile_photos_may_load_from_the">"Visible profile photos may load from the Instagram image URL in the response without sending session credentials. Small images are cached in the app’s private storage; this image cache is not separately encrypted. Removing the connection also clears the image cache.\n\n"</string>
@@ -221,7 +221,7 @@
     <string name="ui_your_action_is_queued">"Your action is queued"</string>
     <string name="ui_cancel_queued_action">"Cancel queued action"</string>
     <string name="ui_the_queued_action_was_cancelled">"The queued action was cancelled."</string>
-    <string name="ui_lists_require_a_mobile_connection_go_to">"Lists require a mobile connection. Go to Options → Manage connection → Connect from computer."</string>
+    <string name="ui_lists_require_a_mobile_connection_go_to">"Lists require a mobile connection. Go to Options → Manage connection → Connect on this phone."</string>
     <string name="ui_the_device_storage_limit_for_this_read">"The device storage limit for this read was reached. Previous records are preserved; the new read could not be saved."</string>
     <string name="ui_your_connection_has_expired_reconnect_your_account">"Your connection has expired. Reconnect your account."</string>
     <string name="ui_instagram_requires_additional_verification_reconnect_to_complete">"Instagram requires additional verification. Reconnect to complete it."</string>

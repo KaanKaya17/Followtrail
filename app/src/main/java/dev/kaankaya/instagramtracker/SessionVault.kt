@@ -94,6 +94,11 @@ class SessionVault(context: Context, slot: String = "account") {
         SavedAccount(session, profile, sameOwner?.people.orEmpty(), sameOwner?.automation ?: ListAutomation())
             .also { write(it) }
     }
+    /** A completed login cannot overwrite a connection changed while the user was authenticating. */
+    fun linkIfUnchanged(expected: Session?, session: Session, profile: Profile, cancelled: () -> Boolean): SavedAccount = synchronized(lock) {
+        if (cancelled() || read()?.session != expected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        link(session, profile)
+    }
     fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }
     fun clear(): Unit = synchronized(lock) {
         record.clear()

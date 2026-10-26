@@ -31,6 +31,9 @@ def verify(apk: Path, sdk: Path) -> dict:
     links = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'DesktopLinkActivity' in block]
     if len(links) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', links[0]):
         raise ValueError('Desktop pairing must be non-exported')
+    phones = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'PhoneLoginActivity' in block]
+    if len(phones) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', phones[0]):
+        raise ValueError('Phone sign-in must be non-exported')
     lists = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'FollowListActivity' in block]
     if len(lists) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', lists[0]):
         raise ValueError('Follow lists must be non-exported')

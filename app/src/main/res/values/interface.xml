@@ -73,7 +73,7 @@
     <string name="ui_app_cooldown_until">"Uygulamanın yerel molası: %1$s"</string>
     <string name="ui_the_local_cooldown_has_ended">"Yerel mola doldu."</string>
     <string name="ui_this_time_does_not_guarantee_instagram_access">"Bu saat, Instagram erişiminin açılacağını garanti etmez. Süre dolunca otomatik deneme yapılmaz."</string>
-    <string name="ui_the_counter_covers_profile_and_list_page">"Sayaç profil ve liste sayfası okuma girişimlerini kapsar. Profil görselleri, giriş sayfası ve Windows uygulamasının trafiği dahil değildir. Instagram\'ın toplam sayacı değildir; sunucunun isteği aldığına dair kanıt da değildir. Parola, çerez ve ham yanıt kaydedilmez."</string>
+    <string name="ui_the_counter_covers_profile_and_list_page">"Sayaç telefondan giriş adımlarını, profil ve liste sayfası okuma girişimlerini kapsar. Profil görselleri, web giriş sayfası ve Windows uygulamasının trafiği dahil değildir. Instagram’ın toplam sayacı veya sunucunun isteği aldığına dair kanıt değildir. Parola, çerez ve ham yanıt loga yazılmaz."</string>
     <string name="ui_people_you_choose">"Seçtiğin kişiler"</string>
     <string name="ui_a_space_for_the_profiles_you_care">"Merak ettiğin profiller, sana özel bir alan."</string>
     <string name="ui_ready_to_add_your_first_person">"İlk kişini eklemeye hazırsın."</string>
@@ -123,7 +123,7 @@
     <string name="ui_local_cooldown">"Yerel mola · %1$s"</string>
     <string name="ui_automatic_retries_are_off_refresh_when_you">"Otomatik deneme kapalı. Hazır olduğunda yenileyebilirsin."</string>
     <string name="ui_privacy_in_plain_language">"Gizlilik, sade haliyle"</string>
-    <string name="ui_web_sign_in_uses_instagram_s_own">"Web bağlantısında giriş Instagram\'ın kendi sayfasındadır; uygulama şifre alanını okumaz. Bilgisayardan aktarımda parola istenmez; mevcut mobil oturum bu cihazın anahtarına şifrelenerek ADB\'den gelir.\n\n"</string>
+    <string name="ui_web_sign_in_uses_instagram_s_own">"Telefondan bağlan seçeneğinde parolan giriş sırasında bu cihazın belleğinde işlenir; dosyaya veya loga yazılmaz. Doğrulama kodu kaydedilmez. Başarılı oturum cihazda şifrelenir. Bu resmî Instagram izin ekranı değildir. Bilgisayardan aktarım ve önceki web girişi ayrı seçeneklerdir.\n\n"</string>
     <string name="ui_your_session_chosen_people_history_and_notes">"Oturum, seçtiğin kişiler, geçmiş ve notların Android Keystore ile şifrelenir. Giriş sırasında WebView kendi geçici tarayıcı verilerini oluşturabilir; bağlantı tamamlanınca veya iptal edilince temizlenir.\n\n"</string>
     <string name="ui_requests_go_to_instagram_we_have_no">"İstekler Instagram\'a gider. Kendi sunucumuz, reklam, analitik veya veri toplama SDK\'mız yok. Bulut yedekleme ve cihaz aktarımı kapalıdır.\n\n"</string>
     <string name="ui_visible_profile_photos_may_load_from_the">"Görünür profil fotoğrafları, yanıttaki Instagram görsel bağlantısından oturum bilgisi gönderilmeden yüklenebilir. Küçük görseller uygulamanın özel önbelleğinde tutulur; bu görsel önbelleği ayrıca şifrelenmez. Bağlantıyı kaldırmak görsel önbelleğini de temizler.\n\n"</string>
@@ -221,7 +221,7 @@
     <string name="ui_your_action_is_queued">"İşlemin sırada"</string>
     <string name="ui_cancel_queued_action">"Bekleyen işlemi iptal et"</string>
     <string name="ui_the_queued_action_was_cancelled">"Bekleyen işlem iptal edildi."</string>
-    <string name="ui_lists_require_a_mobile_connection_go_to">"Listeler için mobil bağlantı gerekiyor. Seçenekler → Bağlantıyı yönet → Bilgisayardan bağlan yolunu kullan."</string>
+    <string name="ui_lists_require_a_mobile_connection_go_to">"Listeler için mobil bağlantı gerekiyor. Seçenekler → Bağlantıyı yönet → Telefondan bağlan yolunu kullan."</string>
     <string name="ui_the_device_storage_limit_for_this_read">"Bu okuma için cihaz kayıt sınırına ulaşıldı. Önceki kayıtlar korundu; yeni okuma kaydedilemedi."</string>
     <string name="ui_your_connection_has_expired_reconnect_your_account">"Bağlantının süresi dolmuş. Hesabını yeniden bağla."</string>
     <string name="ui_instagram_requires_additional_verification_reconnect_to_complete">"Instagram ek doğrulama istiyor. Bağlantıyı yenileyerek tamamlayabilirsin."</string>
