@@ -188,7 +188,7 @@ class FollowListFlowTest {
         val account = vault.read()!!
         vault.write(account.copy(session = account.session.copy(cookie = "ds_user_id=100; sessionid=changed")))
         click("İlk sayfayı oku")
-        awaitText(ApiFailure(ApiFailure.Kind.CANCELLED).userMessage())
+        awaitText(ApiFailure(ApiFailure.Kind.CANCELLED).userMessage(context))
         assertEquals(0L, RequestGate(context, "preview_gate").attempts())
         assertNull(lists.read(account.session, "200"))
     }

@@ -6,7 +6,7 @@ import org.json.JSONTokener
 import java.net.URI
 
 /** Only value-free diagnostics are persisted. No URL/query, username, cookie, header or body is accepted. */
-class ProbeDiagnostics(context: Context, name: String = "connection_probe") {
+class ProbeDiagnostics(private val context: Context, name: String = "connection_probe") {
     companion object { private val lock = Any() }
     private val preferences = context.getSharedPreferences(name, 0)
     enum class Event { OPENED, PAGE_RESOURCE, PROFILE_RESOURCE, PAGE_HTTP_ERROR, STARTED, SUCCEEDED, LIMITED, AUTH_REQUIRED, INVALID, CONNECTION, CANCELLED }
@@ -26,7 +26,7 @@ class ProbeDiagnostics(context: Context, name: String = "connection_probe") {
     }
     fun count(event: Event): Long = synchronized(lock) { preferences.getLong(event.name, 0) }
     fun last(): String = synchronized(lock) { org.json.JSONArray(preferences.getString("events", "[]")!!).let { events ->
-        if (events.length() == 0) "Henüz deneme yok." else events.getJSONObject(events.length() - 1).let {
+        if (events.length() == 0) context.getString(R.string.ui_no_attempts_yet) else events.getJSONObject(events.length() - 1).let {
             it.getString("event") + if (it.has("status")) " · HTTP ${it.getInt("status")}" else ""
         }
     } }

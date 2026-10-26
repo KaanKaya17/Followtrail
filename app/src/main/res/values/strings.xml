@@ -1,13 +1,11 @@
 <resources>
     <string name="person_remove_description">Kişiyi sil · @%1$s</string>
     <string name="person_remove_confirm">@%1$s için bu cihazdaki profil geçmişi, not, favori, izleme ayarı ve liste kayıtları silinir. Instagram hesabında işlem yapılmaz.</string>
-    <string name="profile_link_missing">Bu kayıtta geçerli kullanıcı adı yok; profil bağlantısı açılamıyor.</string>
     <string name="profile_link_unavailable">Instagram bağlantısını açabilecek bir uygulama bulunamadı.</string>
     <string name="profile_open_description">Profili aç · @%1$s</string>
     <string name="auto_title">Otomatik takip</string>
     <string name="auto_enabled">Liste otomasyonu açık</string>
     <string name="auto_disabled">Liste otomasyonu kapalı</string>
-    <string name="auto_summary">Hesabını ve izlenecek kişileri bir kez seç. Takipçi ve takip edilen sayfaları arka planda sırayla alınır; her sayfa için düğmeye basman gerekmez.</string>
     <string name="auto_settings">Otomasyonu ayarla</string>
     <string name="auto_person_scope">Bu kişinin listeleri de otomatik izleniyor. Liste seçimini ana ekrandaki Otomatik takip kartından yönetebilirsin; bu anahtar yalnız profil kontrolünü yönetir.</string>
     <string name="auto_choose_targets">Otomatik izlenecek hesaplar</string>
@@ -60,7 +58,6 @@
     <string name="profile_bio_changed">Biyografi değişti</string>
     <string name="profile_picture_changed">Profil fotoğrafı bilgisi değişti</string>
     <string name="profile_details_title">Profil bilgileri</string>
-    <string name="profile_bio_label">Kayıtlı biyografi</string>
     <string name="profile_empty_bio">(Boş biyografi)</string>
     <string name="profile_field_missing">Bu alan henüz kayıtta yok. Sonraki başarılı okumada gelirse başlangıç kaydı oluşur.</string>
     <string name="profile_field_null">Instagram bu alanı boş bilgi olarak döndürdü; silindiği varsayılmadı.</string>
@@ -114,14 +111,12 @@
     <string name="list_cancel">İptal</string>
     <string name="list_cancelled">Okuma iptal edildi. Önceki sayfalar korundu.</string>
     <string name="list_close">Kapat</string>
-    <string name="list_restart_action">Yeniden oku</string>
     <string name="list_compare_action">Karşılaştır</string>
     <string name="list_compare">Alınan listeleri karşılaştır</string>
     <string name="list_mutual">İki kayıtta ortak · %1$d</string>
     <string name="list_followers_only">Yalnız alınan takipçi kaydında · %1$d</string>
     <string name="list_following_only">Yalnız alınan takip edilen kaydında · %1$d</string>
     <string name="list_comparison_scope">Yalnız alınan kayıtlar karşılaştırılır. Bir listede görünmemek, geri takip etmediğini veya takipten çıktığını kanıtlamaz.</string>
-    <string name="list_scope">Her okuma: 1 sayfa.</string>
     <string name="list_wait">Bekleme · %1$s</string>
     <string name="list_username_unknown">Kullanıcı adı belirtilmedi</string>
     <string name="list_finish_connection">Önce yarım kalan bağlantı işlemini tamamla.</string>

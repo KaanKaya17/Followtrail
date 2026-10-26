@@ -1,0 +1,15 @@
+<resources>
+    <string name="desktop_link_header">"Account connection"</string>
+    <string name="desktop_link_title">"Bring your account."</string>
+    <string name="desktop_link_intro">"Securely transfer the connection from your computer."</string>
+    <string name="desktop_link_prepare">"Prepare connection"</string>
+    <string name="desktop_link_import">"Receive transfer"</string>
+    <string name="desktop_link_read">"Connect"</string>
+    <string name="desktop_link_close">"Back"</string>
+    <string name="desktop_link_busy">"One moment…"</string>
+    <string name="desktop_link_success">"Connected"</string>
+    <string name="desktop_link_error">"Could not open the transfer. Check the transfer on your computer."</string>
+    <string name="desktop_link_pause">"Local cooldown · %1$s"</string>
+    <string name="desktop_link_switch">"Connect another account"</string>
+    <string name="desktop_link_help">"How does it work?"</string>
+</resources>

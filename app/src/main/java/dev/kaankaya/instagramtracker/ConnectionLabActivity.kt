@@ -1,7 +1,6 @@
 package dev.kaankaya.instagramtracker
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.graphics.Color
 import android.graphics.Typeface
 import android.net.http.SslError
@@ -29,11 +28,10 @@ import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.UUID
 
 /** One foreground browser-context experiment. It never exports browser credentials or updates the main vault. */
-class ConnectionLabActivity : Activity() {
+class ConnectionLabActivity : LocalizedActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var gate: RequestGate
     private lateinit var diagnostics: ProbeDiagnostics
@@ -80,19 +78,19 @@ class ConnectionLabActivity : Activity() {
             diagnostics.record(ProbeDiagnostics.Event.OPENED)
         } catch (_: Exception) { finish(); return }
         val body = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(24), dp(16), dp(24), dp(24)) }
-        body.addView(label("Bağlantı prototipi", 28f).apply { typeface = Typeface.DEFAULT_BOLD })
-        body.addView(label(if (preview) "DEMO · ÖRNEK VERİ · AĞ İSTEĞİ YOK" else "Tek kontrollü profil okuması · Arka plan kontrolleri duraklatıldı.", 13f, AppUi.violet))
-        body.addView(label("Instagram oturumunu aç. Giriş ve varsa doğrulamayı tarayıcıda tamamla; sonra profilin kullanıcı adını girip tek okumayı başlat.", 14f))
+        body.addView(label(getString(R.string.ui_connection_prototype), 28f).apply { typeface = Typeface.DEFAULT_BOLD })
+        body.addView(label(if (preview) getString(R.string.ui_demo_sample_data_no_network_requests) else getString(R.string.ui_one_controlled_profile_read_background_checks_paused), 13f, AppUi.violet))
+        body.addView(label(getString(R.string.ui_open_instagram_sign_in_complete_sign_in), 14f))
         username = EditText(this).apply {
-            hint = "@kullanıcıadı"; setTextColor(AppUi.ink); setHintTextColor(AppUi.muted)
+            hint = getString(R.string.ui_username); setTextColor(AppUi.ink); setHintTextColor(AppUi.muted)
             setSingleLine(true); filters = arrayOf(android.text.InputFilter.LengthFilter(31))
             setText(savedInstanceState?.getString("username") ?: if (preview) "lab.demo" else "")
         }; body.addView(username)
-        startBrowser = action(if (preview) "Örnek oturumu aç" else "Instagram oturumunu aç", ::openBrowser)
-        read = action("Tek okumayı başlat", ::startProbe)
-        close = action("Denemeyi bitir", ::closeLab)
+        startBrowser = action(if (preview) getString(R.string.ui_open_sample_session) else getString(R.string.ui_open_instagram_sign_in), ::openBrowser)
+        read = action(getString(R.string.ui_start_single_read), ::startProbe)
+        close = action(getString(R.string.ui_end_experiment), ::closeLab)
         for (button in listOf(startBrowser, read)) body.addView(button, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
-        status = label("Henüz profil isteği gönderilmedi.", 14f, AppUi.violet); body.addView(status)
+        status = label(getString(R.string.ui_no_profile_request_has_been_sent_yet), 14f, AppUi.violet); body.addView(status)
         counts = label("", 21f, AppUi.teal); body.addView(counts)
         summary = label("", 12f, AppUi.muted); body.addView(summary)
         browser = WebView(this).apply {
@@ -118,7 +116,7 @@ class ConnectionLabActivity : Activity() {
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 if (browserDisposed) return
                 ready = false; supported = false; ++uiGeneration
-                if (attempt.running) cancelProbe("Sayfa değişti; işlem iptal edildi.")
+                if (attempt.running) cancelProbe(getString(R.string.ui_the_page_changed_the_operation_was_cancelled))
                 updateControls()
             }
             override fun onPageFinished(view: WebView, url: String) {
@@ -168,7 +166,7 @@ class ConnectionLabActivity : Activity() {
         }
         body.addView(browser, LinearLayout.LayoutParams(-1, dp(420)).apply { topMargin = dp(12) })
         body.addView(close, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        body.addView(label("Sonuç bu deneme ekranında kalır. Tarayıcı çerezleri ayrı HTTP istemcisine aktarılmaz. Otomatik yeniden deneme yapılmaz.", 12f, AppUi.muted))
+        body.addView(label(getString(R.string.ui_results_stay_in_this_experiment_screen_browser), 12f, AppUi.muted))
         val scroll = ScrollView(this).apply { setBackgroundColor(AppUi.background); addView(body) }
         scroll.setOnApplyWindowInsetsListener { view, insets ->
             @Suppress("DEPRECATION") view.setPadding(insets.systemWindowInsetLeft, insets.systemWindowInsetTop, insets.systemWindowInsetRight, insets.systemWindowInsetBottom)
@@ -197,14 +195,14 @@ class ConnectionLabActivity : Activity() {
         read.isEnabled = ready && supported && !consumed && !attempt.running && ProfileInput.username(username.text.toString()) != null && gate.nextPrototypeAt() <= now
         username.isEnabled = !attempt.running
         val wait = gate.nextPrototypeAt().takeIf { it > now }?.let {
-            getString(R.string.lab_wait, SimpleDateFormat("d MMM HH:mm:ss", Locale.forLanguageTag("tr-TR")).format(Date(it)))
+            getString(R.string.lab_wait, SimpleDateFormat("d MMM HH:mm:ss", AppLanguage.locale(this)).format(Date(it)))
         }.orEmpty()
         summary.text = getString(R.string.lab_summary, diagnostics.count(ProbeDiagnostics.Event.STARTED), diagnostics.count(ProbeDiagnostics.Event.PROFILE_RESOURCE), diagnostics.last(), wait)
     }
     private fun startProbe() {
         if (closing || consumed || attempt.running || !ready || !supported || !ProbePolicy.usablePage(browser.url, origin)) return
         val name = ProfileInput.username(username.text.toString()) ?: return
-        try { attempt.start() } catch (failure: ApiFailure) { status.text = failure.userMessage(); updateControls(); return }
+        try { attempt.start() } catch (failure: ApiFailure) { status.text = failure.userMessage(this@ConnectionLabActivity); updateControls(); return }
         catch (_: Exception) { status.setText(R.string.lab_start_failure); updateControls(); return }
         consumed = true; requestedUsername = name; startedAt = android.os.SystemClock.elapsedRealtime()
         val key = "__tracker_probe_${UUID.randomUUID().toString().replace("-", "")}"; slot = key
@@ -223,7 +221,7 @@ class ConnectionLabActivity : Activity() {
         override fun run() {
             val key = slot ?: return
             if (!attempt.running || closing) return
-            if (!ProbePolicy.usablePage(browser.url, origin)) { cancelProbe("Sayfa değişti; işlem iptal edildi."); return }
+            if (!ProbePolicy.usablePage(browser.url, origin)) { cancelProbe(getString(R.string.ui_the_page_changed_the_operation_was_cancelled)); return }
             if (android.os.SystemClock.elapsedRealtime() - startedAt > 25000) { finishProbe(JSONObject().put("reason", "timeout")); return }
             val ticket = uiGeneration
             browser.evaluateJavascript("JSON.stringify(window[${JSONObject.quote(key)}] || {stage:'missing'})") { raw ->
@@ -233,7 +231,7 @@ class ConnectionLabActivity : Activity() {
                     when (result.optString("stage")) {
                         "done" -> finishProbe(result)
                         "waiting" -> handler.postDelayed(this, 200)
-                        else -> cancelProbe("Sayfa durumu değişti; işlem iptal edildi.")
+                        else -> cancelProbe(getString(R.string.ui_the_page_state_changed_the_operation_was))
                     }
                 } catch (_: Exception) { finishProbe(JSONObject().put("reason", "invalid")) }
             }
@@ -244,11 +242,11 @@ class ConnectionLabActivity : Activity() {
         try {
             val profile = attempt.complete(result, requireNotNull(requestedUsername))
             if (profile != null) {
-                val format = java.text.NumberFormat.getIntegerInstance(Locale.forLanguageTag("tr-TR"))
+                val format = java.text.NumberFormat.getIntegerInstance(AppLanguage.locale(this))
                 counts.text = getString(R.string.lab_counts, profile.username, format.format(profile.followers), format.format(profile.following))
                 status.setText(R.string.lab_success)
             }
-        } catch (failure: ApiFailure) { status.text = failure.userMessage() }
+        } catch (failure: ApiFailure) { status.text = failure.userMessage(this@ConnectionLabActivity) }
         catch (_: Exception) { status.setText(R.string.lab_invalid) }
         finally { stopScript(); disposeBrowser(); updateControls() }
     }
@@ -264,7 +262,7 @@ class ConnectionLabActivity : Activity() {
     private fun closeLab() {
         if (closing) return
         closing = true; close.isEnabled = false; read.isEnabled = false; startBrowser.isEnabled = false
-        cancelProbe("Deneme bitiriliyor; tarayıcı verileri temizleniyor.")
+        cancelProbe(getString(R.string.ui_ending_the_experiment_clearing_browser_data))
         val complete = {
             cleaned = true
             try { gate.setPrototypeActive(false) } finally { finish() }
@@ -274,7 +272,7 @@ class ConnectionLabActivity : Activity() {
         CookieManager.getInstance().removeAllCookies { complete() }
     }
     override fun onStop() {
-        if (::attempt.isInitialized && attempt.running) cancelProbe("Uygulama arka plana geçti; deneme iptal edildi.")
+        if (::attempt.isInitialized && attempt.running) cancelProbe(getString(R.string.ui_the_app_went_into_the_background_the))
         if (::browser.isInitialized && opened && !browserDisposed) {
             disposeBrowser(); status.setText(R.string.lab_browser_closed); updateControls()
         }

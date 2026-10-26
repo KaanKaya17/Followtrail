@@ -1,4 +1,13 @@
-# 0.1.18 basitlik, kullanım ve hız kontrolleri
+# 0.1.20 dil seçimi kontrolleri
+
+1. Mevcut kurulumun üzerine güncelle. Sağ üstteki üç nokta → Dil / Language → English seç. Ana ekran At a glance, alt sekmeler Home / People olmalı. Menü Language / Dil üzerinden Türkçe'ye dönülebilmeli; seçili dil işaretli görünmeli.
+2. İngilizce seçiliyken kapatıp yeniden aç. Dil korunmalı. Kişi analizi, liste araması/işlem menüleri, bağlantı ekranı, gizlilik ve istek bilgilerini aç. Büyük sistem yazısında menüler ve düğmelere kaydırmayla ulaşılabilmeli.
+3. Önceki kişiler, not, gruplar, favoriler, biyografiler ve izleme aralıkları aynı kalmalı. Örneğin İngilizce sayı 2,043, Türkçe 2.043 olmalı; kullanıcı adı ve biyografi çevrilmemeli.
+4. Dil değiştirirken İstek bilgileri sayacı artmamalı. Mevcut 429 molası varsa saat ve manuel bekleme korunmalı; dil değiştirme mola kaldırmamalı. Açılışta otomatik yenileme tercihi açık olsa bile yalnız dil için yeniden oluşturma profil okumamalı.
+5. Kontrolündeki hesapta normal izleme akışıyla yeni bildirim oluştuğunda bildirim ve kanal adı seçilen dili kullanmalı. Önceden gösterilen bildirimlerin geçmiş metni yeniden yazılmaz. Bildirim izni/kanalının açık-kapalı durumu dil değiştirme ile sıfırlanmamalı.
+6. Android 13+ üzerinde sistemin uygulama dili ayarı ile aynı tercih görünmeli. Android 7–12'de uygulama içi seçim ve yeniden açılış ayrıca kontrol edilmeli. Bu eski Android çalışma zamanı kontrolü yerel API 35 testi yerine geçmez.
+
+## 0.1.18 basitlik, kullanım ve hız kontrolleri
 
 1. Mevcut kurulumun üzerine güncelle. Kişiler, notlar, favoriler, bağlantı ve izleme aralıkları kalmalı. Ana sayfada son değişiklikler daha yukarıda, favoriler yatay kısa geçişlerde görünmeli. Favoriye dokunmak kayıtlı kişinin analizini açmalı; yeni istek göndermemeli.
 2. Kısa izleme kartındaki üç noktadan Otomasyonu ayarla / Otomasyon durumu / Liste otomasyonunu durdur seçeneklerine ulaş. Duraklama varsa İzleme açık yerine gerçek bekleme nedeni görünmeli. Liste otomasyonunun açık tercihi ile o anda çalışabilir olması aynı şey değildir.

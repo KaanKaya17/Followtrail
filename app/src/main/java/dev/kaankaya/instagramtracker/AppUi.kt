@@ -102,7 +102,7 @@ object AppUi {
         minimumWidth = dp(context, 48); minWidth = dp(context, 48); minimumHeight = dp(context, 48); minHeight = dp(context, 48)
     }
     fun avatar(context: Context, username: String, size: Int = 44, tint: Int = violetSoft, foreground: Int = violet) =
-        text(context, username.trimStart('@').take(1).uppercase(java.util.Locale.forLanguageTag("tr-TR")), size * .38f, foreground, true).apply {
+        text(context, username.trimStart('@').take(1).uppercase(AppLanguage.locale(context)), size * .38f, foreground, true).apply {
             gravity = Gravity.CENTER; background = shape(context, tint, size / 2)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             layoutParams = LinearLayout.LayoutParams(dp(context, size), dp(context, size))

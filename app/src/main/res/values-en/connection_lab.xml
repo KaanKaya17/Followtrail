@@ -1,0 +1,15 @@
+<resources>
+    <string name="lab_limited">"Instagram returned HTTP 429. Another attempt was stopped."</string>
+    <string name="lab_tls_failure">"Could not verify the secure connection. The action stopped."</string>
+    <string name="lab_summary">"Prototype reads started on this device: %1$d\nProfile resources observed in the browser: %2$d\nLast event: %3$s%4$s"</string>
+    <string name="lab_wait">"\nNext attempt no earlier than: %1$s. This is a local cooldown."</string>
+    <string name="lab_start_failure">"Could not start the experiment safely."</string>
+    <string name="lab_waiting">"Waiting for the single profile request…"</string>
+    <string name="lab_counts">"@%1$s\n%2$s followers · %3$s following"</string>
+    <string name="lab_success">"HTTP 200 · Profile counts read. Not transferred to the main app."</string>
+    <string name="lab_invalid">"Could not validate the response; no counts shown."</string>
+    <string name="lab_update_webview">"Android System WebView does not support this experiment. Update WebView; no profile request was sent."</string>
+    <string name="lab_browser_closed">"The browser was closed in the background. End the experiment and reopen it."</string>
+    <string name="lab_login_instruction">"Complete Instagram sign-in and any verification."</string>
+    <string name="lab_ready">"The page is ready. After sign-in/verification, you can start the single read."</string>
+</resources>

@@ -22,7 +22,7 @@ class ForegroundReadQueueTest {
         val done = CountDownLatch(1); val count = AtomicInteger()
         preferences.edit().putLong("next_read_at", System.currentTimeMillis() + 500).commit()
         instrumentation.runOnMainSync {
-            queue = ForegroundReadQueue(gate) { fail("Queue unexpectedly stopped") }
+            queue = ForegroundReadQueue(context, gate) { fail("Queue unexpectedly stopped") }
             assertTrue(queue!!.enqueue { assertEquals(Looper.getMainLooper(), Looper.myLooper()); count.incrementAndGet(); done.countDown() })
             assertTrue(queue!!.enqueue { fail("A second action replaced the first") })
         }
@@ -31,13 +31,13 @@ class ForegroundReadQueueTest {
     @Test fun cancellationDoesNotRunTheActionAfterTheDeadline() {
         val done = CountDownLatch(1)
         preferences.edit().putLong("next_read_at", System.currentTimeMillis() + 150).commit()
-        instrumentation.runOnMainSync { queue = ForegroundReadQueue(gate) {}; assertTrue(queue!!.enqueue { done.countDown() }); queue!!.cancel(false) }
+        instrumentation.runOnMainSync { queue = ForegroundReadQueue(context, gate) {}; assertTrue(queue!!.enqueue { done.countDown() }); queue!!.cancel(false) }
         assertFalse(done.await(350, TimeUnit.MILLISECONDS)); assertEquals(0L, gate.attempts())
     }
     @Test fun aNew429StopsAPendingActionAndAnExistingRestrictionCannotBeQueued() {
         val stopped = CountDownLatch(1); val count = AtomicInteger()
         preferences.edit().putLong("next_read_at", System.currentTimeMillis() + 300).commit()
-        instrumentation.runOnMainSync { queue = ForegroundReadQueue(gate) { stopped.countDown() }; assertTrue(queue!!.enqueue { count.incrementAndGet() }) }
+        instrumentation.runOnMainSync { queue = ForegroundReadQueue(context, gate) { stopped.countDown() }; assertTrue(queue!!.enqueue { count.incrementAndGet() }) }
         gate.limited(null); val pause = gate.blockedUntil()
         assertTrue(stopped.await(5, TimeUnit.SECONDS)); assertEquals(0, count.get())
         instrumentation.runOnMainSync { assertFalse(queue!!.enqueue { fail("Restricted action") }) }

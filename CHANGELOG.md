@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## 0.1.20 — 2026-10-26 (Türkçe ve İngilizce)
+
+- Ana ekrandaki üç nokta menüsüne Dil / Language eklendi. Türkçe veya English seçimi yeniden açılışta korunur; Android 13 ve üzerinde sistemin uygulama dili ayarıyla eşleşir. Eski sürümlerde tercih ayrı bir yerel ayarda saklanır.
+- Ekranlar, erişilebilirlik etiketleri, açıklamalar, hata mesajları ve yeni bildirimler iki dilde sunulur. Tarih ve sayı biçimi seçilen dile uyar. Biyografi, kullanıcı adı, not ve grup gibi kayıtlı içerik çevrilmez.
+- Dil için ekran yeniden oluşturulurken açılış yenilemesi başlatılmaz; kayıtlar, favoriler, izleme aralıkları ve istek molaları korunur. Dil paketleri APK içinde bulunur; ek indirme gerekmez.
+
 ## 0.1.19 — 2026-10-26 (favori hizalaması)
 
 - Ana ekrandaki favori kartlarında kullanıcı adı, profil görselinin altında ortalandı.

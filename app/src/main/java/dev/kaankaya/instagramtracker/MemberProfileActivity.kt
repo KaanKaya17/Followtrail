@@ -1,6 +1,5 @@
 package dev.kaankaya.instagramtracker
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -14,7 +13,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
 /** A list member is a temporary profile, never an implicitly registered/watchable person. */
-class MemberProfileActivity : Activity() {
+class MemberProfileActivity : LocalizedActivity() {
     private data class ProfileRead(val profile: Profile, val fetched: Boolean)
     private data class Retained(val owner: String, val binding: String?, val member: FollowUser, val profile: Profile?)
     private val main = Handler(Looper.getMainLooper())
@@ -47,7 +46,7 @@ class MemberProfileActivity : Activity() {
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
         api = PreviewMode.api(gate, preview)
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
-        queuedRead = ForegroundReadQueue(gate) { reason -> message = reason; render() }
+        queuedRead = ForegroundReadQueue(this, gate) { reason -> message = reason; render() }
         attempted = state?.getBoolean("attempted") ?: false
         pendingWatch = state?.getBoolean("pendingWatch") ?: false
         try {
@@ -67,7 +66,7 @@ class MemberProfileActivity : Activity() {
             retained?.takeIf { it.owner == reference.userId && it.binding == reference.mobileBinding && it.member.id == id }
                 ?.profile?.let { if (profile == null || it.observedAt > profile!!.observedAt) profile = it }
         } catch (failure: Exception) {
-            setContentView(AppUi.notice(this, "Profil açılamadı", (failure as? ApiFailure)?.userMessage() ?: getString(R.string.list_storage_error), true))
+            setContentView(AppUi.notice(this, getString(R.string.ui_could_not_open_profile), (failure as? ApiFailure)?.userMessage(this@MemberProfileActivity) ?: getString(R.string.list_storage_error), true))
             return
         }
         if (android.os.Build.VERSION.SDK_INT >= 33) onBackInvokedDispatcher.registerOnBackInvokedCallback(
@@ -83,10 +82,10 @@ class MemberProfileActivity : Activity() {
     private fun readAllowed() = !loading && !gate.automationHeld() && !gate.requiresConnection() &&
         gate.nextAllowedAt() <= System.currentTimeMillis() && (profile == null || PeoplePolicy.needsRefresh(profile!!, System.currentTimeMillis()))
     private fun waitReason(): String = when {
-        gate.requiresConnection() -> ApiFailure(ApiFailure.Kind.SESSION_EXPIRED).userMessage()
-        gate.automationHeld() -> "Bağlantı işlemi sürüyor. Profil okuması bekliyor."
-        gate.blockedUntil() > System.currentTimeMillis() -> ApiFailure(ApiFailure.Kind.LIMITED).userMessage()
-        else -> "Yeni profil okuması için mevcut istek aralığı bekleniyor. Hazır olduğunda Profili getir düğmesini kullanabilirsin."
+        gate.requiresConnection() -> ApiFailure(ApiFailure.Kind.SESSION_EXPIRED).userMessage(this@MemberProfileActivity)
+        gate.automationHeld() -> getString(R.string.ui_an_account_connection_is_in_progress_the)
+        gate.blockedUntil() > System.currentTimeMillis() -> ApiFailure(ApiFailure.Kind.LIMITED).userMessage(this@MemberProfileActivity)
+        else -> getString(R.string.ui_waiting_for_the_current_request_interval_before)
     }
     private val wake = Runnable { render() }
     private fun requestProfile() {
@@ -107,9 +106,9 @@ class MemberProfileActivity : Activity() {
         }
         setContentView(scroll); scroll.requestApplyInsets()
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        header.addView(AppUi.iconButton(this, "back", "Listeye dön") { finish() }, LinearLayout.LayoutParams(dp(48), dp(48)))
-        header.addView(AppUi.heading(this, "Profil", 24f).apply { setPadding(dp(12), 0, 0, 0) }); page.addView(header); page.gap(24)
-        if (preview) { page.addView(AppUi.pill(this, "DEMO · ÖRNEK VERİ")); page.gap(16) }
+        header.addView(AppUi.iconButton(this, "back", getString(R.string.ui_back_to_list)) { finish() }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        header.addView(AppUi.heading(this, getString(R.string.ui_profile), 24f).apply { setPadding(dp(12), 0, 0, 0) }); page.addView(header); page.gap(24)
+        if (preview) { page.addView(AppUi.pill(this, getString(R.string.ui_demo_sample_data))); page.gap(16) }
         val shown = profile
         val username = shown?.username ?: member.username
         val picture = shown?.details?.pictureUrl?.value ?: member.picture.takeIf { shown == null }
@@ -117,37 +116,37 @@ class MemberProfileActivity : Activity() {
             picture.takeUnless { shown?.details?.anonymousPicture == true }, shown?.details?.pictureId?.value) }); page.gap(16)
         page.addView(AppUi.heading(this, username?.let { "@$it" } ?: getString(R.string.list_username_unknown), 28f)); page.gap(8)
         member.name?.takeIf { it.isNotBlank() }?.let { page.addView(AppUi.text(this, it, 15f, AppUi.muted)); page.gap(12) }
-        message?.let { page.addView(AppUi.notice(this, "Profil durumu", it, true)); page.gap(16) }
-        if (loading) { page.addView(AppUi.text(this, "Profil bilgileri alınıyor…", 14f, AppUi.violet)); page.gap(16) }
+        message?.let { page.addView(AppUi.notice(this, getString(R.string.ui_profile_status), it, true)); page.gap(16) }
+        if (loading) { page.addView(AppUi.text(this, getString(R.string.ui_loading_profile_information), 14f, AppUi.violet)); page.gap(16) }
         val details = if (shown != null) ProfileSummary.view(this, shown) else AppUi.card(this).apply {
-            addView(AppUi.text(this@MemberProfileActivity, "Profil bilgileri henüz okunmadı. Liste kaydındaki kişi gösteriliyor.", 15f, AppUi.muted))
+            addView(AppUi.text(this@MemberProfileActivity, getString(R.string.ui_profile_information_has_not_been_read_yet), 15f, AppUi.muted))
         }
         page.addView(details); page.gap(18)
         if (queuedRead.pending) { page.addView(queuedRead.view(this)); page.gap(12) }
         else {
             val needsRead = shown == null || PeoplePolicy.needsRefresh(shown, System.currentTimeMillis())
             if (needsRead) {
-                page.addView(AppUi.button(this, if (shown == null) "Profili getir" else "Profili yenile", false,
+                page.addView(AppUi.button(this, if (shown == null) getString(R.string.ui_load_profile) else getString(R.string.ui_refresh_profile), false,
                     !loading && (readAllowed() || queuedRead.canWait())) { requestProfile() }); page.gap(12)
             }
         }
         val registered = account?.let { it.profile.userId == member.id || it.people.any { person -> person.latest.userId == member.id } } == true
         if (!registered) {
-            page.addView(AppUi.button(this, "Değişiklikleri izle", true, shown != null && !loading) { requestWatch() }); page.gap(12)
-            page.addView(AppUi.text(this, "İzlemeyi açtığında kişi kaydedilir; profil değişikliklerinde bildirim alırsın.", 12f, AppUi.muted)); page.gap(12)
-            page.addView(AppUi.button(this, "Yalnız kişilere ekle", false, shown != null && !loading) { addPerson() }); page.gap(12)
+            page.addView(AppUi.button(this, getString(R.string.ui_watch_for_changes), true, shown != null && !loading) { requestWatch() }); page.gap(12)
+            page.addView(AppUi.text(this, getString(R.string.ui_enabling_monitoring_saves_this_person_and_notifies), 12f, AppUi.muted)); page.gap(12)
+            page.addView(AppUi.button(this, getString(R.string.ui_only_add_to_people), false, shown != null && !loading) { addPerson() }); page.gap(12)
         } else {
             val person = account?.people?.firstOrNull { it.latest.userId == member.id }
             if (person != null) {
-                page.addView(AppUi.button(this, if (person.watching) "İzleme açık" else "Değişiklikleri izle", !person.watching, !loading) {
+                page.addView(AppUi.button(this, if (person.watching) getString(R.string.ui_monitoring_on) else getString(R.string.ui_watch_for_changes), !person.watching, !loading) {
                     if (person.watching) stopWatch() else requestWatch()
                 }); page.gap(12)
             }
-            page.addView(AppUi.button(this, "Listelerini incele", false, !loading) {
+            page.addView(AppUi.button(this, getString(R.string.ui_view_their_lists), false, !loading) {
                 startActivity(Intent(this, FollowListActivity::class.java).putExtra("target_id", member.id).putExtra("offline_preview", preview))
             }); page.gap(12)
         }
-        page.addView(AppUi.button(this, "Instagram’da aç", false, ProfileLinks.url(username) != null) {
+        page.addView(AppUi.button(this, getString(R.string.ui_open_in_instagram), false, ProfileLinks.url(username) != null) {
             try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(ProfileLinks.url(username))).addCategory(Intent.CATEGORY_BROWSABLE)) }
             catch (_: android.content.ActivityNotFoundException) { android.widget.Toast.makeText(this, R.string.profile_link_unavailable, android.widget.Toast.LENGTH_SHORT).show() }
         })
@@ -185,8 +184,8 @@ class MemberProfileActivity : Activity() {
                             }
                             if (read.fetched) ViewedProfiles.put(reference, profile!!)
                         }
-                    } catch (_: Exception) { message = "Profil okuması kaydedilemedi. Mevcut kayıtlar korundu." }
-                }.onFailure { message = (it as ApiFailure).userMessage() }
+                    } catch (_: Exception) { message = getString(R.string.ui_could_not_save_the_profile_read_existing) }
+                }.onFailure { message = (it as ApiFailure).userMessage(this@MemberProfileActivity) }
                 render()
             }
         }
@@ -198,9 +197,9 @@ class MemberProfileActivity : Activity() {
                 if (current.profile.userId == shown.userId || current.people.any { it.latest.userId == shown.userId }) current
                 else current.copy(people = PeoplePolicy.record(current.people, shown))
             }
-            message = "Kişilerine eklendi. Otomatik izleme kapalıdır."
-        } catch (failure: ApiFailure) { message = failure.userMessage() }
-        catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
+            message = getString(R.string.ui_added_to_your_people_automatic_monitoring_is)
+        } catch (failure: ApiFailure) { message = failure.userMessage(this@MemberProfileActivity) }
+        catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MemberProfileActivity) }
         render()
     }
     private fun requestWatch() {
@@ -212,7 +211,7 @@ class MemberProfileActivity : Activity() {
     }
     private fun enableWatch() {
         pendingWatch = false
-        if (!ChangeNotifications(this, preview).allowed()) { message = "İzleme için bildirim iznini açmalısın."; render(); return }
+        if (!ChangeNotifications(this, preview).allowed()) { message = getString(R.string.ui_allow_notifications_to_enable_monitoring); render(); return }
         val shown = profile ?: return
         try {
             account = vault.update(reference) { current ->
@@ -220,21 +219,21 @@ class MemberProfileActivity : Activity() {
                 current.copy(people = people.map { if (it.latest.userId == shown.userId) WatchPreference.set(it, it.intervalMinutes, true) else it })
             }
             if (preview) PreviewMode.sync(this, account, gate) else MonitorScheduler.sync(this, account, gate)
-            message = "İzleme açıldı. Profil değişikliklerinde bildirim alacaksın."
-        } catch (failure: ApiFailure) { message = failure.userMessage() }
-        catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
+            message = getString(R.string.ui_monitoring_enabled_you_will_be_notified_about)
+        } catch (failure: ApiFailure) { message = failure.userMessage(this@MemberProfileActivity) }
+        catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MemberProfileActivity) }
         render()
     }
     private fun stopWatch() {
-        android.app.AlertDialog.Builder(this).setTitle("İzleme açık").setMessage("Bu kişinin profil değişiklikleri kontrol ediliyor.")
-            .setNegativeButton("Kapat", null).setPositiveButton("İzlemeyi durdur") { _, _ ->
+        android.app.AlertDialog.Builder(this).setTitle(getString(R.string.ui_monitoring_on)).setMessage(getString(R.string.ui_this_person_s_profile_is_being_checked))
+            .setNegativeButton(getString(R.string.ui_close), null).setPositiveButton(getString(R.string.ui_stop_monitoring)) { _, _ ->
                 try {
                     account = vault.update(reference) { current -> current.copy(people = current.people.map {
                         if (it.latest.userId == member.id) WatchPreference.set(it, it.intervalMinutes, false) else it
                     }) }
                     ChangeNotifications(this, preview).cancel(reference.userId, member.id)
                     if (preview) PreviewMode.sync(this, account, gate) else MonitorScheduler.sync(this, account, gate)
-                } catch (_: Exception) { message = "İzleme ayarı kaydedilemedi." }
+                } catch (_: Exception) { message = getString(R.string.ui_could_not_save_the_monitoring_setting) }
                 render()
             }.show()
     }
@@ -245,7 +244,7 @@ class MemberProfileActivity : Activity() {
         if (code == 1403 && pendingWatch) enableWatch()
     }
     override fun onResume() {
-        super.onResume(); if (!::member.isInitialized) return
+        super.onResume(); if (recreatingForLanguage || !::member.isInitialized) return
         if (!resumedOnce) { resumedOnce = true; return }
         try { account = vault.read(); if (account?.session != reference) { finish(); return } }
         catch (_: Exception) { finish(); return }
