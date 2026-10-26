@@ -1,4 +1,5 @@
 <resources>
+    <string name="phone_failure_detail">Diagnostic (last request): %1$s · HTTP: %2$s</string>
     <string name="phone_menu">Connect on this phone · No computer</string>
     <string name="phone_title">Connect on your phone</string>
     <string name="phone_intro">No computer, USB or session file needed. Sign in on this device; enter a verification code at the next step if required.</string>

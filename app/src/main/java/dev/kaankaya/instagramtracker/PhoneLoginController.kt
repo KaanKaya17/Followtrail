@@ -9,7 +9,8 @@ import java.util.concurrent.Future
 enum class PhoneLoginPhase { FORM, BUSY, METHOD, CODE, LINKED, ERROR }
 data class PhoneLoginUi(val phase: PhoneLoginPhase = PhoneLoginPhase.FORM,
     val step: PhoneLoginStep = PhoneLoginStep.PREPARING, val waiting: Long = 0,
-    val failure: ApiFailure.Kind? = null, val reason: PhoneLoginFailure.Reason? = null)
+    val failure: ApiFailure.Kind? = null, val reason: PhoneLoginFailure.Reason? = null,
+    val diagnostic: PhoneLoginDiagnostic? = null)
 
 /** Retained across rotation; only process memory holds pending authentication contexts. */
 class PhoneLoginController(context: Context,
@@ -77,10 +78,12 @@ class PhoneLoginController(context: Context,
     private fun fail(ticket: Int, failure: Exception) {
         val reason = (failure as? PhoneLoginFailure)?.reason
         val kind = (failure as? ApiFailure)?.kind
+        val diagnostic = client?.diagnostic
         main.post {
             if (ticket == generation) publish(PhoneLoginUi(
                 if (reason == PhoneLoginFailure.Reason.CODE) PhoneLoginPhase.CODE else PhoneLoginPhase.ERROR,
-                step = ui.step, failure = kind ?: if (reason == null) ApiFailure.Kind.INVALID_RESPONSE else null, reason = reason))
+                step = ui.step, failure = kind ?: if (reason == null) ApiFailure.Kind.INVALID_RESPONSE else null, reason = reason,
+                diagnostic = diagnostic))
         }
     }
     fun cancelWork() {

@@ -10,6 +10,11 @@ import okio.ByteString.Companion.decodeBase64
 import java.util.UUID
 
 enum class PhoneLoginStep { PREPARING, SIGNING_IN, VERIFYING, PROFILE }
+enum class PhoneLoginOperation(val code: String) {
+    DEVICE("P01"), CONTEXT("P02"), CHALLENGE("P03"), OAUTH("P04"), PASSWORD_KEY("P05"),
+    PASSWORD("P06"), LEGACY("P07"), VERIFICATION("P08"), PROFILE("P09")
+}
+data class PhoneLoginDiagnostic(val operation: PhoneLoginOperation, val status: Int? = null)
 sealed interface PhoneLoginResult {
     data object Method : PhoneLoginResult
     data object Code : PhoneLoginResult
@@ -38,6 +43,8 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
     private val cookies = mutableMapOf<String, String>()
     private val rotated = mutableMapOf<String, String>()
     private var step = PhoneLoginStep.PREPARING
+    @Volatile var diagnostic: PhoneLoginDiagnostic? = null
+        private set
     fun cancel() { cancelled = true; synchronized(lock) { active?.cancel(); active = null } }
     private fun current() {
         if (cancelled || Thread.currentThread().isInterrupted) throw ApiFailure(ApiFailure.Kind.CANCELLED)
@@ -58,33 +65,44 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
         current(); progress(step, 0)
     }
     private class Reply(val body: JSONObject, val headers: Map<String, List<String>>)
-    private fun exchange(request: Request, jsonRequired: Boolean = true): Reply {
+    private fun exchange(request: Request, operation: PhoneLoginOperation): Reply {
         require(request.url.isHttps && request.url.host in setOf("i.instagram.com", "b.i.instagram.com"))
         slot(); gate.claim().use {
             current()
             if (calls >= 18) throw PhoneLoginFailure(PhoneLoginFailure.Reason.EXPIRED)
             if (first) { gate.beginPrototype(); first = false } else gate.begin()
             calls++
+            diagnostic = PhoneLoginDiagnostic(operation)
             val call = http.newCall(request)
             synchronized(lock) { current(); active = call }
             try {
                 call.execute().use { response ->
                     current(); gate.observedStatus(response.code)
+                    diagnostic = PhoneLoginDiagnostic(operation, response.code)
                     if (response.code == 429 || response.code in 300..399)
                         InstagramResponsePolicy.checkHeaders(gate, response.code, response.header("Retry-After"))
                     val body = response.body ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                     if (body.contentLength() > 1024 * 1024) throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
                     val source = body.source(); source.request(1024 * 1024 + 1L)
                     if (source.buffer.size > 1024 * 1024) throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
+                    // The password-key endpoint can return HTTP 405 with its usable key in headers.
+                    // This is a header lookup, not a successful login or a reason to replay the request.
+                    val keyReply = operation == PhoneLoginOperation.PASSWORD_KEY &&
+                        (response.code in 200..299 || response.code == 405) &&
+                        response.header("ig-set-password-encryption-key-id")?.toIntOrNull()?.let { it in 0..255 } == true &&
+                        !response.header("ig-set-password-encryption-pub-key").isNullOrBlank()
                     val json = try { JSONObject(source.readUtf8()) } catch (_: Exception) {
-                        if (!jsonRequired && response.code in 200..299) JSONObject() else throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
+                        if (keyReply) JSONObject() else {
+                            InstagramResponsePolicy.checkBody(gate, response.code, null, response.header("Retry-After"))
+                            throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
+                        }
                     }
                     val issue = InstagramResponsePolicy.issue(response.code, json)
                     if (issue?.restriction != null || issue?.kind == ApiFailure.Kind.VERIFICATION)
                         InstagramResponsePolicy.checkBody(gate, response.code, json, response.header("Retry-After"))
                     if (json.optString("error_type") in setOf("bad_password", "invalid_user", "invalid_credentials"))
                         throw PhoneLoginFailure(PhoneLoginFailure.Reason.CREDENTIALS)
-                    if (response.code !in 200..299 && !json.optBoolean("two_factor_required")) {
+                    if (response.code !in 200..299 && !json.optBoolean("two_factor_required") && !keyReply) {
                         if (step == PhoneLoginStep.VERIFYING && response.code == 400) throw PhoneLoginFailure(PhoneLoginFailure.Reason.CODE)
                         InstagramResponsePolicy.checkBody(gate, response.code, json, response.header("Retry-After"))
                     }
@@ -140,7 +158,11 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
             "bk_client_context" to JSONObject().put("bloks_version", PhoneIdentity.BLOKS).put("styles_id", "instagram").toString(),
             "bloks_versioning_id" to PhoneIdentity.BLOKS)
         val path = "bloks/${if (app) "apps" else "async_action"}/$action/"
-        return exchange(request("https://$domain/api/v1/$path", data, headers + (if (app) emptyMap() else mapOf("X-FB-Friendly-Name" to "IgApi: $path"))))
+        val operation = when (name) {
+            "home" -> PhoneLoginOperation.CONTEXT; "oauth" -> PhoneLoginOperation.OAUTH
+            "password" -> PhoneLoginOperation.PASSWORD; else -> PhoneLoginOperation.VERIFICATION
+        }
+        return exchange(request("https://$domain/api/v1/$path", data, headers + (if (app) emptyMap() else mapOf("X-FB-Friendly-Name" to "IgApi: $path"))), operation)
     }
     private fun register() {
         if (device.registered) return
@@ -150,8 +172,8 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
             "fb_api_req_friendly_name" to "IGUSDIDRegistrationMutation", "enable_canonical_naming" to "true",
             "enable_canonical_variable_overrides" to "true", "enable_canonical_naming_ambiguous_type_prefixing" to "true",
             "purpose" to "fetch", "client_doc_id" to "124930351917786857261002920888", "variables" to variables.toString())
-        val result = exchange(request("https://i.instagram.com/graphql_www", fields, mapOf("X-FB-Friendly-Name" to "IGUSDIDRegistrationMutation",
-            "X-Client-Doc-Id" to "124930351917786857261002920888", "X-Root-Field-Name" to "usdid_registration", "X-Graphql-Client-Library" to "pando"))).body
+        val result = exchange(request("https://b.i.instagram.com/graphql_www", fields, mapOf("X-FB-Friendly-Name" to "IGUSDIDRegistrationMutation",
+            "X-Client-Doc-Id" to "124930351917786857261002920888", "X-Root-Field-Name" to "usdid_registration", "X-Graphql-Client-Library" to "pando")), PhoneLoginOperation.DEVICE).body
         val data = result.optJSONObject("data") ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
         if (data.keys().asSequence().none { it.contains("usdid_registration") && data.optJSONObject(it)?.optBoolean("success") == true })
             throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
@@ -169,10 +191,10 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
             aac = PhoneBloks.aac(bloks("home", "com.bloks.www.bloks.caa.login.process_client_data_and_redirect").body)
                 ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
             val nonce = exchange(request("https://b.i.instagram.com/api/v1/attestation/create_android_keystore/",
-                mapOf("app_scoped_device_id" to device.uuid, "key_hash" to ""), mapOf("X-FB-Friendly-Name" to "IgApi: attestation/create_android_keystore/")))
+                mapOf("app_scoped_device_id" to device.uuid, "key_hash" to ""), mapOf("X-FB-Friendly-Name" to "IgApi: attestation/create_android_keystore/")), PhoneLoginOperation.CHALLENGE)
                 .body.optString("challenge_nonce").takeIf { it.isNotBlank() } ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
             bloks("oauth", "com.bloks.www.caa.login.oauth.token.fetch.async")
-            val key = exchange(request("https://i.instagram.com/api/v1/qe/sync/"), jsonRequired = false)
+            val key = exchange(request("https://i.instagram.com/api/v1/qe/sync/"), PhoneLoginOperation.PASSWORD_KEY)
             fun header(name: String) = key.headers.entries.firstOrNull { it.key.equals(name, true) }?.value?.lastOrNull()
             val keyId = header("ig-set-password-encryption-key-id")?.toIntOrNull() ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
             val public = header("ig-set-password-encryption-pub-key") ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
@@ -189,7 +211,7 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
                 val legacy = JSONObject().put("jazoest", "2${device.phoneId.sumOf { it.code }}").put("country_codes", "[]")
                     .put("phone_id", device.phoneId).put("enc_password", encrypted).put("username", username).put("guid", device.uuid)
                     .put("device_id", device.androidId).put("google_tokens", "[]").put("login_attempt_count", "0")
-                result = exchange(request("https://i.instagram.com/api/v1/accounts/login/", mapOf("signed_body" to "SIGNATURE.$legacy")))
+                result = exchange(request("https://i.instagram.com/api/v1/accounts/login/", mapOf("signed_body" to "SIGNATURE.$legacy")), PhoneLoginOperation.LEGACY)
             }
             return outcome(result)
         } finally { password.fill('\u0000') }
@@ -213,7 +235,7 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
             state = try { state.updated(updates) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT) }
             try { MobileSessionCodec.decode(MobileSessionCodec.encode(state)) } catch (_: Exception) { throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED) }
             step = PhoneLoginStep.PROFILE
-            val profileReply = exchange(MobileProfileReader.request(state, owner, null, runtime.now()))
+            val profileReply = exchange(MobileProfileReader.request(state, owner, null, runtime.now()), PhoneLoginOperation.PROFILE)
             val profile = ProfileParser.fromBody(profileReply.body, owner, runtime.now())
             current(); state = try { state.updated(profileReply.headers) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT) }
             return PhoneLoginResult.Ready(state, profile)

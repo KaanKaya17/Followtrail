@@ -75,6 +75,9 @@ class PhoneLoginActivity : LocalizedActivity() {
             PhoneLoginFailure.Reason.EXPIRED -> R.string.phone_expired
         }) }
         if (error != null) { page.addView(AppUi.notice(this, getString(R.string.phone_attention), error, true)); gap(16) }
+        if (error != null) value.diagnostic?.let {
+            page.addView(AppUi.text(this, getString(R.string.phone_failure_detail, it.operation.code, it.status?.toString() ?: "—"), 12f, AppUi.muted)); gap(12)
+        }
         when (value.phase) {
             PhoneLoginPhase.FORM, PhoneLoginPhase.ERROR -> {
                 text(R.string.phone_access)
