@@ -1,4 +1,7 @@
 <resources>
+    <string name="phone_diagnostic_saved">Last phone sign-in request · %1$s\nHTTP: %2$s\nRequest started: %3$s\nThis survives reopening; no password, code or response content is saved.</string>
+    <string name="phone_diagnostic_empty">No phone sign-in diagnostic saved. Steps from older versions cannot be recovered.</string>
+    <string name="phone_diagnostic_unavailable">Phone sign-in diagnostic could not be read.</string>
     <string name="phone_failure_detail">Diagnostic (last request): %1$s · HTTP: %2$s</string>
     <string name="phone_menu">Connect on this phone · No computer</string>
     <string name="phone_title">Connect on your phone</string>

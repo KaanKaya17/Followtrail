@@ -26,6 +26,7 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
     private val http: Call.Factory = MobileReadTransport.client(), private val runtime: ReadRuntime = AndroidReadRuntime,
     private val identitySlot: String = "phoneidentity", private val progress: (PhoneLoginStep, Long) -> Unit = { _, _ -> }) {
     private val templates = JSONObject(context.assets.open("phone_login_contract.json").bufferedReader().use { it.readText() })
+    private val journal = PhoneLoginJournal(context)
     private val lock = Any()
     @Volatile private var cancelled = false
     private var active: Call? = null
@@ -73,12 +74,15 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
             if (first) { gate.beginPrototype(); first = false } else gate.begin()
             calls++
             diagnostic = PhoneLoginDiagnostic(operation)
+            val attemptedAt = runtime.now()
+            journal.write(SavedPhoneDiagnostic(operation, attemptedAt, null))
             val call = http.newCall(request)
             synchronized(lock) { current(); active = call }
             try {
                 call.execute().use { response ->
                     current(); gate.observedStatus(response.code)
                     diagnostic = PhoneLoginDiagnostic(operation, response.code)
+                    val savedDiagnostic = runCatching { journal.write(SavedPhoneDiagnostic(operation, attemptedAt, response.code)) }
                     if (response.code == 429 || response.code in 300..399)
                         InstagramResponsePolicy.checkHeaders(gate, response.code, response.header("Retry-After"))
                     val body = response.body ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
@@ -106,6 +110,8 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
                         if (step == PhoneLoginStep.VERIFYING && response.code == 400) throw PhoneLoginFailure(PhoneLoginFailure.Reason.CODE)
                         InstagramResponsePolicy.checkBody(gate, response.code, json, response.header("Retry-After"))
                     }
+                    // Apply server restrictions before surfacing a diagnostic storage failure.
+                    savedDiagnostic.getOrThrow()
                     response.headers.values("Set-Cookie").forEach { line ->
                         okhttp3.Cookie.parse(response.request.url, line)?.let { cookie ->
                             if (cookie.name in MobileSessionCodec.cookieNames) {

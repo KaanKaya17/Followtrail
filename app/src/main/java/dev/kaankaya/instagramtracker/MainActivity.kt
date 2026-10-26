@@ -707,6 +707,14 @@ class MainActivity : LocalizedActivity() {
         val lines = mutableListOf(getString(R.string.ui_read_attempts_started, number(gate.attempts())),
             getString(R.string.ui_last_http_response, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
         if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))
+        if (!preview) {
+            try {
+                val saved = PhoneLoginJournal(this).read()
+                lines += if (saved == null) getString(R.string.phone_diagnostic_empty)
+                    else getString(R.string.phone_diagnostic_saved, saved.operation.code,
+                        saved.status?.toString() ?: getString(R.string.ui_no_response_yet), date(saved.attemptedAt))
+            } catch (_: Exception) { lines += getString(R.string.phone_diagnostic_unavailable) }
+        }
         if (gate.restrictionPending()) {
             lines += getString(R.string.ui_signal, gate.limitReasonMessage(this))
             lines += getString(R.string.ui_last_limit, date(gate.lastLimitedAt()))
@@ -1194,7 +1202,7 @@ class MainActivity : LocalizedActivity() {
                         ViewedProfiles.clear()
                         avatars.remove()
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
-                        if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); gate.setPhoneLoginActive(false) }
+                        if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); PhoneLoginJournal(this).clear(); gate.setPhoneLoginActive(false) }
                         FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
                         gate.clearListCapacityPause()
                         vault.clear(); ChangeNotifications(this, preview).clear(); true

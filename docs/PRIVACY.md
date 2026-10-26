@@ -1,5 +1,9 @@
 # Veri ve ağ sınırları
 
+## 0.1.26 son telefon giriş tanısı
+
+Tek yerel SharedPreferences kaydında yalnız sabit işlem enumu (P01–P09), istek başlangıç saati ve varsa HTTP durum sayısı tutulur. Bu üç alan hesap/URL/token/parola/kod veya ham yanıt içermez; ayrıca şifrelenmez ve uygulamanın özel alanında kalır. Uygulamanın yedeklemesi kapalıdır. Kayıt yeni istek başladığında güncellenir, yanıt yoksa önceki HTTP durumu kaldırılır. Yerelde reddedilen veya mola nedeniyle gönderilmeyen deneme son istek tanısını değiştirmez. Bağlantıyı kaldır tanıyı temizler; Instagram molası ayrı kayıttır ve korunur. Eski sürümlerin yalnız bellekte tuttuğu P kodu kurtarılamaz. Giriş akışı/izin/servis/istek hızında değişiklik yoktur.
+
 ## 0.1.25 yerel kapsam ve kayıt kapasitesi
 
 Uygulamanın vaadi kayıtlı gözlemleri karşılaştırmaktır; kesin takipten çıkış/olay saati değildir. Durum ve grafik kapsamı yalnız mevcut yerel kayıttan hesaplanır; bu arayüzler ek Instagram sorgusu yapmaz. Grafik aralığı gerçek ilk/son gözlem ve kayıt sayısıyla gösterilir; 7/30 gün filtresi ve 90 gözlem saklama sınırı takvim geçmişi garantisi değildir.

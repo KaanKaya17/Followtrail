@@ -35,3 +35,8 @@ Parametre şablonları mevcut Windows ortamında sabitlenmiş instagrapi 3.2.0 m
 Hata ekranında Son istek tanısı P01–P09 ve HTTP durumu gösterilir. P01 cihaz kaydı, P02 giriş bağlamı, P03 cihaz meydan okuması, P04 OAuth hazırlığı, P05 parola şifreleme anahtarı, P06 parola girişi, P07 yalnız sunucunun yönlendirdiği eski giriş adımı, P08 kod/doğrulama, P09 profil doğrulamasıdır. Bu kayıt yalnız süreç belleğindedir; uygulama kapatılırsa kaybolur. Geliştiriciye yalnız hata metni, bu kod ve HTTP durumunu ilet; parola/kod paylaşma.
 
 P05’teki HTTP 405, geçerli anahtar başlıkları varsa başlık okumasının tamamlanmasını engellemez. Bu istisna yalnız anahtar sorgusundadır; girişin başarıyla tamamlandığı anlamına gelmez. 429, ek doğrulama, eksik anahtar ve parola girişinde 405 sonrasında akış durur. Uygulamanın 15 dakika yeni giriş aralığı ve varsa daha uzun Instagram molası güncellemeyle kaldırılmaz.
+
+
+## 0.1.26 kalıcı son istek tanısı
+
+Yeni sürümü uygulamayı silmeden güncellemek mevcut 429 molasını korur. Güncelleme test için giriş yapmayı gerektirmez. Bir sonraki açık kullanıcı denemesi ancak mevcut mola izin verdiğinde yapılır. Hata ekranı kapandıktan/uygulama yeniden açıldıktan sonra **⋯ → İstek bilgileri → Son telefon giriş isteği** içinde P kodu, başlangıç saati ve HTTP durumunu görebilirsin. Yanıt alınmadıysa önceki HTTP ona taşınmaz. Kod/saat/HTTP dışında veri bu tanıya alınmaz. Yerel boş giriş veya mola nedeniyle gönderilmeyen deneme kaydı değiştirmez. Bağlantıyı kaldır tanıyı da temizler. Önceki sürümün P kodunu bulmak mümkün değildir; onu bulmak için yeniden giriş yapma.
