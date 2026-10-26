@@ -1,27 +1,11 @@
 package dev.kaankaya.instagramtracker
 
-interface AutomaticRuntime {
-    fun now(): Long
-    fun elapsed(): Long
-    fun pause(milliseconds: Long, cancelled: () -> Boolean): Boolean
-}
-
-private object SystemAutomaticRuntime : AutomaticRuntime {
-    override fun now() = System.currentTimeMillis()
-    override fun elapsed() = System.nanoTime() / 1_000_000
-    override fun pause(milliseconds: Long, cancelled: () -> Boolean): Boolean {
-        if (cancelled() || Thread.currentThread().isInterrupted) return false
-        try { Thread.sleep(milliseconds) } catch (_: InterruptedException) { Thread.currentThread().interrupt(); return false }
-        return !cancelled()
-    }
-}
-
 /** One profile or a bounded, sequential list round for one target. Every committed page survives cancellation. */
 class AutomaticEngine(private val vault: SessionVault, private val lists: FollowListVault, private val gate: RequestGate,
     private val api: InstagramApi, private val source: FollowListSource, private val canNotify: () -> Boolean,
     private val notifyProfile: (ObservedProfileChange) -> Unit,
     private val notifyList: (Session, Profile, ListDifference) -> Unit,
-    private val runtime: AutomaticRuntime = SystemAutomaticRuntime) {
+    private val runtime: ReadRuntime = SystemReadRuntime) {
     companion object { const val MAX_PAGES = 6; const val ROUND_MS = 90_000L }
     private fun selected(account: SavedAccount?, session: Session, id: String) = account?.session == session &&
         account.automation.enabled && id in account.automation.targets

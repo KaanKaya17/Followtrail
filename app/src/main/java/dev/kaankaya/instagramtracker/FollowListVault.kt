@@ -72,6 +72,10 @@ class FollowListVault(context: Context, slot: String = "followlists") {
         write(archive.replace(next))
         next.snapshot!!
     }
+    fun commitCurrent(session: Session, page: FollowPage, expected: FollowRun?): FollowSnapshot = synchronized(lock) {
+        if (read(session, page.target)?.run(page.direction) != expected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        commit(session, page)
+    }
     private fun matches(target: ListTarget, task: AutomaticTask.Page) =
         target.snapshot?.run(task.direction)?.latest?.observedAt == task.previousObservation &&
             (if (target.scan(task.direction).continuing) target.snapshot?.run(task.direction)?.cursor() else null) == task.cursor

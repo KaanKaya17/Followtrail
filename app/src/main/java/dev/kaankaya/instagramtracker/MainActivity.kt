@@ -51,6 +51,7 @@ class MainActivity : Activity() {
     private lateinit var gate: RequestGate
     private lateinit var vault: SessionVault
     private lateinit var avatars: AvatarImages
+    private lateinit var queuedRead: ForegroundReadQueue
     private lateinit var root: FrameLayout
     private var account: SavedAccount? = null
     private var loading = true
@@ -106,6 +107,7 @@ class MainActivity : Activity() {
         pendingAutomationTargets = savedInstanceState?.getStringArrayList("pendingAutomationTargets")?.toSet()
         vault = SessionVault(this, if (preview) "previewaccount" else "account")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
+        queuedRead = ForegroundReadQueue(gate) { reason -> message = reason; render() }
         api = PreviewMode.api(gate, preview)
         if (BuildConfig.DEBUG && intent.getBooleanExtra("connection_lab_preview", false)) {
             intent.removeExtra("connection_lab_preview")
@@ -147,16 +149,30 @@ class MainActivity : Activity() {
     private fun stack() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
     private fun LinearLayout.gap(value: Int) { addView(View(this@MainActivity), LinearLayout.LayoutParams(1, dp(value))) }
     private fun button(label: String, primary: Boolean = true, networkAction: Boolean = false, action: () -> Unit) =
-        AppUi.button(this, label, primary, !loading && (!networkAction || gate.nextAllowedAt() <= System.currentTimeMillis()),
+        AppUi.button(this, label, primary, !loading && (!networkAction || gate.nextAllowedAt() <= System.currentTimeMillis() ||
+            (label in listOf("Yenile", "Kişiyi yenile") && queuedRead.canWait())),
             when (label) { "Yenile", "Kişiyi yenile" -> "refresh"; "Kişi ekle" -> "plus"; "Listeleri incele" -> "list"; else -> null }, action)
     private fun badge(label: String, color: Int = accent) = AppUi.pill(this, label, color)
     private var visibleScroll: ScrollView? = null
     private var screenIdentity = ""
+    private var queuedScreen = ""
+    private fun queueRead(action: () -> Unit): Boolean {
+        if (queuedRead.pending) return true
+        if (!queuedRead.canWait()) return false
+        val session = account?.session ?: return false
+        queuedScreen = if (peopleScreen) "people:$selectedPersonId" else "overview"
+        if (!queuedRead.enqueue {
+                val screen = if (peopleScreen) "people:$selectedPersonId" else "overview"
+                if (!isDestroyed && !isFinishing && account?.session == session && screen == queuedScreen) action()
+            }) return false
+        render(); return true
+    }
     private fun render() {
         if (web != null || isDestroyed) return
         val identity = if (peopleScreen) "people:$selectedPersonId" else "overview"
         val position = if (identity == screenIdentity) visibleScroll?.scrollY ?: 0 else 0
         screenIdentity = identity
+        if (::queuedRead.isInitialized && queuedRead.pending && queuedScreen != identity) queuedRead.cancel(false)
         root.removeAllViews()
         val saved = account
         val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false; isVerticalScrollBarEnabled = false }
@@ -179,6 +195,7 @@ class MainActivity : Activity() {
         header.addView(AppUi.iconButton(this, "more", "Seçenekler") { options() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(header); page.gap(24)
         if (preview) { page.addView(badge("DEMO · ÖRNEK VERİ").apply { contentDescription = "Çevrimdışı demo. Veriler örnektir; Instagram isteği yok." }); page.gap(16) }
+        if (::queuedRead.isInitialized && queuedRead.pending) { page.addView(queuedRead.view(this)); page.gap(16) }
         val pause = pauseMessage()
         if (pause != null) {
             val notice = stack().apply { background = shape(AppUi.peach, 20); setPadding(dp(18), dp(16), dp(18), dp(16)) }
@@ -216,7 +233,8 @@ class MainActivity : Activity() {
             detail.addView(text("Yenileme", 11f, muted)); detail.gap(4); detail.addView(text("Mevcut kaydı güncelle", 12f, ink, true))
             refreshRow.addView(detail, LinearLayout.LayoutParams(0, -2, 1f))
             refreshRow.addView(button("Yenile", false, networkAction = true) { refresh() }.apply {
-                isEnabled = !loading && allowed <= System.currentTimeMillis(); alpha = if (isEnabled) 1f else .48f
+                isEnabled = !loading && !queuedRead.pending && PeoplePolicy.needsRefresh(saved.profile, System.currentTimeMillis()) &&
+                    (allowed <= System.currentTimeMillis() || queuedRead.canWait()); alpha = if (isEnabled) 1f else .48f
             }, LinearLayout.LayoutParams(-2, -2))
             page.addView(refreshRow)
             if (allowed > System.currentTimeMillis() && pause == null) {
@@ -260,7 +278,7 @@ class MainActivity : Activity() {
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
             val foreground = if (purple) AppUi.surface else ink
             background = AppUi.touch(this@MainActivity, if (purple) AppUi.gradient(this@MainActivity) else shape(AppUi.peach, 26))
-            setPadding(dp(17), dp(18), dp(17), dp(18)); minimumHeight = dp(156)
+            setPadding(dp(17), dp(16), dp(17), dp(16)); minimumHeight = dp(120)
             addView(text(label, 13f, foreground, true)); gap(16)
             addView(text(number(value), 38f, foreground, true).apply {
                 maxLines = 1
@@ -275,8 +293,9 @@ class MainActivity : Activity() {
         row.addView(stat("Takipçi", saved.profile.followers, FollowDirection.FOLLOWERS, true), LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
         row.addView(stat("Takip edilen", saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
         page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
-        renderAutomation(page, saved)
+        renderFavorites(page, saved)
         renderRecentActivity(page, saved)
+        renderAutomation(page, saved)
         val quick = LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL; background = AppUi.touch(this@MainActivity, shape(panel, 22, AppUi.line))
             setPadding(dp(16), dp(16), dp(16), dp(16)); isFocusable = true
@@ -294,24 +313,62 @@ class MainActivity : Activity() {
 
     private fun renderAutomation(page: LinearLayout, saved: SavedAccount) {
         val card = AppUi.card(this)
-        card.addView(AppUi.heading(this, getString(R.string.auto_title), 21f)); card.gap(8)
-        card.addView(text(getString(if (saved.automation.enabled) R.string.auto_enabled else R.string.auto_disabled), 14f,
-            if (saved.automation.enabled) AppUi.teal else muted)); card.gap(8)
-        if (gate.listCapacityPaused()) { card.addView(text(ApiFailure(ApiFailure.Kind.CAPACITY).userMessage(), 13f, AppUi.coral)); card.gap(8) }
-        card.addView(text(getString(R.string.auto_summary), 12f, muted)); card.gap(12)
-        card.addView(button(getString(R.string.auto_settings), false) { automationSettings() })
-        if (saved.automation.enabled) {
-            card.gap(8); card.addView(button(getString(R.string.auto_progress), false) { automationProgress() })
-            card.gap(8); card.addView(button(getString(R.string.auto_stop), false) {
+        val watching = saved.people.count { it.watching }
+        val active = saved.automation.enabled || watching > 0
+        val title = when {
+            !active -> "İzleme kapalı"
+            !ChangeNotifications(this, preview).allowed() -> "Bildirim izni gerekiyor"
+            gate.blockedUntil() > System.currentTimeMillis() -> "Instagram molası"
+            gate.requiresConnection() -> "Bağlantı yenilenmeli"
+            gate.manualOnly() -> "İzleme duraklatıldı"
+            else -> "İzleme açık"
+        }
+        val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+        val labels = stack()
+        labels.addView(text(title, 17f, if (title == "İzleme açık") AppUi.teal else ink, true)); labels.gap(5)
+        labels.addView(text("$watching profil · ${if (saved.automation.enabled) saved.automation.targets.size else 0} hesapta liste", 12f, muted))
+        row.addView(labels, LinearLayout.LayoutParams(0, -2, 1f))
+        row.addView(AppUi.iconButton(this, "more", "Otomatik takip ayarları") { automationMenu() }, LinearLayout.LayoutParams(dp(48), dp(48)))
+        card.addView(row)
+        card.contentDescription = getString(if (saved.automation.enabled) R.string.auto_enabled else R.string.auto_disabled)
+        page.addView(card); page.gap(20)
+    }
+    private fun automationMenu() {
+        val saved = account ?: return
+        val options = mutableListOf(getString(R.string.auto_settings))
+        if (saved.automation.enabled) { options += getString(R.string.auto_progress); options += getString(R.string.auto_stop) }
+        AlertDialog.Builder(this).setTitle("Otomatik takip").setItems(options.toTypedArray()) { _, index ->
+            when (options[index]) {
+                getString(R.string.auto_settings) -> automationSettings()
+                getString(R.string.auto_progress) -> automationProgress()
+                else -> {
                 try {
                     account = vault.update(saved.session) { it.copy(automation = it.automation.copy(enabled = false)) }
                     saved.automation.targets.forEach { ChangeNotifications(this, preview).cancelLists(saved.session.userId, it) }
                     syncMonitoring()
                 } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage() }
                 render()
-            })
+                }
+            }
+        }.setNegativeButton("Kapat", null).show()
+    }
+    private fun renderFavorites(page: LinearLayout, saved: SavedAccount) {
+        val favorites = saved.people.filter { it.favorite }.take(6)
+        if (favorites.isEmpty()) return
+        page.addView(AppUi.heading(this, "Favorilerin", 21f)); page.gap(10)
+        val row = LinearLayout(this)
+        favorites.forEach { person ->
+            val tile = stack().apply {
+                gravity = Gravity.CENTER; setPadding(dp(12), dp(12), dp(12), dp(12))
+                background = AppUi.touch(this@MainActivity, shape(AppUi.violetSoft, 20))
+                addView(avatar(person.latest, 40)); gap(8)
+                addView(text("@${person.latest.username}", 12f, accent, true).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
+                contentDescription = "Favoriyi aç · @${person.latest.username}"; isFocusable = true
+                setOnClickListener { peopleScreen = true; selectedPersonId = person.latest.userId; message = null; render() }
+            }
+            row.addView(tile, LinearLayout.LayoutParams(dp(138), -2).apply { marginEnd = dp(8) })
         }
-        page.addView(card); page.gap(20)
+        page.addView(android.widget.HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(row) }); page.gap(20)
     }
     private fun automationSettings() {
         val saved = account ?: return
@@ -431,12 +488,6 @@ class MainActivity : Activity() {
         ProfileChangeField.BIOGRAPHY -> R.string.profile_bio_changed
         ProfileChangeField.PICTURE -> R.string.profile_picture_changed
     })
-    private fun profileText(field: ProfileText): String = when (field.state) {
-        ProfileTextState.VALUE -> field.value!!.ifEmpty { getString(R.string.profile_empty_bio) }
-        ProfileTextState.MISSING -> getString(R.string.profile_field_missing)
-        ProfileTextState.NULL -> getString(R.string.profile_field_null)
-        ProfileTextState.UNAVAILABLE -> getString(R.string.profile_field_unavailable)
-    }
     private fun showProfileEdit(edit: ProfileEdit) {
         val value = if (edit.field == ProfileChangeField.PICTURE) getString(R.string.profile_picture_evidence) else
             getString(R.string.profile_edit_values, edit.before.ifEmpty { getString(R.string.profile_empty_bio) },
@@ -449,8 +500,6 @@ class MainActivity : Activity() {
         val profile = person.latest
         val card = AppUi.card(this)
         card.addView(AppUi.heading(this, getString(R.string.profile_details_title), 20f)); card.gap(12)
-        card.addView(text(getString(R.string.profile_bio_label), 12f, muted)); card.gap(6)
-        card.addView(text(profileText(profile.details.biography), 14f, ink)); card.gap(12)
         val pictureComparable = ProfileChanges.pictureComparable(profile)
         card.addView(text(getString(if (pictureComparable) R.string.profile_picture_available else R.string.profile_picture_unknown), 12f, muted))
         card.gap(12)
@@ -640,16 +689,8 @@ class MainActivity : Activity() {
         personHeading.addView(favoriteButton(person), LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(personHeading); page.gap(8)
         page.addView(badge(person.group.ifBlank { "PROFİL ANALİZİ" })); page.gap(20)
-        renderProfileDetails(page, person)
-        page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(12)
-        val stats = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(20), dp(20), dp(20), dp(20)) }
-        for ((label, value) in listOf("Takipçi" to number(p.followers), "Takip edilen" to number(p.following), "Gönderi" to (p.posts?.let { number(it) } ?: "Bilgi yok"))) {
-            val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-            row.addView(text(label, 14f, muted), LinearLayout.LayoutParams(0, -2, 1f)); row.addView(text(value, 25f, accent, true))
-            stats.addView(row); stats.gap(14)
-        }
-        page.addView(stats); page.gap(12)
-        page.addView(text("Kayıtlı özet · ${date(p.observedAt)}", 12f, muted)); page.gap(16)
+        page.addView(ProfileSummary.view(this, p)); page.gap(16)
+        page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(16)
         if (person.history.size >= 2) {
             val previous = person.history[person.history.lastIndex - 1]
             page.addView(text("Son kayda göre", 12f, muted)); page.gap(6)
@@ -658,8 +699,9 @@ class MainActivity : Activity() {
         } else page.addView(text("Henüz karşılaştırma yok.", 14f, muted))
         page.gap(20)
         renderWatchStatus(page, person, saved)
+        renderProfileDetails(page, person)
         page.addView(button("Kişiyi yenile", false, networkAction = true) { readPerson(person = person) }.apply {
-            isEnabled = !loading && gate.nextAllowedAt() <= System.currentTimeMillis() && PeoplePolicy.needsRefresh(p, System.currentTimeMillis())
+            isEnabled = !loading && !queuedRead.pending && (gate.nextAllowedAt() <= System.currentTimeMillis() || queuedRead.canWait()) && PeoplePolicy.needsRefresh(p, System.currentTimeMillis())
             alpha = if (isEnabled) 1f else .5f
         }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
         val historyCard = AppUi.card(this)
@@ -706,6 +748,7 @@ class MainActivity : Activity() {
                     if (account?.session != session) return@setPositiveButton
                     if (savePeople { people -> people.filterNot { it.latest.userId == profile.userId } }) {
                         try {
+                            ViewedProfiles.clear(session.userId, profile.userId)
                             avatars.remove(session.userId, profile.userId)
                             FollowListVault(this, if (preview) "previewlists" else "followlists").clearTarget(session, profile.userId)
                         }
@@ -750,7 +793,10 @@ class MainActivity : Activity() {
         if (loading) return
         if (needsConnection) { message = "Önce hesabını yeniden bağla."; render(); return }
         if (person != null && !PeoplePolicy.needsRefresh(person.latest, System.currentTimeMillis())) return
-        if (gate.nextAllowedAt() > System.currentTimeMillis()) { message = ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return }
+        if (gate.nextAllowedAt() > System.currentTimeMillis()) {
+            if (queueRead { readPerson(username, person) }) return
+            message = ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return
+        }
         loading = true; message = null; render()
         val ticket = ++generation
         worker.execute {
@@ -903,9 +949,7 @@ class MainActivity : Activity() {
     }
     private fun setWatch(id: String, owner: String, minutes: Int, enabled: Boolean) {
         if (account?.session?.userId != owner) return
-        if (savePeople { people -> people.map { person -> if (person.latest.userId != id) person else person.copy(
-                watching = enabled, intervalMinutes = minutes,
-                nextCheckAt = if (enabled) maxOf(System.currentTimeMillis(), person.latest.observedAt + WatchIntervals.durationMs(minutes)) else 0)
+        if (savePeople { people -> people.map { person -> if (person.latest.userId != id) person else WatchPreference.set(person, minutes, enabled)
             } }) {
             message = if (enabled) "İzleme açıldı. Kontroller Android'in planlamasına göre gecikebilir." else "Bu kişide arka plan izleme kapatıldı."
             if (!enabled) ChangeNotifications(this, preview).cancel(owner, id)
@@ -965,6 +1009,7 @@ class MainActivity : Activity() {
         if (loading) return
         if (!PeoplePolicy.needsRefresh(saved.profile, System.currentTimeMillis())) return
         if (gate.nextAllowedAt() > System.currentTimeMillis()) {
+            if (!automatic && queueRead { refresh() }) return
             message = pauseMessage() ?: ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(); render(); return
         }
         if (automatic) {
@@ -1021,6 +1066,7 @@ class MainActivity : Activity() {
                 loading = true; render()
                 worker.execute {
                     val ok = try {
+                        ViewedProfiles.clear()
                         avatars.remove()
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
                         if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear() }
@@ -1190,5 +1236,5 @@ class MainActivity : Activity() {
         worker.shutdownNow()
         super.onDestroy()
     }
-    override fun onStop() { if (::avatars.isInitialized) avatars.cancelAll(); super.onStop() }
+    override fun onStop() { if (::queuedRead.isInitialized) queuedRead.cancel(false); if (::avatars.isInitialized) avatars.cancelAll(); super.onStop() }
 }

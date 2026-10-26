@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## 0.1.18 — 2026-10-26 (daha sade ve hızlı kullanım)
+
+- Son incelenen en fazla 20 profil için 15 dakikalık, oturuma bağlı bellek önbelleği. Geri dönüp yeniden açma yeni istek gerektirmez; okuma zamanı yenilenmez. Kayıtlı kişi/own profilinin daha yeni gözlemi tercih edilir. Kişiyi veya bağlantıyı kaldırmak ilgili önbelleği de temizler. Uygulama süreci kapanınca bu geçici önbellek kaybolur.
+- Listelerde tek Listeyi güncelle işlemi: aktif yönde en fazla altı sayfa, istek başlangıçları en az 15 saniye aralıklı ve 90 saniyelik yeni istek bütçesi. Her sayfa hemen kaydedilip gösterilir; arama/konum korunur. Hata, kapsam sınırlaması, iptal veya oturum/kayıt değişimi devamı durdurur. Tek sayfa/baştan okuma ve karşılaştırma Liste işlemleri menüsünde kalır.
+- Normal kısa istek aralığında profil/liste yenilemeyi iptal edilebilir kuyruğa alma; saniyelik açıklama yerinde güncellenir. Ekrandan ayrılınca kuyruk iptal olur. 429, doğrulama, bağlantı veya diğer genel duraklamalar otomatik devam ettirilmez; uzayan kısa bekleme de 30 saniyede sonlandırılır.
+- Kayıtlı ve geçici profilde ortak sayı/biyografi/son kayıt görünümü. Değişiklikleri izle, açık eylemle kişiyi kaydedip bildirim izni varsa profil izlemesini açar; yalnız görüntülemek izleme başlatmaz. Yalnız kişilere ekle ayrı seçenek olarak korunur.
+- Ana ekranda son değişiklikler ve favorilere hızlı geçiş öne taşındı; otomasyon yönetimi kısa durum kartı ve menüye alındı. Fotoğraf temizliğinin arka planda yapılması ve çalışan bildirim/oturum/istek sınırlaması kuralları korunur.
+
 ## 0.1.17 — 2026-10-26 (uygulama içi profil ve geri dönüş düzeltmesi)
 
 - Liste üyesine dokunmak uygulama içindeki profil ekranını açar. Liste kaydındaki kimlik/fotoğraf/ad gösterilir; taze kayıt varsa tekrar sorgulanmaz. İlk profil okuması mevcut istek/mola kuralları izin verirse yapılır; izin vermiyorsa kullanıcı Profili getir ile devam edebilir. Geri dönüş ve ekran döndürme otomatik tekrar başlatmaz. Instagram’da aç ayrı düğmedir.

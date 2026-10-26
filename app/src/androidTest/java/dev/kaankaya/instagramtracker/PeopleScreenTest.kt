@@ -40,15 +40,20 @@ class PeopleScreenTest {
         val deadline = android.os.SystemClock.elapsedRealtime() + 5000
         while (android.os.SystemClock.elapsedRealtime() < deadline) {
             var found = false
-            scenario!!.onActivity { activity -> found = all(activity.window.decorView).filterIsInstance<TextView>().any { it.text == label } }
+            scenario!!.onActivity { activity -> found = all(activity.window.decorView).any { (it is TextView && it.text == label) || it.contentDescription == label } }
             if (found) return
             Thread.sleep(20)
         }
         fail("Label not found: $label")
     }
-    private fun click(label: String) = scenario!!.onActivity { activity ->
+    private fun click(label: String) {
+        if (label in listOf("Otomasyonu ayarla", "Otomasyon durumu", "Liste otomasyonunu durdur")) {
+            clickDescription("Otomatik takip ayarları"); dialogClick(label); return
+        }
+        scenario!!.onActivity { activity ->
         val button = all(activity.window.decorView).filterIsInstance<TextView>().single { it.text == label && it.isClickable }
         assertTrue("Disabled: $label", button.isEnabled); button.performClick()
+        }
     }
     private fun launch() {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).putExtra("offline_preview", true))
@@ -80,6 +85,12 @@ class PeopleScreenTest {
         assertEquals("Analizi aç · @deniz.demo", orderedNames().first())
         assertFalse(vault.read()!!.people.single { it.latest.userId == "201" }.favorite)
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
+    }
+    @Test fun homeFavoriteShortcutOpensTheSavedProfileWithoutAnotherRead() {
+        launch(); click("Kişiler"); clickDescription("Favoriye ekle · @ada.demo"); click("Özet")
+        clickDescription("Favoriyi aç · @ada.demo"); awaitLabel("@ada.demo")
+        assertEquals(0L, RequestGate(context, "preview_gate").attempts())
+        assertTrue(SessionVault(context, "previewaccount").read()!!.people.single { it.latest.userId == "201" }.favorite)
     }
     @Test fun homeFeedOpensAnalysisAndShowsSavedPagesWithoutRequestingAnything() {
         launch(); awaitLabel("Son değişiklikler")
@@ -186,12 +197,12 @@ class PeopleScreenTest {
             instrumentation.waitForIdleSync()
         }
         launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
-        click("Değişiklik bildirimi"); dialogClick("En az 6 saat arayla"); dialogClick("İzlemeyi aç")
+        click("Değişiklikleri izle"); dialogClick("En az 6 saat arayla"); dialogClick("İzlemeyi aç")
         awaitLabel("6 saatte bir")
         val person = SessionVault(context, "previewaccount").read()!!.people.first()
         assertTrue(person.watching); assertEquals(360, person.intervalMinutes)
         scenario!!.recreate(); awaitLabel("6 saatte bir")
-        click("Değişiklik bildirimi")
+        click("Değişiklikleri izle")
         scenario!!.onActivity { activity -> assertFalse(all(activity.window.decorView).filterIsInstance<android.widget.Switch>().single().isChecked) }
         assertFalse(SessionVault(context, "previewaccount").read()!!.people.first().watching)
         assertNull(context.getSystemService(android.app.job.JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))
@@ -211,7 +222,7 @@ class PeopleScreenTest {
             it.copy(history = it.history.dropLast(1) + it.latest.copy(observedAt = now))
         }))
         launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
-        click("Değişiklik bildirimi"); dialogClick("En az 15 dakika arayla"); dialogClick("İzlemeyi aç")
+        click("Değişiklikleri izle"); dialogClick("En az 15 dakika arayla"); dialogClick("İzlemeyi aç")
         awaitLabel("15 dakikada bir")
         val vault = SessionVault(context, "previewaccount"); val gate = RequestGate(context, "preview_gate")
         assertEquals(15, vault.read()!!.people.first().intervalMinutes)

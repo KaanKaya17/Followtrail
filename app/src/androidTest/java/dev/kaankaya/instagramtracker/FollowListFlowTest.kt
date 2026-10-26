@@ -20,19 +20,36 @@ class FollowListFlowTest {
     private val lists = FollowListVault(context, "previewlists")
     private var scenario: ActivityScenario<FollowListActivity>? = null
     @Before fun setup() {
-        check(context.packageName.endsWith(".debug")); lists.clear(); preferences.edit().clear().commit()
+        val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
+        ui.serviceInfo = ui.serviceInfo.apply { flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
+        check(context.packageName.endsWith(".debug")); ViewedProfiles.clear(); lists.clear(); preferences.edit().clear().commit()
         vault.write(PreviewMode.seed(true)!!)
     }
-    @After fun cleanup() { scenario?.close(); lists.clear(); vault.clear(); preferences.edit().clear().commit() }
+    @After fun cleanup() { scenario?.close(); ViewedProfiles.clear(); lists.clear(); vault.clear(); preferences.edit().clear().commit() }
     private fun views(view: View): List<View> = listOf(view) + if (view is ViewGroup)
         (0 until view.childCount).flatMap { views(view.getChildAt(it)) } else emptyList()
     private fun launch() {
         scenario = ActivityScenario.launch(Intent(context, FollowListActivity::class.java).putExtra("target_id", "200").putExtra("offline_preview", true))
         awaitText("Henüz liste okunmadı.")
     }
-    private fun click(text: String) = scenario!!.onActivity { activity ->
-        val button = views(activity.window.decorView).filterIsInstance<Button>().single { it.text.toString() == text }
-        assertTrue("Button disabled: $text", button.isEnabled); button.performClick()
+    private fun click(text: String) {
+        if (text in listOf("İlk sayfayı oku", "Sonraki sayfayı oku", "Karşılaştır")) {
+            scenario!!.onActivity { activity -> views(activity.window.decorView).single { it.contentDescription == "Liste işlemleri" }.performClick() }
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            val deadline = android.os.SystemClock.elapsedRealtime() + 5000
+            while (android.os.SystemClock.elapsedRealtime() < deadline) {
+                fun nodes(node: android.view.accessibility.AccessibilityNodeInfo): List<android.view.accessibility.AccessibilityNodeInfo> =
+                    listOf(node) + (0 until node.childCount).flatMap { node.getChild(it)?.let(::nodes).orEmpty() }
+                val node = instrumentation.uiAutomation.windows.mapNotNull { it.root }.flatMap(::nodes).firstOrNull { it.text?.toString() == text }
+                if (node != null) { assertTrue(node.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)); return }
+                Thread.sleep(30)
+            }
+            fail("Missing advanced list action: $text")
+        }
+        scenario!!.onActivity { activity ->
+            val button = views(activity.window.decorView).filterIsInstance<Button>().single { it.text.toString() == text }
+            assertTrue("Button disabled: $text", button.isEnabled); button.performClick()
+        }
     }
     private fun awaitText(text: String) {
         val deadline = android.os.SystemClock.elapsedRealtime() + 5000
@@ -109,6 +126,20 @@ class FollowListFlowTest {
         assertEquals(androidx.lifecycle.Lifecycle.State.DESTROYED, scenario!!.state)
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
     }
+    @Test fun oneUpdateActionCompletesTheListAndKeepsSearchUsable() {
+        launch(); click("Listeyi güncelle"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        scenario!!.onActivity { activity -> views(activity.window.decorView).filterIsInstance<android.widget.EditText>().single().setText("501") }
+        val deadline = android.os.SystemClock.elapsedRealtime() + 22000
+        var complete = false
+        while (!complete && android.os.SystemClock.elapsedRealtime() < deadline) {
+            complete = lists.read(vault.read()!!.session, "200")?.followers?.coverage() == FollowCoverage.END_OBSERVED
+            if (!complete) Thread.sleep(40)
+        }
+        assertTrue("One update must continue to the observed end", complete)
+        awaitText("Alınan hesap: 3 · Sayfa: 2")
+        scenario!!.onActivity { activity -> assertEquals("501", views(activity.window.decorView).filterIsInstance<android.widget.EditText>().single().text.toString()) }
+        assertEquals(2L, RequestGate(context, "preview_gate").attempts())
+    }
     @Test fun localSearchFiltersLoadedUsersWithoutRequestsAndRestoresQuery() {
         launch(); click("İlk sayfayı oku"); awaitText("Alınan hesap: 2 · Sayfa: 1")
         scenario!!.onActivity { activity ->
@@ -148,7 +179,7 @@ class FollowListFlowTest {
         val saved = lists.read(vault.read()!!.session, "200")
         val gate = RequestGate(context, "preview_gate"); gate.limited("7200"); scenario!!.recreate()
         scenario!!.onActivity { activity ->
-            assertFalse(views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "Sonraki sayfayı oku" }.isEnabled)
+            assertFalse(views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "Listeyi güncelle" }.isEnabled)
         }
         assertEquals(1L, gate.attempts()); assertEquals(saved, lists.read(vault.read()!!.session, "200"))
     }

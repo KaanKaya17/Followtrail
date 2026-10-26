@@ -28,7 +28,7 @@ class AutomaticFlowTest {
     private var phase = 0
     private var requests = 0
     private var onPause: () -> Unit = {}
-    private val runtime = object : AutomaticRuntime {
+    private val runtime = object : ReadRuntime {
         override fun now() = now
         override fun elapsed() = now
         override fun pause(milliseconds: Long, cancelled: () -> Boolean): Boolean {
