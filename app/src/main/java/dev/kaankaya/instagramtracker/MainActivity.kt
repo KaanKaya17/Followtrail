@@ -37,7 +37,7 @@ import java.util.Date
 import java.util.concurrent.Executors
 
 class MainActivity : LocalizedActivity() {
-    private data class ProfileRead(val profile: Profile, val fetched: Boolean)
+    private data class ProfileRead(val profile: Profile, val fetched: Boolean, val startedAt: Long? = null)
     private val bg = AppUi.background
     private val panel = AppUi.surface
     private val accent = AppUi.violet
@@ -50,6 +50,7 @@ class MainActivity : LocalizedActivity() {
     private lateinit var vault: SessionVault
     private lateinit var avatars: AvatarImages
     private lateinit var queuedRead: ForegroundReadQueue
+    private lateinit var quickWatch: QuickWatch
     private lateinit var root: FrameLayout
     private var account: SavedAccount? = null
     private var loading = true
@@ -70,7 +71,9 @@ class MainActivity : LocalizedActivity() {
     private var pendingMobile = false
     private var pendingWatchId: String? = null
     private var pendingWatchOwner: String? = null
-    private var pendingWatchMinutes = 60
+    private var pendingWatchMinutes = 15
+    private var pendingQuickTarget: String? = null
+    private var visible = false
     private var pendingAutomationOwner: String? = null
     private var pendingAutomationTargets: Set<String>? = null
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
@@ -100,13 +103,22 @@ class MainActivity : LocalizedActivity() {
         rangeDays = savedInstanceState?.getInt("range") ?: 0
         pendingWatchId = savedInstanceState?.getString("pendingWatch")
         pendingWatchOwner = savedInstanceState?.getString("pendingOwner")
-        pendingWatchMinutes = savedInstanceState?.getInt("pendingMinutes", 60) ?: 60
+        pendingWatchMinutes = savedInstanceState?.getInt("pendingMinutes", 15) ?: 15
+        pendingQuickTarget = savedInstanceState?.getString("pendingQuickTarget")
         pendingAutomationOwner = savedInstanceState?.getString("pendingAutomationOwner")
         pendingAutomationTargets = savedInstanceState?.getStringArrayList("pendingAutomationTargets")?.toSet()
         vault = SessionVault(this, if (preview) "previewaccount" else "account")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
         queuedRead = ForegroundReadQueue(this, gate) { reason -> message = reason; render() }
         api = PreviewMode.api(gate, preview)
+        quickWatch = QuickWatch(vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
+            { PreviewMode.api(gate, preview) }, { PreviewMode.followLists(gate, preview) }, ChangeNotifications(this, preview), changed = { failure ->
+            if (!isDestroyed && !isFinishing) {
+                try { account = vault.read() } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this) }
+                if (failure != null) message = failure.userMessage(this)
+                syncMonitoring(); render()
+            }
+        })
         if (BuildConfig.DEBUG && intent.getBooleanExtra("connection_lab_preview", false)) {
             intent.removeExtra("connection_lab_preview")
             startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", true))
@@ -121,21 +133,24 @@ class MainActivity : LocalizedActivity() {
             main.post {
                 if (isDestroyed) return@post
                 account = saved; pendingMobile = pendingConnection; loading = false; needsConnection = needsConnection || gate.requiresConnection()
+                if (saved != null) { quickWatch.restore(savedInstanceState, saved); if (visible) quickWatch.resume() }
                 openNotification(saved); syncMonitoring(); render()
                 // An outstanding pause is restored without issuing a network request.
-                if (!languageChangedOnRecreation && saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
+                if (!quickWatch.active && !languageChangedOnRecreation && saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
+        visible = true
         if (recreatingForLanguage) return
         if (!::gate.isInitialized || web != null || loading) return
         try { account = vault.read(); pendingMobile = !preview && MobileSessions(this).pending() != null; needsConnection = gate.requiresConnection() }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity); needsConnection = true }
+        if (::quickWatch.isInitialized) quickWatch.resume()
         syncMonitoring()
-        if (account != null && !peopleScreen && !needsConnection && gate.autoAllowed(account!!.profile)) refresh(automatic = true)
+        if (!quickWatch.active && account != null && !peopleScreen && !needsConnection && gate.autoAllowed(account!!.profile)) refresh(automatic = true)
         else render()
     }
 
@@ -194,6 +209,7 @@ class MainActivity : LocalizedActivity() {
         header.addView(AppUi.iconButton(this, "more", getString(R.string.ui_options)) { options() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(header); page.gap(24)
         if (preview) { page.addView(badge(getString(R.string.ui_demo_sample_data)).apply { contentDescription = getString(R.string.ui_offline_demo_sample_data_no_instagram_requests) }); page.gap(16) }
+        if (::quickWatch.isInitialized && quickWatch.active && saved != null) renderQuickWatch(page, saved)
         if (::queuedRead.isInitialized && queuedRead.pending) { page.addView(queuedRead.view(this)); page.gap(16) }
         val pause = pauseMessage()
         if (pause != null) {
@@ -292,6 +308,8 @@ class MainActivity : LocalizedActivity() {
         row.addView(stat(getString(R.string.ui_followers), saved.profile.followers, FollowDirection.FOLLOWERS, true), LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
         row.addView(stat(getString(R.string.ui_following), saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
         page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        page.addView(button(getString(R.string.quick_start), false) { startQuickWatch(saved.profile.userId) }); page.gap(8)
+        page.addView(text(getString(R.string.quick_hint), 12f, muted)); page.gap(18)
         renderFavorites(page, saved)
         renderRecentActivity(page, saved)
         renderAutomation(page, saved)
@@ -342,6 +360,7 @@ class MainActivity : LocalizedActivity() {
                 getString(R.string.auto_progress) -> automationProgress()
                 else -> {
                 try {
+                    quickWatch.stop(false)
                     account = vault.update(saved.session) { it.copy(automation = it.automation.copy(enabled = false)) }
                     saved.automation.targets.forEach { ChangeNotifications(this, preview).cancelLists(saved.session.userId, it) }
                     syncMonitoring()
@@ -369,6 +388,43 @@ class MainActivity : LocalizedActivity() {
         }
         page.addView(android.widget.HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(row) }); page.gap(20)
     }
+    private fun openTimeline(target: String? = null) {
+        val saved = account ?: return
+        startActivity(Intent(this, TimelineActivity::class.java).putExtra("viewer_id", saved.session.userId)
+            .putExtra("target_id", target).putExtra("offline_preview", preview))
+    }
+    private fun startQuickWatch(target: String) {
+        val saved = account ?: return
+        if (!preview && saved.session.mobileBinding == null) { message = getString(R.string.auto_mobile_required); render(); return }
+        if (gate.manualOnly() || gate.automationHeld() || gate.requiresConnection()) {
+            message = getString(R.string.quick_restriction); render(); return
+        }
+        if (loading) return
+        pendingQuickTarget = target; pendingAutomationOwner = saved.session.userId
+        pendingAutomationTargets = (if (saved.automation.enabled) saved.automation.targets else emptySet()) + target
+        ChangeNotifications(this, preview).ensureChannel()
+        if (android.os.Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1402)
+        else finishAutomationPermission()
+    }
+    private fun renderQuickWatch(page: LinearLayout, saved: SavedAccount) {
+        val id = quickWatch.target ?: return
+        val profile = if (id == saved.profile.userId) saved.profile else saved.people.firstOrNull { it.latest.userId == id }?.latest
+        if (profile == null) { quickWatch.stop(false); return }
+        val card = AppUi.card(this)
+        card.addView(AppUi.heading(this, getString(R.string.quick_title, profile.username), 18f)); card.gap(8)
+        fun label(): String {
+            val seconds = quickWatch.secondsLeft
+            val remaining = String.format(AppLanguage.locale(this), "%02d:%02d", seconds / 60, seconds % 60)
+            return if (quickWatch.busy) getString(R.string.quick_busy, remaining)
+                else getString(R.string.quick_status, remaining, quickWatch.secondsToCheck.toString())
+        }
+        quickWatch.status = ::label
+        quickWatch.label = text(label(), 13f, muted).also { card.addView(it) }; card.gap(10)
+        card.addView(button(getString(R.string.quick_stop), false) { quickWatch.stop() }); card.gap(8)
+        card.addView(button(getString(R.string.timeline_title), false) { openTimeline(id) })
+        page.addView(card); page.gap(18)
+    }
     private fun automationSettings() {
         val saved = account ?: return
         if (!preview && saved.session.mobileBinding == null) {
@@ -379,7 +435,7 @@ class MainActivity : LocalizedActivity() {
         AlertDialog.Builder(this).setTitle(R.string.auto_choose_targets)
             .setMultiChoiceItems(profiles.map { "@${it.username}" + if (it.userId == saved.session.userId) getString(R.string.ui_your_account) else "" }.toTypedArray(), selected) { _, i, checked -> selected[i] = checked }
             .setNeutralButton(R.string.auto_how) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_title)
-                .setMessage(R.string.auto_full_scope).setPositiveButton(R.string.list_close, null).show() }
+                .setMessage(getString(R.string.auto_full_scope) + "\n\n" + getString(R.string.adaptive_scope)).setPositiveButton(R.string.list_close, null).show() }
             .setNegativeButton(R.string.list_cancel, null).setPositiveButton(R.string.auto_start) { _, _ ->
                 val targets = profiles.filterIndexed { index, _ -> selected[index] }.map { it.userId }.toSet()
                 if (targets.isEmpty()) { message = getString(R.string.auto_select_one); render(); return@setPositiveButton }
@@ -392,6 +448,7 @@ class MainActivity : LocalizedActivity() {
     }
     private fun finishAutomationPermission() {
         val owner = pendingAutomationOwner; val targets = pendingAutomationTargets
+        val quickTarget = pendingQuickTarget; pendingQuickTarget = null
         pendingAutomationOwner = null; pendingAutomationTargets = null
         val saved = account ?: return
         if (saved.session.userId != owner || targets == null) return
@@ -400,13 +457,19 @@ class MainActivity : LocalizedActivity() {
             account = vault.update(saved.session) { current ->
                 val valid = targets.filter { id -> id == current.session.userId || current.people.any { it.latest.userId == id } }.toSet()
                 if (valid.isEmpty()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-                current.copy(automation = current.automation.copy(enabled = true, targets = valid), people = current.people.map { person ->
-                    if (person.latest.userId !in valid || person.watching) person else person.copy(watching = true,
+                current.copy(automation = current.automation.copy(enabled = true, targets = valid,
+                    ownNextCheckAt = minOf(current.automation.ownNextCheckAt, current.profile.observedAt + ListAutomationPolicy.OWN_PROFILE_MS)), people = current.people.map { person ->
+                    if (person.latest.userId in valid && (quickTarget == null || person.latest.userId == quickTarget)) WatchPreference.set(person, 15, true)
+                    else if (person.latest.userId !in valid || person.watching) person else person.copy(watching = true,
                         nextCheckAt = maxOf(System.currentTimeMillis(), person.latest.observedAt + WatchIntervals.durationMs(person.intervalMinutes)))
                 })
             }
             saved.automation.targets.filterNot { it in targets }.forEach { ChangeNotifications(this, preview).cancelLists(saved.session.userId, it) }
             syncMonitoring(); message = getString(R.string.auto_started)
+            if (quickTarget != null && quickTarget in account!!.automation.targets) {
+                if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
+                quickWatch.start(saved.session, quickTarget); message = null; syncMonitoring()
+            }
         } catch (failure: ApiFailure) { message = failure.userMessage(this@MainActivity) }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity) }
         render()
@@ -444,7 +507,7 @@ class MainActivity : LocalizedActivity() {
             AlertDialog.Builder(this).setTitle(R.string.auto_progress).setItems(descriptions.toTypedArray()) { _, index ->
                 val (profile, direction) = rows[index]; openLists(profile, direction)
             }.setNeutralButton(R.string.auto_how) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_progress)
-                .setMessage(gateReason + "\n\n" + getString(R.string.auto_full_scope)).setPositiveButton(R.string.list_close, null)
+                .setMessage(gateReason + "\n\n" + getString(R.string.auto_full_scope) + "\n\n" + getString(R.string.adaptive_scope)).setPositiveButton(R.string.list_close, null)
                 .setNegativeButton(R.string.auto_clear_cache) { _, _ -> AlertDialog.Builder(this).setTitle(R.string.auto_clear_cache)
                     .setMessage(R.string.auto_clear_cache_confirm).setNegativeButton(R.string.list_cancel, null)
                     .setPositiveButton(R.string.auto_clear_cache) { _, _ ->
@@ -583,6 +646,7 @@ class MainActivity : LocalizedActivity() {
     }
     private fun options() {
         val options = mutableListOf(R.string.ui_manage_connection, R.string.ui_refresh_settings, R.string.ui_request_information, R.string.language_menu, R.string.ui_privacy, R.string.ui_advanced)
+        if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
         if (BuildConfig.DEBUG && !preview) options.add(R.string.ui_open_offline_demo)
         AlertDialog.Builder(this).setTitle(R.string.ui_options).setItems(options.map { getString(it) }.toTypedArray()) { _, index ->
@@ -600,6 +664,7 @@ class MainActivity : LocalizedActivity() {
                     }
                     .setPositiveButton(R.string.ui_ok, null).show()
                 R.string.language_menu -> languagePicker()
+                R.string.timeline_menu -> openTimeline()
                 R.string.ui_request_information -> requestInfo()
                 R.string.ui_privacy -> privacy()
                 R.string.ui_advanced -> AlertDialog.Builder(this).setTitle(R.string.ui_advanced).setItems(arrayOf(getString(R.string.ui_web_connection_experiment))) { _, _ -> openLab() }.setNegativeButton(R.string.ui_close, null).show()
@@ -703,6 +768,11 @@ class MainActivity : LocalizedActivity() {
         page.addView(personHeading); page.gap(8)
         page.addView(badge(person.group.ifBlank { getString(R.string.ui_profile_analysis) })); page.gap(20)
         page.addView(ProfileSummary.view(this, p)); page.gap(16)
+        val fastActions = LinearLayout(this)
+        fastActions.addView(button(getString(R.string.quick_start), false) { startQuickWatch(p.userId) }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
+        fastActions.addView(button(getString(R.string.timeline_title), false) { openTimeline(p.userId) }, LinearLayout.LayoutParams(0, -2, 1f))
+        page.addView(fastActions); page.gap(8)
+        page.addView(text(getString(R.string.quick_hint), 12f, muted)); page.gap(16)
         page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(16)
         if (person.history.size >= 2) {
             val previous = person.history[person.history.lastIndex - 1]
@@ -759,8 +829,10 @@ class MainActivity : LocalizedActivity() {
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_remove_this_person)).setMessage(getString(R.string.person_remove_confirm, profile.username))
                 .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_remove)) { _, _ ->
                     if (account?.session != session) return@setPositiveButton
+                    if (quickWatch.target == profile.userId) quickWatch.stop(false)
                     if (savePeople { people -> people.filterNot { it.latest.userId == profile.userId } }) {
                         try {
+                            vault.journal.clearTarget(session, profile.userId)
                             ViewedProfiles.clear(session.userId, profile.userId)
                             avatars.remove(session.userId, profile.userId)
                             FollowListVault(this, if (preview) "previewlists" else "followlists").clearTarget(session, profile.userId)
@@ -813,15 +885,19 @@ class MainActivity : LocalizedActivity() {
         loading = true; message = null; render()
         val ticket = ++generation
         worker.execute {
+            var startedAt: Long? = null
             val result = try {
                 val latest = vault.read()?.takeIf { it.session == saved.session } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 val cached = if (person != null) latest.people.firstOrNull { it.latest.userId == person.latest.userId }?.latest
                     ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
                     else latest.people.firstOrNull { it.latest.username.equals(username, true) }?.latest
                 Result.success(if (cached != null && !PeoplePolicy.needsRefresh(cached, System.currentTimeMillis())) ProfileRead(cached, false)
-                    else ProfileRead(if (person != null) api.readId(saved.session, person.latest.userId)
-                        else api.readUsername(saved.session, requireNotNull(username)), true))
-            } catch (failure: ApiFailure) { Result.failure(failure) }
+                    else { startedAt = System.currentTimeMillis(); ProfileRead(if (person != null) api.readId(saved.session, person.latest.userId)
+                        else api.readUsername(saved.session, requireNotNull(username)), true, startedAt) })
+            } catch (failure: ApiFailure) {
+                if (person != null) vault.recordFailure(saved.session, person.latest.userId, startedAt, failure)
+                Result.failure(failure)
+            }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)) }
             main.post {
                 if (isDestroyed || ticket != generation) return@post
@@ -829,7 +905,7 @@ class MainActivity : LocalizedActivity() {
                 result.onSuccess { read ->
                     try {
                         if (read.fetched) {
-                            val committed = Observations.person(vault, saved.session, read.profile, existingRequired = person != null)
+                            val committed = Observations.person(vault, saved.session, read.profile, existingRequired = person != null, startedAt = read.startedAt)
                             account = committed.account; syncMonitoring()
                             committed.change?.let { change -> notifyCurrent(saved.session, change) }
                             message = getString(R.string.ui_a_new_observation_was_saved_on_this)
@@ -962,6 +1038,7 @@ class MainActivity : LocalizedActivity() {
     }
     private fun setWatch(id: String, owner: String, minutes: Int, enabled: Boolean) {
         if (account?.session?.userId != owner) return
+        if (!enabled && quickWatch.target == id) quickWatch.stop(false)
         if (savePeople { people -> people.map { person -> if (person.latest.userId != id) person else WatchPreference.set(person, minutes, enabled)
             } }) {
             message = if (enabled) getString(R.string.ui_monitoring_enabled_android_scheduling_may_delay_checks) else getString(R.string.ui_background_monitoring_disabled_for_this_person)
@@ -1032,17 +1109,21 @@ class MainActivity : LocalizedActivity() {
         loading = true; message = null; render()
         val ticket = ++generation
         worker.execute {
+            var startedAt: Long? = null
             val result = try {
                 val latest = vault.read()?.takeIf { it.session == saved.session } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 Result.success(if (!PeoplePolicy.needsRefresh(latest.profile, System.currentTimeMillis())) ProfileRead(latest.profile, false)
-                    else ProfileRead(api.read(saved.session), true))
-            } catch (failure: ApiFailure) { Result.failure(failure) }
+                    else { startedAt = System.currentTimeMillis(); ProfileRead(api.read(saved.session), true, startedAt) })
+            } catch (failure: ApiFailure) {
+                vault.recordFailure(saved.session, saved.session.userId, startedAt, failure)
+                Result.failure(failure)
+            }
             main.post {
                 if (isDestroyed || ticket != generation) return@post
                 loading = false
                 result.onSuccess {
                     try {
-                        account = if (it.fetched) vault.update(saved.session) { current -> current.copy(profile = it.profile) } else vault.read()
+                        account = if (it.fetched) Observations.own(vault, saved.session, it.profile, it.startedAt).account else vault.read()
                         needsConnection = gate.requiresConnection(); syncMonitoring()
                     }
                     catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
@@ -1066,7 +1147,7 @@ class MainActivity : LocalizedActivity() {
                 getString(R.string.ui_your_session_chosen_people_history_and_notes) +
                 getString(R.string.ui_requests_go_to_instagram_we_have_no) +
                 getString(R.string.ui_visible_profile_photos_may_load_from_the) +
-                getString(R.string.ui_this_is_an_independent_app_instagram_may))
+                getString(R.string.ui_this_is_an_independent_app_instagram_may) + "\n\n" + getString(R.string.journal_privacy))
             .setPositiveButton(getString(R.string.ui_got_it), null).show()
     }
 
@@ -1075,6 +1156,7 @@ class MainActivity : LocalizedActivity() {
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_confirm_remove_connection))
             .setMessage(getString(R.string.ui_your_session_people_lists_history_and_notes))
             .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_remove)) { _, _ ->
+                quickWatch.stop(false)
                 avatars.close()
                 loading = true; render()
                 worker.execute {
@@ -1230,6 +1312,8 @@ class MainActivity : LocalizedActivity() {
         else finish()
     }
     override fun onSaveInstanceState(outState: Bundle) {
+        if (::quickWatch.isInitialized) quickWatch.save(outState)
+        outState.putString("pendingQuickTarget", pendingQuickTarget)
         outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
         outState.putString("pendingWatch", pendingWatchId); outState.putString("pendingOwner", pendingWatchOwner); outState.putInt("pendingMinutes", pendingWatchMinutes)
         outState.putString("pendingAutomationOwner", pendingAutomationOwner)
@@ -1238,6 +1322,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     override fun onDestroy() {
+        if (::quickWatch.isInitialized) quickWatch.close()
         if (::avatars.isInitialized) avatars.close()
         ++generation; main.removeCallbacksAndMessages(null); api.cancel()
         if (web != null) {
@@ -1248,6 +1333,11 @@ class MainActivity : LocalizedActivity() {
         web = null
         worker.shutdownNow()
         super.onDestroy()
+    }
+    override fun onPause() {
+        visible = false
+        if (::quickWatch.isInitialized) { quickWatch.pause(); if (::vault.isInitialized) syncMonitoring() }
+        super.onPause()
     }
     override fun onStop() { if (::queuedRead.isInitialized) queuedRead.cancel(false); if (::avatars.isInitialized) avatars.cancelAll(); super.onStop() }
 }

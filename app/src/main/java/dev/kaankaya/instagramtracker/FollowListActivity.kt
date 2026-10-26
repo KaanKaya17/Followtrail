@@ -335,7 +335,10 @@ class FollowListActivity : LocalizedActivity() {
                 getString(R.string.ui_n_nmissing_from_this_read_n) + difference.missing.joinToString("\n", transform = ::userLabel).ifEmpty { getString(R.string.ui_none) }
         }
         AlertDialog.Builder(this).setTitle(R.string.auto_list_differences).setMessage(body + "\n\n" + getString(R.string.auto_difference_scope))
-            .setPositiveButton(R.string.list_close, null).show()
+            .setNeutralButton(R.string.timeline_title) { _, _ ->
+                startActivity(Intent(this, TimelineActivity::class.java).putExtra("viewer_id", reference.userId)
+                    .putExtra("target_id", target.userId).putExtra("offline_preview", preview))
+            }.setPositiveButton(R.string.list_close, null).show()
     }
     private fun directionName(value: FollowDirection) = getString(if (value == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following)
     private fun userLabel(user: FollowUser) = (user.username?.let { "@$it" } ?: getString(R.string.list_username_unknown)) +
@@ -350,6 +353,7 @@ class FollowListActivity : LocalizedActivity() {
         val ticket = ++generation
         loading = true; message = null; render()
         pending = worker.submit {
+            val startedAt = System.currentTimeMillis()
             val result = try {
                 accountVault.inspect { if (!currentAccount(it)) throw ApiFailure(ApiFailure.Kind.CANCELLED) }
                 if (gate.requiresConnection()) throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
@@ -359,7 +363,10 @@ class FollowListActivity : LocalizedActivity() {
                         if (!isDestroyed && !isFinishing && ticket == generation) { snapshot = updated; render() }
                     } }, notify = { _, difference -> ChangeNotifications(this, preview).postList(reference, target, difference) })
                 Result.success(result)
-            } catch (failure: ApiFailure) { Result.failure(failure) }
+            } catch (failure: ApiFailure) {
+                accountVault.recordFailure(reference, target.userId, startedAt, failure)
+                Result.failure(failure)
+            }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)) }
             main.post {
                 if (isDestroyed || ticket != generation) return@post

@@ -6,12 +6,16 @@ import org.json.JSONObject
 /** Archive ownership is viewer + mobile binding; the legacy single-target record migrates on write. */
 object FollowArchiveCodec {
     private fun scan(value: ListScan) = JSONObject().put("nextAt", value.nextAt).put("attemptAt", value.attemptAt)
-        .put("continuing", value.continuing).apply { value.failure?.let { put("failure", it.name) } }
+        .put("continuing", value.continuing).put("basisAt", value.basisAt).apply {
+            value.basisCount?.let { put("basisCount", it) }; value.failure?.let { put("failure", it.name) } }
     private fun scan(value: JSONObject): ListScan {
         val next = value.getLong("nextAt"); val attempt = value.getLong("attemptAt")
         require(next >= 0 && attempt >= 0)
         val continuing = value.get("continuing") as? Boolean ?: error("Invalid scan state")
-        return ListScan(next, attempt, continuing, if (value.has("failure")) ApiFailure.Kind.valueOf(value.getString("failure")) else null)
+        val count = if (value.has("basisCount")) value.getLong("basisCount").also { require(it >= 0) } else null
+        val basisAt = if (value.has("basisAt")) value.getLong("basisAt").also { require(it >= 0) } else 0
+        require(count == null || basisAt > 0)
+        return ListScan(next, attempt, continuing, if (value.has("failure")) ApiFailure.Kind.valueOf(value.getString("failure")) else null, count, basisAt)
     }
     fun encode(archive: ListArchive): String = JSONObject().put("version", 2).put("owner", archive.owner)
         .put("binding", archive.binding ?: JSONObject.NULL).put("targets", JSONArray().apply {

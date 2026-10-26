@@ -99,10 +99,15 @@ class ProfileMetadataFlowTest {
             val manager = context.getSystemService(NotificationManager::class.java)
             val deadline = android.os.SystemClock.elapsedRealtime() + 5000
             while (manager.activeNotifications.none { it.tag == "profile:123:456" &&
-                    it.notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() == label } &&
+                    it.notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.startsWith("$label · ") == true } &&
                 android.os.SystemClock.elapsedRealtime() < deadline) Thread.sleep(30)
             val notification = manager.activeNotifications.single { it.tag == "profile:123:456" }.notification
-            assertEquals(label, notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString())
+            val body = notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString()
+            assertTrue(body.startsWith("$label · "))
+            labels.values.filter { it != label }.forEach { assertFalse(body.contains(it)) }
+            val observed = vault.read()!!.people.single().latest.observedAt
+            assertEquals(observed, notification.`when`)
+            assertTrue(body.contains(ObservationTimes.format(AppLanguage.wrap(context), observed)))
             assertEquals(Notification.VISIBILITY_PRIVATE, notification.visibility)
             val edits = ProfileChanges.history(vault.read()!!.people.single().history)
             assertEquals(field, edits.single().field)

@@ -1,5 +1,11 @@
 # Veri ve ağ sınırları
 
+## 0.1.21 kontrol ve karşılaştırma geçmişi
+
+Kontrol edilen hedef kimliği/gözlenen kullanıcı adı, işlem başlangıcı/veri alımı/karşılaştırma tarihleri, önceki karşılaştırılabilir gözlem, sayısal farklar, değişen alan türleri, liste kapsamı/sayfa/hesap sayısı ve sabit hata türü ayrı Keystore/AES-GCM dosyasında tutulur. En fazla son 120 işlem; her liste karşılaştırmasında ilk 10 yeni ve ilk 10 görünmeyen hesabın kimliği/varsa kullanıcı adı saklanır. Ham yanıt, biyografinin kopyası, parola, token veya çerez bu geçmişe yazılmaz. Normal şifreli profil/liste arşivi ayrıca korunur. Kişiyi kaldırmak ilgili geçmişi; bağlantıyı kaldırmak tamamını temizler. Geçmiş ekranı yalnız yereldir, yeni profil isteği göndermez. Hesap değiştirilirse farklı sahibin geçmişi gösterilmez.
+
+Hızlı izle açık kullanıcı eylemidir; seçilen hedefte görünür uygulama boyunca 15 dakikalık oturumda 60 saniyelik profil tazeliği hedefini ve ilgili liste otomasyonunu açar. Sonrasında normal 15 dakikalık arka plan hedefi kalır. Yeni ağ alanı, sürekli servis, izin veya analitik yoktur. Bildirimde gözlem/önceki karşılaştırma saati yer alır; kilit ekranı genel sürümü özel profil ayrıntısı içermez. Bunlar kesin Instagram olay saatleri değildir.
+
 ## 0.1.18 geçici profil önbelleği ve açık kullanıcı işlemleri
 
 Son incelenen en fazla 20 profil, tam oturum referansı ve hedef kimliğiyle süreç belleğinde kısa süre tutulur. Tazelik başarılı gözlem zamanından 15 dakika hesaplanır; ekranda açmak süreyi uzatmaz. Disk/SharedPreferences veya dış sunucuya yeni profil arşivi yazılmaz. Kişiyi kaldırma ilgili owner/hedefi, bağlantıyı kaldırma bütün geçici profilleri temizler. Uygulama süreci kapanırsa önbellek kaybolur. Eski oturum/başka viewer verisi yeni oturum için kullanılmaz.

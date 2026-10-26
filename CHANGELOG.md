@@ -1,5 +1,14 @@
 # Değişiklikler
 
+## 0.1.21 — 2026-10-26 (hızlı izleme ve işlem geçmişi)
+
+- Kendi hesabında veya kayıtlı kişide Hızlı izle: uygulama görünürken, tek hedef için 15 dakikalık oturum boyunca 60 saniyelik profil tazeliği hedefi. Süre ekran döndürme/arka plana geçişle uzamaz. Ekran görünmezken hızlı oturum duraklar; normal Android işi devam edebilir. Hızlı izleme sona erince seçilen hedefin 15 dakikalık profil/liste otomasyonu açık kalır.
+- Otomasyon ayarlamak seçilen kişileri 15 dakikaya alır; Hızlı izle yalnız seçilen kişiyi 15 dakikaya alır. Diğer mevcut kişi aralıkları güncelleme sırasında korunur. Normal arka plan işi en erken 15 dakikalık Android hedefiyle, aynı turda en fazla altı profil/liste isteği ve 90 saniyelik başlatma penceresi kullanır; istekler en az 15 saniye aralıklıdır. Android, büyük listeler ve ağ geciktirebilir; kesin süre veya Instagram güvenli kotası değildir.
+- Profil sayısı değişirse ilgili liste günlük hedefi beklemeden sıraya girer. Sayısı değişmeyen tamamlanmış liste günlük yeniden taramaya kadar korunur; aynı sayıda farklı kişiler olabileceği için günlük tarama kaldırılmadı. Yarım okuma kaldığı yerden sürer. Eski listelerde karşılaştırma dayanağı yoksa bir başlangıç taraması gerekebilir.
+- Üç nokta menüsünden İşlem geçmişi ve profil ekranından Zaman çizelgesi: hesap filtresi, kontrol sonucu, profil/liste farkı, sayfa/kapsam bilgisi, işlem başlangıcı, verinin alındığı ve karşılaştırmanın kaydedildiği saat. İki gözlem arasındaki fark gösterilir; Instagram'daki kesin olay saati uydurulmaz. Eksik alanlar için önceki bilinen karşılaştırma tarihi korunur.
+- Son 120 işlem ayrı şifreli kayıtta tutulur; liste farkının ilk 10 yeni ve ilk 10 görünmeyen hesabı ayrıntılarda bulunur. Hata türleri kaydedilir; parola, oturum ve ham yanıt yazılmaz. Geçmiş yazımı başarısız olursa başarılı profil/liste kaydı korunur ve geçmiş ekranında uyarı gösterilir. Kişi/bağlantı kaldırma ilgili geçmişi de temizler.
+- 429, doğrulama, manuel mola, tek etkin taşıma ve bildirim izinleri korunur. Hızlı izleme ilk hatada/belirsiz liste sonucunda durur; kendiliğinden yeniden giriş veya mola aşma yoktur. Türkçe/English ve mevcut geri dönüş/fotoğraf temizliği korunur. Yeni servis, izin veya bağımlılık eklenmedi.
+
 ## 0.1.20 — 2026-10-26 (Türkçe ve İngilizce)
 
 - Ana ekrandaki üç nokta menüsüne Dil / Language eklendi. Türkçe veya English seçimi yeniden açılışta korunur; Android 13 ve üzerinde sistemin uygulama dili ayarıyla eşleşir. Eski sürümlerde tercih ayrı bir yerel ayarda saklanır.

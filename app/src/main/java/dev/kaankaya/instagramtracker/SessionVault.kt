@@ -67,6 +67,19 @@ class EncryptedRecord(context: Context, slot: String) {
 class SessionVault(context: Context, slot: String = "account") {
     companion object { private val lock = Any() }
     private val record = EncryptedRecord(context, slot)
+    val journal = CheckJournal(context, "${slot}checks")
+    fun record(session: Session, event: CheckEvent) = synchronized(lock) {
+        val current = try { read() } catch (_: Exception) { null }
+        if (current?.session == session && (event.target == current.profile.userId || current.people.any { it.latest.userId == event.target }))
+            journal.append(session, event)
+    }
+    fun recordFailure(session: Session, target: String, startedAt: Long?, failure: ApiFailure,
+        endedAt: Long = System.currentTimeMillis()) = synchronized(lock) {
+        if (failure.kind == ApiFailure.Kind.CANCELLED) return@synchronized
+        val current = (try { read() } catch (_: Exception) { null })?.takeIf { it.session == session } ?: return@synchronized
+        val profile = if (target == current.profile.userId) current.profile else current.people.firstOrNull { it.latest.userId == target }?.latest ?: return@synchronized
+        record(session, CheckEvent(target, profile.username, CheckKind.FAILURE, startedAt, null, endedAt, failure = failure.kind))
+    }
     fun exists(): Boolean = synchronized(lock) { record.exists() }
     fun write(account: SavedAccount): Unit = synchronized(lock) { record.write(AccountCodec.encode(account)) }
     fun read(): SavedAccount? = synchronized(lock) { record.read()?.let(AccountCodec::decode) }
@@ -84,5 +97,6 @@ class SessionVault(context: Context, slot: String = "account") {
     fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }
     fun clear(): Unit = synchronized(lock) {
         record.clear()
+        journal.clear()
     }
 }

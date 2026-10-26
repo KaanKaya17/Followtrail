@@ -15,3 +15,10 @@ internal object SystemReadRuntime : ReadRuntime {
         return !cancelled()
     }
 }
+
+/** Includes device sleep in the lifetime of a foreground session saved across Activity recreation. */
+internal object AndroidReadRuntime : ReadRuntime {
+    override fun now() = SystemReadRuntime.now()
+    override fun elapsed() = android.os.SystemClock.elapsedRealtime()
+    override fun pause(milliseconds: Long, cancelled: () -> Boolean) = SystemReadRuntime.pause(milliseconds, cancelled)
+}

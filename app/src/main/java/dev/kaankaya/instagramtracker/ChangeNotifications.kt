@@ -46,9 +46,12 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
             ProfileChangeField.BIOGRAPHY -> R.string.profile_bio_changed
             ProfileChangeField.PICTURE -> R.string.profile_picture_changed
         }) }
+        details += context.getString(R.string.timeline_observed, ObservationTimes.format(context, change.profile.observedAt))
+        change.previousAt?.let { details += context.getString(R.string.timeline_previous, ObservationTimes.format(context, it)) }
         val public = builder(context).setSmallIcon(R.drawable.ic_notification).setContentTitle("InstagramTracker")
             .setContentText(if (preview) context.getString(R.string.ui_demo_a_sample_profile_changed) else context.getString(R.string.ui_a_change_was_observed_in_a_profile)).build()
         val notification = builder(context).setSmallIcon(R.drawable.ic_notification)
+            .setWhen(change.profile.observedAt).setShowWhen(true)
             .setContentTitle(context.getString(R.string.ui_profile_change, if (preview) "DEMO · " else "", change.profile.username))
             .setContentText(details.joinToString(" · "))
             .setStyle(Notification.BigTextStyle().bigText(details.joinToString("\n")))
@@ -72,7 +75,10 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
             .setContentText(context.getString(R.string.auto_notification_public)).build()
         val notification = builder(context).setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("${if (preview) "DEMO · " else ""}@${profile.username} · $direction")
-            .setContentText(details).setStyle(Notification.BigTextStyle().bigText(details + "\n" + context.getString(R.string.auto_difference_scope)))
+            .setWhen(difference.observedAt).setShowWhen(true)
+            .setContentText(details).setStyle(Notification.BigTextStyle().bigText(details + "\n\n" +
+                context.getString(R.string.timeline_observed, ObservationTimes.format(context, difference.observedAt)) + "\n" +
+                context.getString(R.string.timeline_previous, ObservationTimes.format(context, difference.previousAt)) + "\n\n" + context.getString(R.string.auto_difference_scope)))
             .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public).setContentIntent(pending)
             .setAutoCancel(true).setOnlyAlertOnce(true).setCategory(Notification.CATEGORY_STATUS).build()
         try { manager.notify("list:${session.userId}:${profile.userId}:${difference.direction.path}", 0, notification) }
