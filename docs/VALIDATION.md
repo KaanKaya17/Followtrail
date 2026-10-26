@@ -2,6 +2,12 @@
 
 26 Ekim 2026. Sürümler ayrı değerlendirilir; Windows prototipinin canlı başarısı Android başarısı olarak sayılmaz.
 
+## 0.1.19 — favori hizalaması
+
+- Favori kartının kullanıcı adı TextView'ı ortalandı; uygulama davranışında başka değişiklik yok. Önceki 0.1.18 APK'sı korunur.
+- 68 JVM testi sıfır hatayla geçti; lintRelease, assembleDebug ve assembleRelease başarılı. API 35 emülatörde ayrı debug paketi ve çevrimdışı örnek verilerle 720×1600 görünüm kontrol edildi: artifacts/ui-0.1.19-favorites.png ve ui-0.1.19-options.png. Tam Android süiti ve fiziksel telefon/canlı Instagram testi bu hizalama değişikliği için tekrarlanmadı.
+- İmzalı önizleme APK: 1,382,701 bayt; SHA-256 `be95c190ef43c120cd2394cfe59df863fbcb1f27dc2fd1568fe3968e59d5f536`. Gömülü kaynak commit `34c2baabf6dec6b777c90789ff091cfbc298934c` ile eşleşir; mevcut sertifikayla v2/v3 imza ve verify-release.py üretim paketi kontrolü geçti.
+
 ## 0.1.18 — sade akışlar, önbellek ve iptal edilebilir bekleme
 
 - Çalışan 0.1.17, checkpoint/0.1.17-working-20261026 etiketi ve InstagramTracker-Backups/0.1.17-working-20261026 kaynak/APK yedeğiyle korundu. Özgün APK SHA-256: 8fc780d4dd4def05b9c6fa5a0de3e3046e947b5f0a71bdf1c7c498ce18c1fdad. Telefon verisi yedeklenmedi veya temizlenmedi.
