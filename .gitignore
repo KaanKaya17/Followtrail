@@ -14,3 +14,5 @@ signing.properties
 artifacts/
 __pycache__/
 *.pyc
+**/node_modules/
+interface/.cache/

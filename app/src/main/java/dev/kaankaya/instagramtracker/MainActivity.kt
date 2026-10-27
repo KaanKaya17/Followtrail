@@ -207,7 +207,7 @@ class MainActivity : LocalizedActivity() {
         shell.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         header.addView(text("", 20f).apply {
-            background = AppUi.gradient(this@MainActivity, radius = 16); gravity = Gravity.CENTER
+            background = AppUi.brandSurface(this@MainActivity, radius = 16); gravity = Gravity.CENTER
             setPadding(dp(12), dp(12), dp(12), dp(12))
             setCompoundDrawablesWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "chart", AppUi.surface, 24), null, null, null)
             contentDescription = "InstagramTracker"
@@ -274,10 +274,10 @@ class MainActivity : LocalizedActivity() {
         if (saved == null) { page.gap(20); page.addView(text(getString(R.string.ui_your_data_is_encrypted_on_this_device), 12f, muted).apply { gravity = Gravity.CENTER; setOnClickListener { privacy() } }) }
         if (saved != null) {
             val navigation = LinearLayout(this).apply {
-                background = shape(panel, 28, AppUi.line); setPadding(dp(8), dp(7), dp(8), dp(7)); elevation = dp(6).toFloat()
+                background = shape(panel, 24, AppUi.line); setPadding(dp(8), dp(7), dp(8), dp(7))
             }
             fun tab(label: String, icon: String, selected: Boolean, action: () -> Unit) = button(label, false, action = action).apply {
-                background = AppUi.touch(this@MainActivity, shape(if (selected) AppUi.violetSoft else panel, 21))
+                background = AppUi.touch(this@MainActivity, shape(if (selected) AppUi.violetSoft else panel, 18))
                 setTextColor(if (selected) accent else muted); isSelected = selected; textSize = 13f
                 setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, icon, if (selected) accent else muted, 20), null, null, null)
                 compoundDrawablePadding = dp(8)
@@ -293,19 +293,28 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
-        page.addView(AppUi.heading(this, getString(R.string.ui_at_a_glance), 30f)); page.gap(10)
+        page.addView(AppUi.heading(this, getString(R.string.ui_at_a_glance), 28f)); page.gap(8)
         page.addView(text(getString(R.string.product_observation_scope), 12f, muted)); page.gap(12)
         val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        identity.addView(avatar(saved.profile, 36))
-        identity.addView(text("@${saved.profile.username}", 15f, muted).apply { setPadding(dp(10), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
-        page.addView(identity); page.gap(8)
+        identity.addView(avatar(saved.profile, 40))
+        identity.addView(text("@${saved.profile.username}", 15f, ink, true).apply { setPadding(dp(12), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
+        page.addView(identity); page.gap(12)
         page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(18)
         val row = LinearLayout(this)
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
             val foreground = if (purple) AppUi.surface else ink
-            background = AppUi.touch(this@MainActivity, if (purple) AppUi.gradient(this@MainActivity) else shape(AppUi.peach, 26))
-            setPadding(dp(17), dp(16), dp(17), dp(16)); minimumHeight = dp(120)
-            addView(text(label, 13f, foreground, true)); gap(16)
+            background = AppUi.touch(this@MainActivity, if (purple) AppUi.brandSurface(this@MainActivity) else shape(AppUi.peach, 24))
+            setPadding(dp(17), dp(18), dp(17), dp(18)); minimumHeight = dp(144)
+            val title = LinearLayout(this@MainActivity).apply { gravity = Gravity.CENTER_VERTICAL }
+            title.addView(text(label, 13f, foreground, true).apply {
+                // Reserve the same label space when accessibility text wraps the second card.
+                if (resources.configuration.fontScale > 1.3f) minLines = 2
+            }, LinearLayout.LayoutParams(0, -2, 1f))
+            title.addView(text("", 13f).apply {
+                setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "people", foreground, 18), null, null, null)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            })
+            addView(title); gap(18)
             addView(text(number(value), 38f, foreground, true).apply {
                 maxLines = 1
                 if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 38, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
@@ -389,7 +398,7 @@ class MainActivity : LocalizedActivity() {
         favorites.forEach { person ->
             val tile = stack().apply {
                 gravity = Gravity.CENTER; setPadding(dp(12), dp(12), dp(12), dp(12))
-                background = AppUi.touch(this@MainActivity, shape(AppUi.violetSoft, 20))
+                background = AppUi.touch(this@MainActivity, shape(panel, 18, AppUi.line))
                 addView(avatar(person.latest, 40)); gap(8)
                 addView(text("@${person.latest.username}", 12f, accent, true).apply { gravity = Gravity.CENTER; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
                 contentDescription = getString(R.string.ui_open_favorite, person.latest.username); isFocusable = true

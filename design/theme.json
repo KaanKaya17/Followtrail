@@ -1,0 +1,16 @@
+{
+  "colors": {
+    "background": "#faf9f6",
+    "surface": "#ffffff",
+    "ink": "#252339",
+    "muted": "#6f6d81",
+    "violet": "#674bd8",
+    "violetSoft": "#efe9ff",
+    "coral": "#c34c2e",
+    "peach": "#ffe6d8",
+    "teal": "#137366",
+    "mint": "#dcf6e9",
+    "line": "#e9e5ee"
+  },
+  "radii": { "card": 24, "button": 18, "control": 12 }
+}
