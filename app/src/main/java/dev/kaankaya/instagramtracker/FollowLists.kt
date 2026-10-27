@@ -38,7 +38,7 @@ data class FollowRun(val pages: List<FollowPage>) {
 data class FollowSnapshot(val owner: String, val binding: String?, val target: String,
     val followers: FollowRun? = null, val following: FollowRun? = null) {
     fun run(direction: FollowDirection) = if (direction == FollowDirection.FOLLOWERS) followers else following
-    fun matches(session: Session, targetId: String) = owner == session.userId && binding == session.mobileBinding && target == targetId
+    fun matches(session: Session, targetId: String) = owner == session.userId && binding == session.connectionBinding && target == targetId
     fun record(page: FollowPage): FollowSnapshot {
         require(page.target == target)
         val run = if (page.inputCursor == null) FollowRun(listOf(page)) else

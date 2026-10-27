@@ -1,5 +1,13 @@
 # Veri ve ağ sınırları
 
+## 0.1.27 cihazda web bağlantısı
+
+Önerilen Instagram ile bağlan yolu, Instagram'ın HTTPS web formunu açar; uygulama bu formun parola/kod alanlarını okumaz. Alınan izinli oturum çerezleri ve WWW-Claim, cihazda Keystore/AES-GCM ile noBackupFilesDir içindeki iki web bankasında saklanır. Hesap referansı çerez içermez. WebView normal bitirme/iptal/kapanışta temizlenir; ani süreç ölümünün temizliği tamamladığı iddia edilmez. Bağlantıyı kaldır web bankalarını da siler.
+
+Yeni API istekleri doğrudan sabit www.instagram.com HTTPS origin'ine gider; hazırlama/işleme için hiçbir üçüncü taraf backend, FollowMeter sunucusu veya analitik servisi kullanılmaz. WebView kaynakları Instagram/Meta CDN sınırını, fotoğraflar ayrı çerezsiz Meta CDN istemcisini korur. Yanıt URL'si/yönlendirme kullanıcı çerezini başka adrese taşıyamaz. Profil/liste yanıtı 1 MiB ile sınırlıdır; ham gövde/çerez tanıya veya işlem geçmişine yazılmaz. Eski mobil parola yolu seçilirse onun bellekte işleme sözleşmesi aşağıdaki 0.1.23 bölümünde geçerlidir.
+
+Web oturumu ve mobil oturum birbirine dönüştürülmez; rastgele ve ayrı bağlantı kapsamlarıyla korunur. Başarılı profil kimliği doğrulaması sonrası hesap kasası v5'e yazılır; v1–v4 kayıtları okunur. Mevcut 429 molası güncellemeyle silinmez. Detay: [WEB-CONNECTION.md](WEB-CONNECTION.md).
+
 ## 0.1.26 son telefon giriş tanısı
 
 Tek yerel SharedPreferences kaydında yalnız sabit işlem enumu (P01–P09), istek başlangıç saati ve varsa HTTP durum sayısı tutulur. Bu üç alan hesap/URL/token/parola/kod veya ham yanıt içermez; ayrıca şifrelenmez ve uygulamanın özel alanında kalır. Uygulamanın yedeklemesi kapalıdır. Kayıt yeni istek başladığında güncellenir, yanıt yoksa önceki HTTP durumu kaldırılır. Yerelde reddedilen veya mola nedeniyle gönderilmeyen deneme son istek tanısını değiştirmez. Bağlantıyı kaldır tanıyı temizler; Instagram molası ayrı kayıttır ve korunur. Eski sürümlerin yalnız bellekte tuttuğu P kodu kurtarılamaz. Giriş akışı/izin/servis/istek hızında değişiklik yoktur.

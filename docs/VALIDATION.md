@@ -1,5 +1,15 @@
 # Doğrulama kaydı
 
+## 0.1.27 — cihazda özel web bağlantısı
+
+- Önceki temiz kaynak `53b6303` ve imzalı 0.1.26 APK, `InstagramTracker-Backups/0.1.26-before-private-web-20261027` altında kaynak ZIP'i ve SHA-256 manifestiyle korundu. APK özeti `53b6318221a92fded51d7e60548deadd61a3268c44e0431e730aa94ba675a4fa`. Kullanıcı verisi temizlenmedi veya dışarı aktarılmadı.
+- `:app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest` başarılı; **80 JVM testi**, sıfır hata/atlama. `:app:connectedDebugAndroidTest :app:lintRelease` API 35 emülatörde başarılı; tek tam koşuda **174/174 Android testi**, sıfır hata/başarısızlık/atlama. Birlikte Gradle süresi 9 dakika 23 saniye; CPU/tepe bellek ölçülmedi. Loglar `artifacts/validation-0.1.27-tests-3.txt` ve `validation-0.1.27-device-lint.txt`; XML sonuçları yerel Android test çıktısında korunur.
+- Yeni dört JVM testi çerez sınırları, sabit origin/URL kodlama, kimlik/çerez yenilemesi ve v4→v5 kapsamını; yedi Android testi gerçek Keystore ile profil/iki liste yönü, 429 sonrası durma, dış host/yönlendirme reddi, yanlış kimlik/aşırı yanıt, kalıcılık/geçmiş koruma, başarısız hesap değişimi ve geç iptali sınar. Üç ekran testi gerçek MainActivity/WebView'dan HttpOnly çerez yakalama, şifreli bağlantı, yeniden oluşturma, iptal/temizlik ve 429'u sınar. Sayfa ve API yanıtları yalnız debug varyantındaki sentetik fixture'lardır; gerçek Instagram başarı kanıtı değildir.
+- Son değişiklikler yalnız iki kullanılmayan giriş metninin kaldırılması, test adı ve yorum düzeltmesidir. Ardından JVM testleri ve lint tekrar başarılı; lint **0 hata/önceki 10 uyarı** (üç bağımlılık sürümü, altı mevcut PluralsCandidate, mevcut ViewConstructor). `scripts/check-locales.py` **528** eş Türkçe/English kaynak ve değişken/çoğul kapsamıyla geçti. Tam Android koşusu bu metin temizliğinden sonra tekrar edilmedi.
+- İlk ara JVM koşusu eski codec sürümü beklentisinde bir hata verdi; test açık v4 geçişi ve güncel v5 beklentisiyle düzeltildi. Debug taşıma fixture'ının OkHttp 5.4 arayüz derlemesi mevcut Call delegasyonu kullanılarak düzeltildi. Bu ara koşular başarı sayılmaz.
+- Ağ/kimlik bilgisi sınırı [WEB-CONNECTION.md](WEB-CONNECTION.md) içinde. Yeni okuyucu yalnız sabit Instagram HTTPS adresine gider; üçüncü taraf backend kullanılmaz. Test fixture işaretleri üretim paketinden ayrıca denetlenir. Kaynak incelemesi ve testler bağımsız bir güvenlik denetimi iddiası değildir.
+- Kullanıcı son 429 molasının **27 Ekim 16:58**'de bittiğini bildirdi. Bu geliştirme sırasında oturumlu canlı giriş/profil/liste isteği yapılmadı; mola kaldırılmadı veya kısaltılmadı. Yalnız oturumsuz açık Instagram sayfası bir kez HTTP 200 ile okunarak güncel web app ID gözlendi. Canlı sunucu kabulü, gerçek takipçi sayfası, fiziksel telefon, API 24, uzun oturum/Doze/pil ve GitHub CI bu sürüm için doğrulanmadı.
+
 ## 0.1.26 — son telefon giriş isteğinin kalıcı tanısı
 
 - Kullanıcı önceki 429’un P kodunu hatırlamadığını bildirdi. Önceki sürüm yalnız süreç belleğinde tuttuğu için o kod kurtarılamaz; bu geliştirmede eski 429’un hangi giriş adımında olduğu veya nedeni belirlenmedi. Canlı giriş/Instagram isteği denenmedi.

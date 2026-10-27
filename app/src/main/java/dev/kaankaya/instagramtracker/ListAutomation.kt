@@ -19,7 +19,7 @@ data class ListTarget(val target: String, val snapshot: FollowSnapshot? = null, 
         if (direction == FollowDirection.FOLLOWERS) copy(followers = scan) else copy(following = scan)
 }
 data class ListArchive(val owner: String, val binding: String?, val targets: List<ListTarget> = emptyList()) {
-    fun matches(session: Session) = owner == session.userId && binding == session.mobileBinding
+    fun matches(session: Session) = owner == session.userId && binding == session.connectionBinding
     fun replace(target: ListTarget) = copy(targets = targets.filterNot { it.target == target.target } + target)
 }
 data class ListDifference(val target: String, val direction: FollowDirection, val previousAt: Long, val observedAt: Long,
@@ -43,10 +43,10 @@ object ListAutomationPolicy {
         var previous = target.previous
         val old = target.snapshot?.run(page.direction)
         if (page.inputCursor == null && old?.coverage() == FollowCoverage.END_OBSERVED) {
-            val base = previous ?: FollowSnapshot(session.userId, session.mobileBinding, target.target)
+            val base = previous ?: FollowSnapshot(session.userId, session.connectionBinding, target.target)
             previous = if (page.direction == FollowDirection.FOLLOWERS) base.copy(followers = old) else base.copy(following = old)
         }
-        val snapshot = (target.snapshot ?: FollowSnapshot(session.userId, session.mobileBinding, target.target)).record(page)
+        val snapshot = (target.snapshot ?: FollowSnapshot(session.userId, session.connectionBinding, target.target)).record(page)
         val more = snapshot.run(page.direction)!!.coverage() == FollowCoverage.MORE
         return target.copy(snapshot = snapshot, previous = previous).withScan(page.direction,
             target.scan(page.direction).copy(nextAt = page.observedAt + if (more) MonitorPolicy.POLL_MS else RESCAN_MS,

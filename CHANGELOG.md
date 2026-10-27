@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## 0.1.27 — 2026-10-27 (cihazda web bağlantısı)
+
+- Önerilen Instagram ile bağlan yolu, Instagram'ın kendi web girişini kullanır. Uygulama web parola alanını okumaz; çerez ve claim cihazda Keystore/AES-GCM ile ayrı iki bankada saklanır. Hesap doğrulanmadan kaydedilmez; başarısız/iptal bağlantı önceki hesabı korur.
+- Web oturumları için doğrudan Instagram profil/takipçi/takip edilen okuyucusu eklendi. Özel backend, FollowMeter servisi, analitik veya yeni bağımlılık/izin yoktur. Web ve mobil bağlantılar ayrı kalır; hatada protokol/uç değiştirilmez. Web uygulama kimliği açık Instagram sayfasındaki güncel sabitle eşlendi.
+- Staging/şifreli banka ve bounded HTTP yanıt/iptal/yenileme sahipliği iki protokol arasında ortaklaştırıldı. Liste, otomasyon ve ekran yeniden oluşumu web bağlantı kapsamını tanır. 429/doğrulama ve mevcut istek aralıkları korunur.
+- Hesap v5, eski v1–v4 kayıtlarını okur; eski APK yeni hesap kaydını okuyamaz. 0.1.26 APK ve kaynak yedeği korunur. Ayrıntı ve canlı doğrulama sınırı: [WEB-CONNECTION.md](docs/WEB-CONNECTION.md), [VALIDATION.md](docs/VALIDATION.md).
+
 ## 0.1.26 — 2026-10-26 (kalıcı telefon giriş tanısı)
 
 - Son telefon giriş isteğinin sabit P kodu, başlangıç saati ve varsa HTTP durumu artık cihazda saklanır; ⋯ → İstek bilgileri içinde yeniden açılışta görülebilir. Tek kayıt tutulur. Ham istek/yanıt, URL, hesap bilgisi, parola veya kod saklanmaz. Bağlantıyı kaldırmak tanıyı da temizler; 429 molasını kaldırmaz.

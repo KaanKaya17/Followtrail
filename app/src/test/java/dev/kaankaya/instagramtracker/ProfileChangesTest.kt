@@ -64,9 +64,9 @@ class ProfileChangesTest {
     }
     @Test fun additiveCodecRoundTripsDetailsAndOldRecordsRemainUsable() {
         val saved = account(listOf(p(), p(2000, ProfileText.known("line\nemoji🙂"), "123_456", "https://cdn.example/a", false)))
-        val body = JSONObject(AccountCodec.encode(saved)); assertEquals(4, body.getInt("version"))
+        val body = JSONObject(AccountCodec.encode(saved)); assertEquals(5, body.getInt("version"))
         assertEquals(saved, AccountCodec.decode(body.toString()))
-        val old = JSONObject(AccountCodec.encode(account(listOf(p()))))
+        val old = JSONObject(AccountCodec.encode(account(listOf(p())))).put("version", 4)
         assertFalse(old.has("profileDetails")); val restored = AccountCodec.decode(old.toString())
         assertEquals(session, restored.session); assertTrue(restored.people.single().favorite); assertTrue(restored.people.single().watching)
         assertEquals(ProfileDetails(), restored.people.single().latest.details)

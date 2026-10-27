@@ -60,10 +60,10 @@ class MemberProfileActivity : LocalizedActivity() {
             if (target != saved.session.userId && saved.people.none { it.latest.userId == target }) throw ApiFailure(ApiFailure.Kind.NOT_FOUND)
             val row = FollowListVault(this, if (preview) "previewlists" else "followlists").read(reference, target)
                 ?.run(direction)?.users?.firstOrNull { it.id == id }
-            member = row ?: retained?.takeIf { it.owner == reference.userId && it.binding == reference.mobileBinding && it.member.id == id }?.member
+            member = row ?: retained?.takeIf { it.owner == reference.userId && it.binding == reference.connectionBinding && it.member.id == id }?.member
                 ?: throw ApiFailure(ApiFailure.Kind.NOT_FOUND)
             profile = ViewedProfiles.latest(saved, id)
-            retained?.takeIf { it.owner == reference.userId && it.binding == reference.mobileBinding && it.member.id == id }
+            retained?.takeIf { it.owner == reference.userId && it.binding == reference.connectionBinding && it.member.id == id }
                 ?.profile?.let { if (profile == null || it.observedAt > profile!!.observedAt) profile = it }
         } catch (failure: Exception) {
             setContentView(AppUi.notice(this, getString(R.string.ui_could_not_open_profile), (failure as? ApiFailure)?.userMessage(this@MemberProfileActivity) ?: getString(R.string.list_storage_error), true))
@@ -260,5 +260,5 @@ class MemberProfileActivity : LocalizedActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("attempted", attempted); outState.putBoolean("pendingWatch", pendingWatch); super.onSaveInstanceState(outState)
     }
-    override fun onRetainNonConfigurationInstance(): Any? = if (::member.isInitialized) Retained(reference.userId, reference.mobileBinding, member, profile) else null
+    override fun onRetainNonConfigurationInstance(): Any? = if (::member.isInitialized) Retained(reference.userId, reference.connectionBinding, member, profile) else null
 }

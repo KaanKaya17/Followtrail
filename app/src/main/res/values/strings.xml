@@ -15,7 +15,7 @@
     <string name="auto_how">Nasıl çalışır?</string>
     <string name="auto_progress">Otomasyon durumu</string>
     <string name="auto_select_one">En az bir hesap seç.</string>
-    <string name="auto_mobile_required">"Liste otomasyonu için mobil bağlantı gerekiyor. Bağlantıyı yönet → Telefondan bağlan yolunu kullan; mevcut kayıtların korunur."</string>
+    <string name="auto_mobile_required">"Liste otomasyonu için bağlantını yenile. Bağlantıyı yönet → Instagram ile bağlan yolunu kullan; mevcut kayıtların korunur."</string>
     <string name="auto_started">Liste otomasyonu açıldı. Sayfalar Android izin verdiğinde sırayla okunacak; mevcut molalar korunur.</string>
     <string name="auto_first_pending">İlk liste okuması sırada.</string>
     <string name="auto_scan_progress">%1$s sayfa · %2$s hesap görüldü · devamı sırada.</string>
