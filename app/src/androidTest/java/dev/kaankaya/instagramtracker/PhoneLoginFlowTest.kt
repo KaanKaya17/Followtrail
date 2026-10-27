@@ -71,10 +71,22 @@ class PhoneLoginFlowTest {
                     path.endsWith("process_client_data_and_redirect/") -> JSONObject().put("layout", JSONObject().put("bloks_payload", JSONObject().put("data",
                         org.json.JSONArray().put(JSONObject().put("data", JSONObject().put("key", "CAA_ACCOUNT_ACCESS_CONTEXT:aac").put("initial", "server-aac")))))).toString()
                     path.endsWith("attestation/create_android_keystore/") -> """{"challenge_nonce":"server-nonce"}"""
-                    path.endsWith("oauth.token.fetch.async/") -> "{}"
+                    path.endsWith("oauth.token.fetch.async/") -> {
+                        if (mode == "key-isolated") {
+                            headers["Set-Cookie"] = "csrftoken=private-csrf; Path=/; Secure"
+                            headers["ig-set-x-mid"] = "private-mid"
+                            headers["x-ig-set-www-claim"] = "private-claim"
+                        }
+                        "{}"
+                    }
                     path.endsWith("qe/sync/") -> {
                         headers["ig-set-password-encryption-key-id"] = "7"
                         headers["ig-set-password-encryption-pub-key"] = keys.public.encoded.toByteString().base64()
+                        if (mode == "key-isolated") {
+                            headers["Set-Cookie"] = "csrftoken=public-csrf; Path=/; Secure"
+                            headers["ig-set-x-mid"] = "public-mid"
+                            headers["x-ig-set-www-claim"] = "public-claim"
+                        }
                         status = 405
                         when (mode) {
                             "key-ok" -> { status = 200; "" }
@@ -163,6 +175,25 @@ class PhoneLoginFlowTest {
             assertEquals(1, t.requests.count { it.url.encodedPath.endsWith("send_login_request/") })
             assertEquals(old, vault.read()); assertFalse(sessions.exists())
         }
+    }
+    @Test fun passwordKeyUsesAnAnonymousPublicRequestAndCannotRotateThePrivateLoginContext() {
+        val t = transport("key-isolated")
+        val ready = client(t).login("own", "synthetic-password".toCharArray()) as PhoneLoginResult.Ready
+        val key = t.requests.single { it.url.encodedPath == "/api/v1/qe/sync/" }
+        assertEquals("https://i.instagram.com/api/v1/qe/sync/", key.url.toString())
+        assertEquals("GET", key.method); assertNull(key.body)
+        assertNull(key.header("Cookie")); assertNull(key.header("Authorization")); assertNull(key.header("X-Meta-Usdid"))
+        assertTrue(key.headers.names().none { it.startsWith("X-IG-", true) || it.startsWith("X-Pigeon-", true) })
+        assertEquals("*/*", key.header("Accept")); assertEquals("en-US", key.header("Accept-Language"))
+        assertEquals("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 " +
+            "(KHTML, like Gecko) Version/11.1.2 Safari/605.1.15", key.header("User-Agent"))
+        val password = t.requests.single { it.url.encodedPath.endsWith("send_login_request/") }
+        assertTrue(password.header("User-Agent")!!.startsWith("Instagram "))
+        assertEquals("csrftoken=private-csrf", password.header("Cookie"))
+        assertEquals("private-mid", password.header("X-MID")); assertEquals("private-claim", password.header("X-IG-WWW-Claim"))
+        assertEquals("private-csrf", ready.session.cookies["csrftoken"])
+        assertEquals(7, t.requests.size); assertTrue(t.times.zipWithNext().all { (a, b) -> b - a >= 15_000 })
+        assertEquals(old, vault.read()); assertFalse(sessions.exists())
     }
     @Test fun restrictionAndUnsupportedResponseStopWithoutAlternateRoutesOrAccountChanges() {
         for (mode in listOf("limited", "unsupported")) {
@@ -255,7 +286,15 @@ class PhoneLoginFlowTest {
             val stored = PhoneLoginJournal(context).read()!!
             assertEquals(flow.diagnostic!!.operation, stored.operation); assertEquals(flow.diagnostic!!.status, stored.status)
             assertEquals(old, vault.read()); assertFalse(sessions.exists())
-            if (mode == "key-limited") assertEquals(now + 7200_000, gate.blockedUntil())
+            if (mode == "key-limited") {
+                val until = gate.blockedUntil()
+                assertEquals(now + 7200_000, until)
+                assertTrue(t.requests.none { it.url.encodedPath.endsWith("send_login_request/") })
+                assertEquals(ApiFailure.Kind.LIMITED, assertThrows(ApiFailure::class.java) {
+                    client(t).login("own", "synthetic-password".toCharArray()) }.kind)
+                assertEquals(5, t.requests.size); assertEquals(until, gate.blockedUntil())
+                assertEquals(stored, PhoneLoginJournal(context).read())
+            }
         }
         clean(); vault.write(old); now = 2_000_000_000_000L
         assertTrue(client(transport("key-ok")).login("own", "synthetic-password".toCharArray()) is PhoneLoginResult.Ready)

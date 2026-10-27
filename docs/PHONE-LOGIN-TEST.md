@@ -1,10 +1,10 @@
-# Telefondan giriş — 0.1.24 önizleme
+# Telefondan giriş — 0.1.29 önizleme
 
 Bilgisayar, USB, ek cihaz veya dosya aktarımı bu giriş yolu için gerekmez. APK mevcut uygulamanın üzerine güncellenir; uygulamayı silmek/verisini temizlemek gerekmez. Önceki çalışan 0.1.22 APK ve kaynak yedeği korunur. Android eski sürüme veri kaybetmeden doğrudan geri kurmaya izin vermeyebilir; yedek APK bulunması otomatik veri geri dönüşü demek değildir.
 
 ## Temel deneme
 
-1. 0.1.24 APK’yı mevcut uygulamanın üzerine kur. Mevcut hesabın, kişiler ve geçmişin açıldığını kontrol et.
+1. 0.1.29 APK’yı mevcut uygulamanın üzerine kur. Mevcut hesabın, kişiler ve geçmişin açıldığını kontrol et. Güncelleme, mevcut mola bitmeden giriş yapmayı gerektirmez.
 2. İlk kurulumda **Hesap bağla**; bağlı hesabın varsa **⋯ → Bağlantıyı yönet → Başka hesap bağla** seç. **Telefondan bağlan · Bilgisayar gerekmez** yolunu aç.
 3. Erişim/parola/oturum açıklamalarını oku. Kendi kontrolündeki test hesabının kullanıcı adını veya e-postasını ve parolasını girip **Giriş yap** de. Parola/kodu geliştiriciye gönderme.
 4. Ekranı açık tut. İlk kurulumun adımları mevcut istek aralığıyla ilerlediğinden yaklaşık iki dakika veya daha uzun sürebilir. Bekleme mesajı sıradaki adımın süresini gösterir. İşlem sürerken arka plana geçmek iptal eder.
@@ -40,3 +40,9 @@ P05’teki HTTP 405, geçerli anahtar başlıkları varsa başlık okumasının 
 ## 0.1.26 kalıcı son istek tanısı
 
 Yeni sürümü uygulamayı silmeden güncellemek mevcut 429 molasını korur. Güncelleme test için giriş yapmayı gerektirmez. Bir sonraki açık kullanıcı denemesi ancak mevcut mola izin verdiğinde yapılır. Hata ekranı kapandıktan/uygulama yeniden açıldıktan sonra **⋯ → İstek bilgileri → Son telefon giriş isteği** içinde P kodu, başlangıç saati ve HTTP durumunu görebilirsin. Yanıt alınmadıysa önceki HTTP ona taşınmaz. Kod/saat/HTTP dışında veri bu tanıya alınmaz. Yerel boş giriş veya mola nedeniyle gönderilmeyen deneme kaydı değiştirmez. Bağlantıyı kaldır tanıyı da temizler. Önceki sürümün P kodunu bulmak mümkün değildir; onu bulmak için yeniden giriş yapma.
+
+## 0.1.29 anahtar sorgusunun oturum ayrımı
+
+Çalışan Windows yardımcısının kullandığı instagrapi 3.2.0 kaynak karşılaştırması, P05'in ayrı anonim `public` istemcisinde yapıldığını gösterdi. Android uyarlaması ise özel giriş başlıklarını/çerezlerini gönderiyor ve P05 yanıtındaki çerez/MID/claim'i P06'ya taşıyordu. Yeni sürüm P05'i sabit HTTPS anahtar adresinde anonim GET olarak kurar ve yalnız anahtar başlıklarını tüketir; özel CAA bağlamı bu yanıttan yenilenmez. Global istek kapısı ve kısıtlama politikası ortaktır; ikinci bir ağ denemesi veya alternatif uç yoktur.
+
+Bu, kaynakta gösterilen bir oturum ayrımı düzeltmesidir. Windows'ın curl/TLS taşıması ile Android OkHttp aynı değildir; gerçek cihaz/ağ bilgileri ve 15 saniyelik giriş aralığı korunur. Donanım kanıtı veya sahte SIM bilgisi eklenmedi. Sentetik akış testinin geçmesi, Instagram'ın canlı P06 isteğini kabul ettiği veya 429'un çözüldüğü anlamına gelmez. 27 Ekim fiziksel telefonda gözlenen 21:07 molası (ve varsa daha sonraki kayıtlı süre) bitmeden bu yoldan yeni giriş denenmez.

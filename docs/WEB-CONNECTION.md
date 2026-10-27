@@ -27,7 +27,7 @@ Hesap kayıt biçimi v5'tir; v1–v4 hesapları okunur. Liste kaydı biçimi de�
 
 - Profil: `/api/v1/users/{id}/info/`; kullanıcı adı araması: `/api/v1/users/web_profile_info/?username=...`.
 - Liste: `/api/v1/friendships/{id}/followers/` veya `/following/`, `count=50`, `search_surface=follow_list_page`; devam için URL-encoded `max_id`.
-- Referer kök Instagram adresidir; CSRF ve WWW-Claim bu cihazdaki web oturumundan gelir. Instagram mobil Authorization header'ı üretilmez veya taklit edilmez.
+- Referer kök Instagram adresidir; CSRF bu cihazdaki web çerezinden gelir. İlk WWW-Claim değeri `0`'dır; giriş WebView'ından claim yakalanmaz. Başarılı okuyucu yanıtındaki `X-IG-Set-WWW-Claim` sonraki istekler için şifreli kayda alınabilir. Instagram mobil Authorization header'ı üretilmez veya taklit edilmez. Bu başlık birleşiminin canlı profil/liste kabulü henüz doğrulanmadı.
 
 Bu uçlar resmî Graph API garantisi değildir. 50 yerel sayfa tercihidir, güvenli Instagram kotası değildir. Instagram formatı veya kabulü değişebilir. Eksik sayaç/liste sıfırla doldurulmaz; eksik sayfalama tam liste sayılmaz.
 
