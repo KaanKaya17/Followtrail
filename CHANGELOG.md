@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.1 — 2026-10-27 (kısa kontrol aralığı ve sistem tepsisi)
+
+- 1 ve 5 dakikalık kontrol seçenekleri eklendi; önceki tercihler, şifreli hesap ve geçmiş korundu. Her aralıkta tek profil kontrol edilir. Ayarlar, profil sayısını ve yaklaşık tam tur süresini açıklar.
+- X ile pencereyi kapatma sistem tepsisine gizler. Tepsi menüsünde pencereyi açma, otomatik kontrolü değiştirme ve Tamamen çık vardır. Programdan çıkış sürmekte olan işlemi iptal eder ve yerel worker'ı kapatır.
+- Arka plan sırası ana süreçte 5 saniyede bir, backend'in hesapladığı uygun zamana göre değerlendirilir. Görünmez pencere çalışmayı durdurmaz. Kaçırılan kontroller topluca gönderilmez; 15 saniyelik istek aralığı ve Instagram molası korunur.
+- 39 backend, 4 zamanlayıcı/tepsi ve 23 gerçek EXE kontrolü geçti. Canlı tek profil okuması 1,28 saniye; pencere gizliyken iki otomatik kontrol HTTP 200, istek başlangıç aralığı 60,11 saniye ölçüldü. Bunlar bu bağlantıdaki kısa ölçümlerdir; kalıcı hız veya uzun süreli bildirim teslimi garantisi değildir.
+
 ## Windows 0.2.0 — 2026-10-27 (gerçek işlevler ve şifreli yerel kayıt)
 
 - Windows arayüzü gerçek hesap bağlantısına bağlandı: parola/kod alanı, aynı doğrulama bağlamından devam, DPAPI oturumu ve eski Windows prototipindeki oturumu doğrulayarak kopyalama. Eski prototip dosyası değiştirilmez; açılış yalnız yerel gözlemleri gösterir.

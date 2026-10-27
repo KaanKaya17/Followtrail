@@ -351,6 +351,38 @@ class BackendTests(unittest.TestCase):
             e.automatic();e.automatic()
             refresh.assert_called_once_with({'id':'200'});scan.assert_not_called()
 
+    def test_one_and_five_minute_settings_survive_encrypted_reopen(self):
+        e=self.connected()
+        for interval in (1,5,15,30,60,180,360):
+            e.run('settings',{'interval':interval})
+            self.assertEqual(Engine(self.home.name).data['settings']['interval'],interval)
+        for invalid in (True,1.0,0,2,-1,'1'):
+            with self.subTest(interval=invalid),self.assertRaises(AppFailure):e.run('settings',{'interval':invalid})
+
+    def test_monitor_is_the_owner_of_due_time_and_cycle_estimate(self):
+        e=self.connected();e.settings({'automatic':True,'interval':1})
+        e.data['lastAutomatic']=1800000000
+        e.data['people']['200']={'id':'200','username':'qa.200','watching':True,'observedAt':100}
+        status=e.snapshot()['monitor']
+        self.assertEqual(status['nextAt'],1800000060)
+        self.assertEqual(status['profileCount'],2)
+        self.assertEqual(status['estimatedCycleSeconds'],120)
+        e.data['gate']['nextAt']=1800000100
+        self.assertEqual(e.monitor_status()['nextAt'],1800000100)
+        e.data['gate']['manualOnly']=True
+        self.assertTrue(e.monitor_status()['held'])
+        self.assertIsNone(e.monitor_status()['nextAt'])
+
+    def test_short_interval_does_not_run_early_or_replay_missed_ticks(self):
+        e=self.connected();e.settings({'automatic':True,'interval':1})
+        e.data['lastAutomatic']=1800000000
+        with patch.object(e,'refresh') as refresh:
+            e.clock=lambda:1800000059.9;e.automatic();refresh.assert_not_called()
+            e.clock=lambda:1800000060;e.automatic();refresh.assert_called_once()
+            e.clock=lambda:1800000600;e.automatic()
+            self.assertEqual(refresh.call_count,2)
+            e.automatic();self.assertEqual(refresh.call_count,2)
+
     def test_code_cancel_does_not_restart_login(self):
         e=self.engine;result=[]
         def wait():

@@ -7,3 +7,5 @@ $env:PYTHONPATH = Join-Path $InterfaceRoot '.cache/build-tools'
 if ($LASTEXITCODE -ne 0) { throw 'Worker build failed' }
 & $Python (Join-Path $PSScriptRoot 'collect_licenses.py')
 if ($LASTEXITCODE -ne 0) { throw 'Runtime notice collection failed' }
+& $Python (Join-Path $PSScriptRoot 'generate_tray_icon.py')
+if ($LASTEXITCODE -ne 0) { throw 'Tray icon generation failed' }

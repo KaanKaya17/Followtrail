@@ -17,6 +17,7 @@ from network import read_avatar
 
 MAX_MEMBERS = 20000
 MAX_PAGES = 400
+CONTROL_INTERVALS = (1, 5, 15, 30, 60, 180, 360)
 PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'followers', 'following', 'posts', 'picture')
 
 
@@ -77,8 +78,9 @@ class Engine:
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
                 'history': d['history'], 'lists': records, 'events': d['events'],
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': d['lastError'],
+                'monitor': self.monitor_status(),
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.0'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.1'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
@@ -383,16 +385,27 @@ class Engine:
                     raise AppFailure('input', 'Ayar değeri geçersiz.')
                 self.data['settings'][key] = args[key]
         if 'interval' in args:
-            if args['interval'] not in (15, 30, 60, 180, 360):
+            if type(args['interval']) is not int or args['interval'] not in CONTROL_INTERVALS:
                 raise AppFailure('input', 'Kontrol aralığı geçersiz.')
             self.data['settings']['interval'] = args['interval']
         self.save()
 
+    def monitor_status(self):
+        d = self.data
+        candidates = ([d['account']] if d['account'] else []) + [p for p in d['people'].values() if p.get('watching')]
+        interval = d['settings']['interval'] * 60
+        reason = ('disabled' if not d['settings']['automatic'] else 'session' if not d['session'] else
+                  'restricted' if d['gate'].get('manualOnly') else None)
+        return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason,
+                'profileCount': len(candidates), 'intervalSeconds': interval,
+                'estimatedCycleSeconds': interval * len(candidates),
+                'nextAt': None if reason else max(d['lastAutomatic'] + interval,
+                                                   d['gate'].get('blockedUntil', 0), d['gate'].get('nextAt', 0))}
+
     def automatic(self):
         now, d = self.clock(), self.data
-        if (not d['settings']['automatic'] or not d['session'] or d['gate'].get('manualOnly')
-                or max(d['gate'].get('blockedUntil', 0), d['gate'].get('nextAt', 0)) > now
-                or d['lastAutomatic'] + d['settings']['interval'] * 60 > now):
+        status = self.monitor_status()
+        if status['held'] or status['nextAt'] > now:
             return
         d['lastAutomatic'] = now
         self.save()
@@ -525,7 +538,7 @@ def validate_archive(d):
     for key in ('blockedUntil', 'nextAt', 'loginAfter', 'attempts', 'streak'):
         if key in d['gate'] and not timestamp(d['gate'][key]):
             raise ValueError('gate')
-    if d['settings'].get('interval') not in (15, 30, 60, 180, 360):
+    if type(d['settings'].get('interval')) is not int or d['settings']['interval'] not in CONTROL_INTERVALS:
         raise ValueError('settings')
     for key in ('automatic', 'notifications', 'compact'):
         if type(d['settings'].get(key)) is not bool:

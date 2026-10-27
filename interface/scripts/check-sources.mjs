@@ -11,6 +11,7 @@ for (const file of [
   "desktop/preload.cjs",
   "desktop/service.cjs",
   "desktop/notifications.cjs",
+  "desktop/background.cjs",
   "scripts/preview.mjs",
   "scripts/package-desktop.mjs",
   "scripts/package-functional-desktop.mjs",
