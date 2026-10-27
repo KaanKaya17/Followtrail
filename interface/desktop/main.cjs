@@ -22,6 +22,7 @@ const {
   TOAST_ID,
   ensureShortcut,
   showNotification,
+  changeNotification,
 } = require("./notifications.cjs");
 
 app.setName("InstagramTracker");
@@ -66,6 +67,7 @@ const allowed = new Set([
   "delete_all",
   "cancel",
   "code",
+  "check_access",
 ]);
 
 function senderValid(event) {
@@ -95,7 +97,14 @@ function validate(operation, args) {
     add_person: ["username"],
     save_person: ["id", "favorite", "watching", "group", "note"],
     remove_person: ["id"],
-    settings: ["compact", "notifications", "automatic", "interval"],
+    settings: [
+      "compact",
+      "notifications",
+      "automatic",
+      "interval",
+      "investigateMissing",
+    ],
+    check_access: ["id"],
     disconnect: [],
     delete_all: [],
     cancel: [],
@@ -317,14 +326,16 @@ else
         state.settings.notifications &&
         Notification.isSupported()
       ) {
+        const content = changeNotification(fresh);
         showNotification({
           Notification,
-          title: "InstagramTracker · Yeni gözlem",
-          body:
-            fresh.length === 1
-              ? fresh[0].title
-              : `${fresh.length} yeni değişiklik gözlendi.`,
-          onClick: showWindow,
+          title: content.title,
+          body: content.body,
+          onClick: () => {
+            showWindow();
+            if (content.accessId)
+              send({ type: "open_access", id: content.accessId });
+          },
           onFailure: () =>
             send({
               type: "notification_warning",

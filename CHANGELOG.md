@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.2 — 2026-10-27 (engellenme şüphesi ve erişim kanıtları)
+
+- Kişi ayrıntısına **Erişimi kontrol et**, kendi takipçi listesine **Engellenme şüphesi / Erişim kontrolleri**, zaman çizelgesine erişim filtresi eklendi. Aynı oturumdaki kendi profil sağlığı ve hedefin kayıtlı hesap kimliği okunur; kullanıcı adı araması/başka hesap/anonim tarama kullanılmaz.
+- İki tamamlanmış kendi takipçi kaydında eksilen kayıtlı kişi için erişilemeyen profil (HTTP 404) gözlenirse **Engellenme şüphesi** kaydı üretilir. Bu sonuç hesap kapanması/silinmesinden veya sizin uyguladığınız engelden kesin ayrıştırılamaz; kesin “engelledi” iddiası yoktur. Kullanıcı adı değişip aynı kimlik erişilebiliyorsa profil erişilebilir olarak gösterilir.
+- Ayarlar'da **Kaybolan kayıtlı takipçileri incele** isteğe bağlıdır. Otomatik kontrol de açıksa sayaç düşüşü sonrası mevcut tam başlangıç kaydı üzerinden takipçi taraması, ardından eksilen kayıtlı kişilere erişim incelemesi sıraya girer. Başlangıç kaydı yoksa kullanıcıya gösterilir; eksik liste/başarısız kontrol otomatik tekrar döngüsüne girmez. 429/oturum/doğrulama kuralları korunur.
+- Şüphe olayının önceki/sonraki liste ve HTTP/zaman kanıtları şifreli depoda korunur; geçmiş olaylar sonraki incelemelerle yeniden yorumlanmaz. Aynı kaybolma için tekrar uyarı üretilmez; listede yeniden görülüp tekrar kaybolursa yeni olay başlar. Windows bildirimleri açıksa şüphe başlığı öne çıkar, tıklama kanıt panelini açar.
+- 62 backend, 6 ana süreç/bildirim ve 25 gerçek paketlenmiş Windows kontrolü geçti. Canlı erişilebilir hedef ve kendi profil HTTP 200, toplam 15,66 saniye doğrulandı. Gerçek engellenmiş hesap/Windows bildirim teslimi bu sürümde canlı doğrulanmadı; hesap ilişkisi değiştirilmedi.
+
 ## Windows 0.2.1 — 2026-10-27 (kısa kontrol aralığı ve sistem tepsisi)
 
 - 1 ve 5 dakikalık kontrol seçenekleri eklendi; önceki tercihler, şifreli hesap ve geçmiş korundu. Her aralıkta tek profil kontrol edilir. Ayarlar, profil sayısını ve yaklaşık tam tur süresini açıklar.

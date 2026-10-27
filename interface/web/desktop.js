@@ -87,7 +87,7 @@
         .concat(record.draft || []))
         if (scan.members[id]) return scan.members[id];
     }
-    return null;
+    return data?.access?.find((c) => c.id === id) || null;
   }
   function avatar(p, large = false) {
     if (
@@ -207,6 +207,8 @@
       login: "Instagram hesabına bağlanılıyor…",
       profile: "Profil okunuyor…",
       avatar: "Profil fotoğrafı yükleniyor…",
+      access_health: "Oturum sağlığı kontrol ediliyor…",
+      access_target: "Kayıtlı hesap kimliğiyle erişim kontrol ediliyor…",
       request: "Instagram yanıtı bekleniyor…",
       waiting: "İstekler arasındaki yerel aralık bekleniyor…",
       list: "Liste sayfaları okunuyor…",
@@ -252,6 +254,7 @@
     return `<section class="chart-card card"><div class="section-heading"><div><h2>Takipçi geçmişi</h2><p>Yalnız kaydedilmiş gözlemler.</p></div>${controls}</div>${graph}<div class="chart-caption"><span>Noktalar arasındaki hareketler bilinmiyor.</span>${button("Kayıtları gör", "history", "clock", "secondary", idattr(p?.id || ""))}</div></section>`;
   }
   function eventTitle(e) {
+    if (e.topic === "access") return e.title;
     if (e.type === "profile")
       return `@${person(e.personId)?.username || e.personId} · ${labels[Object.keys(e.new || {})[0]] || "Profil değişikliği"}`;
     if (e.type === "list")
@@ -444,15 +447,85 @@
       <section class="list-coverage card"><strong>${current ? "Tamamlanan kayıt: " + num(Object.keys(current.members).length) + " hesap" : "Henüz tamamlanmış liste yok"}</strong><p>${current ? "Son tarama: " + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) + ". Sayfalama bitti ve kayıt sayısı profil sayısıyla uyuştu. Liste tarama sırasında değişebilir." : "Eksik ve yarım listeler karşılaştırmada kullanılmaz."}</p>${record.draft ? `<div class="notice warning"><strong>Kısmi kayıt · ${num(Object.keys(record.draft.members).length)} hesap</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? "Tarama sürüyor." : "Önceki tarama tamamlanmadı. Yeni tarama baştan başlar."} ${current ? "Üstteki tamamlanmış kayıt korundu." : "Görünen üyeler yalnız kısmi kapsamdadır."}</p></div>` : ""}</section>
       <div class="comparison-controls card"><label>Önceki gözlem<select id="previous-scan" ${scans.length < 2 ? "disabled" : ""}>${scanOptions(previous)}</select></label><label>Sonraki gözlem<select id="current-scan" ${!scans.length ? "disabled" : ""}>${scanOptions(current)}</select></label>${button(ui.comparison ? "Listeye dön" : "Farkları göster", "compare", "compare", "secondary", !ready ? "disabled" : "")}</div>
       ${ui.comparison && ready ? `<div class="compare-summary"><div class="compare-stat mint"><strong>${num(added)}</strong><span>Yeni görülen</span></div><div class="compare-stat peach"><strong>${num(removed)}</strong><span>Son kayıtta olmayan</span></div><p>“Son kayıtta yok” tek başına takipten çıkış veya engelleme kanıtı değildir.</p></div>` : ""}
-      <div class="toolbar"><label class="inline-label">İlişki filtresi<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>Tümü</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>İki listede de var</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>Diğer listede yok</option></select></label><span class="toolbar-note">İlişki filtresi iki yönün de tamamlanmış son kaydını gerektirir; kayıt zamanları farklı olabilir.</span></div><div class="results-line"><span id="list-result-count">${listEntries().length} hesap · En fazla ${ui.pageSize} satır gösteriliyor</span></div><div class="list-table card" id="list-rows">${listRows()}</div><div id="list-pagination">${listPagination()}</div>`;
+      <div class="toolbar"><label class="inline-label">İlişki filtresi<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>Tümü</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>İki listede de var</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>Diğer listede yok</option></select></label><span class="toolbar-note">İlişki filtresi iki yönün de tamamlanmış son kaydını gerektirir; kayıt zamanları farklı olabilir.</span></div><div class="results-line"><span id="list-result-count">${listEntries().length} hesap · En fazla ${ui.pageSize} satır gösteriliyor</span></div><div class="list-table card" id="list-rows">${listRows()}</div><div id="list-pagination">${listPagination()}</div>${accessOverview()}`;
+  }
+  function accessLabel(c) {
+    const last = c.checks.at(-1);
+    return (
+      {
+        pending: "İnceleme sırasında",
+        checking: "Kontrol ediliyor",
+        suspected: "Engellenme şüphesi",
+        accessible: last?.usernameChanged
+          ? "Kullanıcı adı değişmiş; profil erişilebilir"
+          : "Profil erişilebilir",
+        unavailable: "Profile erişilemiyor; nedeni belirlenemedi",
+        you_blocked: "Bu hesaba sizin engel uyguladığınız görünüyor",
+        unknown: "Sonuç belirsiz",
+        present: "Son takipçi kaydında yeniden görüldü",
+      }[c.status] || "Henüz kontrol edilmedi"
+    );
+  }
+  function accessPanel(id, assessment = null) {
+    const latest = data.access?.find((c) => c.id === id);
+    const c = assessment
+      ? {
+          ...latest,
+          id,
+          checks: [assessment],
+          status: assessment.status,
+          absence: assessment.absence || null,
+        }
+      : latest;
+    if (!c)
+      return '<p class="field-hint">Henüz erişim kontrolü kaydı yok. Kontrol, kendi oturumunun sağlığını ve kayıtlı hesap kimliğini aynı oturumda inceler.</p>';
+    const last = c.checks.at(-1),
+      absence = c.absence;
+    const reasons = {
+      connection: "Bağlantı veya zaman aşımı sorunu",
+      access_denied: "Erişim izni alınamadı",
+      server_error: "Sunucu hatası",
+      invalid_response: "Yanıt doğrulanamadı",
+      identity: "Hedef hesap kimliği uyuşmadı",
+      limited: "Instagram molası",
+      verification: "Instagram doğrulaması gerekli",
+      session: "Oturum kabul edilmedi",
+      cancelled: "Kontrol iptal edildi",
+      interrupted: "Önceki kontrol yarıda kaldı",
+      access_unknown: "Oturum sağlığı doğrulanamadı",
+    };
+    return `<section class="access-evidence"><h3>${esc(accessLabel(c))}</h3><p>Son değerlendirme: ${esc(date(last?.checkedAt))}</p><div class="detail-pair"><span>Önceki takipçi kaydında vardı</span><strong>${absence ? esc(date(absence.previousAt)) : "Karşılaştırılabilir kanıt yok"}</strong></div><div class="detail-pair"><span>Son tam takipçi kaydında yok</span><strong>${absence ? esc(date(absence.currentAt)) : "Doğrulanmadı"}</strong></div><div class="detail-pair"><span>Oturum sağlığı HTTP</span><strong>${last?.ownHTTP || "Bilinmiyor"}</strong></div><div class="detail-pair"><span>Hedef profil HTTP</span><strong>${last?.targetHTTP || "Bilinmiyor"}</strong></div>${last?.username ? `<p>Kontrolde görülen kullanıcı adı: <strong>@${esc(last.username)}</strong></p>` : ""}${reasons[last?.reason] ? `<p>${esc(reasons[last.reason])}. Bu sonuç engellenme sayılmaz.</p>` : ""}<p class="dialog-note">Bu kayıt kesin engelleme kanıtı değildir. Hesabın kapanması/silinmesi veya sizin uyguladığınız bir engel de erişimi etkileyebilir. Kontrol zamanı, olası engellemenin gerçekleştiği zaman değildir.</p></section>`;
+  }
+  function accessOverview() {
+    if (
+      (ui.owner || data.account?.id) !== data.account?.id ||
+      ui.direction !== "followers"
+    )
+      return "";
+    const cases = data.access || [],
+      plan = data.accessPlan || {};
+    const message = {
+      pending: "Takipçi sayısındaki düşüş sonrası tam liste taraması sırada.",
+      baseline_needed:
+        "Kişi belirlemek için önce tamamlanmış bir başlangıç takipçi listesi gerekiyor.",
+      needs_manual_scan:
+        "Önceki liste incelemesi tamamlanmadı. Listeyi tara ile yeniden başlatabilirsin.",
+    }[plan.status];
+    return `<section class="access-review card"><div class="section-heading"><div><h2>Engellenme şüphesi / Erişim kontrolleri</h2><p>Yalnız kayıtlara dayalı olasılık; kesin engelleme listesi değildir.</p></div>${button("Erişim geçmişi", "access-history", "shield")}</div>${message ? `<div class="notice warning">${esc(message)}</div>` : ""}<p>Otomatik inceleme: ${data.settings.investigateMissing ? "Açık" : "Kapalı · Ayarlar’dan açabilirsin"}. Tam liste karşılaştırmasında eksilen kayıtlı kişiler, kendi oturumunun sağlığı doğrulandıktan sonra hesap kimliğiyle incelenir.</p><div class="access-case-list">${cases.map((c) => `<div class="access-case"><div><strong>@${esc(c.username)}</strong><p>${esc(accessLabel(c))}</p><small>${esc(date(c.checks.at(-1)?.checkedAt || c.detectedAt))}</small></div>${button("Kanıtları gör", "person", "info", "secondary", idattr(c.id))}${button("Erişimi kontrol et", "check-access", "shield", "secondary", `${idattr(c.id)} ${netDisabled()}`)}</div>`).join("") || '<p class="field-hint">Henüz inceleme kaydı yok. İlk liste kaydı başlangıçtır; tek başına takipçi sayısının azalması engellenme sayılmaz.</p>'}</div><p class="field-hint">İnceleme kendi oturumunu ve hedefi ayrı isteklerle kontrol eder; aralarında en az 15 saniye vardır. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.</p></section>`;
   }
   function timeline() {
     const events = data.events.filter(
-      (e) => ui.eventType === "all" || e.type === ui.eventType,
+      (e) =>
+        ui.eventType === "all" ||
+        (ui.eventType === "access"
+          ? e.topic === "access"
+          : e.type === ui.eventType &&
+            (ui.eventType !== "profile" || e.topic !== "access")),
     );
     return `${title("GÖZLEM GEÇMİŞİ", "Neyin ne zaman kontrol edildiğini gör.", "Bunlar kayıt zamanlarıdır; değişikliğin Instagram’da gerçekleştiği kesin zaman bilinmez.")}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="Olay filtresi">${[
       ["all", "Tümü"],
       ["profile", "Profil farkları"],
+      ["access", "Erişim kontrolleri"],
       ["list", "Listeler"],
       ["check", "Kontroller"],
       ["error", "Hatalar"],
@@ -478,10 +551,10 @@
         : monitor.reason === "restricted"
           ? "Otomatik kontrol duraklatıldı; önce elle başarılı profil kontrolü gerekli."
           : `Sonraki kontrol için en erken: ${date(monitor.nextAt)}.`;
-    return `<div class="notice monitor-summary"><strong>${esc(status)}</strong><p>Her ${num(monitor.intervalSeconds / 60)} dakikada tek profil kontrol edilir. Şu an ${num(monitor.profileCount)} profil sırada; tam tur yaklaşık ${num(monitor.estimatedCycleSeconds / 60)} dakika + istek süreleri. Sıra yaklaşık 5 saniyede bir değerlendirilir; devam eden işlem, internet ve mola beklemesi süreyi uzatabilir.</p><p>Profil sayıları ve metin değişiklikleri kontrol edilir. Takipçi/takip edilen listesinin tamamı ayrı elle taranır.</p></div>`;
+    return `<div class="notice monitor-summary"><strong>${esc(status)}</strong><p>Her ${num(monitor.intervalSeconds / 60)} dakikada sıradaki bir işlem başlatılır. Şu an ${num(monitor.profileCount)} profil sırada; tam tur yaklaşık ${num(monitor.estimatedCycleSeconds / 60)} dakika + istek süreleri. Sıra yaklaşık 5 saniyede bir değerlendirilir; devam eden işlem, internet ve mola beklemesi süreyi uzatabilir.</p><p>Normal profil sırasına ek olarak ${num(monitor.accessPending || 0)} erişim incelemesi bekliyor. ${monitor.followerScanPending ? "Takipçi listesi incelemesi de sırada. " : ""}Kaybolan takipçi incelemesi açıksa liste/erişim işleri sıraya girer; diğer tam liste taramaları elle başlatılır.</p></div>`;
   }
   function settings() {
-    return `${title("SANA GÖRE", "Küçük ayarlar, daha rahat bir deneyim.", "Görünümü, bildirimleri ve yerel kayıtlarını yönet.")}<div class="settings-layout"><div><section class="settings-section card"><h2>Görünüm ve gözlem</h2><p>Pencereyi X ile kapatınca Tracker sistem tepsisinde çalışmaya devam eder. Tamamen kapatmak için tepsi simgesine sağ tıkla → Tamamen çık.</p>${toggle("Kompakt görünüm", "Kart ve satır aralıklarını daralt.", "compact")}${toggle("Windows bildirimleri", "Yeni gözlem farkları için Windows bildirimi göster.", "notifications")}${toggle("Otomatik profil kontrolü", "Pencere kapalıyken sistem tepsisinde de çalışır; kendi hesabın ve izlediğin profiller sırayla kontrol edilir. Liste taraması başlatılmaz.", "automatic")}<div class="setting-row"><div><strong>Kontrol aralığı</strong><p>Her aralıkta en eski gözlemli bir profil okunur. Sınırlama ve doğrulama sonrası otomatik kontrol durur.</p></div><select id="auto-interval" aria-label="Kontrol aralığı" ${busy ? "disabled" : ""}>${[1, 5, 15, 30, 60, 180, 360].map((v) => `<option value="${v}" ${data.settings.interval === v ? "selected" : ""}>${v} dakika</option>`).join("")}</select></div>${monitorSummary()}</section><section class="settings-section card"><h2>Hesap ve istekler</h2><div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : "Hesap bağlı değil"}</strong><p>${data.connected ? "Yerel oturum kayıtlı." : "Giriş için hesap bağlantısını aç."}</p></div>${button("Hesap bağlantısı", "account", "link")}</div><div class="setting-row"><div><strong>İstek bilgileri</strong><p>Son HTTP durumu, giriş aralığı ve yerel mola.</p></div>${button("İncele", "requests", "info")}</div>${data.connected ? button("Bağlantıyı kaldır", "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section><section class="settings-section card"><h2>Yerel veriler</h2><p>Yedekler oturum içermez ve aynı Windows kullanıcısında açılır. CSV dışa aktarımları şifresizdir; dosyayı paylaşmak senin kontrolündedir.</p><div class="settings-buttons">${button("Şifreli yedek al", "export-backup", "lock")}${button("Yedekten yükle", "import-backup", "note")}${button("Kayıt klasörünü aç", "open-storage", "laptop")}${button("Yerel verileri sil", "delete-all", "close")}</div></section></div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">YEREL GİZLİLİK</span><h2>Verilerin bilgisayarında.</h2><p>Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.</p><p>Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.</p><p>InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.</p><div class="privacy-panel-foot">${icon("lock")} Windows masaüstü · ${esc(data.version)}</div></aside></div>`;
+    return `${title("SANA GÖRE", "Küçük ayarlar, daha rahat bir deneyim.", "Görünümü, bildirimleri ve yerel kayıtlarını yönet.")}<div class="settings-layout"><div><section class="settings-section card"><h2>Görünüm ve gözlem</h2><p>Pencereyi X ile kapatınca Tracker sistem tepsisinde çalışmaya devam eder. Tamamen kapatmak için tepsi simgesine sağ tıkla → Tamamen çık.</p>${toggle("Kompakt görünüm", "Kart ve satır aralıklarını daralt.", "compact")}${toggle("Windows bildirimleri", "Yeni gözlem farkları için Windows bildirimi göster.", "notifications")}${toggle("Kaybolan kayıtlı takipçileri incele", "Takipçi sayısı düşünce tamamlanmış başlangıç kaydı üzerinden liste taraması ve eksilen kayıtlı kişiler için erişim kontrolü sıraya alınır. Ek istekler ve bekleme gerektirir; sonuç yalnız engellenme şüphesidir.", "investigateMissing")}${toggle("Otomatik profil kontrolü", "Pencere kapalıyken sistem tepsisinde de çalışır; kendi hesabın ve izlediğin profiller sırayla kontrol edilir. Liste taraması başlatılmaz.", "automatic")}<div class="setting-row"><div><strong>Kontrol aralığı</strong><p>Her aralıkta en eski gözlemli bir profil okunur. Sınırlama ve doğrulama sonrası otomatik kontrol durur.</p></div><select id="auto-interval" aria-label="Kontrol aralığı" ${busy ? "disabled" : ""}>${[1, 5, 15, 30, 60, 180, 360].map((v) => `<option value="${v}" ${data.settings.interval === v ? "selected" : ""}>${v} dakika</option>`).join("")}</select></div>${monitorSummary()}</section><section class="settings-section card"><h2>Hesap ve istekler</h2><div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : "Hesap bağlı değil"}</strong><p>${data.connected ? "Yerel oturum kayıtlı." : "Giriş için hesap bağlantısını aç."}</p></div>${button("Hesap bağlantısı", "account", "link")}</div><div class="setting-row"><div><strong>İstek bilgileri</strong><p>Son HTTP durumu, giriş aralığı ve yerel mola.</p></div>${button("İncele", "requests", "info")}</div>${data.connected ? button("Bağlantıyı kaldır", "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section><section class="settings-section card"><h2>Yerel veriler</h2><p>Yedekler oturum içermez ve aynı Windows kullanıcısında açılır. CSV dışa aktarımları şifresizdir; dosyayı paylaşmak senin kontrolündedir.</p><div class="settings-buttons">${button("Şifreli yedek al", "export-backup", "lock")}${button("Yedekten yükle", "import-backup", "note")}${button("Kayıt klasörünü aç", "open-storage", "laptop")}${button("Yerel verileri sil", "delete-all", "close")}</div></section></div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">YEREL GİZLİLİK</span><h2>Verilerin bilgisayarında.</h2><p>Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.</p><p>Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.</p><p>InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.</p><div class="privacy-panel-foot">${icon("lock")} Windows masaüstü · ${esc(data.version)}</div></aside></div>`;
   }
   function render() {
     if (!data) {
@@ -515,7 +588,7 @@
     const own = p.id === data.account?.id,
       saved = data.people.find((x) => x.id === id) || p;
     dialog(
-      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${p.observedAt ? "Profil gözlemi" : "Liste üyesi · profil okunmadı"}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio ?? "Biyografi henüz okunmadı.")}</p><div class="drawer-counts"><div><strong>${num(p.followers)}</strong><span>takipçi</span></div><div><strong>${num(p.following)}</strong><span>takip edilen</span></div></div><div class="drawer-actions">${button("Profili kontrol et", "refresh-person", "refresh", "primary", `${idattr(id)} ${netDisabled()}`)}${button("Geçmiş", "history", "clock", "secondary", idattr(id))}</div><section class="drawer-section"><h3>Son kontrol</h3><div class="detail-pair"><span>Gözlem zamanı</span><strong>${esc(date(p.observedAt))}</strong></div><div class="detail-pair"><span>Gizlilik</span><strong>${p.private === true ? "Gizli" : p.private === false ? "Açık" : "Bilinmiyor"}</strong></div><div class="detail-pair"><span>Gönderi</span><strong>${num(p.posts)}</strong></div><div class="detail-pair"><span>Profil bağlantısı</span><span>${esc(p.url || "Gözlem yok")}</span></div></section>${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite ? "Favoriden çıkar" : "Favorilere ekle", "drawer-star", "star", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${button(saved.watching ? "İzlemeyi kapat" : "İzlemeye al", "watch", "bell", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}</div><p class="field-hint">İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.</p><label class="form-label" for="person-group">Grup</label><input id="person-group" maxlength="80" value="${esc(saved.group || "")}" placeholder="Örn. Arkadaşlar"><label class="form-label" for="person-note">Sana özel not</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="Bu kişiyle ilgili bir not…">${esc(saved.note || "")}</textarea><p class="field-hint">Not ve grup şifreli yerel depoya kaydedilir.</p>${button("Notu ve grubu kaydet", "save-note", "check", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${data.people.some((x) => x.id === id) ? button("Kişilerden kaldır", "remove-person", "close", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`) : ""}</section>` : ""}`,
+      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${p.observedAt ? "Profil gözlemi" : "Liste üyesi · profil okunmadı"}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio ?? "Biyografi henüz okunmadı.")}</p><div class="drawer-counts"><div><strong>${num(p.followers)}</strong><span>takipçi</span></div><div><strong>${num(p.following)}</strong><span>takip edilen</span></div></div><div class="drawer-actions">${button("Profili kontrol et", "refresh-person", "refresh", "primary", `${idattr(id)} ${netDisabled()}`)}${button("Geçmiş", "history", "clock", "secondary", idattr(id))}${!own ? button("Erişimi kontrol et", "check-access", "shield", "secondary", `${idattr(id)} ${netDisabled()}`) : ""}</div>${!own ? accessPanel(id) : ""}<section class="drawer-section"><h3>Son kontrol</h3><div class="detail-pair"><span>Gözlem zamanı</span><strong>${esc(date(p.observedAt))}</strong></div><div class="detail-pair"><span>Gizlilik</span><strong>${p.private === true ? "Gizli" : p.private === false ? "Açık" : "Bilinmiyor"}</strong></div><div class="detail-pair"><span>Gönderi</span><strong>${num(p.posts)}</strong></div><div class="detail-pair"><span>Profil bağlantısı</span><span>${esc(p.url || "Gözlem yok")}</span></div></section>${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite ? "Favoriden çıkar" : "Favorilere ekle", "drawer-star", "star", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${button(saved.watching ? "İzlemeyi kapat" : "İzlemeye al", "watch", "bell", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}</div><p class="field-hint">İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.</p><label class="form-label" for="person-group">Grup</label><input id="person-group" maxlength="80" value="${esc(saved.group || "")}" placeholder="Örn. Arkadaşlar"><label class="form-label" for="person-note">Sana özel not</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="Bu kişiyle ilgili bir not…">${esc(saved.note || "")}</textarea><p class="field-hint">Not ve grup şifreli yerel depoya kaydedilir.</p>${button("Notu ve grubu kaydet", "save-note", "check", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${data.people.some((x) => x.id === id) ? button("Kişilerden kaldır", "remove-person", "close", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`) : ""}</section>` : ""}`,
       false,
       true,
     );
@@ -556,6 +629,13 @@
   function eventDialog(id) {
     const e = data.events.find((e) => e.id === id);
     if (!e) return;
+    if (e.topic === "access") {
+      dialog(
+        `<span class="dialog-symbol peach">${icon("shield")}</span><span class="eyebrow">${esc(date(e.at))}</span><h2 id="dialog-title">${esc(e.title)}</h2><p>Bu geçmiş olayının değerlendirmesi: ${esc(e.new?.status === "suspected" ? "Engellenme şüphesi" : "Erişim gözlemi")}.</p>${accessPanel(e.personId, e.new)}`,
+        true,
+      );
+      return;
+    }
     dialog(
       `<span class="dialog-symbol lavender">${icon("clock")}</span><span class="eyebrow">${esc(date(e.at))}</span><h2 id="dialog-title">${esc(eventTitle(e))}</h2><div class="change-values"><div><span>Önceki gözlem</span><strong>${esc(valueText(e.old))}</strong></div><div><span>Sonraki gözlem</span><strong>${esc(valueText(e.new))}</strong></div></div><p class="dialog-note">Bu zaman kontrolün kaydedildiği andır. Liste farkı tek başına takipten çıkış veya engelleme kanıtı değildir.</p>`,
     );
@@ -680,6 +760,20 @@
       case "person":
         personDialog(id);
         break;
+      case "access-history":
+        ui.eventType = "access";
+        navigate("timeline");
+        break;
+      case "check-access": {
+        closeDialog();
+        const result = await command(
+          "check_access",
+          { id },
+          "Erişim değerlendirmesi kaydedildi.",
+        );
+        if (result?.ok) personDialog(id);
+        break;
+      }
       case "star":
       case "drawer-star": {
         const p = data.people.find((p) => p.id === id);
@@ -895,6 +989,10 @@
     return;
   }
   api.subscribe((event) => {
+    if (event.type === "open_access") {
+      personDialog(event.id);
+      return;
+    }
     if (event.type === "notification_warning" || event.notificationWarning)
       toast(event.message || event.notificationWarning);
     if (event.state) data = event.state;

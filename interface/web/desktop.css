@@ -235,6 +235,42 @@ select {
   background: var(--violet-soft, #efe9ff);
   margin-top: 20px;
 }
+.access-review {
+  padding: 24px;
+  margin-top: 24px;
+}
+.access-review > p {
+  margin: 12px 0;
+}
+.access-case {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.access-case > div {
+  flex: 1;
+  min-width: 0;
+}
+.access-case p {
+  overflow-wrap: anywhere;
+}
+.access-case small {
+  color: var(--muted);
+}
+.access-evidence {
+  margin: 22px 0;
+  padding: 18px;
+  background: var(--violet-soft);
+  border-radius: 18px;
+}
+.access-evidence > p {
+  margin: 10px 0;
+}
+.access-evidence .dialog-note {
+  background: var(--surface);
+}
 .avatar {
   overflow: hidden;
 }

@@ -3,6 +3,25 @@ const fs = require("node:fs");
 const APP_ID = "dev.kaankaya.instagramtracker.desktop";
 const TOAST_ID = "{D3085DD3-667D-4514-BD5F-1C8C0C8A5927}";
 
+function changeNotification(fresh) {
+  const access = fresh.filter(
+    (event) => event.topic === "access" && event.new?.status === "suspected",
+  );
+  const selected = access.length ? access : fresh;
+  return {
+    title: access.length
+      ? "InstagramTracker · Engellenme şüphesi"
+      : "InstagramTracker · Yeni gözlem",
+    body:
+      selected.length === 1
+        ? selected[0].title
+        : access.length
+          ? `${access.length} kayıtlı hesap için engellenme şüphesi. Hesaplar kapanmış da olabilir; kanıtları incele.`
+          : `${fresh.length} yeni değişiklik gözlendi.`,
+    accessId: access.length === 1 ? access[0].personId : null,
+  };
+}
+
 function ensureShortcut({ app, shell, testHome, dataDir }) {
   const shortcut = testHome
     ? path.join(testHome, "shortcuts", "InstagramTracker Desktop.lnk")
@@ -61,4 +80,10 @@ function showNotification({ Notification, title, body, onClick, onFailure }) {
     onFailure();
   }
 }
-module.exports = { APP_ID, TOAST_ID, ensureShortcut, showNotification };
+module.exports = {
+  APP_ID,
+  TOAST_ID,
+  ensureShortcut,
+  showNotification,
+  changeNotification,
+};
