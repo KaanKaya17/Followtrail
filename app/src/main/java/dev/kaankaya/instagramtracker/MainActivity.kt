@@ -1276,10 +1276,9 @@ class MainActivity : LocalizedActivity() {
                     if (web !== view) return@post
                     try {
                         gate.limited(retry, reason = "HTTP 429 / Instagram giriş sayfası")
-                        message = pauseMessage() ?: ApiFailure(ApiFailure.Kind.LIMITED).userMessage(this@MainActivity)
+                        webLoginFailed(ApiFailure(ApiFailure.Kind.LIMITED), 429)
                     }
-                    catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity) }
-                    leaveLogin()
+                    catch (_: Exception) { webLoginFailed(ApiFailure(ApiFailure.Kind.STORAGE), 429) }
                 }
             }
             override fun onPageFinished(view: WebView, url: String) {
@@ -1322,6 +1321,7 @@ class MainActivity : LocalizedActivity() {
         loginStatus?.setText(R.string.connection_checking)
         val ticket = ++generation
         val expected = account?.session
+        val attemptsBefore = gate.attempts()
         val attempt = WebLoginMode.attempt(this, gate, webFixture)
         webAttempt = attempt
         worker.execute {
@@ -1339,12 +1339,27 @@ class MainActivity : LocalizedActivity() {
                         message = null
                         needsConnection = false; syncMonitoring(); leaveLogin()
                     } catch (_: Exception) { loginStatus?.text = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity) }
-                }.onFailure { loginStatus?.text = pauseMessage() ?: (it as ApiFailure).userMessage(this@MainActivity) }
+                }.onFailure {
+                    val status = gate.lastHttpStatus().takeIf { gate.attempts() > attemptsBefore }
+                    webLoginFailed(it as ApiFailure, status)
+                }
                 completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
                 completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 scheduleGateWake()
             }
         }
+    }
+
+    private fun webLoginFailed(failure: ApiFailure, status: Int?) {
+        val details = listOfNotNull(failure.userMessage(this),
+            status?.let { getString(R.string.ui_last_http_response, it.toString()) },
+            if (failure.kind in setOf(ApiFailure.Kind.LIMITED, ApiFailure.Kind.TOO_SOON)) pauseMessage() else null,
+            getString(R.string.web_connection_failed_scope)).joinToString("\n\n")
+        message = getString(R.string.web_connection_failed) + "\n\n" + details
+        leaveLogin()
+        AlertDialog.Builder(this).setTitle(R.string.web_connection_failed).setMessage(details)
+            .setNeutralButton(R.string.ui_request_information) { _, _ -> requestInfo() }
+            .setPositiveButton(R.string.ui_close, null).show()
     }
 
     private fun leaveLogin() {

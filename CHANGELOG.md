@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## 0.1.28 — 2026-10-27 (görünür web doğrulama sonucu)
+
+- Başarısız web doğrulaması giriş sayfasını kapatır; hata nedeni, bu denemenin varsa HTTP durumu ve geçerli mola açık bir sonuç penceresinde gösterilir. İstek bilgileri doğrudan açılabilir; yeniden deneme otomatik başlatılmaz.
+- Süresi dolmuş eski mola yeni doğrulama/ağ hatasını örtmez. İstek protokolü, oturum şifrelemesi ve mola süreleri değişmez. 0.1.27'nin fiziksel telefon denemesinde HTTP 429 gözlendi; bu arayüz düzeltmesi sunucu sınırlamasını çözdüğü iddiası taşımaz.
+
 ## 0.1.27 — 2026-10-27 (cihazda web bağlantısı)
 
 - Önerilen Instagram ile bağlan yolu, Instagram'ın kendi web girişini kullanır. Uygulama web parola alanını okumaz; çerez ve claim cihazda Keystore/AES-GCM ile ayrı iki bankada saklanır. Hesap doğrulanmadan kaydedilmez; başarısız/iptal bağlantı önceki hesabı korur.

@@ -40,3 +40,5 @@ Bu uçlar resmî Graph API garantisi değildir. 50 yerel sayfa tercihidir, güve
 5. İlk 429/doğrulama hatasında dur. Başka uç/hesap/IP denemesi veya kısıtlama temizliği yapma. Parola/kod/çerez paylaşmadan yalnız görünen hata ve İstek bilgileri durumunu bildir.
 
 Yerel testler gerçek Keystore, WebView çerez aktarımı, staging, iptal, yönlendirme, kapasite ve kısıtlama sınırlarını sentetik yanıtlarla sınar. Bunlar canlı Instagram başarısının yerine geçmez. Gerçek testin ve APK'nın kapsamı `VALIDATION.md` içinde ayrıca kaydedilir.
+
+0.1.28'den itibaren başarısız web doğrulaması tarayıcıyı kapatır ve hata/varsa o denemenin HTTP durumu ile sonuç penceresi gösterir. Mola yalnız kısıtlama/erken deneme sonucuna eklenir; eski mola başka hata nedenini gizlemez. İstek bilgileri düğmesi ağ isteği başlatmaz.

@@ -3,4 +3,6 @@
     <string name="web_connection_instruction">Complete sign-in and any verification on the Instagram page. Then tap Verify account.</string>
     <string name="web_connection_privacy">The app does not read your password. Your session is encrypted on this device; account data is sent only to Instagram.</string>
     <string name="web_connection_verify">Verify account</string>
+    <string name="web_connection_failed">Account verification failed</string>
+    <string name="web_connection_failed_scope">This attempt did not complete the account connection. The sign-in screen was closed; there will be no automatic retry.</string>
 </resources>
