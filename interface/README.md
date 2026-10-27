@@ -1,12 +1,14 @@
 # Tracker — ortak web ve masaüstü arayüzü
 
+**Güncel Windows uygulaması 0.2.0:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.0/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
+
 Bu aşama, gerçek Instagram işlevlerinden önce hazırlanan **etkileşimli arayüz önizlemesidir**. Bütün hesaplar, sayılar, kayıtlar ve bildirimler örnektir. Mevcut InstagramCounter/Android oturumu okunmaz; kullanıcı adı/parola istenmez. Tarayıcı istekleri CSP ile yerel varlıklara sınırlandırılır; veri bağlantıları kapalıdır.
 
 ## Açma
 
 - Web: `start-web.cmd` veya `npm run preview`, ardından `http://127.0.0.1:4173`. Yalnız loopback üzerinde çalışır. Durdurmak için terminalde Ctrl+C.
 - Masaüstü: hazırlanmış `../artifacts/Tracker-Desktop-UI/InstagramTracker.exe`. Yanındaki dosyalar aynı klasörde kalmalı. Bu bir taşınabilir önizlemedir; sistem kurulumu veya kod imzası iddiası taşımaz.
-- Kaynaktan masaüstü: `npm ci`, `node node_modules/electron/install.js`, `npm run desktop`. Electron **45.0.0** proje içinde sabittir; sistem Node/Electron kurulumu güncellenmez. Bu sürümün paketinde indirme otomatik postinstall olarak çalışmadığından binary adımı açıktır.
+- Kaynaktan tasarım önizlemesi: `npm ci`, `node node_modules/electron/install.js`, `npm run desktop:preview`. Electron **45.0.0** proje içinde sabittir; sistem Node/Electron kurulumu güncellenmez. Bu sürümün paketinde indirme otomatik postinstall olarak çalışmadığından binary adımı açıktır.
 
 ## Tasarım ve kapsam
 
@@ -22,4 +24,4 @@ Masaüstü aynı web dosyalarını yerel Electron penceresinde açar. Renderer'd
 
 `npm run package:desktop` taşınabilir klasörü ilk kez oluşturur. Önizlemenin web/main dosyaları değişirse `npm run package:desktop -- --refresh` önce eski uygulama varlıklarını zaman damgalı artifacts yedeğine kopyalar, ardından yalnız kimliği doğrulanan önizleme paketinin kendi uygulama varlıklarını günceller; mevcut klasör körlemesine silinmez. Bir Electron yükseltmesi için yeni runtime ile ayrı paket hazırlanmalıdır.
 
-Gerçek hesap girişi, veri okuma, şifreli kayıt ve otomasyon sonraki işlev aşamasındadır. Bu arayüzün açılması Instagram erişiminin çalıştığını kanıtlamaz.
+Bu örnek verili önizlemenin açılması Instagram erişiminin çalıştığını kanıtlamaz. Gerçek işlevler ayrı Windows 0.2.0 paketindedir; tarayıcı önizlemesine hesap bağlantısı eklenmedi.

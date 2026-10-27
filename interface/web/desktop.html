@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta
+      name="description"
+      content="InstagramTracker — cihazında şifreli saklanan hesap gözlemleri."
+    />
+    <title>InstagramTracker</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./theme.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./desktop.css" />
+    <script src="./icons.js" defer></script>
+    <script src="./desktop.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">İçeriğe geç</a>
+    <div id="app"><p>Yerel kayıtlar açılıyor…</p></div>
+    <div id="operation-root" role="status" aria-live="polite"></div>
+    <div id="overlay-root"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
