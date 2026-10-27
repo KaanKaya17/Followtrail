@@ -7,6 +7,7 @@ from io import BytesIO
 from PIL import Image
 from engine import Engine
 from network import parse_profile
+import access_checks
 
 
 def main():
@@ -44,6 +45,15 @@ def main():
             'draft':{'id':'unfinished','ownerId':'100','direction':'followers','members':{'204':members['204']},
                 'startedAt':now,'finishedAt':now,'complete':False,'status':'running','pages':1,'expected':3}}
         e.data['lists']['100:following']={'snapshots':[dict(scan('following',['201','204'],now),direction='following')]}
+        case=access_checks.ensure_case(e.data,e.data['people']['200'],now)
+        case.update(absence=access_checks.absence_evidence(e.data,'200'),alertRecorded=True)
+        case['checks']=[{'status':'suspected','reason':'missing_and_unavailable','ownHTTP':200,
+                         'targetHTTP':404,'checkedAt':now,'ownCheckedAt':now-15,'absence':dict(case['absence'])}]
+        e.event('profile','Engellenme şüphesi · @qa.deniz: Tam takipçi kaydında yok ve profiline erişilemiyor. Hesap kapanmış da olabilir.',
+                '200',None,case['checks'][-1],topic='access')
+        renamed=access_checks.ensure_case(e.data,e.data['people']['201'],now)
+        renamed['checks']=[{'status':'accessible','reason':'profile_visible','ownHTTP':200,'targetHTTP':200,
+                            'checkedAt':now,'username':'qa.ada.renamed','usernameChanged':True}]
         large={str(i):{'id':str(i),'username':'qa.'+str(i),'name':'QA '+str(i)} for i in range(301,451)}
         e.data['lists']['300:followers']={'snapshots':[{'id':'large','ownerId':'300','direction':'followers',
             'startedAt':now-30,'finishedAt':now,'complete':True,'status':'complete','pages':3,'expected':150,'members':large}]}

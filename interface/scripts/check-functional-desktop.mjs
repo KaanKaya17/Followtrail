@@ -466,6 +466,119 @@ try {
     await page.getByRole("button", { name: "Kapat", exact: true }).click();
   });
   await check(
+    "Access review shows suspicion and concrete evidence without a definitive blocking claim",
+    async () => {
+      await page.locator('.sidebar nav a[href="#lists"]').click();
+      await page.locator("#list-owner").selectOption("100");
+      await page
+        .getByRole("button", { name: "Takipçiler", exact: true })
+        .click();
+      const review = page.locator(".access-review");
+      assert.equal(
+        await review
+          .getByText("Engellenme şüphesi", { exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(
+        await review
+          .getByText("Kullanıcı adı değişmiş; profil erişilebilir", {
+            exact: true,
+          })
+          .isVisible(),
+        true,
+      );
+      await review
+        .getByRole("button", { name: "Kanıtları gör", exact: true })
+        .first()
+        .click();
+      const evidence = page.getByRole("dialog").locator(".access-evidence");
+      assert.equal(
+        await evidence
+          .getByRole("heading", { name: "Engellenme şüphesi", exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(
+        await evidence.getByText("404", { exact: true }).isVisible(),
+        true,
+      );
+      assert.equal(
+        await evidence.getByText("200", { exact: true }).isVisible(),
+        true,
+      );
+      assert.equal(
+        (await evidence.textContent()).includes(
+          "kesin engelleme kanıtı değildir",
+        ),
+        true,
+      );
+      assert.equal((await evidence.textContent()).includes("engelledi"), false);
+      await page.screenshot({
+        path: path.join(output, "access-evidence.png"),
+        fullPage: true,
+      });
+      await page.getByRole("button", { name: "Kapat", exact: true }).click();
+      await review
+        .getByRole("button", { name: "Erişim geçmişi", exact: true })
+        .click();
+      assert.equal(
+        await page.locator(".timeline-events .event-row").count(),
+        1,
+      );
+      assert.equal(
+        (
+          await page.locator(".timeline-events .event-row").textContent()
+        ).includes("Engellenme şüphesi"),
+        true,
+      );
+      await page.locator(".timeline-events .event-row").click();
+      assert.equal(
+        await page.getByRole("dialog").locator(".access-evidence").isVisible(),
+        true,
+      );
+      await page.getByRole("button", { name: "Kapat", exact: true }).click();
+    },
+  );
+  await check(
+    "Missing-follower opt-in persists and manual access command respects offline QA boundary",
+    async () => {
+      await page.locator('.sidebar nav a[href="#settings"]').click();
+      await page
+        .getByRole("switch", {
+          name: "Kaybolan kayıtlı takipçileri incele",
+          exact: true,
+        })
+        .click();
+      await page.waitForFunction(
+        async () =>
+          (await window.TrackerDesktop.command("state")).state.settings
+            .investigateMissing,
+      );
+      const result = await page.evaluate(() =>
+        window.TrackerDesktop.command("check_access", { id: "200" }),
+      );
+      assert.equal(result.ok, false);
+      assert.equal(result.error.code, "offline");
+      assert.equal(result.state.gate.attempts, 2);
+      assert.equal(
+        result.state.access.find((c) => c.id === "200").checks.at(-1).status,
+        "suspected",
+      );
+      await page
+        .getByRole("switch", {
+          name: "Kaybolan kayıtlı takipçileri incele",
+          exact: true,
+        })
+        .click();
+      await page.waitForFunction(
+        async () =>
+          !(await window.TrackerDesktop.command("state")).state.settings
+            .investigateMissing,
+      );
+    },
+  );
+  await check(
     "Account form and code fields are password protected",
     async () => {
       await page

@@ -9,6 +9,7 @@ import re
 import threading
 import time
 import uuid
+import access_checks
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
 from network import (AppFailure, new_client, close_client, parse_profile,
@@ -24,7 +25,9 @@ PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'foll
 def blank(gate=None):
     return {'version': 1, 'account': None, 'session': None, 'people': {},
             'history': {}, 'lists': {}, 'events': [], 'gate': gate or {},
-            'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60},
+            'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60,
+                         'investigateMissing': False},
+            'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
             'lastError': None, 'lastAutomatic': 0}
 
 
@@ -46,8 +49,7 @@ def public_person(value):
 class Engine:
     def __init__(self, directory, emit=lambda event: None, clock=time.time):
         self.vault = Vault(directory)
-        self.data = self.vault.load() or blank()
-        validate_archive(self.data)
+        self.data = self.load_vault()
         self.emit = emit
         self.clock = clock
         self.cancel = threading.Event()
@@ -55,17 +57,30 @@ class Engine:
         self.waiting_code = False
         self.operation = None
         self.offline = False
+        self.list_scan_active = False
         # Interrupted scans remain explicitly partial after a restart.
         changed = False
         for record in self.data['lists'].values():
             if record.get('draft', {}).get('status') == 'running':
                 record['draft']['status'] = 'interrupted'
                 changed = True
+        for case in self.data['access'].values():
+            if case['stage'] == 'checking':
+                case['checks'].append({'status': 'unknown', 'reason': 'interrupted', 'checkedAt': self.clock()})
+                del case['checks'][:-10]
+                case['stage'] = 'done'
+                changed = True
         if changed:
             self.save()
 
     def save(self):
         self.vault.save(self.data)
+
+    def load_vault(self):
+        data = self.vault.load() or blank()
+        access_checks.initialize(data)
+        validate_archive(data)
+        return data
 
     def snapshot(self):
         d = self.data
@@ -79,8 +94,9 @@ class Engine:
                 'history': d['history'], 'lists': records, 'events': d['events'],
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': d['lastError'],
                 'monitor': self.monitor_status(),
+                'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.1'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.2'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
@@ -155,9 +171,12 @@ class Engine:
             raise AppFailure('identity', 'Kayıtlı oturumun hesap kimliği uyuşmuyor.')
         return client
 
-    def event(self, kind, title, identity=None, old=None, new=None):
-        self.data['events'].insert(0, {'id': uuid.uuid4().hex, 'at': self.clock(), 'type': kind,
-                                      'title': title, 'personId': identity, 'old': old, 'new': new})
+    def event(self, kind, title, identity=None, old=None, new=None, topic=None):
+        record = {'id': uuid.uuid4().hex, 'at': self.clock(), 'type': kind,
+                  'title': title, 'personId': identity, 'old': old, 'new': new}
+        if topic:
+            record['topic'] = topic
+        self.data['events'].insert(0, record)
         del self.data['events'][2000:]
 
     def record_profile(self, profile, own=False):
@@ -179,6 +198,11 @@ class Engine:
         del history[:-366]
         if own:
             self.data['account'] = profile
+            if (self.data['settings']['investigateMissing'] and self.data['people'] and not self.list_scan_active
+                    and type(previous.get('followers')) is int and profile['followers'] < previous['followers']):
+                baseline = self.data['lists'].get(identity + ':followers', {}).get('snapshots', [])
+                self.data['accessPlan'] = {'status': 'pending' if baseline and baseline[-1]['complete'] else 'baseline_needed',
+                                           'triggerAt': self.clock(), 'followers': profile['followers']}
         else:
             self.data['people'][identity] = profile
         self.event('check', f"@{profile['username']} profili kontrol edildi", identity)
@@ -298,6 +322,7 @@ class Engine:
         record['draft'] = draft
         self.save()
         try:
+            self.list_scan_active = True
             # Refresh the expected count once; stale profile counts must not be
             # used to declare a changing list complete.
             profile = self.read_profile(client, identity, avatar=False)
@@ -337,6 +362,9 @@ class Engine:
                                None, {'direction': direction, 'count': len(draft['members']),
                                       'added': len(diff['added']) if diff else None,
                                       'removed': len(diff['removed']) if diff else None})
+                    if identity == self.data['account']['id'] and direction == 'followers':
+                        access_checks.discover(self.data, record, self.clock())
+                        self.data['accessPlan'] = {'status': 'idle'}
                     self.save()
                     return
                 if cursor in seen or not members:
@@ -349,6 +377,67 @@ class Engine:
             self.save()
             raise
         finally:
+            self.list_scan_active = False
+            close_client(client)
+
+    def known_person(self, identity):
+        person = self.data['people'].get(identity)
+        if person:
+            return person
+        for record in self.data['lists'].values():
+            for scan in list(reversed(record.get('snapshots', []))) + ([record['draft']] if record.get('draft') else []):
+                if identity in scan['members']:
+                    return scan['members'][identity]
+        case = self.data['access'].get(identity)
+        return {key: case[key] for key in ('id', 'username', 'name')} if case else None
+
+    def check_access(self, args):
+        identity = str(args.get('id', ''))
+        member = self.known_person(identity)
+        if not member or identity == (self.data['account'] or {}).get('id'):
+            raise AppFailure('input', 'Erişim kontrolü için kayıtlı başka bir hesap seç.')
+        client = self.client()
+        case = None
+        health = {}
+        try:
+            case = access_checks.ensure_case(self.data, member, self.clock())
+            case.update(stage='checking', absence=access_checks.absence_evidence(self.data, identity))
+            self.save()
+            previous = case['checks'][-1] if case['checks'] else None
+            self.progress('access_health')
+            own = self.read_profile(client, self.data['account']['id'], avatar=False)
+            if access_checks.response_status(client) != 200:
+                raise AppFailure('access_unknown', 'Kendi profilinin başarılı HTTP 200 yanıtı doğrulanamadı. Hedef profil kontrol edilmedi.')
+            self.record_profile(own, own=True)
+            health = {'ownCheckedAt': self.clock(), 'ownHTTP': access_checks.response_status(client)}
+            self.check_cancel()
+            self.progress('access_target', personId=identity)
+            outcome = access_checks.probe(client, identity)
+            self.check_cancel()
+            result = {**access_checks.assess(outcome, case['absence']), **health, 'checkedAt': self.clock(),
+                      'absence': copy.deepcopy(case['absence'])}
+            if outcome.get('username'):
+                result['usernameChanged'] = outcome['username'] != case['username']
+            case['checks'].append(result)
+            del case['checks'][:-10]
+            case['stage'] = 'done'
+            self.data['session'] = client.get_settings()
+            suspected = result['status'] == 'suspected' and not case['alertRecorded']
+            if suspected:
+                case['alertRecorded'] = True
+            title = (f"Engellenme şüphesi · @{case['username']}: Tam takipçi kaydında yok ve profiline erişilemiyor. Hesap kapanmış da olabilir."
+                     if suspected else f"@{case['username']} · Erişim kontrolü kaydedildi")
+            self.event('profile' if suspected else 'check', title, identity, previous, result, topic='access')
+            self.save()
+        except Exception as exc:
+            if case is not None and not isinstance(exc, StorageFailure):
+                case['stage'] = 'done'
+                case['checks'].append({'status': 'unknown', 'reason': failure(exc)['code'],
+                                       **health, 'checkedAt': self.clock()})
+                del case['checks'][:-10]
+                self.save()
+            raise
+        finally:
             close_client(client)
 
     def save_person(self, args):
@@ -356,13 +445,8 @@ class Engine:
         p = self.data['people'].get(identity)
         if not p:
             # A list member can be locally saved without a profile request.
-            for record in self.data['lists'].values():
-                for snapshot in list(reversed(record.get('snapshots', []))) + ([record['draft']] if record.get('draft') else []):
-                    if identity in snapshot['members']:
-                        p = dict(snapshot['members'][identity])
-                        break
-                if p:
-                    break
+            known = self.known_person(identity)
+            p = dict(known) if known else None
             if not p or len(self.data['people']) >= 200:
                 raise AppFailure('input', 'Kişi bulunamadı veya kişi kapasitesi doldu.')
             self.data['people'][identity] = p
@@ -379,7 +463,7 @@ class Engine:
         self.save()
 
     def settings(self, args):
-        for key in ('compact', 'notifications', 'automatic'):
+        for key in ('compact', 'notifications', 'automatic', 'investigateMissing'):
             if key in args:
                 if type(args[key]) is not bool:
                     raise AppFailure('input', 'Ayar değeri geçersiz.')
@@ -394,11 +478,13 @@ class Engine:
         d = self.data
         candidates = ([d['account']] if d['account'] else []) + [p for p in d['people'].values() if p.get('watching')]
         interval = d['settings']['interval'] * 60
+        pending = sum(c['stage'] == 'pending' and c['id'] in d['people'] for c in d['access'].values()) if d['settings']['investigateMissing'] else 0
         reason = ('disabled' if not d['settings']['automatic'] else 'session' if not d['session'] else
                   'restricted' if d['gate'].get('manualOnly') else None)
         return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason,
                 'profileCount': len(candidates), 'intervalSeconds': interval,
-                'estimatedCycleSeconds': interval * len(candidates),
+                'estimatedCycleSeconds': interval * len(candidates) * (2 if pending else 1),
+                'accessPending': pending, 'followerScanPending': d['settings']['investigateMissing'] and d['accessPlan']['status'] == 'pending',
                 'nextAt': None if reason else max(d['lastAutomatic'] + interval,
                                                    d['gate'].get('blockedUntil', 0), d['gate'].get('nextAt', 0))}
 
@@ -409,8 +495,23 @@ class Engine:
             return
         d['lastAutomatic'] = now
         self.save()
+        if d['settings']['investigateMissing']:
+            if d['accessPlan']['status'] == 'pending':
+                d['accessPlan']['status'] = 'needs_manual_scan'
+                d['lastAutomaticTask'] = 'followers_scan'
+                self.save()
+                self.scan({'direction': 'followers'})
+                return
+            pending = [case for case in d['access'].values() if case['stage'] == 'pending' and case['id'] in d['people']]
+            if pending and d['lastAutomaticTask'] != 'access':
+                d['lastAutomaticTask'] = 'access'
+                self.save()
+                self.check_access({'id': min(pending, key=lambda c: c['detectedAt'])['id']})
+                return
+        d['lastAutomaticTask'] = 'profile'
         # One cached profile per tick. Own profile and explicitly watched people
-        # share the same cadence. Full lists are always a manual action.
+        # share the same cadence. An opt-in follower-drop investigation above
+        # may consume one slot for a full own-follower scan.
         candidates = [d['account'], *[p for p in d['people'].values() if p.get('watching')]]
         selected = min(candidates, key=lambda p: p.get('observedAt') or 0)
         self.refresh({'id': selected['id']})
@@ -434,6 +535,7 @@ class Engine:
             if value.get('format') != 'InstagramTracker-observations' or value.get('version') != 1:
                 raise ValueError()
             # Round-trip through the exact vault schema validator before replace.
+            access_checks.initialize(restored)
             validate_archive(restored)
         except Exception as exc:
             raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
@@ -452,12 +554,13 @@ class Engine:
         while not self.codes.empty():
             self.codes.get_nowait()
         try:
-            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'automatic'):
+            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'automatic', 'check_access'):
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
             handlers = {'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
                         'refresh': lambda: self.refresh(args), 'add_person': lambda: self.add_person(args),
                         'scan': lambda: self.scan(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
+                        'check_access': lambda: self.check_access(args),
                         'export_backup': lambda: self.export_backup(args['path']),
                         'import_backup': lambda: self.import_backup(args['path'])}
             if operation == 'state':
@@ -485,8 +588,7 @@ class Engine:
         except Exception as exc:
             if isinstance(exc, StorageFailure):
                 # Never report volatile edits as successfully persisted records.
-                stored = self.vault.load()
-                self.data = stored if stored is not None else blank()
+                self.data = self.load_vault()
             error = failure(exc)
             if error['code'] == 'limited' and not self.data['gate'].get('manualOnly'):
                 self.limited()
@@ -571,3 +673,4 @@ def validate_archive(d):
             raise ValueError('event')
     if 'lastAutomatic' not in d:
         raise ValueError('automatic')
+    access_checks.validate(d)
