@@ -1,0 +1,560 @@
+"""Local observations, paging, comparison and guarded account operations."""
+import copy
+import json
+import math
+import os
+from pathlib import Path
+import queue
+import re
+import threading
+import time
+import uuid
+
+from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
+from network import (AppFailure, new_client, close_client, parse_profile,
+                     parse_page, failure, deadline)
+from network import read_avatar
+
+MAX_MEMBERS = 20000
+MAX_PAGES = 400
+PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'followers', 'following', 'posts', 'picture')
+
+
+def blank(gate=None):
+    return {'version': 1, 'account': None, 'session': None, 'people': {},
+            'history': {}, 'lists': {}, 'events': [], 'gate': gate or {},
+            'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60},
+            'lastError': None, 'lastAutomatic': 0}
+
+
+def compare(previous, current):
+    if not previous or not current or not previous.get('complete') or not current.get('complete'):
+        return None
+    old, new = set(previous['members']), set(current['members'])
+    return {'added': sorted(new - old), 'removed': sorted(old - new),
+            'from': previous['finishedAt'], 'to': current['finishedAt']}
+
+
+def public_person(value):
+    # Explicit projection: saved session/auth never crosses into the renderer.
+    keys = ('id', 'username', 'name', 'followers', 'following', 'posts', 'bio', 'url',
+            'private', 'verified', 'observedAt', 'favorite', 'watching', 'group', 'note', 'avatar', 'picture')
+    return {key: value.get(key) for key in keys}
+
+
+class Engine:
+    def __init__(self, directory, emit=lambda event: None, clock=time.time):
+        self.vault = Vault(directory)
+        self.data = self.vault.load() or blank()
+        validate_archive(self.data)
+        self.emit = emit
+        self.clock = clock
+        self.cancel = threading.Event()
+        self.codes = queue.Queue(maxsize=1)
+        self.waiting_code = False
+        self.operation = None
+        self.offline = False
+        # Interrupted scans remain explicitly partial after a restart.
+        changed = False
+        for record in self.data['lists'].values():
+            if record.get('draft', {}).get('status') == 'running':
+                record['draft']['status'] = 'interrupted'
+                changed = True
+        if changed:
+            self.save()
+
+    def save(self):
+        self.vault.save(self.data)
+
+    def snapshot(self):
+        d = self.data
+        records = {}
+        for key, record in d['lists'].items():
+            snapshots = record.get('snapshots', [])
+            records[key] = {'snapshots': snapshots, 'draft': record.get('draft'),
+                            'comparison': compare(snapshots[-2], snapshots[-1]) if len(snapshots) > 1 else None}
+        return {'account': public_person(d['account']) if d['account'] else None,
+                'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
+                'history': d['history'], 'lists': records, 'events': d['events'],
+                'gate': d['gate'], 'settings': d['settings'], 'lastError': d['lastError'],
+                'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.0'}
+
+    def progress(self, phase, **details):
+        self.emit({'type': 'progress', 'phase': phase, **details})
+
+    def check_cancel(self):
+        if self.cancel.is_set():
+            raise AppFailure('cancelled', 'İşlem iptal edildi. Tamamlanan gözlemler ve kısmi liste korundu.')
+
+    def before_request(self):
+        self.check_cancel()
+        gate = self.data['gate']
+        now = self.clock()
+        if gate.get('blockedUntil', 0) > now:
+            raise AppFailure('limited', 'Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.')
+        remaining = gate.get('nextAt', 0) - now
+        if remaining > 0:
+            self.progress('waiting', until=gate['nextAt'])
+            # Cancellation interrupts pacing and code waits; an in-flight HTTP
+            # request has a bounded transport timeout and is never replayed.
+            if self.cancel.wait(remaining):
+                self.check_cancel()
+        self.check_cancel()
+        now = self.clock()
+        gate.update(nextAt=now + 15, attempts=gate.get('attempts', 0) + 1, lastAt=now, status=None)
+        self.save()
+        self.progress('request', attempts=gate['attempts'])
+
+    def limited(self, retry=None):
+        now, gate = self.clock(), self.data['gate']
+        streak = min(gate.get('streak', 0) + 1, 6)
+        server = deadline(retry, now) if retry else 0
+        gate.update(blockedUntil=max(gate.get('blockedUntil', 0), now + min(86400, 3600 * 2 ** (streak - 1)), server),
+                    streak=streak, serverRetryAt=server or None, limitedAt=now, manualOnly=True)
+        self.save()
+
+    def after_response(self, response):
+        self.data['gate']['status'] = response.status_code
+        self.save()
+        if response.status_code == 429:
+            self.limited(response.headers.get('Retry-After'))
+            raise AppFailure('limited', 'Instagram HTTP 429 döndürdü. Tarama durdu; otomatik tekrar yapılmayacak.')
+
+    def request_code(self, username=None, choice=None):
+        self.waiting_code = True
+        self.progress('code', method=getattr(choice, 'name', '2FA') if choice else '2FA')
+        end = time.monotonic() + 300
+        try:
+            while time.monotonic() < end:
+                self.check_cancel()
+                try:
+                    return self.codes.get(timeout=.25)
+                except queue.Empty:
+                    pass
+            raise AppFailure('code_timeout', 'Doğrulama beklemesi sona erdi. Yeni giriş başlatılmadı.')
+        finally:
+            self.waiting_code = False
+
+    def submit_code(self, code):
+        if not self.waiting_code or not isinstance(code, str) or not re.fullmatch(r'[0-9]{6,10}', code):
+            raise AppFailure('code', 'Bekleyen doğrulama için 6–10 rakamlı kod gir.')
+        try:
+            self.codes.put_nowait(code)
+        except queue.Full:
+            raise AppFailure('code', 'Kod zaten gönderildi.')
+
+    def client(self):
+        if not self.data['session']:
+            raise AppFailure('session', 'Önce hesabını bağla.')
+        client = new_client(self, self.data['session'])
+        if str(client.user_id or '') != self.data['account']['id']:
+            close_client(client)
+            raise AppFailure('identity', 'Kayıtlı oturumun hesap kimliği uyuşmuyor.')
+        return client
+
+    def event(self, kind, title, identity=None, old=None, new=None):
+        self.data['events'].insert(0, {'id': uuid.uuid4().hex, 'at': self.clock(), 'type': kind,
+                                      'title': title, 'personId': identity, 'old': old, 'new': new})
+        del self.data['events'][2000:]
+
+    def record_profile(self, profile, own=False):
+        identity = profile['id']
+        previous = self.data['account'] if own else self.data['people'].get(identity)
+        previous = previous or {}
+        history = self.data['history'].setdefault(identity, [])
+        profile = {**profile, 'observedAt': self.clock(),
+                   **{k: previous.get(k, default) for k, default in
+                      (('favorite', False), ('watching', False), ('group', ''), ('note', ''))}}
+        if 'avatar' not in profile and profile.get('picture') == previous.get('picture'):
+            profile['avatar'] = previous.get('avatar')
+        for key in PROFILE_FIELDS:
+            old = next((h[key] for h in reversed(history) if h.get(key) is not None), None)
+            new = profile.get(key)
+            if old is not None and new is not None and old != new:
+                self.event('profile', f"@{profile['username']} · {key}", identity, {key: old}, {key: new})
+        history.append({key: profile.get(key) for key in ('observedAt', *PROFILE_FIELDS)})
+        del history[:-366]
+        if own:
+            self.data['account'] = profile
+        else:
+            self.data['people'][identity] = profile
+        self.event('check', f"@{profile['username']} profili kontrol edildi", identity)
+
+    def read_profile(self, client, identity, avatar=True):
+        self.progress('profile', personId=identity)
+        payload = client.private_request(f'users/{identity}/info/', params={
+            'is_prefetch': 'false', 'entry_point': 'self_profile' if identity == str(client.user_id) else 'profile',
+            'from_module': 'self_profile' if identity == str(client.user_id) else 'profile', 'is_app_start': False})
+        result = parse_profile(payload, identity)
+        if avatar:
+            read_avatar(result, self)
+        return result
+
+    def connect(self, args, imported=False):
+        client = None
+        try:
+            if imported:
+                path = Path(os.environ['LOCALAPPDATA']) / 'InstagramCounter/session.dat'
+                if not path.is_file() or path.stat().st_size > 1024 * 1024:
+                    raise AppFailure('import', 'Önceki Windows prototipinde aktarılacak oturum bulunamadı.')
+                payload = json.loads(protect(path.read_bytes(), decrypt=True))
+                if (not isinstance(payload, dict) or payload.get('version') != 1
+                        or not isinstance(payload.get('settings'), dict)
+                        or not isinstance(payload.get('account_id'), str)):
+                    raise AppFailure('import', 'Eski oturum dosyası desteklenmiyor.')
+                client = new_client(self, payload['settings'])
+                if str(client.user_id or '') != payload['account_id']:
+                    raise AppFailure('identity', 'Aktarılan oturumun hesap kimliği tutarsız.')
+            else:
+                username, password = args.get('username', '').strip().lstrip('@'), args.get('password', '')
+                if not re.fullmatch(r'[A-Za-z0-9._]{1,30}', username) or not isinstance(password, str) or not 1 <= len(password) <= 1024:
+                    raise AppFailure('input', 'Geçerli kullanıcı adı ve şifre gir.')
+                now = self.clock()
+                if self.data['gate'].get('loginAfter', 0) > now:
+                    raise AppFailure('login_wait', 'Giriş denemeleri arasında en az 15 dakika beklenir.')
+                self.data['gate']['loginAfter'] = now + 900
+                self.save()
+                self.progress('login')
+                client = new_client(self)
+                try:
+                    client.login(username, password)
+                finally:
+                    client.password = None
+                    args.pop('password', None)
+                    password = None
+            identity = str(client.user_id or '')
+            if not identity:
+                raise AppFailure('identity', 'Giriş yanıtında hesap kimliği bulunamadı.')
+            if self.data['account'] and self.data['account']['id'] != identity:
+                raise AppFailure('account', 'Bu depoda farklı bir hesap var. Önce yedek alıp yerel verileri kaldır.')
+            profile = self.read_profile(client, identity)
+            self.check_cancel()
+            # Commit a replacement only after the authenticated own profile agrees.
+            self.record_profile(profile, own=True)
+            self.data['session'] = client.get_settings()
+            self.data['gate']['manualOnly'] = False
+            self.data['lastError'] = None
+            self.save()
+        finally:
+            args.pop('password', None)
+            close_client(client)
+
+    def refresh(self, args):
+        client = self.client()
+        try:
+            identity = str(args.get('id') or self.data['account']['id'])
+            if identity != self.data['account']['id'] and identity not in self.data['people']:
+                raise AppFailure('input', 'Önce profili Kişiler bölümüne ekle.')
+            profile = self.read_profile(client, identity)
+            self.check_cancel()
+            self.record_profile(profile, own=identity == self.data['account']['id'])
+            self.data['session'] = client.get_settings()
+            self.data['gate']['manualOnly'] = False
+            self.save()
+        finally:
+            close_client(client)
+
+    def add_person(self, args):
+        username = str(args.get('username', '')).strip().lstrip('@')
+        if not re.fullmatch(r'[A-Za-z0-9._]{1,30}', username):
+            raise AppFailure('input', 'Geçerli bir Instagram kullanıcı adı gir.')
+        if len(self.data['people']) >= 200:
+            raise AppFailure('capacity', 'En fazla 200 profil kaydedilebilir.')
+        client = self.client()
+        try:
+            self.progress('profile')
+            # One explicit mobile lookup. No public fallback or endpoint rotation.
+            payload = client.private_request(f'users/{username}/usernameinfo/')
+            profile = parse_profile(payload)
+            if profile['username'].lower() != username.lower():
+                raise AppFailure('identity', 'Aranan kullanıcı adı ile yanıt uyuşmadı.')
+            if profile['id'] == self.data['account']['id']:
+                raise AppFailure('input', 'Kendi hesabın zaten Özet bölümünde.')
+            read_avatar(profile, self)
+            self.check_cancel()
+            self.record_profile(profile)
+            self.data['session'] = client.get_settings()
+            self.save()
+        finally:
+            close_client(client)
+
+    def scan(self, args):
+        direction = args.get('direction')
+        if direction not in ('followers', 'following'):
+            raise AppFailure('input', 'Liste yönü geçersiz.')
+        identity = str(args.get('id') or (self.data['account'] or {}).get('id', ''))
+        owner = self.data['account'] if self.data['account'] and identity == self.data['account']['id'] else self.data['people'].get(identity)
+        if not owner:
+            raise AppFailure('input', 'Liste sahibi kayıtlı değil.')
+        client = self.client()
+        key = identity + ':' + direction
+        record = self.data['lists'].setdefault(key, {'snapshots': []})
+        draft = {'id': uuid.uuid4().hex, 'ownerId': identity, 'direction': direction,
+                 'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
+                 'status': 'running', 'pages': 0, 'expected': None}
+        record['draft'] = draft
+        self.save()
+        try:
+            # Refresh the expected count once; stale profile counts must not be
+            # used to declare a changing list complete.
+            profile = self.read_profile(client, identity, avatar=False)
+            self.record_profile(profile, own=identity == self.data['account']['id'])
+            draft['expected'] = profile[direction]
+            cursor, seen = '', set()
+            for page in range(MAX_PAGES):
+                self.check_cancel()
+                self.progress('list', direction=direction, count=len(draft['members']), page=page + 1)
+                params = {'count': 50, 'rank_token': client.rank_token,
+                          'search_surface': 'follow_list_page', 'query': '', 'enable_groups': 'true'}
+                if cursor:
+                    params['max_id'] = cursor
+                response = client.private_request(f'friendships/{identity}/{direction}/', params=params)
+                parsed = parse_page(response)
+                members, cursor = parsed.members, parsed.cursor
+                if len(set(draft['members']) | set(members)) > MAX_MEMBERS:
+                    raise AppFailure('capacity', 'Tarama 20.000 hesap sınırına ulaştı; kısmi kayıt korundu.')
+                draft['members'].update(members)
+                draft['pages'] = page + 1
+                draft['finishedAt'] = self.clock()
+                self.data['session'] = client.get_settings()
+                self.save()
+                if parsed.coverage in ('limited', 'unknown'):
+                    raise AppFailure('list_coverage', 'Instagram liste kapsamını kısıtlı veya belirsiz döndürdü. Görülen üyeler kısmi kayıt olarak korundu; fark hesabı yapılmadı.')
+                if not cursor:
+                    # End cursor alone can represent a server-limited subset.
+                    if len(draft['members']) != draft['expected']:
+                        raise AppFailure('list_count', 'Liste sayısı profil sayısıyla uyuşmadı. Kısmi kayıt korundu; fark hesabı yapılmadı.')
+                    self.check_cancel()
+                    draft.update(complete=True, status='complete')
+                    record['snapshots'].append(copy.deepcopy(draft))
+                    del record['snapshots'][:-6]
+                    record.pop('draft', None)
+                    diff = compare(record['snapshots'][-2], record['snapshots'][-1]) if len(record['snapshots']) > 1 else None
+                    self.event('list', f"@{profile['username']} · {direction} listesi kaydedildi", identity,
+                               None, {'direction': direction, 'count': len(draft['members']),
+                                      'added': len(diff['added']) if diff else None,
+                                      'removed': len(diff['removed']) if diff else None})
+                    self.save()
+                    return
+                if cursor in seen or not members:
+                    raise AppFailure('pagination', 'Liste sayfalaması ilerlemiyor. Döngü durduruldu; kısmi kayıt korundu.')
+                seen.add(cursor)
+            raise AppFailure('capacity', 'Tarama sayfa sınırına ulaştı; kısmi kayıt korundu.')
+        except Exception:
+            draft['status'] = 'cancelled' if self.cancel.is_set() else 'partial'
+            draft['finishedAt'] = self.clock()
+            self.save()
+            raise
+        finally:
+            close_client(client)
+
+    def save_person(self, args):
+        identity = str(args.get('id', ''))
+        p = self.data['people'].get(identity)
+        if not p:
+            # A list member can be locally saved without a profile request.
+            for record in self.data['lists'].values():
+                for snapshot in list(reversed(record.get('snapshots', []))) + ([record['draft']] if record.get('draft') else []):
+                    if identity in snapshot['members']:
+                        p = dict(snapshot['members'][identity])
+                        break
+                if p:
+                    break
+            if not p or len(self.data['people']) >= 200:
+                raise AppFailure('input', 'Kişi bulunamadı veya kişi kapasitesi doldu.')
+            self.data['people'][identity] = p
+        for field, limit in (('note', 2000), ('group', 80)):
+            if field in args:
+                if not isinstance(args[field], str) or len(args[field]) > limit:
+                    raise AppFailure('input', 'Not veya grup uzunluğu geçersiz.')
+                p[field] = args[field]
+        for field in ('favorite', 'watching'):
+            if field in args:
+                if type(args[field]) is not bool:
+                    raise AppFailure('input', 'Tercih değeri geçersiz.')
+                p[field] = args[field]
+        self.save()
+
+    def settings(self, args):
+        for key in ('compact', 'notifications', 'automatic'):
+            if key in args:
+                if type(args[key]) is not bool:
+                    raise AppFailure('input', 'Ayar değeri geçersiz.')
+                self.data['settings'][key] = args[key]
+        if 'interval' in args:
+            if args['interval'] not in (15, 30, 60, 180, 360):
+                raise AppFailure('input', 'Kontrol aralığı geçersiz.')
+            self.data['settings']['interval'] = args['interval']
+        self.save()
+
+    def automatic(self):
+        now, d = self.clock(), self.data
+        if (not d['settings']['automatic'] or not d['session'] or d['gate'].get('manualOnly')
+                or max(d['gate'].get('blockedUntil', 0), d['gate'].get('nextAt', 0)) > now
+                or d['lastAutomatic'] + d['settings']['interval'] * 60 > now):
+            return
+        d['lastAutomatic'] = now
+        self.save()
+        # One cached profile per tick. Own profile and explicitly watched people
+        # share the same cadence. Full lists are always a manual action.
+        candidates = [d['account'], *[p for p in d['people'].values() if p.get('watching')]]
+        selected = min(candidates, key=lambda p: p.get('observedAt') or 0)
+        self.refresh({'id': selected['id']})
+
+    def export_backup(self, path):
+        value = copy.deepcopy(self.data)
+        value['session'] = None
+        value['settings']['automatic'] = False
+        value['lastError'] = None
+        raw = json.dumps({'format': 'InstagramTracker-observations', 'version': 1, 'data': value},
+                         ensure_ascii=False, allow_nan=False).encode()
+        atomic_write(Path(path), protect(raw))
+
+    def import_backup(self, path):
+        path = Path(path)
+        if path.stat().st_size > MAX_VAULT:
+            raise AppFailure('backup', 'Yedek dosyası çok büyük.')
+        try:
+            value = json.loads(protect(path.read_bytes(), decrypt=True))
+            restored = value['data']
+            if value.get('format') != 'InstagramTracker-observations' or value.get('version') != 1:
+                raise ValueError()
+            # Round-trip through the exact vault schema validator before replace.
+            validate_archive(restored)
+        except Exception as exc:
+            raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
+        old_gate = self.data['gate']
+        gate = restored['gate']
+        for key in ('blockedUntil', 'nextAt', 'loginAfter', 'attempts', 'streak'):
+            gate[key] = max(old_gate.get(key, 0), gate.get(key, 0))
+        gate['manualOnly'] = True
+        restored['session'] = None
+        restored['settings']['automatic'] = False
+        self.vault.save(restored)
+        self.data = restored
+
+    def run(self, operation, args):
+        self.operation = operation
+        while not self.codes.empty():
+            self.codes.get_nowait()
+        try:
+            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'automatic'):
+                raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
+            handlers = {'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
+                        'refresh': lambda: self.refresh(args), 'add_person': lambda: self.add_person(args),
+                        'scan': lambda: self.scan(args), 'save_person': lambda: self.save_person(args),
+                        'settings': lambda: self.settings(args), 'automatic': self.automatic,
+                        'export_backup': lambda: self.export_backup(args['path']),
+                        'import_backup': lambda: self.import_backup(args['path'])}
+            if operation == 'state':
+                return self.snapshot()
+            if operation == 'remove_person':
+                identity = str(args.get('id', ''))
+                self.data['people'].pop(identity, None)
+                self.save()
+            elif operation == 'disconnect':
+                self.data['session'] = None
+                self.data['settings']['automatic'] = False
+                self.save()
+                # Session removal also purges the immediately preceding backup.
+                self.vault.backup.unlink(missing_ok=True)
+            elif operation == 'delete_all':
+                self.data = blank(dict(self.data['gate']))
+                self.save()
+                self.vault.backup.unlink(missing_ok=True)
+            elif operation in handlers:
+                self.data['lastError'] = None
+                handlers[operation]()
+            else:
+                raise AppFailure('operation', 'Desteklenmeyen işlem.')
+            return self.snapshot()
+        except Exception as exc:
+            if isinstance(exc, StorageFailure):
+                # Never report volatile edits as successfully persisted records.
+                stored = self.vault.load()
+                self.data = stored if stored is not None else blank()
+            error = failure(exc)
+            if error['code'] == 'limited' and not self.data['gate'].get('manualOnly'):
+                self.limited()
+            if error['code'] in ('session', 'verification'):
+                self.data['gate']['manualOnly'] = True
+            self.data['lastError'] = {**error, 'at': self.clock()}
+            self.event('error', error['message'])
+            try:
+                self.save()
+            except StorageFailure:
+                pass
+            raise AppFailure(error['code'], error['message']) from exc
+        finally:
+            args.pop('password', None)
+            self.operation = None
+
+
+def validate_archive(d):
+    """Validate the owning representation before it reaches UI or scheduling."""
+    if (not isinstance(d, dict) or d.get('version') != 1 or not isinstance(d.get('people'), dict)
+            or len(d['people']) > 200 or not isinstance(d.get('lists'), dict)
+            or not isinstance(d.get('history'), dict) or not isinstance(d.get('events'), list)
+            or len(d['events']) > 2000 or not isinstance(d.get('gate'), dict)
+            or not isinstance(d.get('settings'), dict)):
+        raise ValueError('schema')
+    if d.get('session') is not None and (not isinstance(d['session'], dict) or d.get('account') is None):
+        raise ValueError('session')
+    def identity(value):
+        return type(value) is str and re.fullmatch(r'[1-9][0-9]{0,29}', value)
+    def timestamp(value):
+        return type(value) in (int, float) and math.isfinite(value) and value >= 0
+    def member(p):
+        if (not isinstance(p, dict) or not identity(p.get('id'))
+                or type(p.get('username')) is not str or not re.fullmatch(r'[A-Za-z0-9._]{1,30}', p['username'])
+                or (p.get('name') is not None and type(p['name']) is not str)):
+            raise ValueError('identity')
+    for p in [d.get('account'), *d['people'].values()]:
+        if p is None:
+            continue
+        member(p)
+        for key in ('followers', 'following', 'posts'):
+            if p.get(key) is not None and (type(p[key]) is not int or p[key] < 0):
+                raise ValueError('count')
+        for key in ('note', 'group', 'bio', 'url', 'picture', 'avatar'):
+            if p.get(key) is not None and type(p[key]) is not str:
+                raise ValueError('text')
+    if any(key != p['id'] for key, p in d['people'].items()):
+        raise ValueError('person key')
+    for key in ('blockedUntil', 'nextAt', 'loginAfter', 'attempts', 'streak'):
+        if key in d['gate'] and not timestamp(d['gate'][key]):
+            raise ValueError('gate')
+    if d['settings'].get('interval') not in (15, 30, 60, 180, 360):
+        raise ValueError('settings')
+    for key in ('automatic', 'notifications', 'compact'):
+        if type(d['settings'].get(key)) is not bool:
+            raise ValueError('settings')
+    for key, record in d['lists'].items():
+        owner, separator, direction = key.partition(':')
+        if not separator or not identity(owner) or direction not in ('followers', 'following'):
+            raise ValueError('list identity')
+        if not isinstance(record, dict) or not isinstance(record.get('snapshots'), list) or len(record['snapshots']) > 6:
+            raise ValueError('lists')
+        for snapshot in record['snapshots'] + ([record['draft']] if record.get('draft') else []):
+            if not isinstance(snapshot, dict) or not isinstance(snapshot.get('members'), dict) or len(snapshot['members']) > MAX_MEMBERS:
+                raise ValueError('members')
+            if type(snapshot.get('complete')) is not bool:
+                raise ValueError('complete')
+            for identity_key, p in snapshot['members'].items():
+                member(p)
+                if identity_key != p['id']:
+                    raise ValueError('member key')
+    for key, history in d['history'].items():
+        if not identity(key) or type(history) is not list or len(history) > 366:
+            raise ValueError('history')
+        for h in history:
+            if not isinstance(h, dict) or not timestamp(h.get('observedAt')):
+                raise ValueError('history')
+    for event in d['events']:
+        if (not isinstance(event, dict) or type(event.get('id')) is not str
+                or type(event.get('title')) is not str or not timestamp(event.get('at'))
+                or event.get('type') not in ('profile', 'list', 'check', 'error')):
+            raise ValueError('event')
+    if 'lastAutomatic' not in d:
+        raise ValueError('automatic')

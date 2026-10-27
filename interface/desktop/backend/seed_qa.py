@@ -1,0 +1,56 @@
+"""Create isolated synthetic QA records; never used by the packaged worker."""
+import argparse
+from pathlib import Path
+import tempfile
+import base64
+from io import BytesIO
+from PIL import Image
+from engine import Engine
+from network import parse_profile
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--home',required=True,type=Path)
+    parser.add_argument('--empty',action='store_true')
+    args=parser.parse_args()
+    home=args.home.resolve()
+    if home.parent!=Path(tempfile.gettempdir()).resolve() or not home.name.startswith('TrackerQA-'):
+        raise ValueError('Only an isolated QA home may be seeded')
+    if (home/'tracker.vault').exists():
+        raise ValueError('QA home already has a vault')
+    e=Engine(home)
+    if not args.empty:
+        now=1800000000
+        e.clock=lambda:now
+        def profile(identity,username,followers,following):
+            return parse_profile({'user':{'pk':identity,'username':username,'full_name':'QA '+username,
+                'follower_count':followers,'following_count':following,'biography':'Synthetic profile',
+                'media_count':1,'is_private':False,'is_verified':False}})
+        e.record_profile(profile('100','qa.owner',2,2),True)
+        now+=60
+        e.record_profile(profile('100','qa.owner',3,2),True)
+        e.record_profile(profile('200','qa.deniz',10,4))
+        e.record_profile(profile('201','qa.ada',20,5))
+        e.record_profile(profile('300','qa.large',150,0))
+        image=BytesIO();Image.new('RGB',(20,20),'#674bd8').save(image,format='JPEG')
+        e.data['people']['200']['avatar']='data:image/jpeg;base64,'+base64.b64encode(image.getvalue()).decode('ascii')
+        e.data['people']['200'].update(favorite=True,watching=True,note='PRIVATE-QA-NOTE <img src=x onerror=alert(1)>',group='Arkadaşlar')
+        members={identity:{'id':identity,'username':'qa.'+identity,'name':'QA '+identity} for identity in ('200','201','202','203','204')}
+        def scan(name,ids,at):
+            return {'id':name,'ownerId':'100','direction':'followers','members':{i:members[i] for i in ids},
+                'startedAt':at-30,'finishedAt':at,'complete':True,'status':'complete','pages':1,'expected':len(ids)}
+        e.data['lists']['100:followers']={'snapshots':[scan('before',['200','201','202'],now-50),scan('after',['201','202','203'],now)],
+            'draft':{'id':'unfinished','ownerId':'100','direction':'followers','members':{'204':members['204']},
+                'startedAt':now,'finishedAt':now,'complete':False,'status':'running','pages':1,'expected':3}}
+        e.data['lists']['100:following']={'snapshots':[dict(scan('following',['201','204'],now),direction='following')]}
+        large={str(i):{'id':str(i),'username':'qa.'+str(i),'name':'QA '+str(i)} for i in range(301,451)}
+        e.data['lists']['300:followers']={'snapshots':[{'id':'large','ownerId':'300','direction':'followers',
+            'startedAt':now-30,'finishedAt':now,'complete':True,'status':'complete','pages':3,'expected':150,'members':large}]}
+        e.event('list','QA list', '100',None,{'direction':'followers','count':3,'added':1,'removed':1})
+        e.data['gate'].update(status=429,blockedUntil=now+3600,manualOnly=True,attempts=2)
+    e.save()
+    print('Synthetic vault prepared; no session or network.')
+
+
+if __name__=='__main__':main()

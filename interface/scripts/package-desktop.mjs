@@ -36,9 +36,11 @@ await mkdir(resources, { recursive: true });
 await cp(path.join(root, "web"), path.join(resources, "web"), {
   recursive: true,
 });
-await cp(path.join(root, "desktop"), path.join(resources, "desktop"), {
-  recursive: true,
-});
+await mkdir(path.join(resources, "desktop"), { recursive: true });
+await cp(
+  path.join(root, "desktop/preview.cjs"),
+  path.join(resources, "desktop/main.cjs"),
+);
 await writeFile(
   path.join(resources, "package.json"),
   JSON.stringify(

@@ -1,5 +1,14 @@
 # Değişiklikler
 
+## Windows 0.2.0 — 2026-10-27 (gerçek işlevler ve şifreli yerel kayıt)
+
+- Windows arayüzü gerçek hesap bağlantısına bağlandı: parola/kod alanı, aynı doğrulama bağlamından devam, DPAPI oturumu ve eski Windows prototipindeki oturumu doğrulayarak kopyalama. Eski prototip dosyası değiştirilmez; açılış yalnız yerel gözlemleri gösterir.
+- Kendi/seçilen profil gözlemleri, sayısal/metin/fotoğraf kimliği farkları, kişi araması, favori, izleme, not/grup, grafik ve zaman çizelgesi eklendi. Fotoğraflar çerezsiz doğrudan Meta CDN bağlantısından küçük yerel görsel olarak alınabilir.
+- Takipçi/takip edilen için ayrı, iptal edilebilir sayfalı tarama; tam/kısmi kapsam; korunmuş eski kayıtlar; iki tamamlanmış gözlem arasında kimlik karşılaştırması; iki yön arasında ilişki filtresi ve seçilen kaydın CSV aktarımı eklendi. Eksik sayfa ve belirsiz kapsamdan kesin takipten çıkış üretilmez.
+- Şifreli, oturumsuz gözlem yedeği/geri yükleme; yerel bağlantı/veri kaldırma; istek ve mola bilgileri; uygulama açıkken isteğe bağlı sırayla profil kontrolü ve Windows bildirimi eklendi. Başlat kısayolu yalnız bildirim tercihi açıldığında hazırlanır.
+- Bağlantı yerel worker'a özel borularla gider; renderer'da ağ/Node erişimi kapalı, IPC ana çerçeveye ve sabit işlemlere sınırlı. TLS/yönlendirme/tekrar/mola kuralları taşıma sınırında uygulanır. Python içeren taşınabilir paket ayrı `InstagramTracker-Desktop-0.2.0` klasöründedir. Android ve örnek web sürümü korunur.
+- 36 çevrimdışı backend testi ve 21 paketlenmiş Windows kontrolü geçti. Canlı kayıtlı oturum, kendi profil ve iki liste yönü HTTP 200 ile doğrulandı; bu hesapta listeler birer sayfaydı. Yeni parola/2FA, çok sayfalı canlı liste, Windows bildirim teslimi ve uzun süreli çalışma ayrıca canlı doğrulanmadı.
+
 ## 0.1.30 — 2026-10-27 (web, masaüstü ve telefon için ortak görünüm)
 
 - Yerel web ve Windows masaüstü arayüz önizlemesi eklendi: Özet, Kişiler, Listeler, Zaman çizelgesi, Ayarlar ve ayrıntı pencereleri. Arama, filtreler, favoriler ve notlar yalnız örnek verilerle çalışır; gerçek hesap girişi/veri okuma sonraki aşamadır.

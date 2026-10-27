@@ -1,0 +1,514 @@
+import { _electron as electron } from "playwright-core";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+import os from "node:os";
+import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
+const root = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
+const home = await mkdtemp(path.join(os.tmpdir(), "TrackerQA-"));
+const output = path.join(root, "artifacts/desktop-0.2.0-qa");
+await mkdir(output, { recursive: true });
+const python =
+  process.env.TRACKER_BUILD_PYTHON ||
+  path.resolve(root, "../InstagramCounter/.venv/Scripts/python.exe");
+execFileSync(
+  python,
+  [path.join(root, "interface/desktop/backend/seed_qa.py"), "--home", home],
+  { stdio: "pipe" },
+);
+const env = { ...process.env };
+delete env.ELECTRON_RUN_AS_NODE;
+const executablePath = path.join(
+  root,
+  "artifacts/InstagramTracker-Desktop-0.2.0/InstagramTracker.exe",
+);
+const checks = [],
+  errors = [],
+  requests = [];
+let desktop, page;
+async function launch() {
+  desktop = await electron.launch({
+    executablePath,
+    args: [`--tracker-test-home=${home}`],
+    env,
+  });
+  page = await desktop.firstWindow();
+  page.setDefaultTimeout(12000);
+  page.on("pageerror", (e) => errors.push(e.message));
+  page.on("request", (r) => {
+    if (!r.url().startsWith("file:") && !r.url().startsWith('data:')) requests.push(r.url());
+  });
+  await page.getByRole("heading", { name: "Çevrende neler oluyor?" }).waitFor();
+}
+async function check(name, work) {
+  await work();
+  checks.push(name);
+  console.log("PASS " + name);
+}
+try {
+  await launch();
+  await check("Renderer isolation and no Node access", async () => {
+    const prefs = await desktop.evaluate(({ BrowserWindow }) => {
+      const p =
+        BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences();
+      return {
+        nodeIntegration: p.nodeIntegration,
+        sandbox: p.sandbox,
+        contextIsolation: p.contextIsolation,
+        webSecurity: p.webSecurity,
+      };
+    });
+    assert.deepEqual(prefs, {
+      nodeIntegration: false,
+      sandbox: true,
+      contextIsolation: true,
+      webSecurity: true,
+    });
+    assert.equal(await page.evaluate(() => typeof require), "undefined");
+    assert.equal(await page.evaluate(() => typeof process), "undefined");
+  });
+  await check("Secrets absent from renderer state", async () => {
+    const state = await page.evaluate(() =>
+      window.TrackerDesktop.command("state"),
+    );
+    assert.equal(state.state.connected, false);
+    assert.equal("session" in state.state, false);
+    assert.equal("cookies" in state.state, false);
+  });
+  await check("Unknown IPC operation and file path rejected", async () => {
+    const result = await page.evaluate(async () => {
+      try {
+        await window.TrackerDesktop.command("export_backup", {
+          path: "invalid",
+        });
+        return false;
+      } catch {
+        return true;
+      }
+    });
+    assert.equal(result, true);
+  });
+  await check("Subframe cannot invoke privileged IPC", async () => {
+    await page.evaluate(() => {
+      const f = document.createElement("iframe");
+      f.src = location.href;
+      f.id = "ipc-test-frame";
+      document.body.append(f);
+    });
+    const frame = page.frameLocator("#ipc-test-frame");
+    await frame.locator("#app").waitFor();
+    const inner = page.frames().find((f) => f !== page.mainFrame());
+    assert.equal(
+      await inner.evaluate(async () => {
+        if (!window.TrackerDesktop) return true;
+        try {
+          await window.TrackerDesktop.command("state");
+          return false;
+        } catch {
+          return true;
+        }
+      }),
+      true,
+    );
+    await page.locator("#ipc-test-frame").evaluate((n) => n.remove());
+  });
+  await check(
+    "Lists show partial coverage without replacing completed snapshot",
+    async () => {
+      await page.locator('.sidebar a[href="#lists"]').click();
+      await page
+        .getByText("Tamamlanan kayıt: 3 hesap", { exact: true })
+        .waitFor();
+      assert.equal(
+        await page
+          .getByText("Kısmi kayıt · 1 hesap", { exact: true })
+          .isVisible(),
+        true,
+      );
+      assert.equal(await page.locator("#list-rows .list-row").count(), 3);
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Listeyi tara", exact: true })
+          .isDisabled(),
+        true,
+      );
+    },
+  );
+  await check(
+    "Snapshot comparison uses identities and names both directions",
+    async () => {
+      await page
+        .getByRole("button", { name: "Farkları göster", exact: true })
+        .click();
+      assert.equal(
+        await page
+          .locator(".compare-stat")
+          .first()
+          .locator("strong")
+          .textContent(),
+        "1",
+      );
+      assert.equal(
+        await page
+          .locator(".compare-stat")
+          .nth(1)
+          .locator("strong")
+          .textContent(),
+        "1",
+      );
+      assert.equal(await page.locator("#list-rows .list-row").count(), 2);
+      assert.equal(
+        await page
+          .locator("#list-rows")
+          .getByText("Son kayıtta yok", { exact: true })
+          .count(),
+        1,
+      );
+      await page.screenshot({
+        path: path.join(output, "comparison.png"),
+        fullPage: true,
+      });
+      await page
+        .getByRole("button", { name: "Listeye dön", exact: true })
+        .click();
+    },
+  );
+  await check(
+    "Two-direction relationship filters and local search",
+    async () => {
+      await page.locator("#relation-filter").selectOption("mutual");
+      assert.equal(await page.locator("#list-rows .list-row").count(), 1);
+      await page.locator("#relation-filter").selectOption("oneway");
+      assert.equal(await page.locator("#list-rows .list-row").count(), 2);
+      await page.locator("#relation-filter").selectOption("all");
+      await page.locator("#list-search").fill("qa.203");
+      assert.equal(await page.locator("#list-rows .list-row").count(), 1);
+    },
+  );
+  await check(
+    "List pagination follows search results after clearing a narrow query",
+    async () => {
+      await page.locator("#list-owner").selectOption("300");
+      await page.locator("#list-search").fill("");
+      assert.equal(await page.locator("#list-rows .list-row").count(), 100);
+      await page.locator("#list-search").fill("qa.301");
+      assert.equal(await page.locator("#list-rows .list-row").count(), 1);
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Daha fazla göster", exact: true })
+          .count(),
+        0,
+      );
+      await page.locator("#list-search").fill("");
+      await page
+        .getByRole("button", { name: "Daha fazla göster", exact: true })
+        .click();
+      assert.equal(await page.locator("#list-rows .list-row").count(), 150);
+      await page.locator("#list-owner").selectOption("100");
+    },
+  );
+  await check("Persistent notes and group; text is escaped", async () => {
+    await page.locator('.sidebar a[href="#people"]').click();
+    await page
+      .getByRole("button", { name: "QA qa.deniz kaydını aç", exact: true })
+      .click();
+    await page.getByRole('dialog').locator('.avatar img').waitFor();
+    await page.waitForFunction(()=>document.querySelector('dialog .avatar img')?.naturalWidth > 0);
+    assert.equal(
+      await page.locator("#person-note").inputValue(),
+      "PRIVATE-QA-NOTE <img src=x onerror=alert(1)>",
+    );
+    assert.equal(await page.getByRole("dialog").locator("img").count(), 1);
+    await page
+      .locator("#person-note")
+      .fill("Saved QA note <script>window.hacked=true</script>");
+    await page.locator("#person-group").fill("QA saved group");
+    await page
+      .getByRole("button", { name: "Notu ve grubu kaydet", exact: true })
+      .click();
+    await page
+      .getByText("Not ve grup şifreli olarak kaydedildi.", { exact: true })
+      .waitFor();
+    await page.getByRole("button", { name: "Kapat", exact: true }).click();
+  });
+  await check("Favorite toggle persists", async () => {
+    await page
+      .getByRole("button", {
+        name: "qa.deniz favori durumunu değiştir",
+        exact: true,
+      })
+      .click();
+    await page
+      .getByText("Favori tercihi kaydedildi.", { exact: true })
+      .waitFor();
+    await page.getByRole("button", { name: "Favoriler", exact: true }).click();
+    assert.equal(await page.locator(".person-card").count(), 0);
+  });
+  await check("Compact preference saved in encrypted store", async () => {
+    await page.locator('.sidebar a[href="#settings"]').click();
+    await page
+      .getByRole("switch", { name: "Kompakt görünüm", exact: true })
+      .click();
+    await page.waitForFunction(
+      () => document.body.dataset.density === "compact",
+    );
+  });
+  await check(
+    "Notification opt-in creates an owned isolated Windows shortcut",
+    async () => {
+      await page
+        .getByRole("switch", { name: "Windows bildirimleri", exact: true })
+        .click();
+      await page.waitForFunction(
+        async () =>
+          (await window.TrackerDesktop.command("state")).state.settings
+            .notifications,
+      );
+      const details = await desktop.evaluate(
+        ({ shell }, qaHome) =>
+          shell.readShortcutLink(
+            qaHome + "/shortcuts/InstagramTracker Desktop.lnk",
+          ),
+        home,
+      );
+      assert.equal(
+        details.appUserModelId,
+        "dev.kaankaya.instagramtracker.desktop",
+      );
+      assert.equal(
+        details.toastActivatorClsid.toUpperCase(),
+        "{D3085DD3-667D-4514-BD5F-1C8C0C8A5927}",
+      );
+      await page
+        .getByRole("switch", { name: "Windows bildirimleri", exact: true })
+        .click();
+      await page.waitForFunction(
+        async () =>
+          !(await window.TrackerDesktop.command("state")).state.settings
+            .notifications,
+      );
+    },
+  );
+  await check(
+    "Encrypted export and CSV through native file boundary",
+    async () => {
+      await desktop.evaluate(({ dialog }, qaHome) => {
+        dialog.showSaveDialog = async (_window, options) => ({
+          canceled: false,
+          filePath: qaHome + "/" + options.defaultPath,
+        });
+      }, home);
+      await page
+        .getByRole("button", { name: "Şifreli yedek al", exact: true })
+        .click();
+      await page
+        .getByText("Dosya işlemi tamamlandı.", { exact: true })
+        .waitFor();
+      const backup = await readFile(
+        path.join(home, "InstagramTracker.trackerbackup"),
+      );
+      assert.equal(backup.includes(Buffer.from("Saved QA note")), false);
+      await page.locator('.sidebar a[href="#lists"]').click();
+      await page
+        .locator("#toast")
+        .evaluate((n) => n.classList.remove("visible"));
+      await page
+        .getByRole("button", { name: "CSV dışa aktar", exact: true })
+        .click();
+      await page
+        .locator("#toast.visible")
+        .getByText("Dosya işlemi tamamlandı.", { exact: true })
+        .waitFor();
+      // Native save writes asynchronously; wait through the invocation boundary.
+      await page.waitForFunction(
+        async () => !(await window.TrackerDesktop.command("state")).busy,
+      );
+      const csv = await readFile(
+        path.join(home, "InstagramTracker-liste.csv"),
+        "utf8",
+      );
+      assert.equal(csv.includes("qa.203"), true);
+      assert.equal(csv.includes("session"), false);
+    },
+  );
+  await check(
+    "Restart restores encrypted notes, favorites and preferences",
+    async () => {
+      await desktop.close();
+      desktop = null;
+      await launch();
+      await page.locator('.sidebar a[href="#people"]').click();
+      await page
+        .getByRole("button", { name: "QA qa.deniz kaydını aç", exact: true })
+        .click();
+      assert.equal(
+        await page.locator("#person-note").inputValue(),
+        "Saved QA note <script>window.hacked=true</script>",
+      );
+      assert.equal(
+        await page.locator("#person-group").inputValue(),
+        "QA saved group",
+      );
+      assert.equal(await page.evaluate(() => window.hacked), undefined);
+      assert.equal(
+        await page.evaluate(() => document.body.dataset.density),
+        "compact",
+      );
+      await page.getByRole("button", { name: "Kapat", exact: true }).click();
+      const raw = await readFile(path.join(home, "tracker.vault"));
+      assert.equal(raw.includes(Buffer.from("Saved QA note")), false);
+    },
+  );
+  await check(
+    "Encrypted restore through the native confirmation boundary",
+    async () => {
+      await desktop.evaluate(({ dialog }, qaHome) => {
+        dialog.showOpenDialog = async () => ({
+          canceled: false,
+          filePaths: [qaHome + "/InstagramTracker.trackerbackup"],
+        });
+        dialog.showMessageBox = async () => ({ response: 1 });
+      }, home);
+      await page.locator('.sidebar nav a[href="#settings"]').click();
+      await page
+        .getByRole("button", { name: "Yedekten yükle", exact: true })
+        .click();
+      await page
+        .locator("#toast.visible")
+        .getByText("Dosya işlemi tamamlandı.", { exact: true })
+        .waitFor();
+      const state = await page.evaluate(() =>
+        window.TrackerDesktop.command("state"),
+      );
+      assert.equal(state.state.connected, false);
+      assert.equal(
+        state.state.people.find((p) => p.id === "200").note,
+        "Saved QA note <script>window.hacked=true</script>",
+      );
+      assert.equal(state.state.gate.status, 429);
+    },
+  );
+  await check("Timeline filters and value details", async () => {
+    await page.locator('.sidebar a[href="#timeline"]').click();
+    await page
+      .getByRole("button", { name: "Profil farkları", exact: true })
+      .click();
+    assert.equal(await page.locator(".timeline-events .event-row").count(), 1);
+    await page.locator(".timeline-events .event-row").first().click();
+    assert.equal(
+      await page.getByRole("dialog").locator(".change-values").isVisible(),
+      true,
+    );
+    await page.getByRole("button", { name: "Kapat", exact: true }).click();
+  });
+  await check(
+    "Account form and code fields are password protected",
+    async () => {
+      await page
+        .getByRole("button", { name: "Hesap bağlantısı", exact: true })
+        .first()
+        .click();
+      assert.equal(
+        await page.locator("#login-password").getAttribute("type"),
+        "password",
+      );
+      assert.equal(
+        await page.locator("#login-password").getAttribute("autocomplete"),
+        "off",
+      );
+      await page.getByRole("button", { name: "Kapat", exact: true }).click();
+    },
+  );
+  await check("Request information preserves HTTP and cooldown", async () => {
+    await page.locator('.sidebar a[href="#settings"]').click();
+    await page.getByRole("button", { name: "İncele", exact: true }).click();
+    assert.equal(
+      await page
+        .getByRole("dialog")
+        .getByText("429", { exact: true })
+        .isVisible(),
+      true,
+    );
+    await page.getByRole("button", { name: "Kapat", exact: true }).click();
+  });
+  await check("No horizontal overflow on five desktop routes", async () => {
+    await page.setViewportSize({ width: 1100, height: 800 });
+    for (const route of [
+      "overview",
+      "people",
+      "lists",
+      "timeline",
+      "settings",
+    ]) {
+      await page.locator(`.sidebar nav a[href="#${route}"]`).click();
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        true,
+        route,
+      );
+    }
+  });
+  await check("All local renderer assets and no script errors", async () => {
+    assert.deepEqual(errors, []);
+    assert.deepEqual(requests, []);
+  });
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.locator('.sidebar nav a[href="#overview"]').click();
+  await page.screenshot({
+    path: path.join(output, "overview.png"),
+    fullPage: true,
+  });
+  await check(
+    "Explicit local deletion removes records while retaining restriction history",
+    async () => {
+      await page.locator('.sidebar nav a[href="#settings"]').click();
+      await page
+        .getByRole("button", { name: "Yerel verileri sil", exact: true })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: "Yerel verileri sil", exact: true })
+        .click();
+      await page
+        .getByText("Yerel kayıtlar silindi.", { exact: true })
+        .waitFor();
+      const state = await page.evaluate(() =>
+        window.TrackerDesktop.command("state"),
+      );
+      assert.equal(state.state.account, null);
+      assert.equal(state.state.people.length, 0);
+      assert.equal(state.state.gate.status, 429);
+      assert.equal(state.state.gate.attempts, 2);
+      await page.locator('.sidebar nav a[href="#overview"]').click();
+      await page.screenshot({
+        path: path.join(output, "empty-overview.png"),
+        fullPage: true,
+      });
+    },
+  );
+  await writeFile(
+    path.join(output, "checks.json"),
+    JSON.stringify(
+      {
+        checks,
+        errors,
+        externalRequests: requests.length,
+        isolatedSyntheticHome: home,
+        liveInstagram: false,
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(
+    `${checks.length} packaged desktop checks passed; no Instagram requests.`,
+  );
+} finally {
+  if (desktop) await desktop.close();
+}
