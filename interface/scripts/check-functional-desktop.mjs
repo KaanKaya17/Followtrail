@@ -457,7 +457,7 @@ try {
     await page
       .getByRole("button", { name: "Profil farkları", exact: true })
       .click();
-    assert.equal(await page.locator(".timeline-events .event-row").count(), 1);
+    assert.equal(await page.locator(".timeline-events .event-row").count(), 4);
     await page.locator(".timeline-events .event-row").first().click();
     assert.equal(
       await page.getByRole("dialog").locator(".change-values").isVisible(),
@@ -465,6 +465,163 @@ try {
     );
     await page.getByRole("button", { name: "Kapat", exact: true }).click();
   });
+  await check(
+    "Account-specific type preferences save without changing other accounts",
+    async () => {
+      await page.locator('.sidebar nav a[href="#people"]').click();
+      await page.getByRole("button", { name: "Tümü", exact: true }).click();
+      await page
+        .getByRole("button", { name: "QA qa.deniz kaydını aç", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Bildirim tercihleri", exact: true })
+        .click();
+      const form = page.locator("#notification-rule-form");
+      assert.equal(
+        await form.getByLabel("Takipçi sayısı", { exact: true }).isChecked(),
+        false,
+      );
+      assert.equal(
+        await form.getByLabel("Kullanıcı adı", { exact: true }).isChecked(),
+        true,
+      );
+      await form.getByLabel("Takip edilen sayısı", { exact: true }).uncheck();
+      await form
+        .getByRole("button", { name: "Tercihleri kaydet", exact: true })
+        .click();
+      await page
+        .getByText("Bildirim tercihleri kaydedildi.", { exact: true })
+        .waitFor();
+      const state = await page.evaluate(() =>
+        window.TrackerDesktop.command("state"),
+      );
+      assert.equal(
+        state.state.notificationRules["200"].fields.followers,
+        false,
+      );
+      assert.equal(
+        state.state.notificationRules["200"].fields.following,
+        false,
+      );
+      assert.equal(state.state.notificationRules["100"], undefined);
+    },
+  );
+  await check(
+    "One notification opens an escaped old/new log including muted changes and marks it read",
+    async () => {
+      await page
+        .getByRole("button", { name: "Bildirim kayıtları", exact: true })
+        .click();
+      await page
+        .getByRole("heading", {
+          name: "Bir kontrolde neler değişti?",
+          exact: true,
+        })
+        .waitFor();
+      const row = page.locator(
+        '.notification-log-row[data-id="qa-multi-change"]',
+      );
+      assert.equal(await row.count(), 1);
+      assert.equal(
+        await row
+          .getByText("@qa.deniz · 3 değişiklik", { exact: true })
+          .isVisible(),
+        true,
+      );
+      // Exercise the exact main-to-renderer event used by the native toast
+      // click callback, without claiming Windows delivered a real toast.
+      await desktop.evaluate(
+        ({ BrowserWindow }, id) =>
+          BrowserWindow.getAllWindows()[0].webContents.send("tracker:event", {
+            type: "open_notification",
+            id,
+          }),
+        "qa-multi-change",
+      );
+      await page
+        .getByRole("dialog")
+        .getByRole("heading", { name: "@qa.deniz · 3 değişiklik", exact: true })
+        .waitFor();
+      assert.equal(await page.locator(".change-log-details > li").count(), 3);
+      const pairWidths = await page
+        .locator(".change-log-details > li")
+        .first()
+        .locator(".change-values > div")
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.getBoundingClientRect().width),
+        );
+      assert.equal(pairWidths.length, 2);
+      assert.equal(Math.abs(pairWidths[0] - pairWidths[1]) < 2, true);
+      assert.equal(pairWidths[1] > 150, true);
+      assert.equal(
+        await page
+          .locator(".change-log-details")
+          .getByText("Yalnız kayıtta", { exact: true })
+          .count(),
+        1,
+      );
+      assert.equal(
+        await page
+          .locator(".change-log-details")
+          .getByText("Bildirim için seçili", { exact: true })
+          .count(),
+        2,
+      );
+      assert.equal(
+        await page
+          .locator(".change-log-details")
+          .getByText(
+            "Biyografi: After <script>window.logInjected=true</script>",
+            { exact: true },
+          )
+          .isVisible(),
+        true,
+      );
+      assert.equal(await page.evaluate(() => window.logInjected), undefined);
+      await page.waitForFunction(
+        async () =>
+          (
+            await window.TrackerDesktop.command("state")
+          ).state.notificationLog.find((e) => e.id === "qa-multi-change")
+            .readAt != null,
+      );
+      await page.screenshot({
+        path: path.join(output, "notification-detail.png"),
+        fullPage: true,
+      });
+      await page.getByRole("button", { name: "Kapat", exact: true }).click();
+      await page.getByRole("button", { name: /^Okunmamış/ }).click();
+      assert.equal(
+        await page
+          .locator('.notification-log-row[data-id="qa-multi-change"]')
+          .count(),
+        0,
+      );
+      await page.getByRole("button", { name: "Tümü", exact: true }).click();
+      await desktop.close();
+      desktop = null;
+      await launch();
+      const reopened = await page.evaluate(() =>
+        window.TrackerDesktop.command("state"),
+      );
+      assert.equal(
+        reopened.state.notificationLog.find(
+          (entry) => entry.id === "qa-multi-change",
+        ).readAt != null,
+        true,
+      );
+      assert.equal(
+        reopened.state.notificationRules["200"].fields.following,
+        false,
+      );
+      await page.locator('.sidebar nav a[href="#notifications"]').click();
+      await page
+        .locator('.notification-log-row[data-id="qa-multi-change"]')
+        .click();
+      assert.equal(await page.locator(".change-log-details > li").count(), 3);
+      await page.getByRole("button", { name: "Kapat", exact: true }).click();
+    },
+  );
   await check(
     "Access review shows suspicion and concrete evidence without a definitive blocking claim",
     async () => {
@@ -608,7 +765,7 @@ try {
     );
     await page.getByRole("button", { name: "Kapat", exact: true }).click();
   });
-  await check("No horizontal overflow on five desktop routes", async () => {
+  await check("No horizontal overflow on six desktop routes", async () => {
     await page.setViewportSize({ width: 1100, height: 800 });
     for (const route of [
       "overview",
@@ -616,6 +773,7 @@ try {
       "lists",
       "timeline",
       "settings",
+      "notifications",
     ]) {
       await page.locator(`.sidebar nav a[href="#${route}"]`).click();
       assert.equal(

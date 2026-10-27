@@ -3,22 +3,25 @@ const fs = require("node:fs");
 const APP_ID = "dev.kaankaya.instagramtracker.desktop";
 const TOAST_ID = "{D3085DD3-667D-4514-BD5F-1C8C0C8A5927}";
 
-function changeNotification(fresh) {
-  const access = fresh.filter(
-    (event) => event.topic === "access" && event.new?.status === "suspected",
+function changeNotification(entry) {
+  const selected = entry.changes.filter((change) =>
+    entry.selectedChangeIds.includes(change.eventId),
   );
-  const selected = access.length ? access : fresh;
+  const access = selected.filter((change) => change.category === "access");
+  const accounts = new Set(selected.map((change) => change.username));
   return {
     title: access.length
       ? "InstagramTracker · Engellenme şüphesi"
       : "InstagramTracker · Yeni gözlem",
     body:
       selected.length === 1
-        ? selected[0].title
+        ? selected[0].category === "access"
+          ? selected[0].title
+          : `@${selected[0].username} · ${selected[0].label} değişti. Ayrıntıları aç.`
         : access.length
           ? `${access.length} kayıtlı hesap için engellenme şüphesi. Hesaplar kapanmış da olabilir; kanıtları incele.`
-          : `${fresh.length} yeni değişiklik gözlendi.`,
-    accessId: access.length === 1 ? access[0].personId : null,
+          : `${accounts.size === 1 ? "@" + selected[0].username : accounts.size + " hesap"} · ${selected.length} değişiklik. Ayrıntıları aç.`,
+    logId: entry.id,
   };
 }
 

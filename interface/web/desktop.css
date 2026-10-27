@@ -191,6 +191,9 @@ select {
   overflow-wrap: anywhere;
   max-width: 65%;
 }
+.change-values {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .change-values strong {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -270,6 +273,94 @@ select {
 }
 .access-evidence .dialog-note {
   background: var(--surface);
+}
+.notification-log {
+  display: grid;
+  gap: 14px;
+}
+.notification-log-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  width: 100%;
+  text-align: left;
+}
+.notification-log-row.unread {
+  border-left: 4px solid var(--violet);
+}
+.notification-log-copy {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.notification-log-copy > span,
+.notification-log-copy > small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.notification-check {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.notification-check:hover {
+  background: var(--violet-soft);
+}
+.notification-check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--violet);
+}
+.notification-account-toggle {
+  margin-top: 18px;
+  background: var(--violet-soft);
+}
+.notification-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  margin: 20px 0;
+  padding: 12px;
+}
+.notification-options legend {
+  padding: 0 8px;
+  color: var(--muted);
+}
+.change-log-details {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+}
+.change-log-details > li {
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+}
+.change-log-details .section-heading {
+  align-items: start;
+  gap: 18px;
+}
+.change-log-details .section-heading p {
+  margin-top: 6px;
+}
+.top-actions .icon-button {
+  position: relative;
+}
+.unread-dot {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--coral);
+  border: 1px solid var(--surface);
 }
 .avatar {
   overflow: hidden;

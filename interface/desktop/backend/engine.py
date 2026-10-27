@@ -10,6 +10,7 @@ import threading
 import time
 import uuid
 import access_checks
+import notification_log
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
 from network import (AppFailure, new_client, close_client, parse_profile,
@@ -28,6 +29,7 @@ def blank(gate=None):
             'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60,
                          'investigateMissing': False},
             'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
+            'notificationRules': {}, 'notificationLog': [],
             'lastError': None, 'lastAutomatic': 0}
 
 
@@ -56,6 +58,7 @@ class Engine:
         self.codes = queue.Queue(maxsize=1)
         self.waiting_code = False
         self.operation = None
+        self.observation_group = None
         self.offline = False
         self.list_scan_active = False
         # Interrupted scans remain explicitly partial after a restart.
@@ -79,6 +82,7 @@ class Engine:
     def load_vault(self):
         data = self.vault.load() or blank()
         access_checks.initialize(data)
+        notification_log.initialize(data)
         validate_archive(data)
         return data
 
@@ -95,8 +99,10 @@ class Engine:
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': d['lastError'],
                 'monitor': self.monitor_status(),
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
+                'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
+                'notificationTypes': notification_log.TYPES,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.2'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.3'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
@@ -171,13 +177,14 @@ class Engine:
             raise AppFailure('identity', 'Kayıtlı oturumun hesap kimliği uyuşmuyor.')
         return client
 
-    def event(self, kind, title, identity=None, old=None, new=None, topic=None):
+    def event(self, kind, title, identity=None, old=None, new=None, topic=None, group_id=None):
         record = {'id': uuid.uuid4().hex, 'at': self.clock(), 'type': kind,
                   'title': title, 'personId': identity, 'old': old, 'new': new}
         if topic:
             record['topic'] = topic
         self.data['events'].insert(0, record)
         del self.data['events'][2000:]
+        notification_log.record(self.data, record, group_id or self.observation_group or uuid.uuid4().hex)
 
     def record_profile(self, profile, own=False):
         identity = profile['id']
@@ -187,13 +194,14 @@ class Engine:
         profile = {**profile, 'observedAt': self.clock(),
                    **{k: previous.get(k, default) for k, default in
                       (('favorite', False), ('watching', False), ('group', ''), ('note', ''))}}
+        group_id = self.observation_group or uuid.uuid4().hex
         if 'avatar' not in profile and profile.get('picture') == previous.get('picture'):
             profile['avatar'] = previous.get('avatar')
         for key in PROFILE_FIELDS:
             old = next((h[key] for h in reversed(history) if h.get(key) is not None), None)
             new = profile.get(key)
             if old is not None and new is not None and old != new:
-                self.event('profile', f"@{profile['username']} · {key}", identity, {key: old}, {key: new})
+                self.event('profile', f"@{profile['username']} · {key}", identity, {key: old}, {key: new}, group_id=group_id)
         history.append({key: profile.get(key) for key in ('observedAt', *PROFILE_FIELDS)})
         del history[:-366]
         if own:
@@ -474,6 +482,17 @@ class Engine:
             self.data['settings']['interval'] = args['interval']
         self.save()
 
+    def notification_rule(self, args):
+        identity = str(args.get('id', ''))
+        if identity != (self.data['account'] or {}).get('id') and not self.known_person(identity):
+            raise AppFailure('input', 'Bildirim tercihi için kayıtlı bir hesap seç.')
+        notification_log.set_rule(self.data, identity, args)
+        self.save()
+
+    def read_notification(self, args):
+        notification_log.mark_read(self.data, args.get('id'), self.clock())
+        self.save()
+
     def monitor_status(self):
         d = self.data
         candidates = ([d['account']] if d['account'] else []) + [p for p in d['people'].values() if p.get('watching')]
@@ -536,6 +555,7 @@ class Engine:
                 raise ValueError()
             # Round-trip through the exact vault schema validator before replace.
             access_checks.initialize(restored)
+            notification_log.initialize(restored)
             validate_archive(restored)
         except Exception as exc:
             raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
@@ -549,8 +569,9 @@ class Engine:
         self.vault.save(restored)
         self.data = restored
 
-    def run(self, operation, args):
+    def run(self, operation, args, *, group_id=None):
         self.operation = operation
+        self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()
         try:
@@ -561,6 +582,8 @@ class Engine:
                         'scan': lambda: self.scan(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
                         'check_access': lambda: self.check_access(args),
+                        'notification_rule': lambda: self.notification_rule(args),
+                        'read_notification': lambda: self.read_notification(args),
                         'export_backup': lambda: self.export_backup(args['path']),
                         'import_backup': lambda: self.import_backup(args['path'])}
             if operation == 'state':
@@ -604,6 +627,7 @@ class Engine:
         finally:
             args.pop('password', None)
             self.operation = None
+            self.observation_group = None
 
 
 def validate_archive(d):
@@ -674,3 +698,4 @@ def validate_archive(d):
     if 'lastAutomatic' not in d:
         raise ValueError('automatic')
     access_checks.validate(d)
+    notification_log.validate(d)

@@ -68,6 +68,8 @@ const allowed = new Set([
   "cancel",
   "code",
   "check_access",
+  "notification_rule",
+  "read_notification",
 ]);
 
 function senderValid(event) {
@@ -105,6 +107,8 @@ function validate(operation, args) {
       "investigateMissing",
     ],
     check_access: ["id"],
+    notification_rule: ["id", "enabled", "fields"],
+    read_notification: ["id"],
     disconnect: [],
     delete_all: [],
     cancel: [],
@@ -320,21 +324,16 @@ else
       );
       return { ok: true };
     });
-    backend.onChanges = (state, fresh) => {
-      if (
-        fresh.length &&
-        state.settings.notifications &&
-        Notification.isSupported()
-      ) {
-        const content = changeNotification(fresh);
+    backend.onNotifications = (entries) => {
+      for (const entry of entries) {
+        const content = changeNotification(entry);
         showNotification({
           Notification,
           title: content.title,
           body: content.body,
           onClick: () => {
             showWindow();
-            if (content.accessId)
-              send({ type: "open_access", id: content.accessId });
+            send({ type: "open_notification", id: entry.id });
           },
           onFailure: () =>
             send({

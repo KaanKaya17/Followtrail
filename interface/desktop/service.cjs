@@ -83,15 +83,20 @@ class Backend {
       return;
     }
     if (message.state) {
-      const seen = new Set((this.state?.events || []).map((e) => e.id));
-      const changes =
+      const seen = new Set(
+        (this.state?.notificationLog || []).map((entry) => entry.id),
+      );
+      const entries =
         message.type === "result" && this.state
-          ? message.state.events.filter(
-              (e) => !seen.has(e.id) && ["profile", "list"].includes(e.type),
+          ? (message.state.notificationLog || []).filter(
+              (entry) =>
+                entry.id === message.notificationGroupId &&
+                !seen.has(entry.id) &&
+                entry.desktopEligible,
             )
           : [];
       this.state = message.state;
-      this.onChanges?.(this.state, changes);
+      this.onNotifications?.(entries);
     }
     if (message.type === "ready") this.ready = true;
     if (message.type === "progress") this.progress = message;

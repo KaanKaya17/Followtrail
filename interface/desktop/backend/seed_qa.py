@@ -58,6 +58,14 @@ def main():
         e.data['lists']['300:followers']={'snapshots':[{'id':'large','ownerId':'300','direction':'followers',
             'startedAt':now-30,'finishedAt':now,'complete':True,'status':'complete','pages':3,'expected':150,'members':large}]}
         e.event('list','QA list', '100',None,{'direction':'followers','count':3,'added':1,'removed':1})
+        e.settings({'notifications':True})
+        e.notification_rule({'id':'200','enabled':True,'fields':{'followers':False}})
+        e.observation_group='qa-multi-change'
+        e.event('profile','@qa.deniz · username','200',{'username':'qa.deniz.old'},{'username':'qa.deniz'})
+        e.event('profile','@qa.deniz · followers','200',{'followers':9},{'followers':10})
+        e.event('profile','@qa.deniz · bio','200',{'bio':'Before'},{'bio':'After <script>window.logInjected=true</script>'})
+        e.observation_group=None
+        e.settings({'notifications':False})
         e.data['gate'].update(status=429,blockedUntil=now+3600,manualOnly=True,attempts=2)
     e.save()
     print('Synthetic vault prepared; no session or network.')

@@ -4,43 +4,119 @@ const { EventEmitter } = require("node:events");
 const { Backend } = require("./service.cjs");
 const { changeNotification, showNotification } = require("./notifications.cjs");
 
-test("a suspicion is routed through fresh-change delivery once and survives unrelated profile changes", () => {
+test("one observation log is delivered once with suspicion priority and a log-detail target", () => {
   const received = [];
   const service = new Backend({ onEvent: () => {} });
-  service.onChanges = (_state, events) => {
-    if (events.length) received.push(changeNotification(events));
+  service.onNotifications = (entries) => {
+    for (const entry of entries) received.push(changeNotification(entry));
   };
   const event = {
-    id: "access1",
+    eventId: "access1",
     personId: "200",
-    type: "profile",
-    topic: "access",
+    category: "access",
+    label: "Engellenme şüphesi",
+    username: "qa.arda",
     title: "Engellenme şüphesi · @qa.arda. Hesap kapanmış da olabilir.",
     new: { status: "suspected" },
   };
+  const entry = {
+    id: "control1",
+    desktopEligible: true,
+    selectedChangeIds: ["access1", "count1"],
+    changes: [
+      event,
+      {
+        eventId: "count1",
+        personId: "200",
+        username: "qa.arda",
+        category: "followers",
+        label: "Takipçi sayısı",
+        title: "Sayı değişti",
+      },
+    ],
+  };
   service.message({
     type: "ready",
-    state: { events: [], settings: { notifications: true } },
+    state: { notificationLog: [] },
   });
   service.message({
     type: "result",
+    notificationGroupId: "control1",
     state: {
-      events: [event, { id: "count1", type: "profile", title: "Sayı değişti" }],
-      settings: { notifications: true },
+      notificationLog: [entry],
     },
   });
   service.message({
     type: "result",
+    notificationGroupId: "control1",
     state: {
-      events: [event, { id: "count1", type: "profile", title: "Sayı değişti" }],
-      settings: { notifications: true },
+      notificationLog: [entry],
     },
   });
   assert.equal(received.length, 1);
   assert.equal(received[0].title, "InstagramTracker · Engellenme şüphesi");
-  assert.equal(received[0].accessId, "200");
-  assert.equal(received[0].body, event.title);
+  assert.equal(received[0].logId, "control1");
+  assert.equal(received[0].body.includes("şüphesi"), true);
   assert.equal(received[0].body.includes("engelledi"), false);
+});
+
+test("several selected fields in one control produce one summary; muted fields stay out of the Windows summary", () => {
+  const selected = changeNotification({
+    id: "control",
+    selectedChangeIds: ["username", "bio"],
+    changes: [
+      {
+        eventId: "username",
+        username: "qa.arda",
+        category: "username",
+        label: "Kullanıcı adı",
+      },
+      {
+        eventId: "bio",
+        username: "qa.arda",
+        category: "bio",
+        label: "Biyografi",
+      },
+      {
+        eventId: "followers",
+        username: "qa.arda",
+        category: "followers",
+        label: "Takipçi sayısı",
+      },
+    ],
+  });
+  assert.equal(selected.body, "@qa.arda · 2 değişiklik. Ayrıntıları aç.");
+  assert.equal(selected.logId, "control");
+});
+
+test("muted control logs and read-status changes do not replay desktop notifications", () => {
+  let delivered = 0;
+  const service = new Backend({ onEvent: () => {} });
+  service.onNotifications = (entries) => (delivered += entries.length);
+  const old = { id: "old", desktopEligible: true, readAt: null };
+  const muted = { id: "muted", desktopEligible: false };
+  service.message({ type: "ready", state: { notificationLog: [old] } });
+  service.message({
+    type: "result",
+    notificationGroupId: "muted",
+    state: { notificationLog: [muted, { ...old, readAt: 123 }] },
+  });
+  assert.equal(delivered, 0);
+});
+
+test("restoring historical eligible logs never sends desktop notifications for the import operation", () => {
+  let delivered = 0;
+  const service = new Backend({ onEvent: () => {} });
+  service.onNotifications = (entries) => (delivered += entries.length);
+  service.message({ type: "ready", state: { notificationLog: [] } });
+  service.message({
+    type: "result",
+    notificationGroupId: "import-operation",
+    state: {
+      notificationLog: [{ id: "historical-group", desktopEligible: true }],
+    },
+  });
+  assert.equal(delivered, 0);
 });
 test("native notification callbacks open the evidence and report delivery failure", () => {
   let notification,

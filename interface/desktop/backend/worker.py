@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sys
 import threading
+import uuid
 
 from engine import Engine
 from network import AppFailure, failure
@@ -37,12 +38,13 @@ def main():
     emit({'type': 'ready', 'state': engine.snapshot()})
 
     def execute(request):
+        group_id = uuid.uuid4().hex
         try:
-            state = engine.run(request['operation'], request.get('args') or {})
-            emit({'type': 'result', 'id': request['id'], 'ok': True, 'state': state})
+            state = engine.run(request['operation'], request.get('args') or {}, group_id=group_id)
+            emit({'type': 'result', 'id': request['id'], 'ok': True, 'state': state, 'notificationGroupId': group_id})
         except Exception as exc:
             emit({'type': 'result', 'id': request['id'], 'ok': False,
-                  'error': failure(exc), 'state': engine.snapshot()})
+                  'error': failure(exc), 'state': engine.snapshot(), 'notificationGroupId': group_id})
         finally:
             active.release()
 
