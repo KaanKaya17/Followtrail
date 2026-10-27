@@ -9,9 +9,12 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const version = JSON.parse(
+  await readFile(path.join(root, "package.json"), "utf8"),
+).version;
 const output = path.resolve(
   root,
-  "../artifacts/InstagramTracker-Desktop-0.2.0",
+  `../artifacts/InstagramTracker-Desktop-${version}`,
 );
 const resources = path.join(output, "resources/app");
 const worker = path.join(root, ".cache/worker-dist/tracker-worker");
@@ -25,7 +28,7 @@ if (refresh) {
     throw new Error("Not an owned functional desktop output");
   const backup = path.resolve(
     root,
-    `../artifacts/desktop-0.2-source-${new Date().toISOString().replace(/[:.]/g, "-")}`,
+    `../artifacts/desktop-${version}-source-${new Date().toISOString().replace(/[:.]/g, "-")}`,
   );
   await cp(resources, backup, { recursive: true });
 } else {
@@ -53,6 +56,7 @@ for (const name of [
   "preload.cjs",
   "service.cjs",
   "notifications.cjs",
+  "background.cjs",
 ])
   await cp(
     path.join(root, "desktop", name),
@@ -70,6 +74,10 @@ for (const name of [
   await cp(path.join(root, "web", name), path.join(resources, "web", name));
 await cp(worker, path.join(resources, "worker"), { recursive: true });
 await cp(
+  path.join(root, ".cache/tray-icon.png"),
+  path.join(resources, "desktop/tray.png"),
+);
+await cp(
   path.join(root, ".cache/worker-licenses"),
   path.join(output, "Python-dependency-notices"),
   { recursive: true },
@@ -79,7 +87,7 @@ await writeFile(
   JSON.stringify(
     {
       name: "instagramtracker-desktop",
-      version: "0.2.0",
+      version,
       main: "desktop/main.cjs",
     },
     null,
@@ -88,6 +96,6 @@ await writeFile(
 );
 await writeFile(
   path.join(output, "ONCE-OKU.txt"),
-  "InstagramTracker Windows 0.2.0\r\n\r\nInstagramTracker.exe dosyasını aç. Klasördeki diğer dosyaları aynı yerde tut. Python kurman gerekmez.\r\nHesap bağlantısından giriş yap veya önceki Windows prototipindeki oturumu doğrulayarak aktar.\r\nProfil sayıları, listeler ve notlar yerel şifreli depoda tutulur. Instagram erişimi sunucunun izin verdiği ölçüde çalışır.\r\nTakipçi ve takip edilen listelerini ayrı ayrı tara. Kısmi listeler tam kayıt sayılmaz.\r\nOtomatik profil kontrolü yalnız uygulama açıkken ve Ayarlar’dan açıldığında çalışır.\r\nŞifreli yedekler oturum içermez; aynı Windows kullanıcısında açılır. CSV dosyaları şifresizdir.\r\nBu uygulama Instagram’dan bağımsızdır.\r\n",
+  `InstagramTracker Windows ${version}\r\n\r\nInstagramTracker.exe dosyasını aç. Klasördeki diğer dosyaları aynı yerde tut. Python kurman gerekmez.\r\nHesap bağlantısından giriş yap veya önceki Windows prototipindeki oturumu doğrulayarak aktar.\r\nProfil sayıları, listeler ve notlar yerel şifreli depoda tutulur. Instagram erişimi sunucunun izin verdiği ölçüde çalışır.\r\nTakipçi ve takip edilen listelerini ayrı ayrı tara. Kısmi listeler tam kayıt sayılmaz.\r\nOtomatik profil kontrolü Ayarlar’dan açılır. 1/5/15/30/60/180/360 dakika seçenekleri vardır. Pencereyi kapatınca sistem tepsisinde devam eder; tamamen çıkmak için tepsi simgesine sağ tıkla ve Tamamen çık seç.\r\nŞifreli yedekler oturum içermez; aynı Windows kullanıcısında açılır. CSV dosyaları şifresizdir.\r\nBu uygulama Instagram’dan bağımsızdır.\r\n`,
 );
 console.log(output);

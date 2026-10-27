@@ -231,6 +231,10 @@ select {
 .person-bio {
   white-space: pre-wrap;
 }
+.monitor-summary {
+  background: var(--violet-soft, #efe9ff);
+  margin-top: 20px;
+}
 .avatar {
   overflow: hidden;
 }

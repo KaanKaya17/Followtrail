@@ -10,7 +10,10 @@ const root = path.resolve(
   "../..",
 );
 const home = await mkdtemp(path.join(os.tmpdir(), "TrackerQA-"));
-const output = path.join(root, "artifacts/desktop-0.2.0-qa");
+const version = JSON.parse(
+  await readFile(path.join(root, "interface/package.json"), "utf8"),
+).version;
+const output = path.join(root, `artifacts/desktop-${version}-qa`);
 await mkdir(output, { recursive: true });
 const python =
   process.env.TRACKER_BUILD_PYTHON ||
@@ -24,7 +27,7 @@ const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
 const executablePath = path.join(
   root,
-  "artifacts/InstagramTracker-Desktop-0.2.0/InstagramTracker.exe",
+  `artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`,
 );
 const checks = [],
   errors = [],
@@ -40,7 +43,8 @@ async function launch() {
   page.setDefaultTimeout(12000);
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("request", (r) => {
-    if (!r.url().startsWith("file:") && !r.url().startsWith('data:')) requests.push(r.url());
+    if (!r.url().startsWith("file:") && !r.url().startsWith("data:"))
+      requests.push(r.url());
   });
   await page.getByRole("heading", { name: "Çevrende neler oluyor?" }).waitFor();
 }
@@ -51,6 +55,41 @@ async function check(name, work) {
 }
 try {
   await launch();
+  await check(
+    "Closing the actual window keeps the renderer and local worker alive in the tray",
+    async () => {
+      const before = await page.evaluate(() =>
+        window.TrackerDesktop.command("state"),
+      );
+      await desktop.evaluate(({ BrowserWindow }) =>
+        BrowserWindow.getAllWindows()[0].close(),
+      );
+      assert.equal(
+        await desktop.evaluate(
+          ({ BrowserWindow }) => BrowserWindow.getAllWindows().length,
+        ),
+        1,
+      );
+      assert.equal(
+        await desktop.evaluate(({ BrowserWindow }) =>
+          BrowserWindow.getAllWindows()[0].isVisible(),
+        ),
+        false,
+      );
+      const hidden = await page.evaluate(() =>
+        window.TrackerDesktop.command("state"),
+      );
+      assert.equal(hidden.ok, true);
+      assert.equal(hidden.state.account.id, before.state.account.id);
+      await desktop.evaluate(({ app }) => app.emit("activate"));
+      assert.equal(
+        await desktop.evaluate(({ BrowserWindow }) =>
+          BrowserWindow.getAllWindows()[0].isVisible(),
+        ),
+        true,
+      );
+    },
+  );
   await check("Renderer isolation and no Node access", async () => {
     const prefs = await desktop.evaluate(({ BrowserWindow }) => {
       const p =
@@ -216,8 +255,10 @@ try {
     await page
       .getByRole("button", { name: "QA qa.deniz kaydını aç", exact: true })
       .click();
-    await page.getByRole('dialog').locator('.avatar img').waitFor();
-    await page.waitForFunction(()=>document.querySelector('dialog .avatar img')?.naturalWidth > 0);
+    await page.getByRole("dialog").locator(".avatar img").waitFor();
+    await page.waitForFunction(
+      () => document.querySelector("dialog .avatar img")?.naturalWidth > 0,
+    );
     assert.equal(
       await page.locator("#person-note").inputValue(),
       "PRIVATE-QA-NOTE <img src=x onerror=alert(1)>",
@@ -257,6 +298,25 @@ try {
       () => document.body.dataset.density === "compact",
     );
   });
+  await check(
+    "One- and five-minute intervals persist through the real IPC and encrypted vault",
+    async () => {
+      const options = await page
+        .locator("#auto-interval option")
+        .evaluateAll((nodes) => nodes.map((n) => n.value));
+      assert.deepEqual(options, ["1", "5", "15", "30", "60", "180", "360"]);
+      for (const value of ["1", "5"]) {
+        await page.locator("#auto-interval").selectOption(value);
+        await page.waitForFunction(
+          async (value) =>
+            (await window.TrackerDesktop.command("state")).state.settings
+              .interval === Number(value),
+          value,
+        );
+      }
+      assert.equal(await page.locator(".monitor-summary").isVisible(), true);
+    },
+  );
   await check(
     "Notification opt-in creates an owned isolated Windows shortcut",
     async () => {

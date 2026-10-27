@@ -6,6 +6,9 @@ const {
   dialog,
   Notification,
   shell,
+  Tray,
+  Menu,
+  nativeImage,
 } = require("electron");
 const path = require("node:path");
 const os = require("node:os");
@@ -13,6 +16,7 @@ const fs = require("node:fs/promises");
 const { existsSync } = require("node:fs");
 const { pathToFileURL } = require("node:url");
 const { Backend } = require("./service.cjs");
+const { Background } = require("./background.cjs");
 const {
   APP_ID,
   TOAST_ID,
@@ -46,6 +50,7 @@ const entry = path.join(__dirname, "..", "web", "desktop.html");
 const entryUrl = pathToFileURL(entry).href;
 let window,
   backend,
+  background,
   quitting = false;
 const allowed = new Set([
   "state",
@@ -100,6 +105,7 @@ function validate(operation, args) {
     throw new Error("Unknown command field");
 }
 function send(event) {
+  background?.update();
   if (event.type === "ready" && event.state?.settings.notifications) {
     try {
       ensureShortcut({ app, shell, testHome, dataDir });
@@ -137,6 +143,18 @@ function open() {
     event.preventDefault(),
   );
   window.loadFile(entry);
+  background?.attach(window);
+}
+
+function showWindow() {
+  if (!app.isReady()) {
+    app.whenReady().then(showWindow);
+    return;
+  }
+  if (!window || window.isDestroyed()) open();
+  if (window.isMinimized()) window.restore();
+  window.show();
+  window.focus();
 }
 
 if (!testHome && !app.requestSingleInstanceLock()) app.quit();
@@ -306,10 +324,7 @@ else
             fresh.length === 1
               ? fresh[0].title
               : `${fresh.length} yeni değişiklik gözlendi.`,
-          onClick: () => {
-            window?.show();
-            window?.focus();
-          },
+          onClick: showWindow,
           onFailure: () =>
             send({
               type: "notification_warning",
@@ -320,25 +335,38 @@ else
       }
     };
     open();
-    backend.start();
-    const timer = setInterval(() => {
-      if (!backend.busy && backend.state?.settings.automatic)
-        backend.command("automatic", {}).catch(() => {});
-    }, 60000);
-    timer.unref();
-    app.on("activate", () => {
-      if (!BrowserWindow.getAllWindows().length) open();
+    const packagedIcon = path.join(__dirname, "tray.png");
+    const image = nativeImage.createFromPath(
+      existsSync(packagedIcon)
+        ? packagedIcon
+        : path.join(__dirname, "..", ".cache", "tray-icon.png"),
+    );
+    if (image.isEmpty())
+      throw new Error(
+        "Tracker tray icon is missing. Rebuild the desktop package.",
+      );
+    background = new Background({
+      Tray,
+      Menu,
+      image,
+      showWindow,
+      quit: () => app.quit(),
+      backend,
     });
+    background.attach(window);
+    backend.start();
+    app.on("activate", showWindow);
   });
-app.on("second-instance", () => {
-  window?.show();
-  window?.focus();
+app.on("second-instance", showWindow);
+app.on("window-all-closed", () => {
+  if (!background || quitting) app.quit();
 });
-app.on("window-all-closed", () => app.quit());
 app.on("before-quit", (event) => {
   if (backend && !quitting) {
     event.preventDefault();
     quitting = true;
+    background?.beginQuit();
     backend.stop().finally(() => app.quit());
   }
 });
+app.on("will-quit", () => background?.destroy());
