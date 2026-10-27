@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## 0.1.29 — 2026-10-27 (telefon girişinde anahtar bağlamı)
+
+- P05 parola şifreleme anahtarı sorgusu, uyarlanan instagrapi 3.2.0'ın ayrı anonim istemcisiyle aynı oturum ayrımına alındı. Özel giriş çerezleri/cihaz başlıkları bu sorguya gitmez; anahtar yanıtı P06'nın çerez/MID/claim bağlamını değiştiremez.
+- Mevcut mola, istek aralığı, tek iletim, TLS denetimi, 405 anahtar istisnası ve 429 sonrası durma korunur. Bu kaynak uyumsuzluğu düzeltmesinin canlı P06/429 sorununu çözdüğü henüz doğrulanmadı; yeni otomatik deneme eklenmedi.
+
 ## 0.1.28 — 2026-10-27 (görünür web doğrulama sonucu)
 
 - Başarısız web doğrulaması giriş sayfasını kapatır; hata nedeni, bu denemenin varsa HTTP durumu ve geçerli mola açık bir sonuç penceresinde gösterilir. İstek bilgileri doğrudan açılabilir; yeniden deneme otomatik başlatılmaz.

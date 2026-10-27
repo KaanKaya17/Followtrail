@@ -112,15 +112,19 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
                     }
                     // Apply server restrictions before surfacing a diagnostic storage failure.
                     savedDiagnostic.getOrThrow()
-                    response.headers.values("Set-Cookie").forEach { line ->
-                        okhttp3.Cookie.parse(response.request.url, line)?.let { cookie ->
-                            if (cookie.name in MobileSessionCodec.cookieNames) {
-                                if (cookie.expiresAt <= runtime.now()) cookies.remove(cookie.name) else cookies[cookie.name] = MobileSessionCodec.cookie(cookie.value)
+                    // Upstream password_publickeys uses its separate public session. Key responses
+                    // cannot change the private CAA cookie/claim/device context used by P06.
+                    if (operation != PhoneLoginOperation.PASSWORD_KEY) {
+                        response.headers.values("Set-Cookie").forEach { line ->
+                            okhttp3.Cookie.parse(response.request.url, line)?.let { cookie ->
+                                if (cookie.name in MobileSessionCodec.cookieNames) {
+                                    if (cookie.expiresAt <= runtime.now()) cookies.remove(cookie.name) else cookies[cookie.name] = MobileSessionCodec.cookie(cookie.value)
+                                }
                             }
                         }
-                    }
-                    mapOf("ig-set-x-mid" to "X-MID", "x-ig-set-www-claim" to "X-IG-WWW-Claim").forEach { (wire, name) ->
-                        response.header(wire)?.let { rotated[name] = MobileSessionCodec.header(it) }
+                        mapOf("ig-set-x-mid" to "X-MID", "x-ig-set-www-claim" to "X-IG-WWW-Claim").forEach { (wire, name) ->
+                            response.header(wire)?.let { rotated[name] = MobileSessionCodec.header(it) }
+                        }
                     }
                     return Reply(json, response.headers.toMultimap())
                 }
@@ -136,6 +140,13 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
         extra.forEach { (name, value) -> builder.header(name, value) }
         return if (data == null) builder.get().build() else builder.post(FormBody.Builder().apply { data.forEach { (k, v) -> add(k, v) } }.build()).build()
     }
+    private fun passwordKeyRequest(): Request = Request.Builder().url("https://i.instagram.com/api/v1/qe/sync/").get()
+        // instagrapi 3.2.0 PasswordMixin.password_publickeys uses PublicRequestMixin's
+        // anonymous public client identity, not private_headers. Compression/connection
+        // headers remain owned by our bounded HTTP/2 transport and its decoder.
+        .header("Accept", "*/*").header("Accept-Language", "en-US")
+        .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 " +
+            "(KHTML, like Gecko) Version/11.1.2 Safari/605.1.15").build()
     private fun template(name: String, values: Map<String, Any> = emptyMap()): JSONObject {
         val base = mapOf("UUID" to device.uuid, "PHONE_ID" to device.phoneId, "ANDROID_ID" to device.androidId,
             "WATERFALL" to waterfall, "AAC" to aac, "MID" to (rotated["X-MID"] ?: cookies["mid"].orEmpty()),
@@ -200,7 +211,7 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
                 mapOf("app_scoped_device_id" to device.uuid, "key_hash" to ""), mapOf("X-FB-Friendly-Name" to "IgApi: attestation/create_android_keystore/")), PhoneLoginOperation.CHALLENGE)
                 .body.optString("challenge_nonce").takeIf { it.isNotBlank() } ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
             bloks("oauth", "com.bloks.www.caa.login.oauth.token.fetch.async")
-            val key = exchange(request("https://i.instagram.com/api/v1/qe/sync/"), PhoneLoginOperation.PASSWORD_KEY)
+            val key = exchange(passwordKeyRequest(), PhoneLoginOperation.PASSWORD_KEY)
             fun header(name: String) = key.headers.entries.firstOrNull { it.key.equals(name, true) }?.value?.lastOrNull()
             val keyId = header("ig-set-password-encryption-key-id")?.toIntOrNull() ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
             val public = header("ig-set-password-encryption-pub-key") ?: throw PhoneLoginFailure(PhoneLoginFailure.Reason.UNSUPPORTED)
