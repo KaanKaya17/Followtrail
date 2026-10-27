@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.Path
@@ -24,24 +23,23 @@ import android.widget.TextView
 
 /** Shared visual language; owns no account, request or persistence state. */
 object AppUi {
-    val background = Color.rgb(250, 249, 246)
-    val surface = Color.WHITE
-    val ink = Color.rgb(37, 35, 57)
-    val muted = Color.rgb(111, 109, 129)
-    val violet = Color.rgb(103, 75, 216)
-    val violetSoft = Color.rgb(239, 233, 255)
-    val coral = Color.rgb(195, 76, 46)
-    val peach = Color.rgb(255, 230, 216)
-    val teal = Color.rgb(19, 115, 102)
-    val mint = Color.rgb(220, 246, 233)
-    val line = Color.rgb(233, 229, 238)
+    val background = UiPalette.background
+    val surface = UiPalette.surface
+    val ink = UiPalette.ink
+    val muted = UiPalette.muted
+    val violet = UiPalette.violet
+    val violetSoft = UiPalette.violetSoft
+    val coral = UiPalette.coral
+    val peach = UiPalette.peach
+    val teal = UiPalette.teal
+    val mint = UiPalette.mint
+    val line = UiPalette.line
     fun dp(context: Context, value: Int) = (context.resources.displayMetrics.density * value).toInt()
     fun shape(context: Context, color: Int, radius: Int = 22, border: Int? = null) = GradientDrawable().apply {
         setColor(color); cornerRadius = dp(context, radius).toFloat()
         border?.let { setStroke(dp(context, 1), it) }
     }
-    fun gradient(context: Context, start: Int = violet, end: Int = Color.rgb(139, 96, 235), radius: Int = 26) =
-        GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(start, end)).apply { cornerRadius = dp(context, radius).toFloat() }
+    fun brandSurface(context: Context, radius: Int = UiPalette.cardRadius) = shape(context, violet, radius)
     fun touch(context: Context, drawable: Drawable): Drawable {
         val focus = drawable.constantState?.newDrawable()?.mutate()
         if (focus is GradientDrawable) focus.setStroke(dp(context, 2), ink)
@@ -65,7 +63,7 @@ object AppUi {
         layoutParams = LinearLayout.LayoutParams(-2, -2)
     }
     fun card(context: Context) = LinearLayout(context).apply {
-        orientation = LinearLayout.VERTICAL; background = shape(context, surface, 24, line)
+        orientation = LinearLayout.VERTICAL; background = shape(context, surface, UiPalette.cardRadius, line)
         setPadding(dp(context, 18), dp(context, 18), dp(context, 18), dp(context, 18))
     }
     fun notice(context: Context, title: String, detail: String, warning: Boolean = false) = LinearLayout(context).apply {
@@ -85,7 +83,7 @@ object AppUi {
         text = title; textSize = 14f; isAllCaps = false; isEnabled = enabled
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         setTextColor(if (primary) surface else violet)
-        background = touch(context, if (primary) gradient(context, radius = 18) else shape(context, violetSoft, 18))
+        background = touch(context, if (primary) brandSurface(context, radius = UiPalette.buttonRadius) else shape(context, violetSoft, UiPalette.buttonRadius))
         stateListAnimator = null; minimumHeight = dp(context, 52); minHeight = dp(context, 52)
         setPadding(dp(context, 16), dp(context, 12), dp(context, 16), dp(context, 12))
         alpha = if (enabled) 1f else .48f

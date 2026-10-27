@@ -1,0 +1,25 @@
+# Tracker — ortak web ve masaüstü arayüzü
+
+Bu aşama, gerçek Instagram işlevlerinden önce hazırlanan **etkileşimli arayüz önizlemesidir**. Bütün hesaplar, sayılar, kayıtlar ve bildirimler örnektir. Mevcut InstagramCounter/Android oturumu okunmaz; kullanıcı adı/parola istenmez. Tarayıcı istekleri CSP ile yerel varlıklara sınırlandırılır; veri bağlantıları kapalıdır.
+
+## Açma
+
+- Web: `start-web.cmd` veya `npm run preview`, ardından `http://127.0.0.1:4173`. Yalnız loopback üzerinde çalışır. Durdurmak için terminalde Ctrl+C.
+- Masaüstü: hazırlanmış `../artifacts/Tracker-Desktop-UI/InstagramTracker.exe`. Yanındaki dosyalar aynı klasörde kalmalı. Bu bir taşınabilir önizlemedir; sistem kurulumu veya kod imzası iddiası taşımaz.
+- Kaynaktan masaüstü: `npm ci`, `node node_modules/electron/install.js`, `npm run desktop`. Electron **45.0.0** proje içinde sabittir; sistem Node/Electron kurulumu güncellenmez. Bu sürümün paketinde indirme otomatik postinstall olarak çalışmadığından binary adımı açıktır.
+
+## Tasarım ve kapsam
+
+Özet, Kişiler, Listeler, Zaman çizelgesi, Ayarlar ve profil/olay ayrıntıları hazırdır. Tarih aralığı, yerel arama, favoriler, örnek kişi ekleme, oturumluk örnek notlar, seçilen liste yönünün karşılaştırması, bildirim görünümü ve kompakt görünüm kullanılabilir. Örnek kişi/favori/notlar yeniden yüklemede sıfırlanır; yalnız kompakt görünüm tercihi localStorage'da kalır. Yenileme gerçek işlem taklidi yapmaz; bağlantının etkin olmadığını açıklar.
+
+`../design/theme.json` ortak renklerin ve temel köşe ölçülerinin sahibidir. `npm run theme`, Android `UiPalette.kt` ile web `theme.css` üretir. `npm run check` eşleşmeyi doğrular. Android ana ekranı aynı palet, düz mor vurgular, 24 dp kartlar ve 18 dp düğmelerle uyumludur; platformlara özgü gezinme korunur.
+
+Masaüstü aynı web dosyalarını yerel Electron penceresinde açar. Renderer'da Node kapalı, context isolation ve sandbox açık; yeni pencere/harici gezinme ve izin istekleri kapalıdır. Instagram'a veya üçüncü taraf backend'e bağlantı yoktur. Paket yalnız bu arayüzü içerir; Android/Python oturumu, kullanıcı verisi veya geliştirme bağımlılıkları pakete alınmaz.
+
+## Kontroller ve paket
+
+`npm run check` kaynak sözdizimini ve üretilen tema dosyalarını kontrol eder. Yerel sunucu açıkken `npm run check:ui`, kurulu Microsoft Edge'in ayrı headless profilinde arama/filtre/ayrıntı/durum ve 1440×1050 / 390×844 taşma kontrollerini yapar; rapor ve ekran görüntüleri `../artifacts/ui-0.1.30` altındadır. Kullanıcının tarayıcı profilini kullanmaz. `npm run check:desktop` paketlenmiş gerçek Windows uygulamasında yerel arama/profil penceresini ve renderer izolasyonunu kontrol eder; `-- --keep-open` pencereyi inceleme için açık bırakır.
+
+`npm run package:desktop` taşınabilir klasörü ilk kez oluşturur. Önizlemenin web/main dosyaları değişirse `npm run package:desktop -- --refresh` önce eski uygulama varlıklarını zaman damgalı artifacts yedeğine kopyalar, ardından yalnız kimliği doğrulanan önizleme paketinin kendi uygulama varlıklarını günceller; mevcut klasör körlemesine silinmez. Bir Electron yükseltmesi için yeni runtime ile ayrı paket hazırlanmalıdır.
+
+Gerçek hesap girişi, veri okuma, şifreli kayıt ve otomasyon sonraki işlev aşamasındadır. Bu arayüzün açılması Instagram erişiminin çalıştığını kanıtlamaz.

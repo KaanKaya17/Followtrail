@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## 0.1.30 — 2026-10-27 (web, masaüstü ve telefon için ortak görünüm)
+
+- Yerel web ve Windows masaüstü arayüz önizlemesi eklendi: Özet, Kişiler, Listeler, Zaman çizelgesi, Ayarlar ve ayrıntı pencereleri. Arama, filtreler, favoriler ve notlar yalnız örnek verilerle çalışır; gerçek hesap girişi/veri okuma sonraki aşamadır.
+- Telefonun ana ekranı düz mor vurgular, açık renkli 24 dp kartlar, sayaç başlıkları ve favori/gezinme yüzeyleriyle aynı görsel dile uyarlandı. Ortak `design/theme.json`, Android ve web tema dosyalarını üretir; eşleşme denetlenir. Mevcut Android işlevleri, veri biçimleri, oturum ve istek politikası korunur.
+- Masaüstü aynı web dosyalarını yerel, Node erişimi kapalı ve sandbox açık Electron penceresinde kullanır. Hiçbir kullanıcı oturumu/verisi yeni önizlemeye aktarılmaz; canlı yenileme ve tarama taklit edilmez. Kullanım: [interface/README.md](interface/README.md).
+
 ## 0.1.29 — 2026-10-27 (telefon girişinde anahtar bağlamı)
 
 - P05 parola şifreleme anahtarı sorgusu, uyarlanan instagrapi 3.2.0'ın ayrı anonim istemcisiyle aynı oturum ayrımına alındı. Özel giriş çerezleri/cihaz başlıkları bu sorguya gitmez; anahtar yanıtı P06'nın çerez/MID/claim bağlamını değiştiremez.
