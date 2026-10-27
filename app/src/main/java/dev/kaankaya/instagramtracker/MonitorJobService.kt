@@ -33,7 +33,7 @@ open class MonitorJobService : JobService() {
     protected open val jobId = MonitorScheduler.JOB_ID
     protected open val preview = false
     protected open fun createApi(gate: RequestGate) = InstagramApi(gate)
-    protected open fun createListSource(gate: RequestGate): FollowListSource = MobileFollowListReader(gate, MobileSessions(this))
+    protected open fun createListSource(gate: RequestGate): FollowListSource = AccountFollowListReader(gate)
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private class Run(val parameters: JobParameters, val api: InstagramApi, val lists: FollowListSource) {

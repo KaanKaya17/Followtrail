@@ -57,9 +57,10 @@ object AccountCodec {
             // v4 compatibility for older APKs: round up to their supported interval, never speed up a downgrade.
             .put("intervalHours", legacyHours(person.intervalMinutes)).put("nextCheckAt", person.nextCheckAt)
             .put("history", JSONArray().apply { person.history.forEach { put(profile(it, detailRefs)) } }))
-        val result = JSONObject().put("version", 4).put("id", account.session.userId)
+        val result = JSONObject().put("version", 5).put("id", account.session.userId)
             .put("cookie", account.session.cookie).put("ua", account.session.userAgent)
-            .apply { account.session.mobileBinding?.let { put("mobileBinding", it) } }
+            .apply { account.session.mobileBinding?.let { put("mobileBinding", it) }
+                account.session.webBinding?.let { put("webBinding", it) } }
             .put("profile", profile(account.profile, detailRefs)).put("people", people)
             .apply { if (account.automation != ListAutomation()) put("listAutomation", JSONObject()
                 .put("enabled", account.automation.enabled).put("targets", JSONArray(account.automation.targets.toList()))
@@ -74,7 +75,7 @@ object AccountCodec {
     fun decode(text: String): SavedAccount {
         val json = JSONObject(text)
         val version = json.getInt("version")
-        require(version in 1..4)
+        require(version in 1..5)
         val detailArray = if (json.has("profileDetails")) json.getJSONArray("profileDetails") else JSONArray()
         require(detailArray.length() <= PeoplePolicy.MAX_PEOPLE * PeoplePolicy.MAX_HISTORY + 1)
         val textArray = if (json.has("profileTexts")) json.getJSONArray("profileTexts") else JSONArray()
@@ -86,12 +87,14 @@ object AccountCodec {
         }
         val details = (0 until detailArray.length()).map { decodeDetails(detailArray.getJSONObject(it), texts) }
         val binding = if (version >= 4 && json.has("mobileBinding")) json.getString("mobileBinding") else null
-        val session = if (binding != null) {
-            require(binding.matches(Regex("[a-f0-9]{32}")))
+        val webBinding = if (version >= 5 && json.has("webBinding")) json.getString("webBinding") else null
+        require(binding == null || webBinding == null)
+        val session = if (binding != null || webBinding != null) {
+            require((binding ?: webBinding!!).matches(Regex("[a-f0-9]{32}")))
             val id = json.getString("id"); val ua = json.getString("ua")
             require(id.matches(Regex("[1-9][0-9]{0,29}")) && ua.isNotBlank() && ua.none { it.code < 32 || it.code == 127 })
             require(json.getString("cookie").isEmpty())
-            Session(id, "", ua, binding)
+            Session(id, "", ua, binding, webBinding)
         } else SessionCookies.fromHeader(json.getString("cookie"), json.getString("ua"))
             ?: throw IllegalArgumentException("Invalid session")
         require(session.userId == json.getString("id"))

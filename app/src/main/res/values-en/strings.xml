@@ -15,7 +15,7 @@
     <string name="auto_how">"How does it work?"</string>
     <string name="auto_progress">"Automation status"</string>
     <string name="auto_select_one">"Choose at least one account."</string>
-    <string name="auto_mobile_required">"List automation requires a mobile connection. Use Manage connection → Connect on this phone; existing records are preserved."</string>
+    <string name="auto_mobile_required">"Reconnect to use list automation. Use Manage connection → Connect with Instagram; existing records are preserved."</string>
     <string name="auto_started">"List automation enabled. Pages will be read in sequence when Android allows it; existing cooldowns are preserved."</string>
     <string name="auto_first_pending">"The first list read is queued."</string>
     <string name="auto_scan_progress">"%1$s pages · %2$s accounts seen · more queued."</string>

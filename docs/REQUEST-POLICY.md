@@ -1,5 +1,11 @@
 # Profil okuma politikası — 0.1.7
 
+## 0.1.27 doğrudan web okuyucusu
+
+Yeni web bağlantıları ayrı şifreli WebSessions bankası ve sabit www.instagram.com origin'i kullanır. Session türü tek okuyucuyu istekten önce seçer; hata/429 sonrası mobil/web fallback veya farklı endpoint denemesi yoktur. Ortak PrivateReadTransport 15 saniye kapıyı, 15 dakika ilk bağlantı aralığını, tek etkin taşıma, HTTP/2 ve tek iletim/yönlendirmeme/1 MiB sınırını korur. Bağlantı sayfasındaki Instagram 429'u da aynı kalıcı molayı uygular ve tarayıcı kapanır.
+
+Manuel liste, otomasyon ve hızlı izleme web binding kapsamını da tanır; tur/bütçe değişmez. Web liste istekleri doğrudan www.instagram.com/api/v1/friendships yoluna gider; sunucudan istek tarifi alınmaz, yanıt başka bir servise iletilmez. Yeni web profil/liste kabulü yerel sentetik testlerle kanıtlanmış sayılmaz; [WEB-CONNECTION.md](WEB-CONNECTION.md) ve güncel doğrulama kaydı uygulanır.
+
 Bu belge özel mobil/web profil okuyucularının sözleşmesidir. Bu uçlar resmî Graph API kotasıyla eş tutulmaz. 25 Ekim 2026'da kullanıcı fiziksel telefonda mobil sayaç ve ilk liste okumalarının çalıştığını bildirdi; aşağıdaki denetimler bir sorunsuzluk garantisi değildir. Kanıt kapsamı [VALIDATION.md](VALIDATION.md) içindedir.
 
 ## 0.1.22 yerel durum sunumu

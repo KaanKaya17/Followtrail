@@ -53,7 +53,7 @@ class FollowListVault(context: Context, slot: String = "followlists") {
     private val record = EncryptedRecord(context, slot)
     fun archive(session: Session): ListArchive = synchronized(lock) {
         record.read()?.let(FollowArchiveCodec::decode)?.takeIf { it.matches(session) }
-            ?: ListArchive(session.userId, session.mobileBinding)
+            ?: ListArchive(session.userId, session.connectionBinding)
     }
     private fun write(archive: ListArchive) = record.write(FollowArchiveCodec.encode(archive))
     fun current(session: Session): FollowSnapshot? = synchronized(lock) {

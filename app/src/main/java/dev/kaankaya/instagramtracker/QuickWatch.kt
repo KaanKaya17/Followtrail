@@ -47,11 +47,11 @@ class QuickWatch(private val vault: SessionVault, private val lists: FollowListV
     fun save(state: Bundle) {
         if (!active) return
         state.putString("quick_target", target); state.putString("quick_owner", reference?.userId)
-        state.putString("quick_binding", reference?.mobileBinding)
+        state.putString("quick_binding", reference?.connectionBinding)
         state.putLong("quick_started", started); state.putLong("quick_until", until); state.putLong("quick_next", next)
     }
     fun restore(state: Bundle?, saved: SavedAccount) {
-        if (state == null || state.getString("quick_owner") != saved.session.userId || state.getString("quick_binding") != saved.session.mobileBinding) return
+        if (state == null || state.getString("quick_owner") != saved.session.userId || state.getString("quick_binding") != saved.session.connectionBinding) return
         val began = state.getLong("quick_started"); val end = state.getLong("quick_until"); val now = runtime.elapsed()
         val id = state.getString("quick_target") ?: return
         if (now < began || now >= end || end - began != QuickWatchTiming.DURATION_MS ||

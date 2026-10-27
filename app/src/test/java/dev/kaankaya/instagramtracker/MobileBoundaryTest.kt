@@ -49,7 +49,7 @@ class MobileBoundaryTest {
         assertThrows(Exception::class.java) { state.updated(mapOf("IG-Set-Authorization" to listOf(foreign))) }
         assertThrows(Exception::class.java) { state.updated(mapOf("IG-Set-IG-U-DS-USER-ID" to listOf("456"))) }
     }
-    @Test fun accountV4RetainsStableMobileBindingAndHistoryWithNoCookieCopy() {
+    @Test fun accountRetainsStableMobileBindingAndHistoryWithNoCookieCopy() {
         val saved = SavedAccount(state().reference(), Profile("123", "synthetic", 0, 7, 1000))
         val encoded = AccountCodec.encode(saved)
         assertEquals(saved, AccountCodec.decode(encoded))

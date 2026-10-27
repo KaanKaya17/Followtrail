@@ -33,7 +33,7 @@ object PreviewMode {
     fun api(gate: RequestGate, enabled: Boolean): InstagramApi = if (!enabled) InstagramApi(gate)
         else InstagramApi(gate) { url -> DemoConnection(url) }
     fun followLists(gate: RequestGate, enabled: Boolean): FollowListSource = if (enabled) DemoFollowListSource(gate)
-        else MobileFollowListReader(gate, MobileSessions(gate.context))
+        else AccountFollowListReader(gate)
     private class DemoConnection(url: URL) : HttpsURLConnection(url) {
         private val name = url.query?.substringAfter("username=") ?: ""
         override fun getResponseCode() = if (name == "bulunamadi.demo") 404 else 200

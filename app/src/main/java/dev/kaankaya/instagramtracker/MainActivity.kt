@@ -60,7 +60,9 @@ class MainActivity : LocalizedActivity() {
     private var web: WebView? = null
     private var loginStatus: TextView? = null
     private var completionButton: Button? = null
-    private var generation = 0
+    @Volatile private var generation = 0
+    private var webAttempt: WebConnectionAttempt? = null
+    private var webFixture = false
     private var loginChecking = false
     private var loginAttempted = false
     private var loginLoaded = false
@@ -404,7 +406,7 @@ class MainActivity : LocalizedActivity() {
     }
     private fun startQuickWatch(target: String) {
         val saved = account ?: return
-        if (!preview && saved.session.mobileBinding == null) { message = getString(R.string.auto_mobile_required); render(); return }
+        if (!preview && !saved.session.supportsLists) { message = getString(R.string.auto_mobile_required); render(); return }
         if (gate.manualOnly() || gate.automationHeld() || gate.requiresConnection()) {
             message = getString(R.string.quick_restriction); render(); return
         }
@@ -439,7 +441,7 @@ class MainActivity : LocalizedActivity() {
     }
     private fun automationSettings() {
         val saved = account ?: return
-        if (!preview && saved.session.mobileBinding == null) {
+        if (!preview && !saved.session.supportsLists) {
             message = getString(R.string.auto_mobile_required); render(); return
         }
         val profiles = listOf(saved.profile) + saved.people.map { it.latest }
@@ -647,16 +649,16 @@ class MainActivity : LocalizedActivity() {
     private fun clock(time: Long) = SimpleDateFormat("HH:mm", AppLanguage.locale(this)).format(Date(time))
     private fun connectionOptions(replacePending: Boolean = false) {
         if (preview) { android.widget.Toast.makeText(this, getString(R.string.ui_account_connection_is_unavailable_in_demo_mode), android.widget.Toast.LENGTH_SHORT).show(); return }
-        val labels = arrayOf(getString(R.string.phone_menu), getString(R.string.ui_connect_from_computer_mobile_session), getString(R.string.ui_sign_in_with_instagram_web_experiment))
+        val labels = arrayOf(getString(R.string.web_connection_menu), getString(R.string.phone_menu), getString(R.string.ui_connect_from_computer_mobile_session))
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_connect_your_account)).setItems(labels) { _, index ->
-            if (replacePending && index != 0) {
+            if (replacePending && index != 1) {
                 try { MobileSessions(this).discardPending(); DesktopLink(this).clear(); pendingMobile = false }
                 catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return@setItems }
             }
             when (index) {
-                0 -> startActivity(Intent(this, PhoneLoginActivity::class.java))
-                1 -> startActivity(Intent(this, DesktopLinkActivity::class.java))
-                else -> startLogin()
+                0 -> startLogin()
+                1 -> startActivity(Intent(this, PhoneLoginActivity::class.java))
+                else -> startActivity(Intent(this, DesktopLinkActivity::class.java))
             }
         }.setNegativeButton(getString(R.string.ui_cancel), null).show()
     }
@@ -1202,7 +1204,7 @@ class MainActivity : LocalizedActivity() {
                         ViewedProfiles.clear()
                         avatars.remove()
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
-                        if (!preview) { MobileSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); PhoneLoginJournal(this).clear(); gate.setPhoneLoginActive(false) }
+                        if (!preview) { MobileSessions(this).clear(); WebSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); PhoneLoginJournal(this).clear(); gate.setPhoneLoginActive(false) }
                         FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
                         gate.clearListCapacityPause()
                         vault.clear(); ChangeNotifications(this, preview).clear(); true
@@ -1227,13 +1229,15 @@ class MainActivity : LocalizedActivity() {
         try { gate.pauseAutomatic(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         loading = false; loginChecking = false; loginAttempted = false; loginLoaded = false
+        webFixture = WebLoginMode.enabled(this)
         val page = stack().apply { setBackgroundColor(bg) }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), dp(8), dp(12), dp(8)) }
         header.addView(button(getString(R.string.ui_cancel), false) { leaveLogin() }, LinearLayout.LayoutParams(-2, dp(48)))
         header.addView(text("  instagram.com", 16f, accent, true))
         page.addView(header)
-        loginStatus = text(getString(R.string.ui_complete_sign_in_then_tap_continue), 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
+        loginStatus = text(getString(R.string.web_connection_instruction), 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
         page.addView(loginStatus)
+        page.addView(text(getString(R.string.web_connection_privacy), 12f, muted).apply { setPadding(dp(18), 0, dp(18), dp(8)) })
         val browser = try { WebView(this) } catch (_: Exception) {
             message = getString(R.string.ui_could_not_open_android_system_webview_update)
             if (BuildConfig.DEBUG) window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -1254,14 +1258,32 @@ class MainActivity : LocalizedActivity() {
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !NavigationPolicy.isInstagram(request.url.toString())
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                if (NavigationPolicy.isLoginResource(request.url.toString())) null
+                if (NavigationPolicy.isLoginResource(request.url.toString())) WebLoginMode.intercept(request, webFixture)
                 else WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(byteArrayOf()))
             @Suppress("OVERRIDE_DEPRECATION")
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 handler.cancel()
-                main.post { loginStatus?.setText(R.string.connection_tls_error) }
+                main.post { if (web === view) { message = getString(R.string.connection_tls_error); leaveLogin() } }
+            }
+            override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+                if (web !== view) return
+                loginLoaded = false; completionButton?.isEnabled = false
+            }
+            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+                if (response.statusCode != 429 || !NavigationPolicy.isInstagram(request.url.toString())) return
+                val retry = response.responseHeaders?.entries?.firstOrNull { it.key.equals("Retry-After", true) }?.value
+                main.post {
+                    if (web !== view) return@post
+                    try {
+                        gate.limited(retry, reason = "HTTP 429 / Instagram giriş sayfası")
+                        message = pauseMessage() ?: ApiFailure(ApiFailure.Kind.LIMITED).userMessage(this@MainActivity)
+                    }
+                    catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity) }
+                    leaveLogin()
+                }
             }
             override fun onPageFinished(view: WebView, url: String) {
+                if (web !== view) return
                 if (NavigationPolicy.isInstagram(url)) {
                     loginLoaded = true
                     completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
@@ -1270,7 +1292,7 @@ class MainActivity : LocalizedActivity() {
             }
         }
         page.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
-        completionButton = button(getString(R.string.ui_continue), false, networkAction = true) { checkLogin() }
+        completionButton = button(getString(R.string.web_connection_verify), false, networkAction = true) { checkLogin() }
         completionButton?.isEnabled = false
         page.addView(completionButton, LinearLayout.LayoutParams(-1, dp(54)))
         root.removeAllViews(); root.addView(page)
@@ -1289,8 +1311,9 @@ class MainActivity : LocalizedActivity() {
             loginStatus?.text = getString(R.string.connection_next_try, clock(gate.nextPrototypeAt()))
             scheduleGateWake(); return
         }
-        val session = SessionCookies.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"), browser.settings.userAgentString)
-        if (session == null) {
+        val state = try { WebSessionCodec.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"), browser.settings.userAgentString) }
+            catch (_: Exception) { null }
+        if (state == null) {
             loginStatus?.setText(R.string.connection_incomplete)
             return
         }
@@ -1298,21 +1321,21 @@ class MainActivity : LocalizedActivity() {
         completionButton?.isEnabled = false; completionButton?.alpha = .5f
         loginStatus?.setText(R.string.connection_checking)
         val ticket = ++generation
+        val expected = account?.session
+        val attempt = WebLoginMode.attempt(this, gate, webFixture)
+        webAttempt = attempt
         worker.execute {
             val result = try {
-                val linked = SavedAccount(session, api.testWebConnection(session), account?.takeIf { it.session.userId == session.userId }?.people.orEmpty())
-                Result.success(linked)
+                Result.success(attempt.connect(state, expected))
             } catch (failure: ApiFailure) { Result.failure(failure) }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.STORAGE)) }
             main.post {
                 if (isDestroyed || ticket != generation || web !== browser) return@post
                 loginChecking = false
                 result.onSuccess {
-                    // Commit on the UI owner after checking the active login ticket.
-                    // A cancelled WebView result must never save a new session later.
+                    // The attempt owns the commit; this ticket only publishes its result to the current screen.
                     try {
-                        account = vault.link(it.session, it.profile)
-                        gate.succeeded()
+                        account = it
                         message = null
                         needsConnection = false; syncMonitoring(); leaveLogin()
                     } catch (_: Exception) { loginStatus?.text = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity) }
@@ -1325,6 +1348,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun leaveLogin() {
+        webAttempt?.cancel(); webAttempt = null
         ++generation; api.cancel()
         val browser = web
         web = null; loginStatus = null; completionButton = null; loginChecking = false
@@ -1364,6 +1388,7 @@ class MainActivity : LocalizedActivity() {
         if (::profileStatuses.isInitialized) profileStatuses.close()
         if (::quickWatch.isInitialized) quickWatch.close()
         if (::avatars.isInitialized) avatars.close()
+        webAttempt?.cancel(); webAttempt = null
         ++generation; main.removeCallbacksAndMessages(null); api.cancel()
         if (web != null) {
             CookieManager.getInstance().removeAllCookies { CookieManager.getInstance().flush() }

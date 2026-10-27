@@ -348,7 +348,7 @@ class FollowListActivity : LocalizedActivity() {
     private fun read(cursor: String?, continuous: Boolean = false) {
         if (loading) return
         if (gate.automationHeld()) { message = getString(R.string.list_finish_connection); render(); return }
-        if (!preview && reference.mobileBinding == null) { message = ApiFailure(ApiFailure.Kind.MOBILE_REQUIRED).userMessage(this@FollowListActivity); render(); return }
+        if (!preview && !reference.supportsLists) { message = ApiFailure(ApiFailure.Kind.MOBILE_REQUIRED).userMessage(this@FollowListActivity); render(); return }
         val selected = direction
         val ticket = ++generation
         loading = true; message = null; render()
