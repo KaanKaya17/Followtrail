@@ -1,6 +1,6 @@
-# InstagramTracker Windows 0.2.2
+# InstagramTracker Windows 0.2.3
 
-`artifacts/InstagramTracker-Desktop-0.2.2/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.3/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Kullanım
 
@@ -72,3 +72,15 @@ Bir liste taraması, başlangıç profil okuması ve her sayfa için ayrı API i
 Aynı kaybolma için tek uyarı kaydı tutulur. Profil listede yeniden görünüp tekrar kaybolursa yeni bir inceleme olayı başlayabilir. Kayıt zamanı kesin engelleme saati değildir. Başarısız veya iptal edilen incelemeler otomatik tekrar edilmez; elle tekrar kontrol edilebilir. Tek hedef incelemesi profil sırasıyla dönüşümlü ilerler; ek liste/inceleme işleri toplam kontrol turunu uzatabilir. En çok 200 vaka ve vaka başına son 10 değerlendirme tutulur; geçmiş şüphe olayları o anki liste kanıtını ayrı olarak taşır. Eski şifreli yedekler migration ile açılır; eski EXE'ler yeni erişim değerlendirmelerini yönetmez, güncel sürümü kullan.
 
 0.2.2 doğrulaması: 62 offline backend testi, 6 ana süreç/bildirim testi, 25 paketlenmiş EXE kontrolü geçti. Canlı bir kayıtlı profil erişimi ve kendi profil sağlığı HTTP 200 ile doğrulandı; toplam 15,66 saniye. Gerçek engellenmiş hesap ve Windows bildiriminin gerçek teslimi bu sürümde canlı doğrulanmadı. Engelleme/takip ilişkisi oluşturmak veya değiştirmek için işlem yapılmadı.
+
+## Hesaba ve türe göre bildirimler · 0.2.3
+
+Kişi ayrıntısındaki **Bildirim tercihleri** düğmesinden veya **Ayarlar → Hesaba göre bildirim türleri → hesabı seç → Türleri seç** yolundan açılır. Kendi hesabın için de ayrı seçim yapılabilir. Hesabı tamamen sessize alabilir veya yalnız istediğin alanları seçebilirsin: kullanıcı adı, görünen ad, biyografi, profil fotoğrafı, takipçi/takip edilen/gönderi sayısı, bağlantı, gizlilik, doğrulanma, liste taraması, engellenme şüphesi. Önceden özel tercih yoksa türler açık kabul edilir; genel **Windows bildirimleri** anahtarının önceki durumu korunur. Alanları değiştirmek ağ isteği göndermez.
+
+Örnek: Arda için kullanıcı adı açık, takipçi sayısı kapalı olsun. Bir kontrolde kullanıcı adı, biyografi ve takipçi sayısı değişirse seçili alanlar için **tek Windows bildirimi** oluşturulur. Tıklanınca aynı kontrolün bütün değişiklikleri eski/yeni değerleriyle uygulama içinde açılır. Kapalı takipçi değişikliği de **Yalnız kayıtta**, seçili değişiklikler **Bildirim için seçili** etiketiyle görünür. Bildirimi kapatmak gözlem, zaman çizelgesi veya log kaydını silmez.
+
+Sol menüde **Bildirimler** veya üstteki zil, kontrol başına tek satır olan kayıtları açar. Kayda tıklamak okundu olarak işaretler; **Okunmamış** filtresi ve zil göstergesi vardır. Okundu ve hesap tercihleri şifreli saklanıp yeniden açılışta/yedekten yüklemede korunur. Bildirim kaydındaki alan seçimi ve değerler gözlem anına aittir; sonraki tercih/kullanıcı adı değişiklikleri geçmişi yeniden yazmaz. Son **500 grup**, mevcut 64 MiB ortak şifreli depo bütçesinde tutulur.
+
+Bu sürümden önceki zaman çizelgesi korunur; eski olaylardan yapay, geriye dönük Windows bildirimi/log üretilmez. İlk gözlem veya değişimsiz kontrol yeni bildirim oluşturmaz. Windows bildirimleri genel kapalıyken de yeni değişiklik log'u oluşur. “Windows bildirimi için seçildi” teslim edildi anlamına gelmez; Windows/odaklanma ayarları teslimi etkileyebilir. Listeler ve engellenme şüphesi önceki kapsam/mola kurallarını korur; şüphe kesin engelleme kanıtı değildir.
+
+28 Ekim doğrulaması: **78** offline backend testi, **9** ana süreç/bildirim testi ve **27** gerçek paketlenmiş EXE kontrolü geçti. Gerçek mevcut hesapla açılışta kayıtlar ve genel tercihler korundu; 12 türün penceresi açıldı, API istek sayısı artmadı. Birden çok gerçek Instagram alanını bu sürümde değiştirmedik; gruplama/filtreleme, click IPC ve kalıcı log üretim sınırında sentetik verilerle doğrulandı. Gerçek Windows toast teslimi/tıklaması ayrıca canlı doğrulanmadı.

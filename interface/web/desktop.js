@@ -43,6 +43,7 @@
     lists: ["Listeler", "list"],
     timeline: ["Zaman çizelgesi", "clock"],
     settings: ["Ayarlar", "settings"],
+    notifications: ["Bildirimler", "bell"],
   };
   let data = null,
     busy = false,
@@ -65,6 +66,8 @@
     eventType: "all",
     eventLimit: 100,
     range: "30",
+    notificationFilter: "all",
+    notificationLimit: 100,
   };
   function toast(message) {
     const node = document.getElementById("toast");
@@ -194,7 +197,7 @@
   }
   function topbar() {
     const own = data.account;
-    return `<header class="topbar"><div class="breadcrumbs"><span>Çalışma alanım</span>${icon("chevron")}<strong>${pages[ui.page][0]}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>Kişi ara</span><kbd>Ctrl K</kbd></button><div class="top-actions"><span class="sample-pill">${data.connected ? "Yerel oturum" : "Hesap bağlı değil"}</span><button class="icon-button" data-action="notifications" aria-label="Son gözlemler">${icon("bell")}</button><button class="account-button" data-action="account" aria-label="Hesap bağlantısı">${avatar(own)}<span><strong>${own ? "@" + esc(own.username) : "Hesabını bağla"}</strong><small>${data.connected ? "Şifreli oturum" : "Bağlantı bekleniyor"}</small></span>${icon("down")}</button></div></header>`;
+    return `<header class="topbar"><div class="breadcrumbs"><span>Çalışma alanım</span>${icon("chevron")}<strong>${pages[ui.page][0]}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>Kişi ara</span><kbd>Ctrl K</kbd></button><div class="top-actions"><span class="sample-pill">${data.connected ? "Yerel oturum" : "Hesap bağlı değil"}</span><button class="icon-button" data-action="notifications" aria-label="Bildirim kayıtları">${icon("bell")}${(data.notificationLog || []).some((entry) => entry.readAt == null) ? '<span class="unread-dot"></span>' : ""}</button><button class="account-button" data-action="account" aria-label="Hesap bağlantısı">${avatar(own)}<span><strong>${own ? "@" + esc(own.username) : "Hesabını bağla"}</strong><small>${data.connected ? "Şifreli oturum" : "Bağlantı bekleniyor"}</small></span>${icon("down")}</button></div></header>`;
   }
   function operationPanel() {
     const root = document.getElementById("operation-root");
@@ -263,6 +266,87 @@
   }
   function eventRow(e) {
     return `<button class="event-row" data-action="event" ${idattr(e.id)}><span class="event-icon ${e.type === "error" ? "peach" : "lavender"}">${icon(e.type === "list" ? "list" : e.type === "error" ? "info" : "clock")}</span><span class="event-copy"><strong>${esc(eventTitle(e))}</strong><small>${esc(date(e.at))}</small></span>${icon("chevron")}</button>`;
+  }
+  function notificationRule(id) {
+    const saved = data.notificationRules?.[id];
+    return {
+      enabled: saved?.enabled ?? true,
+      fields: Object.fromEntries(
+        Object.keys(data.notificationTypes || {}).map((key) => [
+          key,
+          saved?.fields?.[key] ?? true,
+        ]),
+      ),
+    };
+  }
+  function notificationPreferences(id) {
+    const p = person(id);
+    if (!p) return;
+    const selected = notificationRule(id);
+    dialog(
+      `<span class="dialog-symbol lavender">${icon("bell")}</span><h2 id="dialog-title">@${esc(p.username)} · Bildirim tercihleri</h2><p>Windows bildiriminde görmek istediğin değişiklikleri seç. Bütün gözlenen değişiklikler uygulama içindeki kayıtta saklanır.</p><form id="notification-rule-form" data-id="${esc(id)}"><label class="notification-check notification-account-toggle"><input name="account-enabled" type="checkbox" ${selected.enabled ? "checked" : ""}><span>Bu hesabın Windows bildirimleri açık</span></label><fieldset class="notification-options"><legend>Değişiklik türleri</legend>${Object.entries(
+        data.notificationTypes,
+      )
+        .map(
+          ([key, label]) =>
+            `<label class="notification-check"><input type="checkbox" name="${esc(key)}" ${selected.fields[key] ? "checked" : ""}><span>${esc(label)}</span></label>`,
+        )
+        .join(
+          "",
+        )}</fieldset><p class="dialog-note">Genel Windows bildirimleri ${data.settings.notifications ? "açık" : "kapalı"}. Bir kontrolde seçili birkaç değişiklik olsa da tek bildirim gelir. Kayıt zamanı, değişikliğin Instagram’da gerçekleştiği kesin zaman değildir.</p><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("check")}Tercihleri kaydet</button></form>`,
+      true,
+    );
+  }
+  function logHeading(entry) {
+    const names = [...new Set(entry.changes.map((change) => change.username))];
+    return `${names.length === 1 ? "@" + names[0] : names.length + " hesap"} · ${entry.changes.length} değişiklik`;
+  }
+  function notificationRows() {
+    return (data.notificationLog || []).filter(
+      (entry) => ui.notificationFilter !== "unread" || entry.readAt == null,
+    );
+  }
+  function notifications() {
+    const rows = notificationRows(),
+      unread = (data.notificationLog || []).filter(
+        (entry) => entry.readAt == null,
+      ).length;
+    return `${title("BİLDİRİM KAYITLARI", "Bir kontrolde neler değişti?", "Aynı kontroldeki değişiklikler tek kayıtta; bildirim tercihin kapalı olsa da geçmiş burada kalır.")}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="Bildirim filtresi">${[
+      ["all", "Tümü"],
+      ["unread", "Okunmamış"],
+    ]
+      .map(
+        ([key, label]) =>
+          `<button data-action="notification-filter" data-value="${key}" class="${ui.notificationFilter === key ? "active" : ""}" aria-pressed="${ui.notificationFilter === key}">${label}${key === "unread" ? ` (${unread})` : ""}</button>`,
+      )
+      .join(
+        "",
+      )}</div><a class="text-button" href="#settings">Bildirim ayarları ${icon("settings")}</a></div><div class="notification-log">${
+      rows
+        .slice(0, ui.notificationLimit)
+        .map(
+          (entry) =>
+            `<button class="notification-log-row card ${entry.readAt == null ? "unread" : ""}" data-action="notification-log" ${idattr(entry.id)}><span class="event-icon lavender">${icon("bell")}</span><span class="notification-log-copy"><strong>${esc(logHeading(entry))}</strong><span>${esc([...new Set(entry.changes.map((change) => change.label))].join(" · "))}</span><small>${esc(date(entry.at))} · ${entry.readAt == null ? "Okunmamış" : "Okundu"} · ${entry.desktopEligible ? "Windows bildirimi için seçildi" : "Yalnız uygulama kaydı"}</small></span>${icon("chevron")}</button>`,
+        )
+        .join("") ||
+      empty(
+        "Yeni profil veya liste değişiklikleri burada gruplanarak görünür. Eski zaman çizelgesi kayıtları ayrıca korunur.",
+      )
+    }</div>${rows.length > ui.notificationLimit ? button("Daha fazla kayıt göster", "more-notifications", "down") : ""}<p class="field-hint">Son 500 değişiklik grubu şifreli saklanır. “Windows bildirimi için seçildi” ifadesi Windows’un bildirimi teslim ettiğini doğrulamaz.</p>`;
+  }
+  async function notificationDialog(id) {
+    const entry = data.notificationLog?.find((entry) => entry.id === id);
+    if (!entry) {
+      toast("Bu kayıt artık saklanan geçmişte yok.");
+      return;
+    }
+    const selected = new Set(entry.selectedChangeIds);
+    dialog(
+      `<span class="dialog-symbol lavender">${icon("bell")}</span><span class="eyebrow">${esc(date(entry.at))}</span><h2 id="dialog-title">${esc(logHeading(entry))}</h2><p>Aynı kontrolün bütün değişiklikleri aşağıda. Kapalı bildirim türleri de kayıtta gösterilir.</p><ol class="change-log-details">${entry.changes.map((change) => `<li><div class="section-heading"><div><strong>@${esc(change.username)} · ${esc(change.label)}</strong><p>${esc(date(change.at))}</p></div><span class="badge ${selected.has(change.eventId) ? "mint" : "neutral"}">${selected.has(change.eventId) ? "Bildirim için seçili" : "Yalnız kayıtta"}</span></div>${change.category === "access" ? `<p>${esc(change.title)}</p>${accessPanel(change.personId, change.after)}` : `<div class="change-values"><div><span>Önceki gözlem</span><strong>${esc(valueText(change.before))}</strong></div><div><span>Sonraki gözlem</span><strong>${esc(valueText(change.after))}</strong></div></div>`}</li>`).join("")}</ol><p class="dialog-note">${entry.desktopEnabledAtCheck ? "Bu kontrol sırasında genel Windows bildirimleri açıktı." : "Bu kontrol sırasında genel Windows bildirimleri kapalıydı."} Kayıt zamanı kesin olay saati değildir.</p>`,
+      true,
+    );
+    if (entry.readAt == null && !busy)
+      await command("read_notification", { id });
   }
   function overview() {
     const own = data.account,
@@ -554,7 +638,22 @@
     return `<div class="notice monitor-summary"><strong>${esc(status)}</strong><p>Her ${num(monitor.intervalSeconds / 60)} dakikada sıradaki bir işlem başlatılır. Şu an ${num(monitor.profileCount)} profil sırada; tam tur yaklaşık ${num(monitor.estimatedCycleSeconds / 60)} dakika + istek süreleri. Sıra yaklaşık 5 saniyede bir değerlendirilir; devam eden işlem, internet ve mola beklemesi süreyi uzatabilir.</p><p>Normal profil sırasına ek olarak ${num(monitor.accessPending || 0)} erişim incelemesi bekliyor. ${monitor.followerScanPending ? "Takipçi listesi incelemesi de sırada. " : ""}Kaybolan takipçi incelemesi açıksa liste/erişim işleri sıraya girer; diğer tam liste taramaları elle başlatılır.</p></div>`;
   }
   function settings() {
-    return `${title("SANA GÖRE", "Küçük ayarlar, daha rahat bir deneyim.", "Görünümü, bildirimleri ve yerel kayıtlarını yönet.")}<div class="settings-layout"><div><section class="settings-section card"><h2>Görünüm ve gözlem</h2><p>Pencereyi X ile kapatınca Tracker sistem tepsisinde çalışmaya devam eder. Tamamen kapatmak için tepsi simgesine sağ tıkla → Tamamen çık.</p>${toggle("Kompakt görünüm", "Kart ve satır aralıklarını daralt.", "compact")}${toggle("Windows bildirimleri", "Yeni gözlem farkları için Windows bildirimi göster.", "notifications")}${toggle("Kaybolan kayıtlı takipçileri incele", "Takipçi sayısı düşünce tamamlanmış başlangıç kaydı üzerinden liste taraması ve eksilen kayıtlı kişiler için erişim kontrolü sıraya alınır. Ek istekler ve bekleme gerektirir; sonuç yalnız engellenme şüphesidir.", "investigateMissing")}${toggle("Otomatik profil kontrolü", "Pencere kapalıyken sistem tepsisinde de çalışır; kendi hesabın ve izlediğin profiller sırayla kontrol edilir. Liste taraması başlatılmaz.", "automatic")}<div class="setting-row"><div><strong>Kontrol aralığı</strong><p>Her aralıkta en eski gözlemli bir profil okunur. Sınırlama ve doğrulama sonrası otomatik kontrol durur.</p></div><select id="auto-interval" aria-label="Kontrol aralığı" ${busy ? "disabled" : ""}>${[1, 5, 15, 30, 60, 180, 360].map((v) => `<option value="${v}" ${data.settings.interval === v ? "selected" : ""}>${v} dakika</option>`).join("")}</select></div>${monitorSummary()}</section><section class="settings-section card"><h2>Hesap ve istekler</h2><div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : "Hesap bağlı değil"}</strong><p>${data.connected ? "Yerel oturum kayıtlı." : "Giriş için hesap bağlantısını aç."}</p></div>${button("Hesap bağlantısı", "account", "link")}</div><div class="setting-row"><div><strong>İstek bilgileri</strong><p>Son HTTP durumu, giriş aralığı ve yerel mola.</p></div>${button("İncele", "requests", "info")}</div>${data.connected ? button("Bağlantıyı kaldır", "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section><section class="settings-section card"><h2>Yerel veriler</h2><p>Yedekler oturum içermez ve aynı Windows kullanıcısında açılır. CSV dışa aktarımları şifresizdir; dosyayı paylaşmak senin kontrolündedir.</p><div class="settings-buttons">${button("Şifreli yedek al", "export-backup", "lock")}${button("Yedekten yükle", "import-backup", "note")}${button("Kayıt klasörünü aç", "open-storage", "laptop")}${button("Yerel verileri sil", "delete-all", "close")}</div></section></div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">YEREL GİZLİLİK</span><h2>Verilerin bilgisayarında.</h2><p>Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.</p><p>Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.</p><p>InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.</p><div class="privacy-panel-foot">${icon("lock")} Windows masaüstü · ${esc(data.version)}</div></aside></div>`;
+    return `${title("SANA GÖRE", "Küçük ayarlar, daha rahat bir deneyim.", "Görünümü, bildirimleri ve yerel kayıtlarını yönet.")}<div class="settings-layout"><div><section class="settings-section card"><h2>Görünüm ve gözlem</h2><p>Pencereyi X ile kapatınca Tracker sistem tepsisinde çalışmaya devam eder. Tamamen kapatmak için tepsi simgesine sağ tıkla → Tamamen çık.</p>${toggle("Kompakt görünüm", "Kart ve satır aralıklarını daralt.", "compact")}${toggle("Windows bildirimleri", "Yeni gözlem farkları için Windows bildirimi göster.", "notifications")}${toggle("Kaybolan kayıtlı takipçileri incele", "Takipçi sayısı düşünce tamamlanmış başlangıç kaydı üzerinden liste taraması ve eksilen kayıtlı kişiler için erişim kontrolü sıraya alınır. Ek istekler ve bekleme gerektirir; sonuç yalnız engellenme şüphesidir.", "investigateMissing")}${toggle("Otomatik profil kontrolü", "Pencere kapalıyken sistem tepsisinde de çalışır; kendi hesabın ve izlediğin profiller sırayla kontrol edilir. Liste taraması başlatılmaz.", "automatic")}<div class="setting-row"><div><strong>Kontrol aralığı</strong><p>Her aralıkta en eski gözlemli bir profil okunur. Sınırlama ve doğrulama sonrası otomatik kontrol durur.</p></div><select id="auto-interval" aria-label="Kontrol aralığı" ${busy ? "disabled" : ""}>${[1, 5, 15, 30, 60, 180, 360].map((v) => `<option value="${v}" ${data.settings.interval === v ? "selected" : ""}>${v} dakika</option>`).join("")}</select></div>${monitorSummary()}</section><section class="settings-section card"><h2>Hesap ve istekler</h2>${
+      data.account
+        ? `<div class="setting-row"><div><strong>Hesaba göre bildirim türleri</strong><p>Kendi hesabın ve her kayıtlı kişi için ayrı tercihler. Kişi ayrıntısından da açabilirsin.</p></div><select id="notification-account" aria-label="Bildirim hesabı">${[
+            data.account,
+            ...data.people,
+          ]
+            .filter(Boolean)
+            .map(
+              (p) =>
+                `<option value="${esc(p.id)}">@${esc(p.username)}</option>`,
+            )
+            .join(
+              "",
+            )}</select>${button("Türleri seç", "notification-account", "bell")}</div>`
+        : ""
+    }<div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : "Hesap bağlı değil"}</strong><p>${data.connected ? "Yerel oturum kayıtlı." : "Giriş için hesap bağlantısını aç."}</p></div>${button("Hesap bağlantısı", "account", "link")}</div><div class="setting-row"><div><strong>İstek bilgileri</strong><p>Son HTTP durumu, giriş aralığı ve yerel mola.</p></div>${button("İncele", "requests", "info")}</div>${data.connected ? button("Bağlantıyı kaldır", "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section><section class="settings-section card"><h2>Yerel veriler</h2><p>Yedekler oturum içermez ve aynı Windows kullanıcısında açılır. CSV dışa aktarımları şifresizdir; dosyayı paylaşmak senin kontrolündedir.</p><div class="settings-buttons">${button("Şifreli yedek al", "export-backup", "lock")}${button("Yedekten yükle", "import-backup", "note")}${button("Kayıt klasörünü aç", "open-storage", "laptop")}${button("Yerel verileri sil", "delete-all", "close")}</div></section></div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">YEREL GİZLİLİK</span><h2>Verilerin bilgisayarında.</h2><p>Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.</p><p>Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.</p><p>InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.</p><div class="privacy-panel-foot">${icon("lock")} Windows masaüstü · ${esc(data.version)}</div></aside></div>`;
   }
   function render() {
     if (!data) {
@@ -568,7 +667,7 @@
       : "comfortable";
     document.title = `${pages[ui.page][0]} — Tracker`;
     document.getElementById("app").innerHTML =
-      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(serviceError)}</div>` : ""}${data.lastError ? `<div class="notice warning"><strong>Son işlem:</strong> ${esc(data.lastError.message)} <button class="text-button" data-action="requests">İstek bilgileri</button></div>` : ""}${{ overview, people, lists, timeline, settings }[ui.page]()}<footer class="page-footer"><span>${icon("lock")} Şifreli yerel kayıtlar · Son gözlem ${esc(date(data.account?.observedAt))}</span><button class="text-button" data-action="privacy">Gizlilik ${icon("info")}</button></footer></main></div>`;
+      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(serviceError)}</div>` : ""}${data.lastError ? `<div class="notice warning"><strong>Son işlem:</strong> ${esc(data.lastError.message)} <button class="text-button" data-action="requests">İstek bilgileri</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${icon("lock")} Şifreli yerel kayıtlar · Son gözlem ${esc(date(data.account?.observedAt))}</span><button class="text-button" data-action="privacy">Gizlilik ${icon("info")}</button></footer></main></div>`;
     operationPanel();
   }
   function accountDialog() {
@@ -588,7 +687,7 @@
     const own = p.id === data.account?.id,
       saved = data.people.find((x) => x.id === id) || p;
     dialog(
-      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${p.observedAt ? "Profil gözlemi" : "Liste üyesi · profil okunmadı"}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio ?? "Biyografi henüz okunmadı.")}</p><div class="drawer-counts"><div><strong>${num(p.followers)}</strong><span>takipçi</span></div><div><strong>${num(p.following)}</strong><span>takip edilen</span></div></div><div class="drawer-actions">${button("Profili kontrol et", "refresh-person", "refresh", "primary", `${idattr(id)} ${netDisabled()}`)}${button("Geçmiş", "history", "clock", "secondary", idattr(id))}${!own ? button("Erişimi kontrol et", "check-access", "shield", "secondary", `${idattr(id)} ${netDisabled()}`) : ""}</div>${!own ? accessPanel(id) : ""}<section class="drawer-section"><h3>Son kontrol</h3><div class="detail-pair"><span>Gözlem zamanı</span><strong>${esc(date(p.observedAt))}</strong></div><div class="detail-pair"><span>Gizlilik</span><strong>${p.private === true ? "Gizli" : p.private === false ? "Açık" : "Bilinmiyor"}</strong></div><div class="detail-pair"><span>Gönderi</span><strong>${num(p.posts)}</strong></div><div class="detail-pair"><span>Profil bağlantısı</span><span>${esc(p.url || "Gözlem yok")}</span></div></section>${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite ? "Favoriden çıkar" : "Favorilere ekle", "drawer-star", "star", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${button(saved.watching ? "İzlemeyi kapat" : "İzlemeye al", "watch", "bell", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}</div><p class="field-hint">İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.</p><label class="form-label" for="person-group">Grup</label><input id="person-group" maxlength="80" value="${esc(saved.group || "")}" placeholder="Örn. Arkadaşlar"><label class="form-label" for="person-note">Sana özel not</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="Bu kişiyle ilgili bir not…">${esc(saved.note || "")}</textarea><p class="field-hint">Not ve grup şifreli yerel depoya kaydedilir.</p>${button("Notu ve grubu kaydet", "save-note", "check", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${data.people.some((x) => x.id === id) ? button("Kişilerden kaldır", "remove-person", "close", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`) : ""}</section>` : ""}`,
+      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${p.observedAt ? "Profil gözlemi" : "Liste üyesi · profil okunmadı"}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio ?? "Biyografi henüz okunmadı.")}</p><div class="drawer-counts"><div><strong>${num(p.followers)}</strong><span>takipçi</span></div><div><strong>${num(p.following)}</strong><span>takip edilen</span></div></div><div class="drawer-actions">${button("Profili kontrol et", "refresh-person", "refresh", "primary", `${idattr(id)} ${netDisabled()}`)}${button("Geçmiş", "history", "clock", "secondary", idattr(id))}${button("Bildirim tercihleri", "notification-rules", "bell", "secondary", idattr(id))}${!own ? button("Erişimi kontrol et", "check-access", "shield", "secondary", `${idattr(id)} ${netDisabled()}`) : ""}</div>${!own ? accessPanel(id) : ""}<section class="drawer-section"><h3>Son kontrol</h3><div class="detail-pair"><span>Gözlem zamanı</span><strong>${esc(date(p.observedAt))}</strong></div><div class="detail-pair"><span>Gizlilik</span><strong>${p.private === true ? "Gizli" : p.private === false ? "Açık" : "Bilinmiyor"}</strong></div><div class="detail-pair"><span>Gönderi</span><strong>${num(p.posts)}</strong></div><div class="detail-pair"><span>Profil bağlantısı</span><span>${esc(p.url || "Gözlem yok")}</span></div></section>${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite ? "Favoriden çıkar" : "Favorilere ekle", "drawer-star", "star", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${button(saved.watching ? "İzlemeyi kapat" : "İzlemeye al", "watch", "bell", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}</div><p class="field-hint">İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.</p><label class="form-label" for="person-group">Grup</label><input id="person-group" maxlength="80" value="${esc(saved.group || "")}" placeholder="Örn. Arkadaşlar"><label class="form-label" for="person-note">Sana özel not</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="Bu kişiyle ilgili bir not…">${esc(saved.note || "")}</textarea><p class="field-hint">Not ve grup şifreli yerel depoya kaydedilir.</p>${button("Notu ve grubu kaydet", "save-note", "check", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${data.people.some((x) => x.id === id) ? button("Kişilerden kaldır", "remove-person", "close", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`) : ""}</section>` : ""}`,
       false,
       true,
     );
@@ -833,16 +932,28 @@
         eventDialog(id);
         break;
       case "notifications":
-        dialog(
-          `<h2 id="dialog-title">Son gözlemler</h2><p>Windows bildirimleri Ayarlar bölümünden açılır.</p>${
-            data.events
-              .filter((e) => ["profile", "list"].includes(e.type))
-              .slice(0, 20)
-              .map(eventRow)
-              .join("") || "<p>Henüz değişiklik gözlenmedi.</p>"
-          }`,
-          true,
+        closeDialog();
+        navigate("notifications");
+        break;
+      case "notification-rules":
+        notificationPreferences(id);
+        break;
+      case "notification-account":
+        notificationPreferences(
+          document.getElementById("notification-account").value,
         );
+        break;
+      case "notification-log":
+        await notificationDialog(id);
+        break;
+      case "notification-filter":
+        ui.notificationFilter = value;
+        ui.notificationLimit = 100;
+        render();
+        break;
+      case "more-notifications":
+        ui.notificationLimit += 100;
+        render();
         break;
       case "add-person":
         dialog(
@@ -887,6 +998,29 @@
   });
   document.addEventListener("submit", async (event) => {
     const form = event.target;
+    if (form.id === "notification-rule-form") {
+      event.preventDefault();
+      const id = form.dataset.id,
+        values = new FormData(form);
+      const args = {
+        id,
+        enabled: values.has("account-enabled"),
+        fields: Object.fromEntries(
+          Object.keys(data.notificationTypes).map((key) => [
+            key,
+            values.has(key),
+          ]),
+        ),
+      };
+      closeDialog();
+      await command(
+        "notification_rule",
+        args,
+        "Bildirim tercihleri kaydedildi.",
+      );
+      return;
+    }
+
     if (!["login-form", "code-form", "add-person-form"].includes(form.id))
       return;
     event.preventDefault();
@@ -989,8 +1123,8 @@
     return;
   }
   api.subscribe((event) => {
-    if (event.type === "open_access") {
-      personDialog(event.id);
+    if (event.type === "open_notification") {
+      notificationDialog(event.id);
       return;
     }
     if (event.type === "notification_warning" || event.notificationWarning)

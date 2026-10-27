@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.3 — 2026-10-28 (hesaba göre bildirim türleri ve tek kontrol kaydı)
+
+- Kendi hesabı ve kayıtlı kişiler için ayrı bildirim tercihi: hesap genelinde aç/kapat, kullanıcı adı, görünen ad, biyografi, fotoğraf, takipçi/takip edilen/gönderi sayısı, bağlantı, gizlilik, doğrulanma, liste ve engellenme şüphesi türleri. Tercihler şifreli saklanır; genel Windows bildirim anahtarı ayrıca korunur.
+- Aynı kontrolün değişiklikleri tek kayıt ve en fazla tek Windows bildirimi olarak gruplanır. Bildirime tıklama uygulamada o kontrolün bütün eski/yeni değerlerini açar. Bildirimi kapalı türler de kayıtta kalır; hangi değişikliklerin bildirim için seçildiği gösterilir.
+- **Bildirimler** sayfası, okunmamış filtresi, zil göstergesi ve kalıcı okundu bilgisi eklendi. Son 500 grup saklanır; önceki zaman çizelgesi ayrıca korunur, eski olaylardan yapay bildirim üretilmez. Geçmiş seçim/kanıtlar yeni tercihlerle yeniden yazılmaz.
+- Bildirim seçimi ve gruplaması backend'de tek sahipte yapılıp masaüstüne hazır kayıt olarak iletilir. Ana süreçte eski ham olay filtrelemesi kaldırıldı; okuma/tercih değişikliği veya açılış eski bildirimi tekrar göndermez. Aynı kontroldeki normal farklar, engellenme şüphesini gizlemez.
+- 78 backend, 9 ana süreç/bildirim ve 27 gerçek EXE kontrolü geçti. Mevcut hesapla açılışta kimlik/kişiler/genel tercihler korundu, 12 türün arayüzü açıldı ve API istek sayısı artmadı. Gerçek Windows toast teslimi/tıklaması bu sürümde canlı doğrulanmadı; tıklama IPC yolu gerçek uygulamada test edildi.
+
 ## Windows 0.2.2 — 2026-10-27 (engellenme şüphesi ve erişim kanıtları)
 
 - Kişi ayrıntısına **Erişimi kontrol et**, kendi takipçi listesine **Engellenme şüphesi / Erişim kontrolleri**, zaman çizelgesine erişim filtresi eklendi. Aynı oturumdaki kendi profil sağlığı ve hedefin kayıtlı hesap kimliği okunur; kullanıcı adı araması/başka hesap/anonim tarama kullanılmaz.
