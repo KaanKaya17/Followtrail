@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows/web 0.2.7 ve Android 0.1.31 — 2026-10-28 (Profil zaman tüneli)
+
+- Kendi hesabı ve kayıtlı kişiler için ayrı açılan, başlangıçta kapalı **Profil zaman tüneli** eklendi. Biyografi farkları kelime bazında yeşil/`+` ve kırmızı/`−` ile gösterilir; silinen metin ayrıca üstü çizili görünür. İlk bilinen biyografi başlangıç kaydıdır; okunamayan alan boş biyografi sayılmaz.
+- Yerel avatar galerisi aynı görseli tek kopya tutar, ilk/son gözlem tarihini gösterir. Açılmadan önceki fotoğraflar yeniden oluşturulmaz; indirilemeyen yeni fotoğraf yerine eski fotoğraf gösterilmez. Android'de yalnız normal kullanımda yüklenen küçük fotoğraflar eklenir.
+- Değişiklik arşivi dönen sayaç geçmişinden ayrıdır: Windows'ta 366 gözlem sınırı bu arşivi silmez. Profil başına 200 değişiklik / 24 farklı küçük görsel; Windows'ta toplam 8 MiB görsel, Android'de toplam 1,8 MiB arşiv bütçesi vardır. Sınırda eski kayıtlar korunur ve uyarı gösterilir.
+- Windows arşivi DPAPI deposuna ve oturumsuz şifreli yedeklere dahildir. Android arşivi ayrı Keystore/AES-GCM kaydındadır. Duraklatma geçmişi korur; onaylı temizleme arşivi silip kaydı durdurur. Windows otomatik önceki depo kopyası da temizlenir; önceden dışa aktarılan yedekler kullanıcıda kalır. Yeni sunucu/telemetri veya hesap API isteği eklenmedi.
+- Türkçe/İngilizce metinler ve ortak görsel dil korundu. Web tasarım önizlemesinde aynı fark görünümü örnek kayıtlarla gösterilir; gerçek web hesap bağlantısı eklenmedi.
+
 ## Windows/web 0.2.6 — 2026-10-28 (Türkçe ve İngilizce)
 
 - Windows'a Ayarlar → Uygulama dili, örnek web arayüzüne Ayarlar → Arayüz dili eklendi. Türkçe/English seçimi Windows DPAPI deposunda veya tarayıcı tercihinde korunur; eski Windows kayıtları Türkçe açılır.

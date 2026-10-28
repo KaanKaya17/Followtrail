@@ -1,6 +1,6 @@
 # Tracker — ortak web ve masaüstü arayüzü
 
-**Güncel Windows uygulaması 0.2.6:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.6/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
+**Güncel Windows uygulaması 0.2.7:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.7/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
 
 Bu aşama, gerçek Instagram işlevlerinden önce hazırlanan **etkileşimli arayüz önizlemesidir**. Bütün hesaplar, sayılar, kayıtlar ve bildirimler örnektir. Mevcut InstagramCounter/Android oturumu okunmaz; kullanıcı adı/parola istenmez. Tarayıcı istekleri CSP ile yerel varlıklara sınırlandırılır; veri bağlantıları kapalıdır.
 
@@ -24,7 +24,7 @@ Masaüstü aynı web dosyalarını yerel Electron penceresinde açar. Renderer'd
 
 `npm run package:desktop` taşınabilir klasörü ilk kez oluşturur. Önizlemenin web/main dosyaları değişirse `npm run package:desktop -- --refresh` önce eski uygulama varlıklarını zaman damgalı artifacts yedeğine kopyalar, ardından yalnız kimliği doğrulanan önizleme paketinin kendi uygulama varlıklarını günceller; mevcut klasör körlemesine silinmez. Bir Electron yükseltmesi için yeni runtime ile ayrı paket hazırlanmalıdır.
 
-Bu örnek verili önizlemenin açılması Instagram erişiminin çalıştığını kanıtlamaz. Gerçek işlevler ayrı Windows 0.2.6 paketindedir; tarayıcı önizlemesine hesap bağlantısı eklenmedi.
+Bu örnek verili önizlemenin açılması Instagram erişiminin çalıştığını kanıtlamaz. Gerçek işlevler ayrı Windows 0.2.7 paketindedir; tarayıcı önizlemesine hesap bağlantısı eklenmedi.
 
 ## Dil seçimi
 

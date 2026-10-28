@@ -118,6 +118,9 @@ class TimelineActivity : LocalizedActivity() {
             }.setNegativeButton(R.string.list_cancel, null).show()
         }); page.gap(12)
         selected?.let { id ->
+            page.addView(AppUi.button(this,getString(R.string.visual_title),false) {
+                startActivity(Intent(this,VisualHistoryActivity::class.java).putExtra("viewer_id",saved.session.userId).putExtra("target_id",id).putExtra("offline_preview",preview))
+            }); page.gap(12)
             val profile = profiles.first { it.userId == id }
             page.addView(AppUi.text(this, getString(R.string.timeline_profile_last, date(profile.observedAt)), 12f, AppUi.muted)); page.gap(12)
             page.addView(AppUi.button(this, getString(R.string.timeline_open_profile), false) {

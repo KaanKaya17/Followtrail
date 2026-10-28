@@ -82,6 +82,7 @@ const allowed = new Set([
   "check_access",
   "notification_rule",
   "read_notification",
+  "wayback",
 ]);
 
 function senderValid(event) {
@@ -122,6 +123,7 @@ function validate(operation, args) {
     check_access: ["id"],
     notification_rule: ["id", "enabled", "fields"],
     read_notification: ["id"],
+    wayback: ["id", "enabled", "clear"],
     disconnect: [],
     delete_all: [],
     cancel: [],

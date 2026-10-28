@@ -690,6 +690,7 @@
       true,
     );
     drawerId = id;
+    if (own || data.people.some(p => p.id === id)) document.querySelector('dialog .drawer-actions')?.insertAdjacentHTML('beforeend', button(t("Profil zaman tüneli"), "wayback", "photo", "secondary", idattr(id)));
   }
   function historyDialog(id) {
     const p = person(id),
@@ -704,6 +705,12 @@
           .join("") || `<p>${t("Henüz profil gözlemi yok.")}</p>`}</div>`,
       true,
     );
+  }
+  async function waybackDialog(id, changes = {}) {
+    const result = await command("wayback", {id, ...changes});
+    if (!result?.ok || !data.waybackDetail) return;
+    const archive = data.waybackDetail;
+    dialog(`<span class="dialog-symbol lavender">${icon("clock")}</span><h2 id="dialog-title">${t("Profil zaman tüneli")}</h2><p>@${esc(person(id)?.username || "")}</p><div class="drawer-actions">${button(archive.enabled ? t("Arşivlemeyi durdur") : t("Arşivlemeyi aç"), "wayback-toggle", "clock", "primary", `${idattr(id)} data-value="${!archive.enabled}"`)}${button(t("Arşivi temizle"), "wayback-clear", "trash", "secondary", idattr(id))}</div>${window.TrackerWayback.render(archive, {t,date,esc})}<p class="dialog-note">${t("En fazla {0} değişiklik ve {1} küçük görsel. Oturum ve arşiv yerel olarak şifrelenir.", archive.maxEntries, archive.maxImages)}</p>`, true);
   }
   function valueText(value) {
     if (value === null || value === undefined) return t("Bilinmiyor");
@@ -854,6 +861,18 @@
         break;
       case "person":
         personDialog(id);
+        break;
+      case "wayback":
+        await waybackDialog(id);
+        break;
+      case "wayback-toggle":
+        await waybackDialog(id, {enabled: value === "true"});
+        break;
+      case "wayback-clear":
+        dialog(`<h2 id="dialog-title">${t("Arşivi temizle")}</h2><p>${t("Bu profilin biyografi ve avatar arşivi silinir, arşivleme kapanır. Diğer profil gözlemleri korunur.")}</p>${button(t("Vazgeç"), "wayback", null, "secondary", idattr(id))}${button(t("Arşivi sil ve durdur"), "wayback-confirm-clear", "trash", "primary", idattr(id))}`);
+        break;
+      case "wayback-confirm-clear":
+        await waybackDialog(id, {clear:true});
         break;
       case "access-history":
         ui.eventType = "access";

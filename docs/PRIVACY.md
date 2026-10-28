@@ -1,5 +1,11 @@
 # Veri ve ağ sınırları
 
+## Windows 0.2.7 / Android 0.1.31 profil zaman tüneli
+
+Arşivleme profil başına açık tercihle başlar; biyografi ve indirilebilen küçük profil fotoğrafları değişiklik bazında saklanır. Windows'ta mevcut DPAPI deposu, Android'de ayrı `accountvisual.enc` Keystore/AES-GCM kaydı kullanılır. Android'in eski geçici avatar önbelleği bu kalıcı arşivin yerine kullanılmaz. Arşiv için yeni üçüncü taraf servis, telemetri veya hesap API isteği yoktur. Android'de arşivlemeyi açarken mevcut fotoğrafın izinli Meta CDN adresinden çerezsiz yüklenmesi gerekebilir; sonrasında normal kullanımda yüklenen küçük görseller yakalanır.
+
+Arşiv varsayılan olarak kapalıdır. Duraklatma geçmişi korur; onaylı temizleme o profilin biyografi/avatar arşivini silip kaydı durdurur. Normal profil gözlemleri bundan ayrı korunur. Windows otomatik önceki depo kopyası temizlenir; kullanıcının daha önce dışa aktardığı şifreli yedekler değiştirilmez. Windows yedekleri bu arşivi içerir, hesap oturumunu içermez. Android bağlantısını kaldırmak ayrı görsel kaydını da temizler. Cihazlar arasında otomatik eşitleme yoktur.
+
 ## 0.1.27 cihazda web bağlantısı
 
 Önerilen Instagram ile bağlan yolu, Instagram'ın HTTPS web formunu açar; uygulama bu formun parola/kod alanlarını okumaz. Alınan izinli oturum çerezleri ve WWW-Claim, cihazda Keystore/AES-GCM ile noBackupFilesDir içindeki iki web bankasında saklanır. Hesap referansı çerez içermez. WebView normal bitirme/iptal/kapanışta temizlenir; ani süreç ölümünün temizliği tamamladığı iddia edilmez. Bağlantıyı kaldır web bankalarını da siler.

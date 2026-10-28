@@ -807,6 +807,9 @@ class MainActivity : LocalizedActivity() {
         page.addView(personHeading); page.gap(8)
         page.addView(badge(person.group.ifBlank { getString(R.string.ui_profile_analysis) })); page.gap(20)
         page.addView(ProfileSummary.view(this, p)); page.gap(12)
+        page.addView(button(getString(R.string.visual_title),false) {
+            startActivity(Intent(this,VisualHistoryActivity::class.java).putExtra("viewer_id",saved.session.userId).putExtra("target_id",p.userId).putExtra("offline_preview",preview))
+        }); page.gap(12)
         page.addView(profileStatuses.view(saved.session, p.userId)); page.gap(16)
         val fastActions = LinearLayout(this)
         fastActions.addView(button(getString(R.string.quick_start), false) { startQuickWatch(p.userId) }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
