@@ -852,7 +852,26 @@
   "{0} sonuç": "{0} results",
   "Kayıtlı profil veya ekran bulunamadı. Farklı bir ad deneyebilirsin.": "No saved profile or screen found. Try another name.",
   "Ana sekmeler": "Main tabs",
-  "Ctrl R açık kişi profilini, Listeler’de seçili hesabı veya Özet’te kendi hesabını yeniler. Mola ve işlem sırası korunur.": "Ctrl R refreshes the open person, the account selected in Lists, or your own account in Overview. Cooldowns and request pacing are preserved."
+  "Ctrl R açık kişi profilini, Listeler’de seçili hesabı veya Özet’te kendi hesabını yeniler. Mola ve işlem sırası korunur.": "Ctrl R refreshes the open person, the account selected in Lists, or your own account in Overview. Cooldowns and request pacing are preserved.",
+  "Sonraki isteğin zamanı doğrulanamadı.": "The next request time could not be verified.",
+  "Sonraki istek için {0} saniye": "{0} seconds until the next request",
+  "İstek sırası hazırlanıyor…": "Preparing the next request…",
+  "İstekler duraklatıldı": "Requests paused",
+  "Mola kaydı: en erken {0}. Yeni deneme otomatik başlatılmaz.": "Cooldown recorded: no earlier than {0}. A new attempt will not start automatically.",
+  "Bu saat erişim garantisi değildir. Moladan sonra elle kontrol gerekir; kayıtlarını incelemeye devam edebilirsin.": "This time does not guarantee access. Check manually after the cooldown; you can keep viewing your saved records.",
+  "İptal isteniyor…": "Cancelling…",
+  "Liste için güncel profil sayısı okunuyor…": "Reading the current profile count for this list…",
+  "Sayfa {0} için Instagram yanıtı bekleniyor…": "Waiting for Instagram to return page {0}…",
+  "Sayfa {0} alındı": "Page {0} received",
+  "Sayfa {0} sırada": "Page {0} queued",
+  "{0} sayfa alındı · {1} hesap kaydedildi": "{0} pages received · {1} accounts saved",
+  "Son profil sayısı henüz bilinmiyor.": "The latest profile count is not known yet.",
+  "Son profil sayısı: {0}. Tarama sırasında değişebilir.": "Latest profile count: {0}. It may change during the scan.",
+  "Toplam sayfa sayısı henüz bilinmiyor.": "The total page count is not known yet.",
+  "Bu, uygulamanın istek aralığıdır. Sunucunun ek sınırlama uygulamayacağı garantisi değildir.": "This is the app’s request interval. The server may still apply additional limits.",
+  "İptal isteği gönderildi. Devam eden ağ yanıtı zaman aşımı süresine kadar bekleyebilir.": "Cancellation requested. An in-flight network response may take until its timeout.",
+  "İstek aralığı ilerlemesi": "Request interval progress",
+  "İşlem ilerlemesi": "Operation progress"
 };
   const locales = { tr: 'tr-TR', en: 'en-US' };
   const formatterCache = new Map();

@@ -68,6 +68,7 @@ class Backend {
     this.failure = message;
     this.ready = false;
     this.busy = false;
+    this.progress = null;
     for (const resolve of this.pending.values())
       resolve({
         ok: false,
@@ -99,7 +100,10 @@ class Backend {
       this.onNotifications?.(entries);
     }
     if (message.type === "ready") this.ready = true;
-    if (message.type === "progress") this.progress = message;
+    if (message.type === "progress") {
+      if (this.progress?.phase === 'cancelling') message = {...message,phase:'cancelling'};
+      this.progress = message;
+    }
     if (message.type === "result") {
       this.busy = false;
       this.progress = null;
@@ -136,6 +140,10 @@ class Backend {
         },
       };
     if (!control) this.busy = true;
+    if (operation === 'cancel' && this.busy) {
+      this.progress={...(this.progress || {}),type:'progress',phase:'cancelling'};
+      this.onEvent(this.progress);
+    }
     const id = ++this.counter;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);

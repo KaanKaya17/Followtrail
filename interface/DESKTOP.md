@@ -1,6 +1,14 @@
-# InstagramTracker Windows 0.2.9
+# InstagramTracker Windows 0.2.10
 
-`artifacts/InstagramTracker-Desktop-0.2.9/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.10/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Tarama ilerlemesi ve bekleme
+
+Liste tararken alt durum çubuğu ilgili hesabı, takipçi/takip edilen yönünü, sıradaki sayfayı, alınan sayfa ve kaydedilen benzersiz hesap sayısını gösterir. Liste öncesindeki profil sayısı okuması ayrı belirtilir. Son profil sayısı bir referanstır; tarama sırasında değişebilir. Instagram toplam sayfayı güvenilir biçimde bildirmediği için `4/12` veya tamamlanma yüzdesi üretilmez.
+
+İstekler arasındaki mevcut 15 saniyelik aralıkta kalan saniye ve süre çubuğu görünür. Bu çubuk yalnız bekleme süresine aittir; bütün taramanın tamamlanma oranı değildir. Süre bitince sunucudan yanıt gelene kadar yanıt bekleniyor denir. Geri sayım ağ isteği göndermez; tepsiye gizlenme/küçültülmede durur ve açılışta güncel zamandan devam eder. İptalde geri sayım hemen kapanır; devam eden HTTP yanıtının mevcut zaman aşımı süresi beklenebilir. Alınmış kısmi kayıtlar korunur.
+
+HTTP 429, normal saniyelik aralıktan ayrı **İstekler duraklatıldı** durumudur. Mola kaydındaki en erken saat ve İstek bilgileri bağlantısı gösterilir; otomatik yeniden deneme başlatılmaz. Saat erişim garantisi değildir. Türkçe/İngilizce desteklenir. [Doğrulama kapsamı](../docs/PROGRESS-FEEDBACK-TEST.md).
 
 ## Klavye ve ilk kullanım
 

@@ -7,6 +7,7 @@ for (const file of [
   "web/desktop.js",
   "web/wayback.js",
   "web/command-palette.js",
+  "web/operation-progress.js",
   "web/icons.js",
   "web/i18n.js",
   "locales/runtime.js",
@@ -27,6 +28,7 @@ for (const file of [
   "scripts/check-desktop.mjs",
   "scripts/check-functional-desktop.mjs",
   "scripts/check-navigation-desktop.mjs",
+  "scripts/check-progress-desktop.mjs",
 ]) {
   execFileSync(process.execPath, ["--check", path.join(root, file)], {
     stdio: "inherit",

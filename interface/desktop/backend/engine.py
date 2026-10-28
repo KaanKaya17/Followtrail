@@ -66,6 +66,7 @@ class Engine:
         self.observation_group = None
         self.offline = False
         self.list_scan_active = False
+        self.scan_progress = None
         self.wayback_id = None
         # Interrupted scans remain explicitly partial after a restart.
         changed = False
@@ -113,10 +114,11 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.9'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.10'}
 
     def progress(self, phase, **details):
-        self.emit({'type': 'progress', 'phase': phase, **details})
+        context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
+        self.emit({'type': 'progress', 'phase': phase, **context, **details})
 
     def check_cancel(self):
         if self.cancel.is_set():
@@ -130,7 +132,7 @@ class Engine:
             raise AppFailure('limited', 'Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.')
         remaining = gate.get('nextAt', 0) - now
         if remaining > 0:
-            self.progress('waiting', until=gate['nextAt'])
+            self.progress('waiting', until=gate['nextAt'], waitStartedAt=now)
             # Cancellation interrupts pacing and code waits; an in-flight HTTP
             # request has a bounded transport timeout and is never replayed.
             if self.cancel.wait(remaining):
@@ -154,6 +156,7 @@ class Engine:
         self.save()
         if response.status_code == 429:
             self.limited(response.headers.get('Retry-After'))
+            self.progress('limited', until=self.data['gate']['blockedUntil'], http=429)
             raise AppFailure('limited', 'Instagram HTTP 429 döndürdü. Tarama durdu; otomatik tekrar yapılmayacak.')
 
     def request_code(self, username=None, choice=None):
@@ -350,18 +353,22 @@ class Engine:
                  'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
                  'status': 'running', 'pages': 0, 'expected': None}
         record['draft'] = draft
-        self.save()
         try:
             self.list_scan_active = True
+            self.scan_progress = {'ownerId': identity, 'username': owner['username'], 'direction': direction,
+                                  'step': 'profile', 'page': None, 'completedPages': 0, 'count': 0, 'expected': None}
+            self.save()
             # Refresh the expected count once; stale profile counts must not be
             # used to declare a changing list complete.
             profile = self.read_profile(client, identity, avatar=False)
             self.record_profile(profile, own=identity == self.data['account']['id'])
             draft['expected'] = profile[direction]
+            self.scan_progress.update(username=profile['username'], expected=draft['expected'], step='page')
             cursor, seen = '', set()
             for page in range(MAX_PAGES):
                 self.check_cancel()
-                self.progress('list', direction=direction, count=len(draft['members']), page=page + 1)
+                self.scan_progress.update(page=page + 1)
+                self.progress('list')
                 params = {'count': 50, 'rank_token': client.rank_token,
                           'search_surface': 'follow_list_page', 'query': '', 'enable_groups': 'true'}
                 if cursor:
@@ -376,6 +383,8 @@ class Engine:
                 draft['finishedAt'] = self.clock()
                 self.data['session'] = client.get_settings()
                 self.save()
+                self.scan_progress.update(completedPages=draft['pages'], count=len(draft['members']))
+                self.progress('list_received')
                 if parsed.coverage in ('limited', 'unknown'):
                     raise AppFailure('list_coverage', 'Instagram liste kapsamını kısıtlı veya belirsiz döndürdü. Görülen üyeler kısmi kayıt olarak korundu; fark hesabı yapılmadı.')
                 if not cursor:
@@ -408,6 +417,7 @@ class Engine:
             raise
         finally:
             self.list_scan_active = False
+            self.scan_progress = None
             close_client(client)
 
     def known_person(self, identity):

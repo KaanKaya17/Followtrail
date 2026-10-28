@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.10 — 2026-10-28 (Şeffaf tarama ilerlemesi)
+
+- Liste ilerlemesi; hesap, yön, sıradaki/alınan sayfa, kaydedilen benzersiz hesap sayısı ve son profil sayısıyla gösterilir. Bu bağlam profil hazırlığı, istek aralığı ve ağ yanıtı boyunca korunur. Toplam sayfa/yüzde tahmin edilmez; profil sayısının tarama sırasında değişebileceği belirtilir.
+- Mevcut 15 saniyelik yerel istek aralığı için saniyelik geri sayım ve süre çubuğu eklendi. Sıfırda yeni istek üretmez; sonraki aşama backend olayından gelir. HTTP 429 ayrı duran mola durumudur; kayıtlı en erken saat ve İstek bilgileri gösterilir. Otomatik tekrar veya erişim garantisi verilmez.
+- Tek yerel zamanlayıcı yalnız görünür beklemede çalışır; tepsiye gizleme, küçültme, süre sonu, iptal, işlem sonucu ve hizmet hatasında durur. Windows görünürlük olayı açıkça aktarılır; yeniden açılış eski saniyeleri oynatmadan güncel duruma döner. İptal isteği geciken ilerleme olaylarıyla geri alınmaz; kısmi kayıtlar korunur.
+- Türkçe ve İngilizce birlikte güncellendi. 116 offline backend testi, 25 Node testi, 9 yeni ilerleme senaryosu, 30 mevcut masaüstü ve 10 kısayol/boş ekran kontrolü geçti. Gerçek EXE ve worker sentetik depolarla sınandı; canlı Instagram/429 tekrarı yapılmadı. Windows önizleme sürümüdür; Android 0.1.31 ve örnek web işlevleri değiştirilmedi.
+
 ## Windows 0.2.9 — 2026-10-28 (Kısayollar ve yönlendiren boş ekranlar)
 
 - `Ctrl+K` / `/`, kayıtlı kişiler, kendi hesabın ve uygulama ekranları için yerel arama paletini açar. Ok tuşları ve Enter ile seçim yapılır; `@` yalnız profilleri arar. Türkçe karakterli adlar ASCII sorgularla da eşleşir. Arama Instagram isteği göndermez; en fazla 12 sonuç gösterilir ve toplam sonuç sayısı belirtilir.
