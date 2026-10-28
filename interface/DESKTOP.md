@@ -1,6 +1,16 @@
-# InstagramTracker Windows 0.2.7
+# InstagramTracker Windows 0.2.8
 
-`artifacts/InstagramTracker-Desktop-0.2.7/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.8/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Oturumsuz erişim karşılaştırması
+
+Kişi ayrıntısındaki **Erişimi kontrol et**, önce bağlı hesabın sağlığını ve hedefin kayıtlı sayısal kimliğini inceler. Hedef için gerçek 404 alınırsa son bilinen kullanıcı adına ayrı bir oturumsuz profil sayfası isteği eklenir. Otomatik yol için Ayarlar → **Kaybolan kayıtlı takipçileri incele** ve **Otomatik profil kontrolü** açık olmalı; önceki ve son tamamlanmış kendi takipçi kayıtlarında kaybolan kayıtlı kişiler sıraya alınır. Normal profil kontrolü başına anonim istek gönderilmez. Sağlıklı oturum, hedef ve gerektiğinde anonim adım toplam üç istek olabilir; her biri ortak en az 15 saniyelik aralığa uyar.
+
+- Aynı sayısal ID anonim sayfada doğrulanır, bağlı oturumdan bulunamaz ve listede kaybolma kanıtı varsa **Güçlü engellenme şüphesi** gösterilir. Bildirim tercihi açıksa aynı inceleme olayında bir kez bildirim üretilebilir. Eski zayıf şüphenin güçlü kanıta yükselmesi bir kez ayrıca bildirilebilir.
+- İki tarafta da bulunamazsa nedeni belirsizdir: dondurma, silme, ad değişikliği veya ad değişikliğiyle engelleme ayrıştırılmaz. Donduruldu/silindi diye kesin bildirim gönderilmez.
+- HTTP 200 tek başına yeterli değildir. Giriş/doğrulama ekranı, kimlik uyuşmazlığı, bağlantı hatası, beklenmeyen sayfa veya 429 sonucu **Anonim kontrol tamamlanamadı** olarak gösterilir. Engellenme bildirimi üretilmez. Eski kayıtlar geriye dönük anonim doğrulanmış sayılmaz.
+
+Kanıtlar kişi ayrıntısı, zaman çizelgesi ve güçlü şüphe bildirim günlüğünde açılır. Kontrol edilen ad, HTTP durumları, zaman ve yöntemin sınırları gösterilir. Kayıtlı hesap çerezi/Authorization gönderilmez; üçüncü taraf servis yoktur. Ham HTML ve dönen çerezler saklanmaz. Yönlendirme ve otomatik tekrar yoktur; anonim 429 da mevcut ortak molayı korur. Sayfanın yalnız JavaScript ile profil göstermesi halinde ham GET kimliği doğrulayamayabilir; bu belirsiz kalır. Güncel adı henüz hiç gözlenmemiş, adını değiştirip engellemiş kişi çözülemeyebilir. [Geliştirme notları](../docs/DEVELOPMENT-BACKLOG.md), [doğrulama kapsamı](../docs/ANONYMOUS-VISIBILITY-TEST.md).
 
 ## Profil zaman tüneli
 

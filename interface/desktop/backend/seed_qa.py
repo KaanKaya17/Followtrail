@@ -16,6 +16,7 @@ def main():
     parser.add_argument('--empty',action='store_true')
     parser.add_argument('--performance',action='store_true')
     parser.add_argument('--wayback',action='store_true')
+    parser.add_argument('--anonymous',action='store_true')
     args=parser.parse_args()
     home=args.home.resolve()
     if home.parent!=Path(tempfile.gettempdir()).resolve() or not home.name.startswith('TrackerQA-'):
@@ -92,6 +93,25 @@ def main():
             p={**e.data['people']['200'],'bio': 'Coffee, books & Istanbul ☕' if i==0 else 'Coffee, travel & Ankara ☕ <img src=x onerror=evil>',
                'picture':'id:qa'+str(i),'avatar':'data:image/jpeg;base64,'+base64.b64encode(image.getvalue()).decode('ascii')}
             e.record_profile(p)
+    if args.anonymous:
+        if args.empty: raise ValueError('Anonymous fixture requires records')
+        positive={'method':'public_profile_page','requestedUsername':'qa.deniz','checkedAt':now,
+                  'status':'visible','reason':'identity_match','http':200,'identityMatched':True,
+                  'observedId':'200','observedUsername':'qa.deniz'}
+        e.data['access']['200']['checks'].append({'status':'suspected','reason':'anonymous_visible',
+            'ownHTTP':200,'targetHTTP':404,'checkedAt':now,'absence':dict(e.data['access']['200']['absence']),
+            'anonymous':positive})
+        e.data['access']['200']['alertStrength']='strong'
+        e.event('profile','Güçlü engellenme şüphesi · @qa.deniz: Aynı hesap oturumsuz görünür, bağlı oturumdan erişilemiyor. Kesin engelleme kanıtı değildir.',
+                '200',None,e.data['access']['200']['checks'][-1],topic='access')
+        e.data['access']['201']['checks'].append({'status':'unknown','reason':'anonymous_inconclusive',
+            'ownHTTP':200,'targetHTTP':404,'checkedAt':now,'absence':None,
+            'anonymous':{'method':'public_profile_page','requestedUsername':'qa.ada','checkedAt':now,
+                         'status':'unknown','reason':'limited','http':429,'identityMatched':None}})
+        closed=access_checks.ensure_case(e.data,e.data['people']['300'],now)
+        closed['checks']=[{'status':'unavailable','reason':'both_unavailable','ownHTTP':200,'targetHTTP':404,
+            'checkedAt':now,'absence':None,'anonymous':{'method':'public_profile_page','requestedUsername':'qa.large',
+            'checkedAt':now,'status':'not_found','reason':'http_not_found','http':404,'identityMatched':None}}]
     e.save()
     print('Synthetic vault prepared; no session or network.')
 

@@ -1,5 +1,11 @@
 # Veri ve ağ sınırları
 
+## Windows 0.2.8 oturumsuz erişim karşılaştırması
+
+Mevcut isteğe bağlı kaybolan takipçi incelemesinde veya elle erişim kontrolünde, sağlıklı bağlı oturumdan hedef kimliğe 404 dönerse son bilinen kullanıcı adı için `www.instagram.com/<username>/` adresine tek ayrı GET eklenir. Yeni oturumda hesap çerezi/Authorization yoktur; ortam proxy/netrc bilgisi kullanılmaz. Yönlendirme, otomatik tekrar, aracı servis ve başka hesaptan kontrol yoktur. Instagram hedef kullanıcı adını ve bağlantının IP adresini görebilir. Dönen çerezler ikinci istekte kullanılmaz; ham HTML ve başlıklar kaydedilmez. Yalnız yöntem, kullanıcı adı, varsa eşleşen kimlik, HTTP durumu ve zaman şifreli yerel kanıta girer.
+
+Ortak 15 saniyelik aralık, iptal ve 429 molası bu isteğe de uygulanır. 429 sonrası diğer adreslere veya kayıtlı hesaba geçerek anonim kontrol sürdürülmez. Kimliği doğrulanamayan sayfa, giriş/doğrulama ekranı ve erişim hataları kapatılmış hesap olarak yorumlanmaz. Bu sürüm Android'e anonim karşılaştırma eklemez.
+
 ## Windows 0.2.7 / Android 0.1.31 profil zaman tüneli
 
 Arşivleme profil başına açık tercihle başlar; biyografi ve indirilebilen küçük profil fotoğrafları değişiklik bazında saklanır. Windows'ta mevcut DPAPI deposu, Android'de ayrı `accountvisual.enc` Keystore/AES-GCM kaydı kullanılır. Android'in eski geçici avatar önbelleği bu kalıcı arşivin yerine kullanılmaz. Arşiv için yeni üçüncü taraf servis, telemetri veya hesap API isteği yoktur. Android'de arşivlemeyi açarken mevcut fotoğrafın izinli Meta CDN adresinden çerezsiz yüklenmesi gerekebilir; sonrasında normal kullanımda yüklenen küçük görseller yakalanır.
