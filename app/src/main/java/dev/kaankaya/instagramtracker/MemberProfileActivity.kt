@@ -248,7 +248,7 @@ class MemberProfileActivity : LocalizedActivity() {
         if (code == 1403 && pendingWatch) enableWatch()
     }
     override fun onResume() {
-        super.onResume(); if (recreatingForLanguage || !::member.isInitialized) return
+        super.onResume(); if (recreatingForInterface || !::member.isInitialized) return
         if (!resumedOnce) { resumedOnce = true; return }
         try { account = vault.read(); if (account?.session != reference) { finish(); return } }
         catch (_: Exception) { finish(); return }

@@ -26,7 +26,7 @@ class DesktopLinkActivity : LocalizedActivity() {
     private var status = ""
     private var prepared = false
     private var visibleScroll: ScrollView? = null
-    private val accent = AppUi.violet
+    private val accent get() = AppUi.violet
     private val gateWake = Runnable { if (!isDestroyed && !busy) render() }
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -161,7 +161,7 @@ class DesktopLinkActivity : LocalizedActivity() {
         super.onStop()
         if (busy) { ++generation; pending?.cancel(true); api.cancel(); busy = false; status = ApiFailure(ApiFailure.Kind.CANCELLED).userMessage(this@DesktopLinkActivity) }
     }
-    override fun onResume() { super.onResume(); if (!recreatingForLanguage && ::gate.isInitialized && !busy) render() }
+    override fun onResume() { super.onResume(); if (!recreatingForInterface && ::gate.isInitialized && !busy) render() }
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("attempted", attempted)
         staged?.let { outState.putString("binding", it.mobileBinding); outState.putString("owner", it.userId); outState.putString("ua", it.userAgent) }

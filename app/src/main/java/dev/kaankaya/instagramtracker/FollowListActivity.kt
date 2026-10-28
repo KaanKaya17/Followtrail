@@ -48,8 +48,8 @@ class FollowListActivity : LocalizedActivity() {
     private var statusCard: View? = null
     private var navigationChrome: List<View> = emptyList()
     private var keyboardVisible = false
-    private val bg = AppUi.background
-    private val fg = AppUi.ink
+    private val bg get() = AppUi.background
+    private val fg get() = AppUi.ink
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -399,7 +399,7 @@ class FollowListActivity : LocalizedActivity() {
     override fun onPause() { if (::queuedRead.isInitialized) queuedRead.cancel(false); if (::source.isInitialized) cancel(); main.removeCallbacks(wake); super.onPause() }
     override fun onResume() {
         super.onResume()
-        if (recreatingForLanguage || !::target.isInitialized) return
+        if (recreatingForInterface || !::target.isInitialized) return
         try {
             if (!currentAccount(accountVault.read())) { finish(); return }
             snapshot = lists.read(reference, target.userId)

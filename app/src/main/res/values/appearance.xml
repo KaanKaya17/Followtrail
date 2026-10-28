@@ -1,0 +1,8 @@
+<resources>
+    <string name="appearance_title">Tema</string>
+    <string name="appearance_system">Sistem</string>
+    <string name="appearance_light">Açık</string>
+    <string name="appearance_dark">Koyu</string>
+    <string name="appearance_oled">OLED siyahı</string>
+    <string name="appearance_save_failed">Tema kaydedilemedi. Önceki seçimin korundu.</string>
+</resources>

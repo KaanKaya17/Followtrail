@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from design/theme.json. -->
+<resources>
+    <color name="theme_light_background">#faf9f6</color>
+    <color name="theme_light_surface">#ffffff</color>
+    <color name="theme_light_ink">#252339</color>
+    <color name="theme_light_muted">#6f6d81</color>
+    <color name="theme_light_violet">#674bd8</color>
+    <color name="theme_light_line">#e9e5ee</color>
+    <color name="theme_dark_background">#11131b</color>
+    <color name="theme_dark_surface">#1b1e2a</color>
+    <color name="theme_dark_ink">#eeedf6</color>
+    <color name="theme_dark_muted">#b4b1c6</color>
+    <color name="theme_dark_violet">#bca6ff</color>
+    <color name="theme_dark_line">#363849</color>
+    <color name="theme_oled_background">#000000</color>
+    <color name="theme_oled_surface">#0b0b0e</color>
+    <color name="theme_oled_ink">#eeedf6</color>
+    <color name="theme_oled_muted">#b4b1c6</color>
+    <color name="theme_oled_violet">#bca6ff</color>
+    <color name="theme_oled_line">#303039</color>
+</resources>

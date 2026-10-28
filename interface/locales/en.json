@@ -864,5 +864,13 @@
   "Bu, uygulamanın istek aralığıdır. Sunucunun ek sınırlama uygulamayacağı garantisi değildir.": "This is the app’s request interval. The server may still apply additional limits.",
   "İptal isteği gönderildi. Devam eden ağ yanıtı zaman aşımı süresine kadar bekleyebilir.": "Cancellation requested. An in-flight network response may take until its timeout.",
   "İstek aralığı ilerlemesi": "Request interval progress",
-  "İşlem ilerlemesi": "Operation progress"
+  "İşlem ilerlemesi": "Operation progress",
+  "Sistem": "System",
+  "Koyu": "Dark",
+  "OLED siyahı": "OLED black",
+  "Tema": "Theme",
+  "Tema seçimi": "Theme selection",
+  "Sistem temasını izle veya bu cihaz için bir görünüm seç.": "Follow the system theme or choose an appearance for this device.",
+  "Ortak renk paleti": "Shared color palette",
+  "Açık tema": "Light"
 }

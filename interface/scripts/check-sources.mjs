@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 for (const file of [
   "web/app.js",
+  "web/appearance.js",
   "web/desktop.js",
   "web/wayback.js",
   "web/command-palette.js",
@@ -14,6 +15,7 @@ for (const file of [
   "scripts/generate-i18n.mjs",
   "scripts/check-i18n-web.mjs",
   "desktop/main.cjs",
+  "desktop/theme.cjs",
   "desktop/preview.cjs",
   "desktop/preload.cjs",
   "desktop/service.cjs",
@@ -29,6 +31,7 @@ for (const file of [
   "scripts/check-functional-desktop.mjs",
   "scripts/check-navigation-desktop.mjs",
   "scripts/check-progress-desktop.mjs",
+  "scripts/check-appearance.mjs",
 ]) {
   execFileSync(process.execPath, ["--check", path.join(root, file)], {
     stdio: "inherit",

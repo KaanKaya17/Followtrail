@@ -38,11 +38,11 @@ import java.util.concurrent.Executors
 
 class MainActivity : LocalizedActivity() {
     private data class ProfileRead(val profile: Profile, val fetched: Boolean, val startedAt: Long? = null)
-    private val bg = AppUi.background
-    private val panel = AppUi.surface
-    private val accent = AppUi.violet
-    private val ink = AppUi.ink
-    private val muted = AppUi.muted
+    private val bg get() = AppUi.background
+    private val panel get() = AppUi.surface
+    private val accent get() = AppUi.violet
+    private val ink get() = AppUi.ink
+    private val muted get() = AppUi.muted
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private lateinit var api: InstagramApi
@@ -143,7 +143,7 @@ class MainActivity : LocalizedActivity() {
                 if (saved != null) { quickWatch.restore(savedInstanceState, saved); if (visible) quickWatch.resume() }
                 openNotification(saved); syncMonitoring(); render()
                 // An outstanding pause is restored without issuing a network request.
-                if (!quickWatch.active && !languageChangedOnRecreation && saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
+                if (!quickWatch.active && !interfaceChangedOnRecreation && saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
             }
         }
     }
@@ -152,7 +152,7 @@ class MainActivity : LocalizedActivity() {
         super.onResume()
         visible = true
         if (::profileStatuses.isInitialized) profileStatuses.resume()
-        if (recreatingForLanguage) return
+        if (recreatingForInterface) return
         if (!::gate.isInitialized || web != null || loading) return
         try { account = vault.read(); pendingMobile = !preview && MobileSessions(this).pending() != null; needsConnection = gate.requiresConnection() }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity); needsConnection = true }
@@ -209,7 +209,7 @@ class MainActivity : LocalizedActivity() {
         header.addView(text("", 20f).apply {
             background = AppUi.brandSurface(this@MainActivity, radius = 16); gravity = Gravity.CENTER
             setPadding(dp(12), dp(12), dp(12), dp(12))
-            setCompoundDrawablesWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "chart", AppUi.surface, 24), null, null, null)
+            setCompoundDrawablesWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "chart", UiPalette.onAccent, 24), null, null, null)
             contentDescription = "InstagramTracker"
         }, LinearLayout.LayoutParams(dp(48), dp(48)))
         val brand = stack().apply { setPadding(dp(12), 0, 0, 0) }
@@ -302,7 +302,7 @@ class MainActivity : LocalizedActivity() {
         page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(18)
         val row = LinearLayout(this)
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
-            val foreground = if (purple) AppUi.surface else ink
+            val foreground = if (purple) UiPalette.onAccent else ink
             background = AppUi.touch(this@MainActivity, if (purple) AppUi.brandSurface(this@MainActivity) else shape(AppUi.peach, 24))
             setPadding(dp(17), dp(18), dp(17), dp(18)); minimumHeight = dp(144)
             val title = LinearLayout(this@MainActivity).apply { gravity = Gravity.CENTER_VERTICAL }
@@ -672,7 +672,7 @@ class MainActivity : LocalizedActivity() {
         }.setNegativeButton(getString(R.string.ui_cancel), null).show()
     }
     private fun options() {
-        val options = mutableListOf(R.string.ui_manage_connection, R.string.ui_refresh_settings, R.string.ui_request_information, R.string.language_menu, R.string.ui_privacy, R.string.ui_advanced)
+        val options = mutableListOf(R.string.ui_manage_connection, R.string.ui_refresh_settings, R.string.ui_request_information, R.string.language_menu, R.string.appearance_title, R.string.ui_privacy, R.string.ui_advanced)
         if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
         if (BuildConfig.DEBUG && !preview) options.add(R.string.ui_open_offline_demo)
@@ -691,6 +691,7 @@ class MainActivity : LocalizedActivity() {
                     }
                     .setPositiveButton(R.string.ui_ok, null).show()
                 R.string.language_menu -> languagePicker()
+                R.string.appearance_title -> appearancePicker()
                 R.string.timeline_menu -> openTimeline()
                 R.string.ui_request_information -> requestInfo()
                 R.string.ui_privacy -> privacy()
@@ -711,6 +712,17 @@ class MainActivity : LocalizedActivity() {
                     AppLanguage.set(this, language)
                     if (android.os.Build.VERSION.SDK_INT < 33) recreate()
                 } catch (_: Exception) { message = getString(R.string.language_save_failed); render() }
+            }.setNegativeButton(R.string.ui_cancel, null).show()
+    }
+    private fun appearancePicker() {
+        val choices = intArrayOf(R.string.appearance_system, R.string.appearance_light, R.string.appearance_dark, R.string.appearance_oled)
+        AlertDialog.Builder(this).setTitle(R.string.appearance_title)
+            .setSingleChoiceItems(choices.map { getString(it) }.toTypedArray(), AppAppearance.choices.indexOf(AppAppearance.selected(this))) { dialog, index ->
+                dialog.dismiss()
+                val mode = AppAppearance.choices[index]
+                if (mode == AppAppearance.selected(this)) return@setSingleChoiceItems
+                try { AppAppearance.set(this, mode); recreate() }
+                catch (_: Exception) { message = getString(R.string.appearance_save_failed); render() }
             }.setNegativeButton(R.string.ui_cancel, null).show()
     }
     private fun requestInfo() {

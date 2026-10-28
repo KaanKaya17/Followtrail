@@ -9,6 +9,7 @@ const {
   Tray,
   Menu,
   nativeImage,
+  nativeTheme,
 } = require("electron");
 const path = require("node:path");
 const os = require("node:os");
@@ -18,6 +19,7 @@ const { pathToFileURL } = require("node:url");
 const { Backend } = require("./service.cjs");
 const { Background } = require("./background.cjs");
 const { RendererUpdates } = require("./renderer-updates.cjs");
+const themeBackgrounds = require('./theme.cjs');
 const i18n = require('../web/i18n.js');
 const t = (message, ...values) => i18n.translate(message, values, backend?.state?.settings.language || 'tr');
 const {
@@ -113,6 +115,7 @@ function validate(operation, args) {
     save_person: ["id", "favorite", "watching", "group", "note"],
     remove_person: ["id"],
     settings: [
+      "theme",
       "language",
       "compact",
       "notifications",
@@ -133,6 +136,12 @@ function validate(operation, args) {
     throw new Error("Unknown command field");
 }
 function send(event) {
+  if (event.state) {
+    const mode = event.state.settings.theme || 'system';
+    const source = mode === 'oled' ? 'dark' : mode;
+    if (nativeTheme.themeSource !== source) nativeTheme.themeSource = source;
+    window?.setBackgroundColor(themeBackgrounds[mode === 'oled' ? 'oled' : nativeTheme.shouldUseDarkColors ? 'dark' : 'light']);
+  }
   background?.update();
   if (event.type === "ready" && event.state?.settings.notifications) {
     try {
@@ -150,7 +159,7 @@ function open() {
     height: 960,
     minWidth: 960,
     minHeight: 680,
-    backgroundColor: "#FAF9F6",
+    backgroundColor: themeBackgrounds[nativeTheme.shouldUseDarkColors ? 'dark' : 'light'],
     title: "InstagramTracker",
     autoHideMenuBar: true,
     webPreferences: {
