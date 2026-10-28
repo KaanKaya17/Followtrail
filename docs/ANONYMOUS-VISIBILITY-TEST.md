@@ -1,0 +1,14 @@
+# Windows 0.2.8 anonim karşılaştırma doğrulaması
+
+28 Ekim 2026. Üretim yoluna tek, hesap çerezsiz GET eklendi; ID ile anonim GraphQL veya tarayıcı otomasyonu eklenmedi. Aynı sayısal kimlik yalnız profil verisinden doğrulandığında güçlü şüphe üretilir. Ayrıştırılan bir önerilen kullanıcı satırı veya genel HTTP 200 olumlu kanıt değildir.
+
+Çalıştırılan kontroller:
+
+- **111 backend testi:** gerçek DPAPI, üretim `Session.send` sınırı ve sahte HTTP yanıtlarıyla sıfır internet erişimi. Tek GET, Cookie/Authorization olmaması, sabit hedef, kapalı ortam proxy'si, TLS, kapalı yönlendirme ve sıfır retry kontrol edildi. 429 / Retry-After ortak molayı kalıcılaştırdı; ikinci çağrı ağ isteği göndermedi. İptal, zaman aşımı, disk hatası, büyük yanıt, oturum sağlığı hatası, kendi engeliniz, kimlik uyuşmazlığı, genel 200 ve 404/410 ayrıştırıldı. Güncel kullanıcı adı ID'ye bağlı yeni liste veya başarılı erişim gözleminden seçildi. Eski zayıf bildirimin güçlü kanıta bir kez yükselmesi, 10 kontrol sonra da tekrar bildirmemesi ve donmuş eski bildirim kanıtları sınandı.
+- **22 Node testi:** mevcut zamanlayıcı/gizli pencere/bildirim/dil/fark kapsamına ek olarak güçlü bildirimde yöntem açıklaması ve İngilizce çevirisi doğrulandı.
+- **5 yeni gerçek EXE kontrolü:** sentetik güçlü şüphe, anonim 429, iki taraflı yokluk, bildirim günlüğündeki kanıtlar ve İngilizce yeniden açılış. Ayrıca **30 mevcut paketlenmiş masaüstü kontrolü** ve **8 iki dilli tarayıcı kontrolü** geçti. Dış arayüz isteği ve JavaScript hatası: 0. Test kipi gerçek hesap deposunu kullanmaz ve Instagram işlemlerini kapatır.
+- `npm run check`: ortak tema, yerel çeviri kataloğu ve JavaScript sözdizimi geçti. Yeni Python modülü gerçek paketlenmiş worker'a dahil edilerek EXE açılışında sınandı.
+
+Komutlar: `interface/desktop/backend` içinde kilitli Python ortamıyla `-m unittest discover -p 'test_*.py'`; `interface` içinde `npm run check`, `node --test desktop/*.test.cjs`, `node scripts/check-anonymous-desktop.mjs`, `npm run check:functional`, `node scripts/check-i18n-web.mjs`. Yerel sonuçlar `artifacts/anonymous-*` ve ekran görüntüleri `artifacts/anonymous-ui` altındadır. Kullanıcı profili, ham ağ yanıtı, çerez veya binary kaynak deposuna eklenmez.
+
+Canlı sınırlar: Bu pakette gerçek engelleme/dondurma/ad değişikliği senaryoları sınanmadı. Önceki izinli araştırmada oturumsuz sayfa GET'i HTTP 200 verdi fakat hesap kimliği doğrulanamadı; ayrı web profil API isteği 429 aldı ve tekrar denenmedi. Bunlar bu paketin başarılı canlı engellenme tespiti değildir. Yeni üretim yolu web profil API'sini veya anonim ID sorgusunu çağırmaz. Sınırlama sonrasında canlı doğrulama yapılmadı. Android değiştirilmedi; anonim özellik Windows kapsamındadır. Genel kullanıma hazır sürüm beyanı değildir. [Geliştirilecek noktalar](DEVELOPMENT-BACKLOG.md).

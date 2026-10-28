@@ -10,6 +10,7 @@ import threading
 import time
 import uuid
 import access_checks
+import anonymous_visibility
 import notification_log
 import localization
 import wayback
@@ -112,7 +113,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.7'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.8'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
@@ -443,7 +444,14 @@ class Engine:
             self.progress('access_target', personId=identity)
             outcome = access_checks.probe(client, identity)
             self.check_cancel()
-            result = {**access_checks.assess(outcome, case['absence']), **health, 'checkedAt': self.clock(),
+            anonymous = None
+            if outcome['status'] == 'unavailable':
+                self.progress('access_anonymous', personId=identity)
+                # A separate fresh session: the authenticated client is never
+                # supplied to the public-page reader.
+                anonymous = anonymous_visibility.probe(self, identity, access_checks.last_username(self.data, identity, member))
+                self.check_cancel()
+            result = {**access_checks.assess(outcome, case['absence'], anonymous), **health, 'checkedAt': self.clock(),
                       'absence': copy.deepcopy(case['absence'])}
             if outcome.get('username'):
                 result['usernameChanged'] = outcome['username'] != case['username']
@@ -451,10 +459,13 @@ class Engine:
             del case['checks'][:-10]
             case['stage'] = 'done'
             self.data['session'] = client.get_settings()
-            suspected = result['status'] == 'suspected' and not case['alertRecorded']
+            strength = 'strong' if result['reason'] == 'anonymous_visible' else 'limited'
+            suspected = result['status'] == 'suspected' and (not case['alertRecorded'] or
+                         strength == 'strong' and case.get('alertStrength') != 'strong')
             if suspected:
                 case['alertRecorded'] = True
-            title = (f"Engellenme şüphesi · @{case['username']}: Tam takipçi kaydında yok ve profiline erişilemiyor. Hesap kapanmış da olabilir."
+                case['alertStrength'] = strength
+            title = (f"Güçlü engellenme şüphesi · @{member['username']}: Aynı hesap oturumsuz görünür, bağlı oturumdan erişilemiyor. Kesin engelleme kanıtı değildir."
                      if suspected else f"@{case['username']} · Erişim kontrolü kaydedildi")
             self.event('profile' if suspected else 'check', title, identity, previous, result, topic='access')
             self.save()

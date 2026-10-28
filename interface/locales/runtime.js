@@ -32,6 +32,7 @@
     '@{0} profili kontrol edildi',
     '@{0} · Erişim kontrolü kaydedildi',
     'Engellenme şüphesi · @{0}: Tam takipçi kaydında yok ve profiline erişilemiyor. Hesap kapanmış da olabilir.',
+    'Güçlü engellenme şüphesi · @{0}: Aynı hesap oturumsuz görünür, bağlı oturumdan erişilemiyor. Kesin engelleme kanıtı değildir.',
   ];
   const storedPatterns = storedKeys.map(key => [key, new RegExp('^' + key.split(/\{\d+\}/).map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('([A-Za-z0-9._]+)') + '$')]);
   function stored(message, language = 'tr') {

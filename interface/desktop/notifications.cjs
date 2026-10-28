@@ -10,10 +10,11 @@ function changeNotification(entry, language = 'tr') {
     entry.selectedChangeIds.includes(change.eventId),
   );
   const access = selected.filter((change) => change.category === "access");
+  const strong = access.some(change => change.after?.reason === 'anonymous_visible');
   const accounts = new Set(selected.map((change) => change.username));
   return {
     title: access.length
-      ? t("InstagramTracker · Engellenme şüphesi")
+      ? strong ? t("InstagramTracker · Güçlü engellenme şüphesi") : t("InstagramTracker · Engellenme şüphesi")
       : t("InstagramTracker · Yeni gözlem"),
     body:
       selected.length === 1
@@ -21,7 +22,7 @@ function changeNotification(entry, language = 'tr') {
           ? i18n.stored(selected[0].title, language)
           : t("@{0} · {1} değişti. Ayrıntıları aç.", selected[0].username, t(selected[0].label))
         : access.length
-          ? t("{0} kayıtlı hesap için engellenme şüphesi. Hesaplar kapanmış da olabilir; kanıtları incele.", access.length)
+          ? t("{0} hesap için engellenme şüphesi. Kontrol yöntemlerini ve kanıtları incele.", access.length)
           : t("{0} · {1} değişiklik. Ayrıntıları aç.", accounts.size === 1 ? "@" + selected[0].username : accounts.size + t(" hesap"), selected.length),
     logId: entry.id,
   };

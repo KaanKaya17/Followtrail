@@ -38,6 +38,10 @@ class AccessTests(unittest.TestCase):
         self.e.data['session']={'cookies':{'ds_user_id':'100','sessionid':'SYNTHETIC-SECRET'}}
         self.e.record_profile(parse_profile(profile('200')))
         self.e.save()
+        self.anonymous=patch('anonymous_visibility.probe',return_value={'method':'public_profile_page',
+            'requestedUsername':'qa.person','checkedAt':1800000000,'status':'visible','reason':'identity_match',
+            'http':200,'identityMatched':True,'observedId':'200','observedUsername':'qa.person'}).start()
+        self.addCleanup(patch.stopall)
 
     def tearDown(self):self.home.cleanup()
 
@@ -84,14 +88,54 @@ class AccessTests(unittest.TestCase):
         self.assertEqual([c[0] for c in client.calls],['users/100/info/','users/200/info/'])
         alerts=[e for e in self.e.data['events'] if e.get('topic')=='access' and e['type']=='profile']
         self.assertEqual(len(alerts),1)
-        self.assertIn('Engellenme şüphesi',alerts[0]['title'])
-        self.assertIn('Hesap kapanmış da olabilir',alerts[0]['title'])
+        self.assertIn('Güçlü engellenme şüphesi',alerts[0]['title'])
+        self.assertIn('Aynı hesap oturumsuz görünür',alerts[0]['title'])
         self.assertNotIn('engelledi',alerts[0]['title'])
 
     def test_repeated_absence_does_not_repeat_the_alert(self):
         self.missing();self.check(error());self.check(error())
         alerts=[e for e in self.e.data['events'] if e.get('topic')=='access' and e['type']=='profile']
         self.assertEqual(len(alerts),1)
+
+    def test_anonymous_absence_and_inconclusive_results_do_not_notify_a_block(self):
+        self.missing()
+        for public_status,reason,http in [('not_found','http_not_found',404),('unknown','limited',429),('unknown','identity_unverified',200)]:
+            self.anonymous.return_value={'method':'public_profile_page','requestedUsername':'qa.person',
+                'checkedAt':1800000000,'status':public_status,'reason':reason,'http':http,'identityMatched':None}
+            case,_=self.check(error())
+            self.assertNotEqual(case['checks'][-1]['status'],'suspected');self.assertFalse(case['alertRecorded'])
+            self.assertFalse(any(e.get('topic')=='access' and e['type']=='profile' for e in self.e.data['events']))
+
+    def test_old_weak_alert_can_upgrade_once_and_preserves_frozen_notification_evidence(self):
+        case=self.missing();case.update(alertRecorded=True,alertStrength='limited')
+        self.check(error());self.check(error())
+        alerts=[e for e in self.e.data['events'] if e.get('topic')=='access' and e['type']=='profile']
+        self.assertEqual(len(alerts),1);self.assertEqual(case['alertStrength'],'strong')
+        frozen=next(change for entry in self.e.data['notificationLog'] for change in entry['changes'] if change['category']=='access')
+        saved=copy.deepcopy(frozen['after']['anonymous'])
+        self.anonymous.return_value={**self.anonymous.return_value,'status':'unknown','reason':'connection','http':None,'identityMatched':None}
+        for _ in range(12):self.check(error())
+        self.assertEqual(frozen['after']['anonymous'],saved)
+        self.anonymous.return_value=saved
+        self.check(error())
+        self.assertEqual(len([e for e in self.e.data['events'] if e.get('topic')=='access' and e['type']=='profile']),1)
+
+    def test_accessible_own_block_and_failed_health_do_not_send_anonymous_requests(self):
+        self.check({'status':'ok','user':{'pk':'200','username':'qa.renamed'}})
+        self.check({'status':'ok','user':{'pk':'200','username':'qa.renamed','friendship_status':{'blocking':True}}})
+        with self.assertRaises(AppFailure):self.check(error(),health=error(401,ClientUnauthorizedError))
+        self.anonymous.assert_not_called()
+
+    def test_newest_identity_verified_name_is_used_after_a_rename(self):
+        self.check({'status':'ok','user':{'pk':'200','username':'qa.renamed'}})
+        self.check(error())
+        self.assertEqual(self.anonymous.call_args.args[2],'qa.renamed')
+
+    def test_a_newer_list_observation_can_supply_the_current_name(self):
+        self.e.clock=lambda:1800000060
+        self.scan(['200','201'])
+        self.check(error())
+        self.assertEqual(self.anonymous.call_args.args[2],'qa.200')
 
     def test_unavailable_without_list_absence_is_not_a_block_suspicion(self):
         case,_=self.check(error())

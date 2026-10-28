@@ -5,6 +5,7 @@ import uuid
 
 from instagrapi.exceptions import ClientNotFoundError
 from network import AppFailure, failure
+import anonymous_visibility
 
 MAX_CASES = 200
 ASSESSMENTS = {'accessible', 'suspected', 'unavailable', 'you_blocked', 'unknown', 'present'}
@@ -15,6 +16,9 @@ def initialize(data):
     data.setdefault('access', {})
     data.setdefault('accessPlan', {'status': 'idle'})
     data.setdefault('lastAutomaticTask', 'profile')
+    for case in data['access'].values():
+        if isinstance(case, dict):
+            case.setdefault('alertStrength', 'limited' if case.get('alertRecorded') else None)
     if isinstance(data.get('settings'), dict):
         data['settings'].setdefault('investigateMissing', False)
 
@@ -39,7 +43,7 @@ def ensure_case(data, member, now):
     case = {'id': identity, 'ownerId': data['account']['id'],
             'username': member['username'], 'name': member.get('name') or member['username'],
             'detectedAt': now, 'stage': 'done', 'episode': uuid.uuid4().hex,
-            'absence': None, 'alertRecorded': False, 'checks': []}
+            'absence': None, 'alertRecorded': False, 'alertStrength': None, 'checks': []}
     data['access'][identity] = case
     return case
 
@@ -87,7 +91,7 @@ def discover(data, record, now):
             case = ensure_case(data, previous['members'][identity], now)
         except AppFailure:
             break
-        case.update(stage='pending', detectedAt=now, episode=uuid.uuid4().hex, alertRecorded=False,
+        case.update(stage='pending', detectedAt=now, episode=uuid.uuid4().hex, alertRecorded=False, alertStrength=None,
                     absence=absence_evidence(data, identity))
         created += 1
     return created
@@ -133,8 +137,43 @@ def response_status(client):
     return status if type(status) is int and 100 <= status <= 599 else None
 
 
-def assess(outcome, absence):
+def last_username(data, identity, member):
+    """Resolve the newest observed name for this ID without changing profile counts."""
+    candidates = [(0, 0, member['username'])]
+
+    def consider(name, at, priority):
+        if isinstance(name, str) and re.fullmatch(r'[A-Za-z0-9._]{1,30}', name):
+            at = at if type(at) in (int, float) and math.isfinite(at) and at >= 0 else 0
+            candidates.append((at, priority, name))
+
+    consider(member['username'], member.get('observedAt'), 1)
+    for row in data.get('history', {}).get(identity, []):
+        consider(row.get('username'), row.get('observedAt'), 1)
+    for record in data['lists'].values():
+        for scan in record.get('snapshots', []) + ([record['draft']] if record.get('draft') else []):
+            row = scan['members'].get(identity)
+            if row:
+                consider(row.get('username'), scan.get('finishedAt'), 0)
+    for check in data['access'].get(identity, {}).get('checks', []):
+        if check['status'] in ('accessible', 'you_blocked'):
+            consider(check.get('username'), check['checkedAt'], 2)
+        public = check.get('anonymous', {})
+        if public.get('status') == 'visible' and public.get('identityMatched') is True and public.get('observedId') == identity:
+            consider(public.get('observedUsername'), public['checkedAt'], 2)
+    return max(candidates, key=lambda row: row[:2])[2]
+
+
+def assess(outcome, absence, anonymous=None):
     result = dict(outcome)
+    if anonymous is not None:
+        result['anonymous'] = anonymous
+        if anonymous['status'] == 'visible':
+            result.update(status='suspected' if absence else 'unavailable', reason='anonymous_visible')
+        elif anonymous['status'] == 'not_found':
+            result.update(status='unavailable', reason='both_unavailable')
+        else:
+            result.update(status='unknown', reason='anonymous_inconclusive')
+        return result
     if outcome['status'] == 'unavailable' and absence:
         result.update(status='suspected', reason='missing_and_unavailable')
     # No assertion about the cause: deletion/deactivation and own blocking can
@@ -163,6 +202,7 @@ def validate(data):
                 or type(case.get('username')) is not str or not re.fullmatch(r'[A-Za-z0-9._]{1,30}', case['username'])
                 or type(case.get('name')) is not str or case.get('stage') not in STAGES
                 or type(case.get('alertRecorded')) is not bool or type(case.get('episode')) is not str
+                or case.get('alertStrength') not in (None, 'limited', 'strong')
                 or type(case.get('detectedAt')) not in (int, float) or not math.isfinite(case['detectedAt'])
                 or case['detectedAt'] < 0
                 or 'absence' not in case
@@ -178,6 +218,12 @@ def validate(data):
             if (not isinstance(check, dict) or check.get('status') not in ASSESSMENTS
                     or type(check.get('checkedAt')) not in (int, float) or not math.isfinite(check['checkedAt']) or check['checkedAt'] < 0):
                 raise ValueError('access assessment')
+            if 'anonymous' in check:
+                anonymous_visibility.validate(check['anonymous'], identity)
+                expected = {'anonymous_visible': 'visible', 'both_unavailable': 'not_found', 'anonymous_inconclusive': 'unknown'}
+                if (check.get('reason') not in expected or check['anonymous']['status'] != expected[check['reason']]
+                        or check.get('ownHTTP') != 200 or check.get('targetHTTP') != 404):
+                    raise ValueError('anonymous comparison context')
             for key in ('username', 'reason'):
                 if key in check and type(check[key]) is not str:
                     raise ValueError('access assessment field')

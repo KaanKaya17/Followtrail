@@ -274,6 +274,17 @@ select {
 .access-evidence .dialog-note {
   background: var(--surface);
 }
+.anonymous-evidence {
+  margin-top: 18px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+.anonymous-evidence > p {
+  margin: 10px 0;
+  line-height: 1.6;
+}
 .notification-log {
   display: grid;
   gap: 14px;

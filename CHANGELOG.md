@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.8 — 2026-10-28 (Oturumsuz erişim karşılaştırması)
+
+- Sağlıklı bağlı oturumda hedef ID için gerçek 404 alındığında son bilinen kullanıcı adına tek çerezsiz profil sayfası isteği eklendi. Aynı sayısal kimlik oturumsuz sayfada doğrulanır ve tam takipçi kaydındaki yoklukla birleşirse **Güçlü engellenme şüphesi** kaydedilir. Bu kesin engelleme tespiti değildir.
+- Anonim 404/410, iki kontrolde de bulunamama olarak gösterilir; dondurma, silme ve ad değişikliğiyle engelleme ayrıştırılmaz. Giriş ekranı, genel HTTP 200, kimlik uyuşmazlığı, doğrulama, bağlantı hatası ve 429 belirsiz kalır. Bu sonuçlar engellenme bildirimi üretmez.
+- Kanıt ekranı ve bildirim günlüğü kontrol edilen adı, iki erişim bağlamını, HTTP durumlarını, anonim kontrol zamanını ve sınırlamaları Türkçe/İngilizce gösterir. Eski kayıtlar anonim doğrulanmış gibi sunulmaz. Önceki zayıf şüphe aynı olayda güçlü kanıta yükselirse bir kez yeni bildirim üretilebilir.
+- Oturum/Authorization aktarılmaz; ortam proxy/netrc bilgisi kullanılmaz, yönlendirme veya otomatik tekrar yoktur. Ortak 15 saniyelik aralık ve 429 molası korunur. Ham HTML ve çerezler saklanmaz; yalnız küçük sonuç metaverisi şifreli depoya/yedeklere girer.
+- Anonim ID çözümleme ve kullanıcı adı değişikliği için ilerleme notları [geliştirme notlarına](docs/DEVELOPMENT-BACKLOG.md) eklendi. Bu özellik Windows kapsamındadır; Android 0.1.31 ve örnek web sürümü için yeni hesap işlevi eklenmedi.
+
 ## Windows/web 0.2.7 ve Android 0.1.31 — 2026-10-28 (Profil zaman tüneli)
 
 - Kendi hesabı ve kayıtlı kişiler için ayrı açılan, başlangıçta kapalı **Profil zaman tüneli** eklendi. Biyografi farkları kelime bazında yeşil/`+` ve kırmızı/`−` ile gösterilir; silinen metin ayrıca üstü çizili görünür. İlk bilinen biyografi başlangıç kaydıdır; okunamayan alan boş biyografi sayılmaz.

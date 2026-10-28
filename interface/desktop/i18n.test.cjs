@@ -34,3 +34,11 @@ test('Windows notification uses current language and retained selection', () => 
   assert.equal(JSON.stringify(entry), before);
   assert.match(changeNotification(entry, 'tr').body, /Takipçi sayısı değişti/);
 });
+test('strong suspicion notification translates the method without inventing certainty', () => {
+  const title='Güçlü engellenme şüphesi · @qa.person: Aynı hesap oturumsuz görünür, bağlı oturumdan erişilemiyor. Kesin engelleme kanıtı değildir.';
+  const entry={id:'strong',selectedChangeIds:['event'],changes:[{eventId:'event',username:'qa.person',category:'access',title,after:{reason:'anonymous_visible'}}]};
+  const notification=changeNotification(entry,'en');
+  assert.equal(notification.title,'InstagramTracker · Strong suspicion of a block');
+  assert.match(notification.body,/same account is visible while logged out/);
+  assert.match(notification.body,/not definitive proof/);
+});
