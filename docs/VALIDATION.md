@@ -2,6 +2,8 @@
 
 ## Windows 0.2.4 — profil başına aralık
 
+- Taşınabilir paket: `artifacts/InstagramTracker-Desktop-0.2.4.zip`, **186.356.393 bayt**, SHA-256 `470d0315d17aa2de09a9df3a3e102df7665bd118b423935cfd5cb3a43d9ee4f2`. 671 dosya, kaynak commit `005b32698cc4470bfbe4105525b939a24e5b03b6`; kullanıcı verisi/oturumu içermez.
+
 - Profil son başarılı gözlemi ve kimlik bazlı kalıcı otomatik deneme zamanı, ortak N×T sıranın yerine geçti. Normal profiller, ek takipçi/erişim işleri ve ortak API beklemesi aynı backend planından en erken zamanını alır. Ek işler kendi aralığıyla çalışır, arka arkaya erişim işi süresi dolan profili sürekli ertelemez.
 - **84 offline backend testi geçti**: önceki 78 kontrol ve 6 yeni zamanlayıcı regresyonu. Üç profilde gerçek Engine.run→refresh→profil kaydı ve Windows DPAPI sınırı kullanılarak 300/315/330 ve 600/615/630 saniye başlangıçlarında her kimlik için 300 saniye fark ve 15 saniye ortak rezervasyon doğrulandı. HTTP taşıyıcısı sahtedir; bu üç Instagram hesabıyla canlı ölçüm değildir. Hata+yeniden başlatma, diğer hesapların devamı, elle okuma/izlemeyi kapatma, aralık değişimi, uyku sonrası geçmiş gözlemleri tekrar oynamama, eski depo migration ve geçersiz zamanlar, kişi kaldırma temizliği de geçti.
 - `npm run check` ve **9 Node zamanlayıcı/bildirim testi geçti**. **27 gerçek paketlenmiş EXE kontrolü geçti**, yalıtılmış sentetik depoyla; güncel aralık açıklaması ve kişi başına hedef monitor durumu IPC üzerinden doğrulandı. Dış renderer isteği 0, JavaScript hatası 0. Rapor `artifacts/desktop-0.2.4-qa/checks.json`. Bu sürümde yeni çok hesaplı canlı Instagram hız ölçümü veya gerçek Windows toast teslimi yapılmadı.
