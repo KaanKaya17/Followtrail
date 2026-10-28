@@ -14,6 +14,7 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--home',required=True,type=Path)
     parser.add_argument('--empty',action='store_true')
+    parser.add_argument('--performance',action='store_true')
     args=parser.parse_args()
     home=args.home.resolve()
     if home.parent!=Path(tempfile.gettempdir()).resolve() or not home.name.startswith('TrackerQA-'):
@@ -67,6 +68,20 @@ def main():
         e.observation_group=None
         e.settings({'notifications':False})
         e.data['gate'].update(status=429,blockedUntil=now+3600,manualOnly=True,attempts=2)
+    if args.performance:
+        if args.empty:
+            raise ValueError('Performance fixture requires records')
+        # Representative larger archive, still well below the 64 MiB budget.
+        for identity in map(str,range(1000,1020)):
+            e.record_profile(profile(identity,'qa.'+identity,10000,1000))
+            e.data['people'][identity]['watching']=True
+            h=e.data['history'][identity][-1]
+            e.data['history'][identity]=[{**h,'observedAt':now-n*300} for n in reversed(range(60))]
+        members={str(i):{'id':str(i),'username':'qa.'+str(i),'name':'QA '+str(i)} for i in range(2000,12000)}
+        for snapshot in e.data['lists']['100:followers']['snapshots']:
+            snapshot.update(members=members,expected=len(members),pages=200)
+        for n in range(2000):
+            e.event('profile','@qa.owner · followers','100',{'followers':n},{'followers':n+1})
     e.save()
     print('Synthetic vault prepared; no session or network.')
 

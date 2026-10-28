@@ -1130,7 +1130,14 @@
     if (event.type === "notification_warning" || event.notificationWarning)
       toast(event.message || event.notificationWarning);
     if (event.state) data = event.state;
-    if (event.type === "fatal") {
+    if (event.type === "resume") {
+      busy = event.busy;
+      progress = event.progress;
+      serviceError = event.error?.message || null;
+      render();
+      if (progress?.phase === "code") codeDialog();
+      else if (document.querySelector("#code-form")) closeDialog();
+    } else if (event.type === "fatal") {
       serviceError = event.message;
       busy = false;
       progress = null;

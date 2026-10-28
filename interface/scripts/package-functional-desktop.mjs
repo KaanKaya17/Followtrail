@@ -57,6 +57,7 @@ for (const name of [
   "service.cjs",
   "notifications.cjs",
   "background.cjs",
+  "renderer-updates.cjs",
 ])
   await cp(
     path.join(root, "desktop", name),

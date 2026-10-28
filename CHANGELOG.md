@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.5 — 2026-10-28 (gizli pencere iş yükü)
+
+- Gizli veya küçültülmüş pencereye ara sonuç/ilerleme/veri kopyaları gönderilmez. Gözlemler ve Windows bildirimi seçimi arka planda sürer; açılışta güncel durum bir kez eşlenir. Kod beklemesi, hizmet hatası ve son bildirim uyarısı korunur; restore sırasında gelen bildirim tıklaması güncel kayıttan sonra açılır.
+- Tepsi menüsü her ilerleme olayı yerine yalnız kullanıcı eylemini etkileyen durum değişince oluşturulur. Kontrol aralığı ve API molaları korunur.
+- 84 backend, 14 Node ve 29 paketlenmiş EXE kontrolü geçti. Standart ve büyük sentetik depolarla önce/sonra süreç ailesi kaynak ölçümü eklendi; gerçek kullanıcı hesabına ek Instagram isteği gönderilmedi. Bellek tamamen serbest bırakılmaz; Electron arayüzü ve Python hizmeti açık kalır.
+
 ## Windows 0.2.4 — 2026-10-28 (her profil için ayrı kontrol aralığı)
 
 - Seçilen aralık her profilin kendi son kontrolüne uygulanır. 3 profil ve 5 dakika artık yaklaşık 5 dakikalık kişi başına kontrol hedefidir; aralık profil sayısıyla çarpılmaz. İstekler sırayla ve en az 15 saniye arayla gönderilir. Çok sayıda profil, uzun liste taraması ve sunucu molaları hedefi uzatabilir.

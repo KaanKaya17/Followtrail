@@ -51,6 +51,8 @@ class Background {
     if (this.stopping || this.tray.isDestroyed()) return;
     const enabled = !!this.backend.state?.settings.automatic;
     const held = this.backend.state?.monitor?.held;
+    const menuState = JSON.stringify([enabled, !!held, !!this.backend.ready, !!this.backend.busy]);
+    if (menuState === this.menuState) return;
     const status = !this.backend.ready
       ? "Yerel hizmet hazır değil"
       : !enabled
@@ -80,6 +82,7 @@ class Background {
         { label: "Tamamen çık", click: this.quit },
       ]),
     );
+    this.menuState = menuState;
   }
   beginQuit() {
     this.stopping = true;

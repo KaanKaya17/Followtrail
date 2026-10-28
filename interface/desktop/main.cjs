@@ -17,6 +17,7 @@ const { existsSync } = require("node:fs");
 const { pathToFileURL } = require("node:url");
 const { Backend } = require("./service.cjs");
 const { Background } = require("./background.cjs");
+const { RendererUpdates } = require("./renderer-updates.cjs");
 const {
   APP_ID,
   TOAST_ID,
@@ -53,6 +54,15 @@ let window,
   backend,
   background,
   quitting = false;
+const rendererUpdates = new RendererUpdates({
+  getWindow: () => window,
+  getStatus: () => ({
+    state: backend.state,
+    busy: backend.busy,
+    progress: backend.progress,
+    error: backend.failure ? { message: backend.failure } : null,
+  }),
+});
 const allowed = new Set([
   "state",
   "login",
@@ -127,8 +137,7 @@ function send(event) {
         "Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.";
     }
   }
-  if (window && !window.isDestroyed())
-    window.webContents.send("tracker:event", event);
+  rendererUpdates.send(event);
 }
 function open() {
   window = new BrowserWindow({
@@ -157,6 +166,7 @@ function open() {
   );
   window.loadFile(entry);
   background?.attach(window);
+  rendererUpdates.attach(window);
 }
 
 function showWindow() {
