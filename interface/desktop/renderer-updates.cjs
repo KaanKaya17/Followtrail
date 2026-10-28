@@ -13,6 +13,14 @@ class RendererUpdates {
     return window && !window.isDestroyed() && window.isVisible() && !window.isMinimized();
   }
   attach(window) {
+    // Native visibility owns countdown suspension. Chromium's document.hidden
+    // can remain false when an Electron window is sent to the tray.
+    const suspend = () => {
+      this.dirty = true;
+      if (!window.isDestroyed()) window.webContents.send('tracker:event', {type:'visibility',visible:false});
+    };
+    window.on('hide', suspend);
+    window.on('minimize', suspend);
     window.on('show', () => this.flush());
     window.on('restore', () => this.flush());
   }
@@ -30,7 +38,7 @@ class RendererUpdates {
   flush() {
     if (!this.dirty || !this.visible()) return;
     this.dirty = false;
-    this.getWindow().webContents.send('tracker:event', { type: 'resume', ...this.getStatus() });
+    this.getWindow().webContents.send('tracker:event', { type: 'resume', visible:true, ...this.getStatus() });
     if (this.warning) {
       const message = this.warning;
       this.warning = null;

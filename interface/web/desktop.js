@@ -51,6 +51,7 @@
     busy = false,
     progress = null,
     serviceError = null,
+    windowVisible = true,
     drawerId = null,
     toastTimer;
   const ui = {
@@ -80,6 +81,9 @@
   }
   const button = (text, action, symbol, kind = "secondary", extra = "") =>
     `<button type="button" class="button ${kind}" data-action="${action}" ${extra}>${symbol ? icon(symbol) : ""}<span>${esc(text)}</span></button>`;
+  const operationProgress = window.TrackerOperationProgress.create({
+    element: document.getElementById("operation-root"), t, date, number: num, button, icon,
+  });
   const idattr = (id) => `data-id="${esc(id)}"`;
   const netDisabled = () => (busy || !data?.connected ? "disabled" : "");
   function person(id) {
@@ -254,25 +258,7 @@
     return `<header class="topbar"><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[ui.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${data.connected ? t("Yerel oturum") : t("Hesap bağlı değil")}</span><button class="icon-button" data-action="notifications" aria-label="${t("Bildirim kayıtları")}">${icon("bell")}${(data.notificationLog || []).some((entry) => entry.readAt == null) ? `<span class="unread-dot"></span>` : ""}</button><button class="account-button" data-action="account" aria-label="${t("Hesap bağlantısı")}">${avatar(own)}<span><strong>${own ? "@" + esc(own.username) : t("Hesabını bağla")}</strong><small>${data.connected ? t("Şifreli oturum") : t("Bağlantı bekleniyor")}</small></span>${icon("down")}</button></div></header>`;
   }
   function operationPanel() {
-    const root = document.getElementById("operation-root");
-    if (!busy) {
-      root.innerHTML = "";
-      return;
-    }
-    const messages = {
-      preparing: t("İşlem hazırlanıyor…"),
-      login: t("Instagram hesabına bağlanılıyor…"),
-      profile: t("Profil okunuyor…"),
-      avatar: t("Profil fotoğrafı yükleniyor…"),
-      access_health: t("Oturum sağlığı kontrol ediliyor…"),
-      access_target: t("Kayıtlı hesap kimliğiyle erişim kontrol ediliyor…"),
-      access_anonymous: t("Oturumsuz profil görünürlüğü karşılaştırılıyor…"),
-      request: t("Instagram yanıtı bekleniyor…"),
-      waiting: t("İstekler arasındaki yerel aralık bekleniyor…"),
-      list: t("Liste sayfaları okunuyor…"),
-      code: t("Doğrulama kodu bekleniyor…"),
-    };
-    root.innerHTML = `<div class="operation-panel"><span class="working-dot"></span><div><strong>${esc(messages[progress?.phase] || t("İşlem sürüyor…"))}</strong><small>${progress?.phase === "list" ? t("{0} hesap · Sayfa {1}", num(progress.count), num(progress.page)) : progress?.phase === "waiting" ? t("Sonraki istek: {0}", esc(date(progress.until))) : t("İşlem bitene kadar diğer ağ işlemleri bekler.")}</small></div>${progress?.phase === "code" ? button(t("Kodu gir"), "enter-code", "lock") : ""}${button(t("İptal et"), "cancel", "close")}</div>`;
+    operationProgress.update({busy, progress, gate: data?.gate || {}, visible: windowVisible});
   }
   function chart(p) {
     const all = data.history[p?.id] || [];
@@ -1231,6 +1217,11 @@
     return;
   }
   api.subscribe((event) => {
+    if (event.type === "visibility") {
+      windowVisible = event.visible;
+      operationPanel();
+      return;
+    }
     if (event.type === "open_notification") {
       notificationDialog(event.id);
       return;
@@ -1239,6 +1230,7 @@
       toast(event.message || event.notificationWarning);
     if (event.state) data = event.state;
     if (event.type === "resume") {
+      windowVisible = event.visible;
       busy = event.busy;
       progress = event.progress;
       serviceError = event.error?.message || null;

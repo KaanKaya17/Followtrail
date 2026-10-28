@@ -21,7 +21,7 @@ test('hidden updates retain no intermediate snapshots and resume exactly once wi
   assert.equal(s.sent.length, 0);
   s.setStatus({ state: { value: 'latest' }, busy: true, progress: { phase: 'code' }, error: null });
   s.window.shown = true; s.window.emit('show'); s.window.emit('restore');
-  assert.deepEqual(s.sent, [['tracker:event', { type: 'resume', state: { value: 'latest' }, busy: true, progress: { phase: 'code' }, error: null }]]);
+  assert.deepEqual(s.sent, [['tracker:event', { type: 'resume', visible:true, state: { value: 'latest' }, busy: true, progress: { phase: 'code' }, error: null }]]);
 });
 test('minimized windows suppress updates; restoring preserves failures and one actionable warning', () => {
   const s = setup(); s.window.minimized = true;
@@ -53,4 +53,15 @@ test('notification click during asynchronous restore follows the fresh snapshot 
   assert.equal(s.sent.length, 2);
   assert.equal(s.sent[0][1].type, 'resume');
   assert.deepEqual(s.sent[1][1], { type: 'open_notification', id: 'group' });
+});
+
+test('Native hide and minimize suspend local work and force a fresh resume even with no backend events',()=>{
+  for (const [event,field,restore] of [['hide','shown','show'],['minimize','minimized','restore']]) {
+    const s=setup();s.window[field]=event==='minimize';s.window.emit(event);
+    assert.deepEqual(s.sent,[['tracker:event',{type:'visibility',visible:false}]]);
+    s.setStatus({busy:true,progress:{phase:'waiting',until:123}});
+    s.window[field]=event==='hide';s.window.emit(restore);
+    assert.deepEqual(s.sent[1],['tracker:event',{type:'resume',visible:true,busy:true,progress:{phase:'waiting',until:123}}]);
+    s.window.emit(restore);assert.equal(s.sent.length,2);
+  }
 });

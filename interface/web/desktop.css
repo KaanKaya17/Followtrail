@@ -196,7 +196,17 @@ select {
 }
 .operation-panel > div {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
+.operation-panel p { margin: 5px 0; font-size: 13px; }
+.operation-panel .scan-owner { color: var(--muted); }
+.operation-panel .scan-counts, .operation-panel .wait-countdown { font-weight: 600; }
+.operation-panel .wait-countdown { color: var(--violet); font-variant-numeric: tabular-nums; }
+.operation-panel progress { display: block; width: 100%; height: 5px; margin-top: 12px; accent-color: var(--violet); }
+.operation-panel .button, .operation-panel .working-dot, .operation-panel .progress-symbol { flex-shrink: 0; }
+.operation-panel.paused { border-color: #d9c49c; }
+.operation-panel .progress-symbol { color: var(--muted); }
 .operation-panel small {
   display: block;
   color: var(--muted);
