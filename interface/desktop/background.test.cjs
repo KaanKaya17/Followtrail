@@ -136,3 +136,13 @@ test("progress events reuse the tray menu until an actionable state changes", ()
   s.backend.busy = false; s.owner.update();
   assert.equal(s.owner.tray.menu.find(item => item.type === 'checkbox').enabled, true);
 });
+
+test("changing display language refreshes the tray without touching automatic preferences", () => {
+  const s = setup();
+  s.backend.state.settings.language = 'en'; s.owner.update();
+  assert.equal(s.owner.tray.menu[0].label, 'Open Tracker');
+  assert.match(s.owner.tray.tooltip, /Automatic checks enabled/);
+  assert.equal(s.backend.state.settings.automatic, true);
+  s.backend.state.settings.language = 'tr'; s.owner.update();
+  assert.equal(s.owner.tray.menu[0].label, "Tracker'ı aç");
+});

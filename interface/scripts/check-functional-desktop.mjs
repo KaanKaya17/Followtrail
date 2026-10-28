@@ -33,7 +33,7 @@ const checks = [],
   errors = [],
   requests = [];
 let desktop, page;
-async function launch() {
+async function launch(language = 'tr') {
   desktop = await electron.launch({
     executablePath,
     args: [`--tracker-test-home=${home}`],
@@ -46,7 +46,7 @@ async function launch() {
     if (!r.url().startsWith("file:") && !r.url().startsWith("data:"))
       requests.push(r.url());
   });
-  await page.getByRole("heading", { name: "Çevrende neler oluyor?" }).waitFor();
+  await page.getByRole("heading", { name: language === 'en' ? 'What is happening in your circle?' : "Çevrende neler oluyor?" }).waitFor();
 }
 async function check(name, work) {
   await work();
@@ -821,6 +821,49 @@ try {
         route,
       );
     }
+  });
+  await check("English and Turkish cover six routes, preserve user text, and persist after restart", async () => {
+    await page.locator('.sidebar nav a[href="#settings"]').click();
+    const before = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
+    await page.locator('#app-language').selectOption('en');
+    await page.waitForFunction(() => document.documentElement.lang === 'en');
+    await page.getByRole('heading', { name: 'Small settings, a smoother experience.', exact: true }).waitFor();
+    const after = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
+    assert.deepEqual(after.gate, before.gate);
+    assert.deepEqual(after.people, before.people);
+    assert.deepEqual(after.history, before.history);
+    assert.deepEqual(after.notificationRules, before.notificationRules);
+    assert.deepEqual(after.notificationLog, before.notificationLog);
+    assert.equal(after.notificationTypes.followers, 'Follower count');
+    assert.equal(await page.evaluate(() => window.TrackerI18n.formats('en').number.format(1200)), '1,200');
+    const note = 'Özet · Kaydet · İstanbul <img src=x onerror=alert(1)>';
+    await page.evaluate(note => window.TrackerDesktop.command('save_person', { id: '200', note }), note);
+    await page.locator('.sidebar nav a[href="#people"]').click();
+    await page.getByRole('button', { name: 'Open QA qa.deniz', exact: true }).click();
+    assert.equal(await page.locator('#person-note').inputValue(), note);
+    await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+    const error = await page.evaluate(() => window.TrackerDesktop.command('refresh', {}));
+    assert.equal(error.error.message, 'Instagram connectivity is disabled in this isolated test window.');
+    await page.setViewportSize({ width: 1100, height: 850 });
+    for (const route of ['overview', 'people', 'lists', 'timeline', 'settings', 'notifications']) {
+      await page.locator(`.sidebar nav a[href="#${route}"]`).click();
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, route);
+    }
+    await page.locator('.notification-log-row[data-id="qa-multi-change"]').click();
+    await page.getByRole('heading', { name: 'What changed in this check?', exact: true }).waitFor();
+    assert.match(await page.getByRole('dialog').innerText(), /Follower count/);
+    await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
+    await page.locator('.sidebar nav a[href="#settings"]').click();
+    await page.screenshot({ path: path.join(output, 'settings-en.png'), fullPage: true });
+    await desktop.close(); desktop = null; await launch('en');
+    assert.equal(await page.evaluate(() => document.documentElement.lang), 'en');
+    const restored = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
+    assert.equal(restored.people.find(p => p.id === '200').note, note);
+    assert.equal(restored.gate.attempts, before.gate.attempts);
+    await page.locator('.sidebar nav a[href="#settings"]').click();
+    await page.locator('#app-language').selectOption('tr');
+    await page.waitForFunction(() => document.documentElement.lang === 'tr');
+    await page.getByRole('heading', { name: 'Küçük ayarlar, daha rahat bir deneyim.', exact: true }).waitFor();
   });
   await check("All local renderer assets and no script errors", async () => {
     assert.deepEqual(errors, []);

@@ -1,9 +1,11 @@
 const path = require("node:path");
 const fs = require("node:fs");
+const i18n = require('../web/i18n.js');
 const APP_ID = "dev.kaankaya.instagramtracker.desktop";
 const TOAST_ID = "{D3085DD3-667D-4514-BD5F-1C8C0C8A5927}";
 
-function changeNotification(entry) {
+function changeNotification(entry, language = 'tr') {
+  const t = (message, ...values) => i18n.translate(message, values, language);
   const selected = entry.changes.filter((change) =>
     entry.selectedChangeIds.includes(change.eventId),
   );
@@ -11,21 +13,22 @@ function changeNotification(entry) {
   const accounts = new Set(selected.map((change) => change.username));
   return {
     title: access.length
-      ? "InstagramTracker · Engellenme şüphesi"
-      : "InstagramTracker · Yeni gözlem",
+      ? t("InstagramTracker · Engellenme şüphesi")
+      : t("InstagramTracker · Yeni gözlem"),
     body:
       selected.length === 1
         ? selected[0].category === "access"
-          ? selected[0].title
-          : `@${selected[0].username} · ${selected[0].label} değişti. Ayrıntıları aç.`
+          ? i18n.stored(selected[0].title, language)
+          : t("@{0} · {1} değişti. Ayrıntıları aç.", selected[0].username, t(selected[0].label))
         : access.length
-          ? `${access.length} kayıtlı hesap için engellenme şüphesi. Hesaplar kapanmış da olabilir; kanıtları incele.`
-          : `${accounts.size === 1 ? "@" + selected[0].username : accounts.size + " hesap"} · ${selected.length} değişiklik. Ayrıntıları aç.`,
+          ? t("{0} kayıtlı hesap için engellenme şüphesi. Hesaplar kapanmış da olabilir; kanıtları incele.", access.length)
+          : t("{0} · {1} değişiklik. Ayrıntıları aç.", accounts.size === 1 ? "@" + selected[0].username : accounts.size + t(" hesap"), selected.length),
     logId: entry.id,
   };
 }
 
-function ensureShortcut({ app, shell, testHome, dataDir }) {
+function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
+  const t = message => i18n.translate(message, [], language);
   const shortcut = testHome
     ? path.join(testHome, "shortcuts", "InstagramTracker Desktop.lnk")
     : path.join(
@@ -44,7 +47,7 @@ function ensureShortcut({ app, shell, testHome, dataDir }) {
       : app.isPackaged
         ? ""
         : `"${app.getAppPath()}"`,
-    description: "InstagramTracker — yerel hesap gözlemleri",
+    description: t("InstagramTracker — yerel hesap gözlemleri"),
     appUserModelId: APP_ID,
     toastActivatorClsid: TOAST_ID,
   };
@@ -66,7 +69,7 @@ function ensureShortcut({ app, shell, testHome, dataDir }) {
     );
   }
   if (!shell.writeShortcutLink(shortcut, options))
-    throw new Error("Notification shortcut could not be written");
+    throw new Error(t("Notification shortcut could not be written"));
 }
 
 function showNotification({ Notification, title, body, onClick, onFailure }) {

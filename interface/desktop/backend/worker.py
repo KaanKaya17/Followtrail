@@ -9,6 +9,7 @@ import threading
 import uuid
 
 from engine import Engine
+import localization
 from network import AppFailure, failure
 
 logging.disable(logging.CRITICAL)
@@ -44,7 +45,7 @@ def main():
             emit({'type': 'result', 'id': request['id'], 'ok': True, 'state': state, 'notificationGroupId': group_id})
         except Exception as exc:
             emit({'type': 'result', 'id': request['id'], 'ok': False,
-                  'error': failure(exc), 'state': engine.snapshot(), 'notificationGroupId': group_id})
+                  'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': engine.snapshot(), 'notificationGroupId': group_id})
         finally:
             active.release()
 
@@ -71,7 +72,7 @@ def main():
                 threading.Thread(target=execute, args=(request,), daemon=True).start()
         except Exception as exc:
             emit({'type': 'control', 'id': request.get('id') if isinstance(request, dict) else None,
-                  'ok': False, 'error': failure(exc)})
+                  'ok': False, 'error': localization.error(failure(exc), engine.data['settings']['language'])})
     engine.cancel.set()
     active.acquire(timeout=28)
     return 0

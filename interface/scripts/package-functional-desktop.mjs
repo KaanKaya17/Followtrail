@@ -70,6 +70,7 @@ for (const name of [
   "theme.css",
   "style.css",
   "icons.js",
+  "i18n.js",
   "favicon.svg",
 ])
   await cp(path.join(root, "web", name), path.join(resources, "web", name));
@@ -98,5 +99,9 @@ await writeFile(
 await writeFile(
   path.join(output, "ONCE-OKU.txt"),
   `InstagramTracker Windows ${version}\r\n\r\nInstagramTracker.exe dosyasını aç. Klasördeki diğer dosyaları aynı yerde tut. Python kurman gerekmez.\r\nHesap bağlantısından giriş yap veya önceki Windows prototipindeki oturumu doğrulayarak aktar.\r\nProfil sayıları, listeler ve notlar yerel şifreli depoda tutulur. Instagram erişimi sunucunun izin verdiği ölçüde çalışır.\r\nTakipçi ve takip edilen listelerini ayrı ayrı tara. Kısmi listeler tam kayıt sayılmaz.\r\nOtomatik profil kontrolü Ayarlar’dan açılır. 1/5/15/30/60/180/360 dakika seçenekleri her profil için ayrı uygulanır; profil sayısıyla çarpılmaz. İstekler en az 15 saniye arayla sırayla gönderilir. Pencereyi kapatınca sistem tepsisinde devam eder; tamamen çıkmak için tepsi simgesine sağ tıkla ve Tamamen çık seç.\r\nKaybolan kayıtlı takipçi incelemesi Ayarlar’dan isteğe bağlı açılır. Engellenme şüphesi kesin engelleme tespiti değildir; hesap kapanmış da olabilir.\r\nHesaba göre bildirim türleri kişi ayrıntısındaki Bildirim tercihleri veya Ayarlar üzerinden seçilir. Aynı kontrol tek bildirime toplanır; eski/yeni değerler Bildirimler ekranında açılır.\r\nŞifreli yedekler oturum içermez; aynı Windows kullanıcısında açılır. CSV dosyaları şifresizdir.\r\nBu uygulama Instagram’dan bağımsızdır.\r\n`,
+);
+await writeFile(
+  path.join(output, "START-HERE.txt"),
+  `InstagramTracker for Windows ${version}\r\n\r\nRun InstagramTracker.exe and keep all files in this folder together. No Python installation is required.\r\nChoose English or Turkish in Settings > App language. Your choice is saved locally.\r\nSessions and observations are encrypted for your Windows user. Passwords and verification codes are not saved.\r\nAccount requests go directly to Instagram; no intermediary or translation service receives your data.\r\nClosing the window keeps checks running in the system tray. Right-click the tray icon > Quit completely to stop the app.\r\nInstagram may limit access or require verification. A suspected block is not definitive evidence of a block.\r\nThe browser preview uses sample data; real account features are in this Windows app.\r\nInstagramTracker is independent of Instagram.\r\n`,
 );
 console.log(output);

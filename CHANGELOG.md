@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows/web 0.2.6 — 2026-10-28 (Türkçe ve İngilizce)
+
+- Windows'a Ayarlar → Uygulama dili, örnek web arayüzüne Ayarlar → Arayüz dili eklendi. Türkçe/English seçimi Windows DPAPI deposunda veya tarayıcı tercihinde korunur; eski Windows kayıtları Türkçe açılır.
+- Ortak yerel katalog; ekranlar, mobil gezinme, erişilebilirlik etiketleri, tepsi, uygulama iletişimleri, bildirimler ve bilinen hata metinleri çevrilir. Tarih/sayı ve İngilizce tekil/çoğul biçimleri dile uyar. Hesap/kontrol/mola tercihleri ve kullanıcı içerikleri değişmez. Geçmiş kanıtlar yeniden yazılmaz; yeni dile yalnız gösterimde uyarlanır.
+- Yalnız dil değiştirmek son hatayı silmez ve Instagram isteği göndermez. Üçüncü taraf çeviri servisi kullanılmaz. Android'de mevcut Türkçe/İngilizce kaynak ve seçim akışı korundu.
+- 88 offline backend, 18 Node, 30 paketlenmiş Windows kontrolü ve 8 iki dilli tarayıcı kontrolü geçti. İngilizce yeniden açılış, Türkçeye dönüş, kişisel metin/kanıt ve mola korunumu, 6 Windows rotası, webde 5 rotanın masaüstü/mobil taşması ve yerel ağ sınırı doğrulandı. Gerçek Instagram/Windows toast teslimi bu dil değişikliğinde canlı denenmedi.
+
 ## Windows 0.2.5 — 2026-10-28 (gizli pencere iş yükü)
 
 - Gizli veya küçültülmüş pencereye ara sonuç/ilerleme/veri kopyaları gönderilmez. Gözlemler ve Windows bildirimi seçimi arka planda sürer; açılışta güncel durum bir kez eşlenir. Kod beklemesi, hizmet hatası ve son bildirim uyarısı korunur; restore sırasında gelen bildirim tıklaması güncel kayıttan sonra açılır.
