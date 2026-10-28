@@ -1,0 +1,22 @@
+<resources>
+    <string name="visual_title">Profile time tunnel</string>
+    <string name="visual_back">Back</string>
+    <string name="visual_scope">The archive starts with its first record. Dates are observation times, not exact change times. Only small photos downloaded during normal use enter the gallery.</string>
+    <string name="visual_enable">Enable archiving</string>
+    <string name="visual_stop">Pause archiving</string>
+    <string name="visual_clear">Clear archive</string>
+    <string name="visual_clear_hint">This profile’s biography and avatar archive will be deleted and archiving will stop. Other profile observations are kept.</string>
+    <string name="visual_clear_confirm">Delete archive and stop</string>
+    <string name="visual_failed">The archive could not be saved or read. The previous record was kept.</string>
+    <string name="visual_full">The archive limit was reached. Older records are kept; clear the archive to make room.</string>
+    <string name="visual_avatars">Avatar gallery</string>
+    <string name="visual_photo">Archived profile photo</string>
+    <string name="visual_no_photos">No photo has been archived yet. Unavailable older photos cannot be reconstructed.</string>
+    <string name="visual_first_last">First observed: %1$s\nLast observed: %2$s</string>
+    <string name="visual_size">%1$d images · %2$d KB</string>
+    <string name="visual_bios">Biography time tunnel</string>
+    <string name="visual_legend">+ Added · − Removed</string>
+    <string name="visual_baseline">Initial record</string>
+    <string name="visual_empty">No new records are captured while archiving is paused. Existing records remain available.</string>
+    <string name="visual_limits">Up to %1$d changes and %2$d thumbnails per profile. The archive has a total 1.8 MiB budget and uses Keystore encryption; rolling observation limits do not erase it.</string>
+</resources>

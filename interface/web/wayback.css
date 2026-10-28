@@ -1,0 +1,12 @@
+.wayback-section { margin: 24px 0; }
+.wayback-section h3 { margin-bottom: 8px; }
+.wayback-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+.wayback-gallery figure { margin: 0; max-width: 220px; }
+.wayback-gallery img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 16px; background: var(--surface, #fff); }
+.wayback-gallery figcaption { font-size: 12px; line-height: 1.7; margin-top: 8px; }
+.wayback-edit { padding: 16px 0; border-bottom: 1px solid var(--border, #e8e3ef); }
+.wayback-edit time, .wayback-edit small { display: block; font-size: 12px; margin: 8px 0; }
+.bio-diff { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; font-size: 15px; }
+.bio-diff ins { background: #daf4df; color: #185a2c; text-decoration: none; }
+.bio-diff del { background: #ffe2df; color: #8f2727; text-decoration: line-through; }
+.diff-sign { font-weight: 700; margin-inline-end: 2px; user-select: none; }

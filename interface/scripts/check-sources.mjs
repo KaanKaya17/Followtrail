@@ -5,6 +5,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 for (const file of [
   "web/app.js",
   "web/desktop.js",
+  "web/wayback.js",
   "web/icons.js",
   "web/i18n.js",
   "locales/runtime.js",

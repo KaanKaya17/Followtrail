@@ -67,6 +67,8 @@ for (const name of [
   "desktop.html",
   "desktop.js",
   "desktop.css",
+  "wayback.js",
+  "wayback.css",
   "theme.css",
   "style.css",
   "icons.js",

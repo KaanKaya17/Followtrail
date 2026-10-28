@@ -78,14 +78,16 @@ class Vault:
         except Exception as exc:
             raise StorageFailure('Şifreli depo okunamadı. Mevcut dosya korundu.') from exc
 
-    def save(self, value):
+    def save(self, value, *, replace_previous=False):
         try:
             raw = json.dumps(value, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode()
             if len(raw) > MAX_VAULT - 4096:
                 raise StorageFailure('Yerel depo doldu; kayıtları dışa aktararak yer aç.')
             encrypted = protect(raw)
             if self.path.exists():
-                atomic_write(self.backup, self.path.read_bytes())
+                # Explicit erasure must not retain deleted archive content in
+                # the automatic recovery copy. Both files remain encrypted.
+                atomic_write(self.backup, encrypted if replace_previous else self.path.read_bytes())
             atomic_write(self.path, encrypted)
         except StorageFailure:
             raise

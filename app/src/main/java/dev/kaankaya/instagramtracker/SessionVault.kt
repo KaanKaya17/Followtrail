@@ -67,6 +67,7 @@ class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int 
 class SessionVault(context: Context, slot: String = "account") {
     companion object { private val lock = Any(); const val ACCOUNT_BYTES = 2 * 1024 * 1024 }
     private val record = EncryptedRecord(context, slot, ACCOUNT_BYTES)
+    val visual = VisualHistoryStore(context, slot)
     val journal = CheckJournal(context, "${slot}checks")
     fun record(session: Session, event: CheckEvent) = synchronized(lock) {
         val current = try { read() } catch (_: Exception) { null }
@@ -81,7 +82,10 @@ class SessionVault(context: Context, slot: String = "account") {
         record(session, CheckEvent(target, profile.username, CheckKind.FAILURE, startedAt, null, endedAt, failure = failure.kind))
     }
     fun exists(): Boolean = synchronized(lock) { record.exists() }
-    fun write(account: SavedAccount): Unit = synchronized(lock) { record.write(AccountCodec.encode(account)) }
+    fun write(account: SavedAccount): Unit = synchronized(lock) {
+        record.write(AccountCodec.encode(account))
+        visual.observe(account)
+    }
     fun read(): SavedAccount? = synchronized(lock) { record.read()?.let(AccountCodec::decode) }
     /** Serialize foreground/background read-modify-write operations across vault instances. */
     fun update(expected: Session, transform: (SavedAccount) -> SavedAccount): SavedAccount = synchronized(lock) {
@@ -103,5 +107,6 @@ class SessionVault(context: Context, slot: String = "account") {
     fun clear(): Unit = synchronized(lock) {
         record.clear()
         journal.clear()
+        visual.clearAll()
     }
 }

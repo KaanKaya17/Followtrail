@@ -12,6 +12,7 @@ import uuid
 import access_checks
 import notification_log
 import localization
+import wayback
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
 from network import (AppFailure, new_client, close_client, parse_profile,
@@ -31,6 +32,7 @@ def blank(gate=None):
                          'investigateMissing': False, 'language': 'tr'},
             'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
             'notificationRules': {}, 'notificationLog': [],
+            'wayback': {'profiles': {}, 'images': {}},
             'automaticAttempts': {}, 'lastInvestigationAt': 0,
             'lastError': None, 'lastAutomatic': 0}
 
@@ -63,6 +65,7 @@ class Engine:
         self.observation_group = None
         self.offline = False
         self.list_scan_active = False
+        self.wayback_id = None
         # Interrupted scans remain explicitly partial after a restart.
         changed = False
         for record in self.data['lists'].values():
@@ -87,6 +90,7 @@ class Engine:
         notification_log.initialize(data)
         localization.initialize(data)
         initialize_schedule(data)
+        wayback.initialize(data)
         validate_archive(data)
         return data
 
@@ -105,8 +109,10 @@ class Engine:
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
                 'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
                 'notificationTypes': {key: localization.translate(value, d['settings']['language']) for key, value in notification_log.TYPES.items()},
+                'wayback': wayback.metadata(d),
+                'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.6'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.7'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
@@ -207,6 +213,7 @@ class Engine:
             if old is not None and new is not None and old != new:
                 self.event('profile', f"@{profile['username']} · {key}", identity, {key: old}, {key: new}, group_id=group_id)
         history.append({key: profile.get(key) for key in ('observedAt', *PROFILE_FIELDS)})
+        wayback.record(self.data, profile)
         del history[:-366]
         if own:
             self.data['account'] = profile
@@ -292,6 +299,16 @@ class Engine:
             self.save()
         finally:
             close_client(client)
+
+    def configure_wayback(self, args):
+        identity = str(args.get('id') or '')
+        profile = self.data['account'] if self.data['account'] and self.data['account']['id'] == identity else self.data['people'].get(identity)
+        if not profile:
+            raise AppFailure('input', 'Önce profili Kişiler bölümüne ekle.')
+        self.wayback_id = identity
+        if set(args) != {'id'}:
+            wayback.configure(self.data, profile, args)
+            self.vault.save(self.data, replace_previous=bool(args.get('clear')))
 
     def add_person(self, args):
         username = str(args.get('username', '')).strip().lstrip('@')
@@ -584,6 +601,7 @@ class Engine:
             notification_log.initialize(restored)
             localization.initialize(restored)
             initialize_schedule(restored)
+            wayback.initialize(restored)
             validate_archive(restored)
         except Exception as exc:
             raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
@@ -605,7 +623,7 @@ class Engine:
         try:
             if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'automatic', 'check_access'):
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
-            handlers = {'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
+            handlers = {'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
                         'refresh': lambda: self.refresh(args), 'add_person': lambda: self.add_person(args),
                         'scan': lambda: self.scan(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
@@ -660,6 +678,9 @@ class Engine:
             args.pop('password', None)
             self.operation = None
             self.observation_group = None
+            # Only the explicit archive operation carries thumbnail details.
+            # Later automatic checks must not serialize the album repeatedly.
+            self.wayback_id = None
 
 
 def initialize_schedule(d):
@@ -745,3 +766,4 @@ def validate_archive(d):
             raise ValueError('profile observation time')
     access_checks.validate(d)
     notification_log.validate(d)
+    wayback.validate(d)

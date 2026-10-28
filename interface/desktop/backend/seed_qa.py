@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--home',required=True,type=Path)
     parser.add_argument('--empty',action='store_true')
     parser.add_argument('--performance',action='store_true')
+    parser.add_argument('--wayback',action='store_true')
     args=parser.parse_args()
     home=args.home.resolve()
     if home.parent!=Path(tempfile.gettempdir()).resolve() or not home.name.startswith('TrackerQA-'):
@@ -82,6 +83,15 @@ def main():
             snapshot.update(members=members,expected=len(members),pages=200)
         for n in range(2000):
             e.event('profile','@qa.owner · followers','100',{'followers':n},{'followers':n+1})
+    if args.wayback:
+        if args.empty: raise ValueError('Wayback fixture requires records')
+        e.configure_wayback({'id':'200','enabled':True})
+        for i,color in enumerate(['#bb4b60','#4b67bb']):
+            now+=3600
+            image=BytesIO();Image.new('RGB',(100,100),color).save(image,format='JPEG')
+            p={**e.data['people']['200'],'bio': 'Coffee, books & Istanbul ☕' if i==0 else 'Coffee, travel & Ankara ☕ <img src=x onerror=evil>',
+               'picture':'id:qa'+str(i),'avatar':'data:image/jpeg;base64,'+base64.b64encode(image.getvalue()).decode('ascii')}
+            e.record_profile(p)
     e.save()
     print('Synthetic vault prepared; no session or network.')
 

@@ -1,6 +1,16 @@
-# InstagramTracker Windows 0.2.6
+# InstagramTracker Windows 0.2.7
 
-`artifacts/InstagramTracker-Desktop-0.2.6/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.7/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Profil zaman tüneli
+
+Özet'te kendi profilini veya Kişiler'de kayıtlı kişiyi aç → **Profil zaman tüneli → Arşivlemeyi aç**. Başlangıçta kapalıdır; açarken elde bulunan son gözlem başlangıç kaydı olur. Sonraki normal profil kontrollerindeki bilinen biyografi ve fotoğraf değişiklikleri ayrı arşive kaydedilir. Bu ekranı açmak hesap API isteği göndermez. Galeri yalnız indirilebilen küçük JPEG'leri içerir; geçmişte indirilmemiş fotoğraflar üretilemez. Tarihler ilk/son gözlem zamanıdır; kesin değişiklik zamanı değildir.
+
+Biyografide eklenen kelimeler yeşil ve `+`, kaldırılanlar kırmızı ve `−` ile gösterilir. Kaldırılan metin ayrıca üstü çizilidir. Biyografi okunamadığında önceki metin korunur; gerçekten boş gelen biyografi ayrı gözlemdir. Bu görünüm ilişki durumu gibi bir anlam çıkarsamaz.
+
+Profil başına en fazla 200 değişiklik ve 24 farklı küçük görsel, toplamda 8 MiB görsel bütçesi vardır. Eski arşivler 366 sayaç gözlemi döndüğünde silinmez. Kapasiteye ulaşıldığında mevcut kayıtlar korunur, yeni kayıt/görsel için uyarı gösterilir. Aynı fotoğraf birden fazla kez görülse de tek kopya tutulur. **Arşivlemeyi durdur** eski kayıtları korur; **Arşivi temizle** onaydan sonra bu profilin arşivini siler ve kaydı durdurur. Normal profil gözlemleri ayrıca korunur. Otomatik önceki depo kopyası da temizlenir; daha önce dışa aktardığın yedekler değişmez.
+
+Arşiv DPAPI ile şifreli yerel depodadır ve oturumsuz `.trackerbackup` yedeklerine dahildir. Android 0.1.31'de aynı özellik kişi ayrıntısında ve profil seçili zaman çizelgesindedir; ayrı Keystore kaydı kullanır, toplam 1,8 MiB bütçesi vardır ve fotoğrafları normal kullanımda yüklendikçe ekler. Web tasarım önizlemesi örnek kayıtlar gösterir.
 
 ## Kullanım
 

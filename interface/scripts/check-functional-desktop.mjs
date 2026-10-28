@@ -346,6 +346,12 @@ try {
               .interval === Number(value),
           value,
         );
+        // A persisted worker result precedes the renderer's IPC completion.
+        // Observe the public UI before selecting the next value.
+        await page.waitForFunction(
+          (value) => document.querySelector('.monitor-summary')?.textContent.includes(`Her profil kendi son kontrolünden yaklaşık ${value} dakika`) && !document.querySelector('#auto-interval')?.disabled,
+          value,
+        );
       }
       assert.equal(await page.locator(".monitor-summary").isVisible(), true);
       assert.match(await page.locator(".monitor-summary").innerText(), /Her profil kendi son kontrolünden yaklaşık 5 dakika/);

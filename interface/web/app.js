@@ -529,6 +529,16 @@
       false,
       true,
     );
+    document.querySelector('dialog .drawer-actions')?.insertAdjacentHTML('beforeend',button(t("Profil zaman tüneli"),"wayback","clock","secondary",`data-id="${id}"`));
+  }
+  function waybackPreview(id) {
+    const p = person(id);
+    const now = 1800000000;
+    const detail = {enabled:true, bytes:0, images:{}, entries:[
+      {at:now-86400,lastSeen:now-3600,bio:"Coffee, books & Istanbul ☕",image:null},
+      {at:now,lastSeen:now,bio:"Coffee, travel & Ankara ☕",image:null}
+    ]};
+    dialog(`<span class="sample-pill">${t("Örnek profil kaydı")}</span><h2 id="dialog-title">${t("Profil zaman tüneli")}</h2><p>@${esc(p?.username || "")}</p>${window.TrackerWayback.render(detail,{t,esc,date:value=>i18n.formats(language).date.format(new Date(value*1000))})}`,true);
   }
   function eventDialog(id) {
     const e = events.find((e) => e.id === id);
@@ -568,6 +578,9 @@
     switch (action) {
       case "close":
         closeDialog();
+        break;
+      case "wayback":
+        waybackPreview(id);
         break;
       case "person":
         personDialog(id);

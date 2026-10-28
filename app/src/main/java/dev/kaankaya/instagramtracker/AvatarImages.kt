@@ -116,6 +116,7 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
     private val main = Handler(Looper.getMainLooper())
     private val executor = ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(20))
     private val cache = AvatarCache(context, slot)
+    private val archiveVault = SessionVault(context, if (slot.startsWith("preview")) "previewaccount" else "account")
     private val memory = object : LruCache<String, Bitmap>(2 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.byteCount
     }
@@ -152,6 +153,14 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
                 }
                 val image = bitmap ?: run { if (active()) failures.put(source.key, true); return }
                 if (active()) {
+                    // Only an already-selected public thumbnail of the current observation.
+                    // No extra request and no archive record for an untracked list member.
+                    try {
+                        val saved = if (archiveVault.visual.exists()) archiveVault.read()?.takeIf { it.session.userId == source.owner } else null
+                        val profile = saved?.let { if (it.profile.userId == source.target) it.profile else it.people.firstOrNull { p -> p.latest.userId == source.target }?.latest }
+                        if (profile?.details?.pictureUrl?.value == source.url && profile.details.pictureId.value == source.revision)
+                            archiveVault.visual.avatar(source.owner, profile, image)
+                    } catch (_: Exception) { /* Optional archive cannot break avatar rendering. */ }
                     memory.put(source.key, image)
                     main.post { if (active()) deliver(image) }
                 }

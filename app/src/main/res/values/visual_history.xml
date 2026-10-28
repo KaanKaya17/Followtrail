@@ -1,0 +1,22 @@
+<resources>
+    <string name="visual_title">Profil zaman tüneli</string>
+    <string name="visual_back">Geri</string>
+    <string name="visual_scope">Arşiv ilk kayıtla başlar. Tarihler gözlem zamanıdır; gerçek değişiklik anı bilinmez. Galeriye yalnız normal kullanımda indirilebilen küçük fotoğraflar eklenir.</string>
+    <string name="visual_enable">Arşivlemeyi aç</string>
+    <string name="visual_stop">Arşivlemeyi durdur</string>
+    <string name="visual_clear">Arşivi temizle</string>
+    <string name="visual_clear_hint">Bu profilin biyografi ve avatar arşivi silinir, arşivleme kapanır. Diğer profil gözlemleri korunur.</string>
+    <string name="visual_clear_confirm">Arşivi sil ve durdur</string>
+    <string name="visual_failed">Arşiv kaydedilemedi veya okunamadı. Önceki kayıt korundu.</string>
+    <string name="visual_full">Arşiv sınırına ulaşıldı. Eski kayıtlar korunur; yer açmak için arşivi temizleyebilirsin.</string>
+    <string name="visual_avatars">Avatar galerisi</string>
+    <string name="visual_photo">Arşivlenmiş profil fotoğrafı</string>
+    <string name="visual_no_photos">Henüz arşivlenmiş fotoğraf yok. Görsel indirilemezse eski fotoğraf üretilmez.</string>
+    <string name="visual_first_last">İlk gözlem: %1$s\nSon gözlem: %2$s</string>
+    <string name="visual_size">%1$d görsel · %2$d KB</string>
+    <string name="visual_bios">Biyografi zaman tüneli</string>
+    <string name="visual_legend">+ Eklenen · − Kaldırılan</string>
+    <string name="visual_baseline">Başlangıç kaydı</string>
+    <string name="visual_empty">Arşiv kapalıyken yeni kayıt tutulmaz. Eski kayıtlar açılıp incelenebilir.</string>
+    <string name="visual_limits">Profil başına en fazla %1$d değişiklik ve %2$d küçük görsel. Arşiv toplam 1,8 MiB bütçeyle Keystore üzerinden şifrelenir; gözlem sınırı bu arşivi silmez.</string>
+</resources>
