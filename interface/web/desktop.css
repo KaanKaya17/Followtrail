@@ -3,6 +3,47 @@
   margin: 12vh auto;
   padding: 48px;
 }
+.empty-guide {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  padding: 30px;
+  max-width: 900px;
+}
+.empty-guide > .dialog-symbol { flex: none; margin: 0; }
+.empty-guide h2 { margin-bottom: 10px; font-size: 22px; }
+.empty-guide p, .empty-guide li { color: var(--muted); line-height: 1.7; }
+.empty-guide ol { margin: 14px 0; padding-left: 22px; }
+.guide-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.command-palette {
+  width: min(660px, calc(100vw - 40px));
+  max-height: calc(100vh - 80px);
+  padding: 24px;
+  margin: 8vh auto auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--ink);
+}
+.command-palette > header { display: flex; align-items: flex-start; gap: 20px; }
+.command-palette h2 { font-size: 23px; margin-bottom: 8px; }
+.command-palette header p { line-height: 1.6; color: var(--muted); font-size: 13px; }
+.command-palette header .icon-button { flex: none; margin-left: auto; }
+.palette-input { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: var(--radius-control); padding: 0 14px; margin: 20px 0 12px; }
+.palette-input:focus-within { outline: 2px solid var(--violet); outline-offset: 2px; }
+.palette-input input { border: 0; background: transparent; width: 100%; padding: 14px 0; outline: none; min-width: 0; }
+.palette-count { font-size: 12px; color: var(--muted); margin: 12px 0; }
+#command-results { max-height: min(390px, 46vh); overflow-y: auto; }
+#command-results [role="option"] { width: 100%; display: flex; gap: 14px; align-items: center; padding: 12px; text-align: left; border: 0; border-radius: 12px; background: transparent; color: var(--ink); }
+#command-results [aria-selected="true"] { background: var(--violet-soft); }
+.palette-symbol { display: grid; place-items: center; color: var(--violet); }
+.palette-copy { flex: 1; min-width: 0; }
+.palette-copy strong, .palette-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette-copy small { margin-top: 4px; color: var(--muted); }
+.command-palette footer { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.command-palette kbd { background: var(--background); border: 1px solid var(--line); border-radius: 5px; padding: 2px 5px; font: inherit; }
+.palette-empty { padding: 22px 10px; color: var(--muted); line-height: 1.6; }
 .startup h1,
 .startup p {
   margin-top: 18px;

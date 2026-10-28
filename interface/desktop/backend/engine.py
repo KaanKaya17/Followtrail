@@ -113,7 +113,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.8'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.9'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})

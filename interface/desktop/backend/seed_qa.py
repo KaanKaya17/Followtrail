@@ -17,6 +17,8 @@ def main():
     parser.add_argument('--performance',action='store_true')
     parser.add_argument('--wayback',action='store_true')
     parser.add_argument('--anonymous',action='store_true')
+    parser.add_argument('--keyboard',action='store_true')
+    parser.add_argument('--hold',action='store_true')
     args=parser.parse_args()
     home=args.home.resolve()
     if home.parent!=Path(tempfile.gettempdir()).resolve() or not home.name.startswith('TrackerQA-'):
@@ -112,6 +114,14 @@ def main():
         closed['checks']=[{'status':'unavailable','reason':'both_unavailable','ownHTTP':200,'targetHTTP':404,
             'checkedAt':now,'absence':None,'anonymous':{'method':'public_profile_page','requestedUsername':'qa.large',
             'checkedAt':now,'status':'not_found','reason':'http_not_found','http':404,'identityMatched':None}}]
+    if args.keyboard:
+        if args.empty: raise ValueError('Keyboard fixture requires records')
+        e.data['session']={'cookies':{'ds_user_id':'100','sessionid':'SYNTHETIC-SECRET'}}
+        e.data['gate'].update(blockedUntil=0,nextAt=0,manualOnly=False,status=200)
+        e.data['people']['201']['name']='QA Ada <img src=x onerror=window.paletteInjected=true>'
+    if args.hold:
+        if not args.keyboard: raise ValueError('Hold fixture requires keyboard records')
+        e.data['gate'].update(blockedUntil=1800003600,manualOnly=True,status=429)
     e.save()
     print('Synthetic vault prepared; no session or network.')
 

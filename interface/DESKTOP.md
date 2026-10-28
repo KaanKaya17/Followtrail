@@ -1,6 +1,17 @@
-# InstagramTracker Windows 0.2.8
+# InstagramTracker Windows 0.2.9
 
-`artifacts/InstagramTracker-Desktop-0.2.8/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.9/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Klavye ve ilk kullanım
+
+- `Ctrl+K` veya `/`: kendi hesabın, kaydettiğin kişiler ve uygulama ekranlarında yerel arama paleti. `@` ile başlarsan yalnız profiller aranır. Grup ve görünen ad da aranabilir; Instagram'da yeni hesap araması yapılmaz. Yeni kişi için Kişiler → Kişi ekle kullanılmalı. Ok tuşlarıyla seç, Enter ile aç, Esc ile kapat.
+- `Ctrl+R`: açık kişi ayrıntısındaki kayıtlı profili, Listeler'de seçili hesabı veya Özet'te kendi hesabını yeniler. Başka ekranda seçili profil yoksa yönlendirici mesaj gösterir. Yazı/form alanındayken, başka modal açıkken, işlem sürerken veya yerel mola varken yenileme göndermez. Kayıtlı olmayan liste üyesini kısayolla kendiliğinden kişilere eklemez. Mevcut istek sırası ve aralığı kullanılır.
+- `1 / 2 / 3 / 4 / 5`: Özet / Kişiler / Listeler / Bildirimler / Ayarlar. Yazı yazarken veya modal açıkken sekme geçişi yapılmaz. Zaman çizelgesi menüde ve palet aramasında bulunur.
+- `Esc`: en üst paleti, modalı veya kişi panelini kapatır. Altta açık bir form varken Ctrl+K ile palet açıp Esc ile kapatmak formdaki taslağı korur. Bu kısayol devam eden ağ işlemini iptal etmez; iptal düğmesi ayrıca kullanılır.
+
+Kısayollar yalnız uygulama odaktayken çalışır; sistem genelinde tuş yakalama kaydı yoktur. Palet bir defada en fazla 12 sonuç gösterir. Toplam eşleşme daha fazlaysa sayı belirtilir; aramayı daraltabilirsin.
+
+Kişiler ve Bildirimler'in boş durumları ilk adımı açıklayan rehber kartlarıdır. Bağlantısı olmayan kullanıcı doğru bağlantı formuna, bağlı kullanıcı kişi ekleme formuna yönlendirilir. Arama/filtrede sonuç bulunmaması tüm kayıtların boş olmasıyla karıştırılmaz; temizleme düğmesi sunulur. Okunmamış kayıt kalmadığında tüm bildirimlere dönüş düğmesi gösterilir. Bu kartları görüntülemek veya yerel arama yapmak hesap isteği başlatmaz, bildirim/otomatik kontrol tercihini değiştirmez. [Doğrulama kapsamı](../docs/KEYBOARD-ONBOARDING-TEST.md).
 
 ## Oturumsuz erişim karşılaştırması
 
