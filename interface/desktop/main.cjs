@@ -163,6 +163,11 @@ function open() {
     },
   });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  window.webContents.on('before-input-event', (_event, input) => {
+    // Suppress only the native Reload accelerator. The renderer owns the
+    // profile shortcut and its editing/busy/cooldown rules.
+    window.webContents.setIgnoreMenuShortcuts(!!((input.control || input.meta) && !input.alt && !input.shift && input.key.toLowerCase() === 'r'));
+  });
   window.webContents.on("will-navigate", (event, url) => {
     if (url.split("#")[0] !== entryUrl) event.preventDefault();
   });

@@ -42,10 +42,11 @@
     overview: ["Özet", "home"],
     people: ["Kişiler", "people"],
     lists: ["Listeler", "list"],
-    timeline: ["Zaman çizelgesi", "clock"],
-    settings: ["Ayarlar", "settings"],
     notifications: ["Bildirimler", "bell"],
+    settings: ["Ayarlar", "settings"],
+    timeline: ["Zaman çizelgesi", "clock"],
   };
+  const keyboardPages = ['overview', 'people', 'lists', 'notifications', 'settings'];
   let data = null,
     busy = false,
     progress = null,
@@ -116,20 +117,72 @@
   const empty = (text, action = "") =>
     `<div class="empty-state">${icon("info")}<h2>${t("Burada henüz bir kayıt yok.")}</h2><p>${esc(text)}</p>${action}</div>`;
   function navigate(page) {
-    if (location.hash === "#" + page) {
-      ui.page = page;
-      render();
-    } else location.hash = page;
+    ui.page = page;
+    closeDialog();
+    if (location.hash !== '#' + page) location.hash = page;
+    render();
+    window.scrollTo(0, 0);
   }
   function closeDialog() {
-    document.querySelector("dialog")?.close();
+    document.querySelector("#overlay-root dialog")?.close();
     drawerId = null;
   }
   function dialog(content, wide = false, drawer = false) {
     closeDialog();
     document.getElementById("overlay-root").innerHTML =
       `<dialog class="${drawer ? "drawer" : "modal"} ${wide ? "wide-modal" : ""}" aria-labelledby="dialog-title"><button class="dialog-close icon-button" data-action="close" aria-label="${t("Kapat")}">${icon("close")}</button>${content}</dialog>`;
-    document.querySelector("dialog").showModal();
+    const modal = document.querySelector("#overlay-root dialog");
+    modal.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
+    modal.showModal();
+  }
+  const palette = window.TrackerCommandPalette.create({
+    t, icon,
+    entries: () => [
+      ...Object.entries(pages).map(([id, [name, symbol]]) => ({kind:'page', id, title:t(name), subtitle:t("Uygulama ekranı"), icon:symbol, shortcut:keyboardPages.includes(id) ? String(keyboardPages.indexOf(id)+1) : ''})),
+      ...[...(data?.account ? [data.account] : []), ...(data?.people || []).slice().sort((a,b)=>Number(!!b.favorite)-Number(!!a.favorite))]
+        .map(p=>({kind:'profile',id:p.id,title:'@'+p.username,subtitle:p.name || t("Kayıtlı profil"),terms:p.group || '',icon:'people'})),
+    ],
+    select: entry => {
+      if (entry.kind === 'profile') { if (person(entry.id)) personDialog(entry.id); }
+      else { closeDialog(); navigate(entry.id); }
+    },
+  });
+  function editing() {
+    const element = document.activeElement;
+    return element?.isContentEditable || !!element?.closest('input, textarea, select');
+  }
+  async function refreshSelected() {
+    if (!data || serviceError) return;
+    if (busy) { toast(t("Önce devam eden işlemi bitir veya iptal et.")); return; }
+    if (editing() || palette.isOpen()) { toast(t("Yazı alanındayken yenileme kısayolu çalışmaz.")); return; }
+    const modal = document.querySelector('#overlay-root dialog[open]');
+    if (modal && (!modal.classList.contains('drawer') || !drawerId)) { toast(t("Profili yenilemek için önce açık pencereyi kapat.")); return; }
+    const id = modal && drawerId ? drawerId : ui.page === 'lists' ? ui.owner || data.account?.id : ui.page === 'overview' ? data.account?.id : null;
+    if (!id) { toast(t("Yenilemek için bir profil aç veya Özet ekranına geç.")); return; }
+    if (!data.connected) { toast(t("Profil yenilemek için önce hesabını bağla.")); return; }
+    if (data.gate.blockedUntil > Date.now()/1000) { toast(t("Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.")); return; }
+    if (id !== data.account?.id && !data.people.some(p=>p.id===id)) { toast(t("Bu profili yenilemeden önce Kişiler bölümüne kaydet.")); return; }
+    const target=person(id), reopen=!!modal;
+    if (reopen) closeDialog();
+    const result=await command('refresh',{id},t("Profil gözlemi kaydedildi."));
+    if (result?.ok && reopen) personDialog(id);
+    else if (result && !result.ok) toast(t("@{0} için yenileme tamamlanamadı.",target?.username || id));
+  }
+  function guide(heading, copy, steps, actions, symbol='people') {
+    return `<section class="empty-guide card"><span class="dialog-symbol lavender">${icon(symbol)}</span><div><h2>${esc(heading)}</h2><p>${esc(copy)}</p>${steps.length ? `<ol>${steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>` : ''}<div class="guide-actions">${actions}</div></div></section>`;
+  }
+  function peopleEmpty() {
+    if (!data.people.length) return guide(t("İlk kişini eklemeye hazır mısın?"),t("Bu ekrandaki arama kayıtlı kişileri filtreler. Yeni hesap için Kişi ekle düğmesini kullan."),
+      [t("Instagram kullanıcı adını yazarak bir profil kaydet."),t("Kişiyi aç; izleme ve bildirim tercihlerini seç. Takip etme isteği gönderilmez.")],
+      data.connected ? button(t("İlk kişini ekle"),'add-person','plus','primary',netDisabled()) : button(t("Hesabını bağla"),'account','link','primary'));
+    const filtered = ui.query.trim() ? t("Aramana uygun kişi yok.") : ui.filter === 'favorites' ? t("Henüz favori profil yok.") : t("Henüz izlenen profil yok.");
+    return guide(filtered,t("Farklı bir arama dene veya tüm kayıtlı kişilere dön. Favori ve izleme tercihlerini kişi ayrıntısından değiştirebilirsin."),[],button(t("Arama ve filtreleri temizle"),'reset-people','search'));
+  }
+  function notificationsEmpty() {
+    if ((data.notificationLog || []).length) return guide(t("Okunmamış bildirim yok."),t("Diğer kayıtlar için Tümü filtresine dönebilirsin."),[],button(t("Tüm bildirimleri göster"),'notification-filter','bell','primary','data-value="all"'),'bell');
+    return guide(t("Değişiklik kayıtların burada birikecek."),t("İlk gözlem bir başlangıçtır. Sonraki kontrollerde görülen değişiklikler aynı kontrolün tek kaydında toplanır."),
+      [t("Önce bir profil kaydet ve kontrol et."),t("Kişi ayrıntısında bildirim almak istediğin değişiklik türlerini seç."),t("Windows bildirimi isteğe bağlıdır; uygulama içindeki kayıtlar bildirim kapalıyken de tutulur.")],
+      button(t("Kişileri aç"),'guide-people','people','primary')+button(t("Bildirim ayarları"),'guide-settings','settings'),'bell');
   }
   function errorDialog(message) {
     dialog(
@@ -330,9 +383,7 @@
             `<button class="notification-log-row card ${entry.readAt == null ? "unread" : ""}" data-action="notification-log" ${idattr(entry.id)}><span class="event-icon lavender">${icon("bell")}</span><span class="notification-log-copy"><strong>${esc(logHeading(entry))}</strong><span>${esc([...new Set(entry.changes.map((change) => t(change.label)))].join(" · "))}</span><small>${esc(date(entry.at))} · ${entry.readAt == null ? t("Okunmamış") : t("Okundu")} · ${entry.desktopEligible ? t("Windows bildirimi için seçildi") : t("Yalnız uygulama kaydı")}</small></span>${icon("chevron")}</button>`,
         )
         .join("") ||
-      empty(
-        t("Yeni profil veya liste değişiklikleri burada gruplanarak görünür. Eski zaman çizelgesi kayıtları ayrıca korunur."),
-      )}</div>${rows.length > ui.notificationLimit ? button(t("Daha fazla kayıt göster"), "more-notifications", "down") : ""}<p class="field-hint">${t("Son 500 değişiklik grubu şifreli saklanır. “Windows bildirimi için seçildi” ifadesi Windows’un bildirimi teslim ettiğini doğrulamaz.")}</p>`;
+      notificationsEmpty()}</div>${rows.length > ui.notificationLimit ? button(t("Daha fazla kayıt göster"), "more-notifications", "down") : ""}<p class="field-hint">${t("Son 500 değişiklik grubu şifreli saklanır. “Windows bildirimi için seçildi” ifadesi Windows’un bildirimi teslim ettiğini doğrulamaz.")}</p>`;
   }
   async function notificationDialog(id) {
     const entry = data.notificationLog?.find((entry) => entry.id === id);
@@ -369,7 +420,7 @@
         `<p>${t("Kişiler bölümünde yıldızladığın hesaplar burada görünür.")}</p>`}</section></aside></div>`;
   }
   function filteredPeople() {
-    const q = ui.query.toLocaleLowerCase(i18n.locale(language));
+    const q = ui.query.trim().toLocaleLowerCase(i18n.locale(language));
     return data.people
       .filter(
         (p) =>
@@ -396,7 +447,7 @@
       )
       .join(
         "",
-      )}</div><label class="search-input">${icon("search")}<input id="people-search" type="search" placeholder="${t("İsim, kullanıcı adı veya grup ara")}" aria-label="${t("Kişilerde ara")}" value="${esc(ui.query)}"></label></div><div class="results-line"><span id="people-result-count">${t("{0} kişi", filteredPeople().length)}</span><span>${t("Favoriler önce gösterilir")}</span></div><div class="people-grid" id="people-grid">${filteredPeople().map(personCard).join("") || empty(t("Kişi ekle veya taradığın listeden bir hesabı kaydet."))}</div>`;
+      )}</div><label class="search-input">${icon("search")}<input id="people-search" type="search" placeholder="${t("İsim, kullanıcı adı veya grup ara")}" aria-label="${t("Kişilerde ara")}" value="${esc(ui.query)}"></label></div><div class="results-line"><span id="people-result-count">${t("{0} kişi", filteredPeople().length)}</span><span>${t("Favoriler önce gösterilir")}</span></div><div class="people-grid" id="people-grid">${filteredPeople().map(personCard).join("") || peopleEmpty()}</div>`;
   }
   function selectedRecord() {
     return (
@@ -675,7 +726,7 @@
   function render() {
     language = i18n.valid(data?.settings.language) ? data.settings.language : 'tr';
     document.documentElement.lang = language;
-    document.querySelector('.skip-link').textContent = t('İçeriğe geç');
+    document.querySelector('.skip-link').textContent = t("İçeriğe geç");
     if (!data) {
       document.getElementById("app").innerHTML =
         `<div class="startup card"><span class="dialog-symbol lavender">${icon("lock")}</span><h1>${t("InstagramTracker")}</h1><p>${esc(stored(serviceError) || t("Şifreli yerel kayıtlar açılıyor…"))}</p>${serviceError ? `<p>${t("Uygulamayı yeniden açabilirsin. Mevcut dosyalar otomatik silinmez.")}</p>` : ""}</div>`;
@@ -813,10 +864,17 @@
         codeDialog();
         break;
       case "search":
-        closeDialog();
-        ui.filter = "all";
-        navigate("people");
-        setTimeout(() => document.getElementById("people-search")?.focus(), 30);
+        palette.open();
+        break;
+      case "reset-people":
+        ui.query = ''; ui.filter = 'all'; render();
+        document.getElementById('people-search')?.focus();
+        break;
+      case "guide-people":
+        navigate('people');
+        break;
+      case "guide-settings":
+        navigate('settings');
         break;
       case "open-list":
         ui.direction = value;
@@ -1091,7 +1149,7 @@
       ui.query = event.target.value;
       document.getElementById("people-grid").innerHTML =
         filteredPeople().map(personCard).join("") ||
-        empty(t("Aramana uygun kişi yok."));
+        peopleEmpty();
       document.getElementById("people-result-count").textContent =
         t("{0} kişi", filteredPeople().length);
     }
@@ -1141,20 +1199,29 @@
     }
   });
   window.addEventListener("hashchange", () => {
-    ui.page = Object.hasOwn(pages, location.hash.slice(1))
+    const page = Object.hasOwn(pages, location.hash.slice(1))
       ? location.hash.slice(1)
       : "overview";
+    if (page === ui.page) return;
+    ui.page = page;
     closeDialog();
     render();
     window.scrollTo(0, 0);
   });
   document.addEventListener("keydown", (event) => {
+    if (!data || event.isComposing || event.altKey) return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
-      closeDialog();
-      ui.filter = "all";
-      navigate("people");
-      setTimeout(() => document.getElementById("people-search")?.focus(), 30);
+      if (!event.repeat) palette.open();
+    } else if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'r') {
+      event.preventDefault(); if (!event.repeat) refreshSelected();
+    } else if (event.key === 'Escape' && !palette.isOpen()) {
+      if (document.querySelector('#overlay-root dialog[open]')) { event.preventDefault(); closeDialog(); }
+    } else if (!event.ctrlKey && !event.metaKey && !editing()) {
+      if (event.key === '/') { event.preventDefault(); if (!event.repeat) palette.open(); }
+      else if (!document.querySelector('dialog[open]') && /^[1-5]$/.test(event.key)) {
+        event.preventDefault(); if (!event.repeat) navigate(keyboardPages[Number(event.key)-1]);
+      }
     }
   });
   if (!api) {

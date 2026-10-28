@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.9 — 2026-10-28 (Kısayollar ve yönlendiren boş ekranlar)
+
+- `Ctrl+K` / `/`, kayıtlı kişiler, kendi hesabın ve uygulama ekranları için yerel arama paletini açar. Ok tuşları ve Enter ile seçim yapılır; `@` yalnız profilleri arar. Türkçe karakterli adlar ASCII sorgularla da eşleşir. Arama Instagram isteği göndermez; en fazla 12 sonuç gösterilir ve toplam sonuç sayısı belirtilir.
+- `Ctrl+R`, açık kişi profilini, Listeler'de seçili kayıtlı hesabı veya Özet'te kendi hesabını mevcut yenileme yoluyla kontrol eder. Yerel mola, devam eden işlem, bağlantı ve form odağı korunur. Native pencere yenilemesi yerine profil işlemi yapılır; tuş basılı tutulunca tekrar komut üretilmez.
+- `1–5` sırasıyla Özet, Kişiler, Listeler, Bildirimler ve Ayarlar'ı açar. Zaman çizelgesi menüde ve palet aramasında kalır. Yazı alanlarında sekme kısayolları devreye girmez. `Esc` en üst paleti/modalı kapatır; palet açıkken alttaki taslak korunur.
+- Kişiler ve Bildirimler'in boş durumlarına kısa açıklamalar, adımlar ve çalışan yönlendirme düğmeleri eklendi. İlk kullanım, arama/filtre sonucu bulunamaması ve okunmamış bildirim kalmaması farklı anlatılır. Bildirim ve otomatik kontrol ayarları kendiliğinden açılmaz. Türkçe ve İngilizce metinler birlikte güncellendi.
+- Hızlı sekme geçişinden geciken hash olayının yeni açılan paneli kapatması ve palet kapanışında form odağının kaybolması giderildi. Bu sürüm Windows kapsamındadır; Android 0.1.31 ve örnek web arayüzünün işlevleri değiştirilmedi.
+
 ## Windows 0.2.8 — 2026-10-28 (Oturumsuz erişim karşılaştırması)
 
 - Sağlıklı bağlı oturumda hedef ID için gerçek 404 alındığında son bilinen kullanıcı adına tek çerezsiz profil sayfası isteği eklendi. Aynı sayısal kimlik oturumsuz sayfada doğrulanır ve tam takipçi kaydındaki yoklukla birleşirse **Güçlü engellenme şüphesi** kaydedilir. Bu kesin engelleme tespiti değildir.

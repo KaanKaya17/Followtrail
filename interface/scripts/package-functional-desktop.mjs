@@ -66,6 +66,7 @@ for (const name of [
 for (const name of [
   "desktop.html",
   "desktop.js",
+  "command-palette.js",
   "desktop.css",
   "wayback.js",
   "wayback.css",
