@@ -17,6 +17,7 @@ const allowed = new Map([
   ["/style.css", "style.css"],
   ["/app.js", "app.js"],
   ["/icons.js", "icons.js"],
+  ["/i18n.js", "i18n.js"],
   ["/favicon.svg", "favicon.svg"],
 ]);
 const types = {

@@ -1,4 +1,5 @@
 // Main-process lifetime and scheduler; renderer visibility cannot pause them.
+const i18n = require('../web/i18n.js');
 class Background {
   constructor({
     Tray,
@@ -51,22 +52,24 @@ class Background {
     if (this.stopping || this.tray.isDestroyed()) return;
     const enabled = !!this.backend.state?.settings.automatic;
     const held = this.backend.state?.monitor?.held;
-    const menuState = JSON.stringify([enabled, !!held, !!this.backend.ready, !!this.backend.busy]);
+    const language = this.backend.state?.settings.language || 'tr';
+    const t = (message, ...values) => i18n.translate(message, values, language);
+    const menuState = JSON.stringify([enabled, !!held, !!this.backend.ready, !!this.backend.busy, language]);
     if (menuState === this.menuState) return;
     const status = !this.backend.ready
-      ? "Yerel hizmet hazır değil"
+      ? t("Yerel hizmet hazır değil")
       : !enabled
-        ? "Otomatik kontrol kapalı"
+        ? t("Otomatik kontrol kapalı")
         : held
-          ? "Otomatik kontrol bekliyor"
-          : "Otomatik kontrol açık";
+          ? t("Otomatik kontrol bekliyor")
+          : t("Otomatik kontrol açık");
     this.tray.setToolTip(`InstagramTracker — ${status}`);
     this.tray.setContextMenu(
       this.Menu.buildFromTemplate([
-        { label: "Tracker'ı aç", click: this.showWindow },
+        { label: t("Tracker'ı aç"), click: this.showWindow },
         { label: status, enabled: false },
         {
-          label: "Otomatik profil kontrolü",
+          label: t("Otomatik profil kontrolü"),
           type: "checkbox",
           checked: enabled,
           enabled: !!this.backend.ready && !this.backend.busy,
@@ -79,7 +82,7 @@ class Background {
           },
         },
         { type: "separator" },
-        { label: "Tamamen çık", click: this.quit },
+        { label: t("Tamamen çık"), click: this.quit },
       ]),
     );
     this.menuState = menuState;

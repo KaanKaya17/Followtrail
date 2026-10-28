@@ -18,6 +18,8 @@ const { pathToFileURL } = require("node:url");
 const { Backend } = require("./service.cjs");
 const { Background } = require("./background.cjs");
 const { RendererUpdates } = require("./renderer-updates.cjs");
+const i18n = require('../web/i18n.js');
+const t = (message, ...values) => i18n.translate(message, values, backend?.state?.settings.language || 'tr');
 const {
   APP_ID,
   TOAST_ID,
@@ -110,6 +112,7 @@ function validate(operation, args) {
     save_person: ["id", "favorite", "watching", "group", "note"],
     remove_person: ["id"],
     settings: [
+      "language",
       "compact",
       "notifications",
       "automatic",
@@ -131,10 +134,10 @@ function send(event) {
   background?.update();
   if (event.type === "ready" && event.state?.settings.notifications) {
     try {
-      ensureShortcut({ app, shell, testHome, dataDir });
+      ensureShortcut({ app, shell, testHome, dataDir, language: backend.state?.settings.language || "tr" });
     } catch {
       event.notificationWarning =
-        "Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.";
+        t("Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.");
     }
   }
   rendererUpdates.send(event);
@@ -224,13 +227,13 @@ else
         return backend.command(operation, args);
       if (operation === "settings" && args.notifications === true) {
         try {
-          ensureShortcut({ app, shell, testHome, dataDir });
+          ensureShortcut({ app, shell, testHome, dataDir, language: backend.state?.settings.language || "tr" });
         } catch {
           return {
             ok: false,
             error: {
               message:
-                "Windows bildirim kısayolu hazırlanamadı. Kayıt izinlerini kontrol et.",
+                t("Windows bildirim kısayolu hazırlanamadı. Kayıt izinlerini kontrol et."),
             },
           };
         }
@@ -260,7 +263,7 @@ else
       if (backend.busy)
         return {
           ok: false,
-          error: { message: "Önce devam eden işlemi bitir veya iptal et." },
+          error: { message: t("Önce devam eden işlemi bitir veya iptal et.") },
         };
       if (action === "open_storage") {
         await fs.mkdir(dataDir, { recursive: true });
@@ -269,19 +272,19 @@ else
       }
       if (action === "import_backup") {
         const selection = await dialog.showOpenDialog(window, {
-          title: "Şifreli gözlem yedeğini seç",
+          title: t("Şifreli gözlem yedeğini seç"),
           properties: ["openFile"],
-          filters: [{ name: "Tracker yedeği", extensions: ["trackerbackup"] }],
+          filters: [{ name: t("Tracker yedeği"), extensions: ["trackerbackup"] }],
         });
         if (selection.canceled) return { ok: true, cancelled: true };
         const confirm = await dialog.showMessageBox(window, {
           type: "question",
-          buttons: ["Vazgeç", "Yedeği yükle"],
+          buttons: [t("Vazgeç"), t("Yedeği yükle")],
           defaultId: 0,
           cancelId: 0,
-          message: "Yerel gözlemler bu yedekle değiştirilsin mi?",
+          message: t("Yerel gözlemler bu yedekle değiştirilsin mi?"),
           detail:
-            "Önceki depo şifreli önceki kopyada korunur. Oturum aktarılmaz; tekrar hesap bağlantısı gerekir. Mola bilgisi kısaltılmaz.",
+            t("Önceki depo şifreli önceki kopyada korunur. Oturum aktarılmaz; tekrar hesap bağlantısı gerekir. Mola bilgisi kısaltılmaz."),
         });
         if (confirm.response !== 1) return { ok: true, cancelled: true };
         return backend.command(action, { path: selection.filePaths[0] });
@@ -289,14 +292,14 @@ else
       const backup = action === "export_backup";
       const selection = await dialog.showSaveDialog(window, {
         title: backup
-          ? "Şifreli gözlem yedeğini kaydet"
-          : "Listeyi CSV olarak dışa aktar",
+          ? t("Şifreli gözlem yedeğini kaydet")
+          : t("Listeyi CSV olarak dışa aktar"),
         defaultPath: backup
           ? "InstagramTracker.trackerbackup"
           : "InstagramTracker-liste.csv",
         filters: [
           {
-            name: backup ? "Tracker yedeği" : "CSV",
+            name: backup ? t("Tracker yedeği") : "CSV",
             extensions: [backup ? "trackerbackup" : "csv"],
           },
         ],
@@ -311,7 +314,7 @@ else
       if (!latest)
         return {
           ok: false,
-          error: { message: "Önce tamamlanmış bir liste kaydı oluştur." },
+          error: { message: t("Önce tamamlanmış bir liste kaydı oluştur.") },
         };
       const csv = (value) => {
         let text = String(value ?? "");
@@ -336,7 +339,7 @@ else
     });
     backend.onNotifications = (entries) => {
       for (const entry of entries) {
-        const content = changeNotification(entry);
+        const content = changeNotification(entry, backend.state?.settings.language || 'tr');
         showNotification({
           Notification,
           title: content.title,
@@ -349,7 +352,7 @@ else
             send({
               type: "notification_warning",
               message:
-                "Windows bildirimi gösterilemedi. Gözlem zaman çizelgesine kaydedildi.",
+                t("Windows bildirimi gösterilemedi. Gözlem zaman çizelgesine kaydedildi."),
             }),
         });
       }

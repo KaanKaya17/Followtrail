@@ -1,6 +1,6 @@
 {
   "name": "instagramtracker-interface",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "private": true,
   "description": "Local encrypted Windows Instagram observations and shared interface preview.",
   "main": "desktop/main.cjs",
@@ -9,12 +9,13 @@
     "desktop": "electron .",
     "desktop:preview": "electron desktop/preview.cjs",
     "theme": "node scripts/generate-theme.mjs",
-    "check": "node scripts/generate-theme.mjs --check && node scripts/check-sources.mjs",
+    "check": "node scripts/generate-theme.mjs --check && node scripts/generate-i18n.mjs --check && node scripts/check-sources.mjs",
     "check:ui": "node scripts/check-ui.mjs",
     "check:desktop": "node scripts/check-desktop.mjs",
     "check:functional": "node scripts/check-functional-desktop.mjs",
     "package:desktop": "node scripts/package-desktop.mjs",
-    "package:functional": "node scripts/package-functional-desktop.mjs"
+    "package:functional": "node scripts/package-functional-desktop.mjs",
+    "i18n": "node scripts/generate-i18n.mjs"
   },
   "devDependencies": {
     "electron": "45.0.0",

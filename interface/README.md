@@ -1,6 +1,6 @@
 # Tracker — ortak web ve masaüstü arayüzü
 
-**Güncel Windows uygulaması 0.2.5:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.5/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
+**Güncel Windows uygulaması 0.2.6:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.6/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
 
 Bu aşama, gerçek Instagram işlevlerinden önce hazırlanan **etkileşimli arayüz önizlemesidir**. Bütün hesaplar, sayılar, kayıtlar ve bildirimler örnektir. Mevcut InstagramCounter/Android oturumu okunmaz; kullanıcı adı/parola istenmez. Tarayıcı istekleri CSP ile yerel varlıklara sınırlandırılır; veri bağlantıları kapalıdır.
 
@@ -12,7 +12,7 @@ Bu aşama, gerçek Instagram işlevlerinden önce hazırlanan **etkileşimli ara
 
 ## Tasarım ve kapsam
 
-Özet, Kişiler, Listeler, Zaman çizelgesi, Ayarlar ve profil/olay ayrıntıları hazırdır. Tarih aralığı, yerel arama, favoriler, örnek kişi ekleme, oturumluk örnek notlar, seçilen liste yönünün karşılaştırması, bildirim görünümü ve kompakt görünüm kullanılabilir. Örnek kişi/favori/notlar yeniden yüklemede sıfırlanır; yalnız kompakt görünüm tercihi localStorage'da kalır. Yenileme gerçek işlem taklidi yapmaz; bağlantının etkin olmadığını açıklar.
+Özet, Kişiler, Listeler, Zaman çizelgesi, Ayarlar ve profil/olay ayrıntıları hazırdır. Tarih aralığı, yerel arama, favoriler, örnek kişi ekleme, oturumluk örnek notlar, seçilen liste yönünün karşılaştırması, bildirim görünümü ve kompakt görünüm kullanılabilir. Örnek kişi/favori/notlar yeniden yüklemede sıfırlanır; kompakt görünüm ve dil tercihi localStorage'da kalır. Yenileme gerçek işlem taklidi yapmaz; bağlantının etkin olmadığını açıklar.
 
 `../design/theme.json` ortak renklerin ve temel köşe ölçülerinin sahibidir. `npm run theme`, Android `UiPalette.kt` ile web `theme.css` üretir. `npm run check` eşleşmeyi doğrular. Android ana ekranı aynı palet, düz mor vurgular, 24 dp kartlar ve 18 dp düğmelerle uyumludur; platformlara özgü gezinme korunur.
 
@@ -24,4 +24,10 @@ Masaüstü aynı web dosyalarını yerel Electron penceresinde açar. Renderer'd
 
 `npm run package:desktop` taşınabilir klasörü ilk kez oluşturur. Önizlemenin web/main dosyaları değişirse `npm run package:desktop -- --refresh` önce eski uygulama varlıklarını zaman damgalı artifacts yedeğine kopyalar, ardından yalnız kimliği doğrulanan önizleme paketinin kendi uygulama varlıklarını günceller; mevcut klasör körlemesine silinmez. Bir Electron yükseltmesi için yeni runtime ile ayrı paket hazırlanmalıdır.
 
-Bu örnek verili önizlemenin açılması Instagram erişiminin çalıştığını kanıtlamaz. Gerçek işlevler ayrı Windows 0.2.5 paketindedir; tarayıcı önizlemesine hesap bağlantısı eklenmedi.
+Bu örnek verili önizlemenin açılması Instagram erişiminin çalıştığını kanıtlamaz. Gerçek işlevler ayrı Windows 0.2.6 paketindedir; tarayıcı önizlemesine hesap bağlantısı eklenmedi.
+
+## Dil seçimi
+
+Web önizlemesinde **Ayarlar → Arayüz dili**, Windows uygulamasında **Ayarlar → Uygulama dili** üzerinden **Türkçe / English** seçilir. Web tercihi bu tarayıcının localStorage alanında, Windows tercihi mevcut DPAPI deposunda saklanır. Hesap/izleme/mola/bildirim tercihleri değişmez; web önizlemesi yine yalnız örnek veridir.
+
+`locales/en.json` Türkçe kaynak mesajların İngilizce karşılıklarını ve çoğul biçimlerini, `locales/runtime.js` yerel biçimlendiriciyi içerir. `npm run i18n`, web ve Node tarafından kullanılan `web/i18n.js` çıktısını üretir; `npm run check` güncelliği, yer tutucuları ve kaynak mesaj kapsamını denetler. Worker aynı JSON kataloğunu paketler. Çeviri servisi veya ek ağ isteği yoktur. Kullanıcı adı/biyografi/not/önceki-sonraki değerler çevrilmez.

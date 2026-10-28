@@ -1,6 +1,6 @@
-# InstagramTracker Windows 0.2.5
+# InstagramTracker Windows 0.2.6
 
-`artifacts/InstagramTracker-Desktop-0.2.5/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.6/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Kullanım
 
@@ -55,7 +55,7 @@ Windows 0.2.4 itibarıyla kontrol aralığı her profil için ayrıdır. Örneğ
 
 Bir liste taraması, başlangıç profil okuması ve her sayfa için ayrı API isteği yapar. Sunucu sayfa başına 50 üye döndürürse 1.000 üyelik liste yaklaşık 20 sayfadır; 15 saniyelik aralık nedeniyle ilk profil isteğinden son sayfaya en az yaklaşık 5 dakika + yanıt süresi gerekir. Bu koddan hesaplanan örnektir, 1.000 üyeli canlı ölçüm değildir.
 
-Önceki otomatik kontrol ve aralık tercihin korunur; yeni aralık seçimi için Ayarlar → Kontrol aralığı kullan. 1/5 dakikalık ayarlar eski Windows 0.2.0 doğrulayıcısında yoktur; bu ayarları seçtikten sonra güncel 0.2.5 EXE kullan. Depo biçimi ve hesap verileri korunur. Windows başlangıcında otomatik başlatma eklenmedi.
+Önceki otomatik kontrol ve aralık tercihin korunur; yeni aralık seçimi için Ayarlar → Kontrol aralığı kullan. 1/5 dakikalık ayarlar eski Windows 0.2.0 doğrulayıcısında yoktur; bu ayarları seçtikten sonra güncel 0.2.6 EXE kullan. Depo biçimi ve hesap verileri korunur. Windows başlangıcında otomatik başlatma eklenmedi.
 
 ## Engellenme şüphesi / Erişim kontrolleri
 
@@ -90,3 +90,11 @@ Bu sürümden önceki zaman çizelgesi korunur; eski olaylardan yapay, geriye d�
 Pencere gizli veya küçültülmüşken ara durum/ilerleme/sonuçlar renderer’a gönderilmez. Gözlemler, şifreli kayıt ve bildirim seçimi ana süreç/worker’da sürer; pencere açılınca yalnız güncel durum bir kez gönderilir. Kod beklemesi, hizmet hatası, son bildirim uyarısı ve tıklanan kayıt korunur. Tepsi menüsü yalnız hazır/meşgul/otomatik/mola durumu değiştiğinde yeniden oluşturulur. Arayüz ve Python hizmeti bellekte tutulur; bu çalışma bir renderer kapatıp yeniden açma değişikliği değildir.
 
 Ölçüm: `node scripts/profile-desktop.mjs 0.2.5` ve `--large`. Gerçek paketlenmiş EXE, yalnız sentetik TrackerQA deposu ve ağsız worker kullanır. Üç saniye ısınma sonrası görünür boşta, gizli boşta ve gizli 40 yerel şifreli not güncellemesi için 20’şer saniye ölçer. PowerShell gözlemcisi uygulama ailesinin CPU süresini, 500 ms örneklemeyle toplam working set ve private bytes tepesini kaydeder; gözlemci uygulama maliyetine dahil değildir. Working set toplamı paylaşılan sayfaları birden fazla sayabilir; private bytes fiziksel RAM değil ayrılmış bellektir. Sonuçlar `artifacts/desktop-0.2.5-qa/performance*/summary.json`; kısa ısınmış örnekler saatler süren sızıntı veya zayıf cihaz garantisi değildir.
+
+## Türkçe / English · 0.2.6
+
+**Ayarlar → Uygulama dili** anında Türkçe veya İngilizceye geçer; tercih şifreli depoda yeniden açılış ve oturumsuz yedek boyunca korunur. Eski depolar Türkçe varsayımıyla açılır. Ekranlar, erişilebilirlik etiketleri, tepsi menüsü, uygulamanın dosya iletişimleri, yeni bildirim metinleri, hata gösterimi ve tarih/sayı biçimleri seçime uyar. Sistem dosya seçicisinin Windows tarafından sağlanan düğmeleri sistem dilindedir. Depo açılamayıp dil tercihi okunamazsa başlangıç hatası varsayılan Türkçedir.
+
+Dil değişimi yeni hesap kontrolü sayılmaz; mevcut son hata bilgisi korunarak çevrilir. Geçmiş başlıkların gösterimi ve bildirim türü etiketleri seçilen dile uyarlanır; kaydedilmiş kullanıcı adı, biyografi, not, eski/yeni değerler ve bildirim seçimi yeniden yazılmaz. Dil değiştirmek ağ isteği, oturum yenileme veya mola sıfırlama başlatmaz. Çeviriler yerel pakettedir. Sayı/tarih biçimlendiriciler dil başına önbelleğe alınır.
+
+Web örnek arayüzünde **Ayarlar → Arayüz dili** aynı iki seçeneği sunar; tarayıcı tercihi ayrı saklanır. Android'de mevcut **⋯ → Dil / Language** seçimi korunmuştur; bu sürümde APK/kaynak değişmedi.

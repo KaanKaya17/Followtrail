@@ -2939,3 +2939,16 @@ body[data-density="compact"] .event-row {
 .search-input input::placeholder {
   color: var(--muted);
 }
+
+/* Shared language controls use the same shape in web and desktop settings. */
+.setting-row select {
+  min-width: 110px;
+  max-width: 45%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 12px;
+}

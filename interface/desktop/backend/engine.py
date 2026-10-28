@@ -11,6 +11,7 @@ import time
 import uuid
 import access_checks
 import notification_log
+import localization
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
 from network import (AppFailure, new_client, close_client, parse_profile,
@@ -27,7 +28,7 @@ def blank(gate=None):
     return {'version': 1, 'account': None, 'session': None, 'people': {},
             'history': {}, 'lists': {}, 'events': [], 'gate': gate or {},
             'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60,
-                         'investigateMissing': False},
+                         'investigateMissing': False, 'language': 'tr'},
             'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
             'notificationRules': {}, 'notificationLog': [],
             'automaticAttempts': {}, 'lastInvestigationAt': 0,
@@ -84,6 +85,7 @@ class Engine:
         data = self.vault.load() or blank()
         access_checks.initialize(data)
         notification_log.initialize(data)
+        localization.initialize(data)
         initialize_schedule(data)
         validate_archive(data)
         return data
@@ -98,13 +100,13 @@ class Engine:
         return {'account': public_person(d['account']) if d['account'] else None,
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
                 'history': d['history'], 'lists': records, 'events': d['events'],
-                'gate': d['gate'], 'settings': d['settings'], 'lastError': d['lastError'],
+                'gate': d['gate'], 'settings': d['settings'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
                 'monitor': self.monitor_status(),
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
                 'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
-                'notificationTypes': notification_log.TYPES,
+                'notificationTypes': {key: localization.translate(value, d['settings']['language']) for key, value in notification_log.TYPES.items()},
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.5'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.6'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
@@ -473,6 +475,10 @@ class Engine:
         self.save()
 
     def settings(self, args):
+        if 'language' in args:
+            if type(args['language']) is not str or args['language'] not in localization.LANGUAGES:
+                raise AppFailure('input', 'Dil değeri geçersiz.')
+            self.data['settings']['language'] = args['language']
         for key in ('compact', 'notifications', 'automatic', 'investigateMissing'):
             if key in args:
                 if type(args[key]) is not bool:
@@ -576,6 +582,7 @@ class Engine:
             # Round-trip through the exact vault schema validator before replace.
             access_checks.initialize(restored)
             notification_log.initialize(restored)
+            localization.initialize(restored)
             initialize_schedule(restored)
             validate_archive(restored)
         except Exception as exc:
@@ -625,7 +632,10 @@ class Engine:
                 self.save()
                 self.vault.backup.unlink(missing_ok=True)
             elif operation in handlers:
-                self.data['lastError'] = None
+                # Changing language is not a new account check; retain the
+                # existing error so its current-language projection can update.
+                if operation != 'settings' or set(args) != {'language'}:
+                    self.data['lastError'] = None
                 handlers[operation]()
             else:
                 raise AppFailure('operation', 'Desteklenmeyen işlem.')
@@ -698,6 +708,8 @@ def validate_archive(d):
     for key in ('automatic', 'notifications', 'compact'):
         if type(d['settings'].get(key)) is not bool:
             raise ValueError('settings')
+    if d['settings'].get('language') not in localization.LANGUAGES:
+        raise ValueError('language')
     for key, record in d['lists'].items():
         owner, separator, direction = key.partition(':')
         if not separator or not identity(owner) or direction not in ('followers', 'following'):
