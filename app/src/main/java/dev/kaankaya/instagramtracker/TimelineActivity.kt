@@ -153,6 +153,6 @@ class TimelineActivity : LocalizedActivity() {
     }
     private fun dp(value: Int) = AppUi.dp(this, value)
     private fun LinearLayout.gap(value: Int) { addView(android.view.View(this@TimelineActivity), LinearLayout.LayoutParams(1, dp(value))) }
-    override fun onResume() { super.onResume(); if (!recreatingForLanguage && reference != null) render() }
+    override fun onResume() { super.onResume(); if (!recreatingForInterface && reference != null) render() }
     override fun onSaveInstanceState(outState: Bundle) { outState.putString("selected_target", selected); super.onSaveInstanceState(outState) }
 }

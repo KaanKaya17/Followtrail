@@ -1,6 +1,12 @@
-# InstagramTracker Windows 0.2.10
+# InstagramTracker Windows 0.2.11
 
-`artifacts/InstagramTracker-Desktop-0.2.10/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.11/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Tema
+
+Ayarlar → Tema: **Sistem / Açık tema / Koyu / OLED siyahı**. İlk açılışta Sistem seçilidir; sistem açık/koyu tercihi değişince arayüz de değişir. Açık/Koyu/OLED seçimleri sistemden bağımsızdır ve şifreli yerel ayarlarda kalır. OLED ana zemini siyah, kartları hafif ayrışan koyu yüzeylerdir. Tema tercihi ilk ekran için yalnız tema adını içeren yerel bir önbelleğe de yazılır; hesap bilgisi yazılmaz. Sistem değişimi CSS ile izlenir; yeni zamanlayıcı veya ağ isteği yoktur.
+
+Menüler, formlar, grafikler, ilerleme çubuğu, bildirim günlüğü ve profil zaman tüneli ortak paleti kullanır. Profil fotoğrafları ters çevrilmez. Türkçe/İngilizce desteklenir. Android 0.1.32'de ⋯ → Tema aynı seçenekleri sunar; web tasarım önizlemesi de aynı paletle yerel tercih kaydeder. Üç platform arasında ayar senkronizasyonu veya yeni web hesap bağlantısı eklenmedi. [Doğrulama kapsamı](../docs/APPEARANCE-TEST.md).
 
 ## Tarama ilerlemesi ve bekleme
 

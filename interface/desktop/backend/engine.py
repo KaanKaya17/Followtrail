@@ -30,7 +30,7 @@ def blank(gate=None):
     return {'version': 1, 'account': None, 'session': None, 'people': {},
             'history': {}, 'lists': {}, 'events': [], 'gate': gate or {},
             'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60,
-                         'investigateMissing': False, 'language': 'tr'},
+                         'investigateMissing': False, 'language': 'tr', 'theme': 'system'},
             'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
             'notificationRules': {}, 'notificationLog': [],
             'wayback': {'profiles': {}, 'images': {}},
@@ -91,6 +91,7 @@ class Engine:
         access_checks.initialize(data)
         notification_log.initialize(data)
         localization.initialize(data)
+        data['settings'].setdefault('theme', 'system')
         initialize_schedule(data)
         wayback.initialize(data)
         validate_archive(data)
@@ -114,7 +115,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.10'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.11'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -513,6 +514,10 @@ class Engine:
         self.save()
 
     def settings(self, args):
+        if 'theme' in args:
+            if type(args['theme']) is not str or args['theme'] not in ('system', 'light', 'dark', 'oled'):
+                raise AppFailure('input', 'Ayar değeri geçersiz.')
+            self.data['settings']['theme'] = args['theme']
         if 'language' in args:
             if type(args['language']) is not str or args['language'] not in localization.LANGUAGES:
                 raise AppFailure('input', 'Dil değeri geçersiz.')
@@ -621,6 +626,7 @@ class Engine:
             access_checks.initialize(restored)
             notification_log.initialize(restored)
             localization.initialize(restored)
+            restored['settings'].setdefault('theme', 'system')
             initialize_schedule(restored)
             wayback.initialize(restored)
             validate_archive(restored)
@@ -673,7 +679,7 @@ class Engine:
             elif operation in handlers:
                 # Changing language is not a new account check; retain the
                 # existing error so its current-language projection can update.
-                if operation != 'settings' or set(args) != {'language'}:
+                if operation != 'settings' or not set(args).issubset({'language', 'theme'}):
                     self.data['lastError'] = None
                 handlers[operation]()
             else:
@@ -752,6 +758,8 @@ def validate_archive(d):
             raise ValueError('settings')
     if d['settings'].get('language') not in localization.LANGUAGES:
         raise ValueError('language')
+    if d['settings'].get('theme', 'system') not in ('system', 'light', 'dark', 'oled'):
+        raise ValueError('theme')
     for key, record in d['lists'].items():
         owner, separator, direction = key.partition(':')
         if not separator or not identity(owner) or direction not in ('followers', 'following'):

@@ -23,23 +23,23 @@ import android.widget.TextView
 
 /** Shared visual language; owns no account, request or persistence state. */
 object AppUi {
-    val background = UiPalette.background
-    val surface = UiPalette.surface
-    val ink = UiPalette.ink
-    val muted = UiPalette.muted
-    val violet = UiPalette.violet
-    val violetSoft = UiPalette.violetSoft
-    val coral = UiPalette.coral
-    val peach = UiPalette.peach
-    val teal = UiPalette.teal
-    val mint = UiPalette.mint
-    val line = UiPalette.line
+    val background get() = UiPalette.background
+    val surface get() = UiPalette.surface
+    val ink get() = UiPalette.ink
+    val muted get() = UiPalette.muted
+    val violet get() = UiPalette.violet
+    val violetSoft get() = UiPalette.violetSoft
+    val coral get() = UiPalette.coral
+    val peach get() = UiPalette.peach
+    val teal get() = UiPalette.teal
+    val mint get() = UiPalette.mint
+    val line get() = UiPalette.line
     fun dp(context: Context, value: Int) = (context.resources.displayMetrics.density * value).toInt()
     fun shape(context: Context, color: Int, radius: Int = 22, border: Int? = null) = GradientDrawable().apply {
         setColor(color); cornerRadius = dp(context, radius).toFloat()
         border?.let { setStroke(dp(context, 1), it) }
     }
-    fun brandSurface(context: Context, radius: Int = UiPalette.cardRadius) = shape(context, violet, radius)
+    fun brandSurface(context: Context, radius: Int = UiPalette.cardRadius) = shape(context, UiPalette.accentFill, radius)
     fun touch(context: Context, drawable: Drawable): Drawable {
         val focus = drawable.constantState?.newDrawable()?.mutate()
         if (focus is GradientDrawable) focus.setStroke(dp(context, 2), ink)
@@ -82,13 +82,13 @@ object AppUi {
     fun button(context: Context, title: String, primary: Boolean = true, enabled: Boolean = true, icon: String? = null, action: () -> Unit) = Button(context).apply {
         text = title; textSize = 14f; isAllCaps = false; isEnabled = enabled
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-        setTextColor(if (primary) surface else violet)
+        setTextColor(if (primary) UiPalette.onAccent else violet)
         background = touch(context, if (primary) brandSurface(context, radius = UiPalette.buttonRadius) else shape(context, violetSoft, UiPalette.buttonRadius))
         stateListAnimator = null; minimumHeight = dp(context, 52); minHeight = dp(context, 52)
         setPadding(dp(context, 16), dp(context, 12), dp(context, 16), dp(context, 12))
         alpha = if (enabled) 1f else .48f
         if (icon != null) {
-            setCompoundDrawablesRelativeWithIntrinsicBounds(Icon(context, icon, if (primary) surface else violet, 19), null, null, null)
+            setCompoundDrawablesRelativeWithIntrinsicBounds(Icon(context, icon, if (primary) UiPalette.onAccent else violet, 19), null, null, null)
             compoundDrawablePadding = dp(context, 8)
         }
         setOnClickListener { action() }
@@ -107,10 +107,11 @@ object AppUi {
         }
     @Suppress("DEPRECATION")
     fun systemBars(activity: Activity) {
-        activity.window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or
-            (if (android.os.Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR else 0)
+        val light = AppAppearance.resolved(activity) == "light"
+        activity.window.decorView.systemUiVisibility = if (light) View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or
+            (if (android.os.Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR else 0) else 0
         activity.window.statusBarColor = background
-        activity.window.navigationBarColor = if (android.os.Build.VERSION.SDK_INT >= 26) background else ink
+        activity.window.navigationBarColor = if (android.os.Build.VERSION.SDK_INT >= 26 || !light) background else ink
     }
     class Icon(context: Context, private val name: String, color: Int = violet, size: Int = 22) : Drawable() {
         private val dimension = dp(context, size)

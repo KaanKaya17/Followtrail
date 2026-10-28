@@ -56,9 +56,11 @@ object AppLanguage {
 /** Every app-owned screen receives the same localized resources, including Android 7–12. */
 abstract class LocalizedActivity : Activity() {
     private var createdLanguage = "tr"
-    protected var languageChangedOnRecreation = false
+    private var createdAppearance = "light"
+    private var createdAppearanceChoice = "system"
+    protected var interfaceChangedOnRecreation = false
         private set
-    protected var recreatingForLanguage = false
+    protected var recreatingForInterface = false
         private set
 
     override fun attachBaseContext(newBase: Context) {
@@ -67,21 +69,28 @@ abstract class LocalizedActivity : Activity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        createdAppearance = AppAppearance.apply(this)
+        createdAppearanceChoice = AppAppearance.selected(this)
+        setTheme(AppAppearance.style(createdAppearance))
         createdLanguage = AppLanguage.selected(this)
-        languageChangedOnRecreation = savedInstanceState?.getString("interface_language_at_save")
-            ?.let { it != createdLanguage } ?: false
+        interfaceChangedOnRecreation = savedInstanceState?.getString("interface_language_at_save")
+            ?.let { it != createdLanguage } == true || savedInstanceState?.getString("interface_theme_at_save")
+            ?.let { it != createdAppearance } == true
+            || savedInstanceState?.getString("interface_theme_choice_at_save")?.let { it != createdAppearanceChoice } == true
         super.onCreate(savedInstanceState)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("interface_language_at_save", createdLanguage)
+        outState.putString("interface_theme_at_save", createdAppearance)
+        outState.putString("interface_theme_choice_at_save", createdAppearanceChoice)
         super.onSaveInstanceState(outState)
     }
 
     override fun onResume() {
         super.onResume()
-        if (AppLanguage.locale(this).language != AppLanguage.selected(this)) {
-            recreatingForLanguage = true
+        if (AppLanguage.locale(this).language != AppLanguage.selected(this) || createdAppearance != AppAppearance.resolved(this) || createdAppearanceChoice != AppAppearance.selected(this)) {
+            recreatingForInterface = true
             recreate()
         }
     }

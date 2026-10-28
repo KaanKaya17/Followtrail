@@ -53,6 +53,7 @@ await mkdir(path.join(resources, "desktop"), { recursive: true });
 await mkdir(path.join(resources, "web"), { recursive: true });
 for (const name of [
   "main.cjs",
+  "theme.cjs",
   "preload.cjs",
   "service.cjs",
   "notifications.cjs",
@@ -65,6 +66,7 @@ for (const name of [
   );
 for (const name of [
   "desktop.html",
+  "appearance.js",
   "desktop.js",
   "command-palette.js",
   "operation-progress.js",

@@ -44,8 +44,8 @@ class VisualHistoryActivity : LocalizedActivity() {
             val start=text.length
             text.append(if (part.kind=="add") "+${part.text}" else if (part.kind=="remove") "−${part.text}" else part.text)
             if (part.kind!="same") {
-                text.setSpan(BackgroundColorSpan(Color.parseColor(if (part.kind=="add") "#DAF4DF" else "#FFE2DF")),start,text.length,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                text.setSpan(ForegroundColorSpan(Color.parseColor(if (part.kind=="add") "#185A2C" else "#8F2727")),start,text.length,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.setSpan(BackgroundColorSpan(if (part.kind=="add") UiPalette.addedBg else UiPalette.removedBg),start,text.length,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                text.setSpan(ForegroundColorSpan(if (part.kind=="add") UiPalette.addedText else UiPalette.removedText),start,text.length,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 if (part.kind=="remove") text.setSpan(StrikethroughSpan(),start,text.length,Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
         }

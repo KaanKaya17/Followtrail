@@ -14,6 +14,7 @@ const allowed = new Map([
   ["/", "index.html"],
   ["/index.html", "index.html"],
   ["/theme.css", "theme.css"],
+  ["/appearance.js", "appearance.js"],
   ["/style.css", "style.css"],
   ["/app.js", "app.js"],
   ["/wayback.js", "wayback.js"],

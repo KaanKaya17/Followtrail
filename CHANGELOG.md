@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows/web 0.2.11 ve Android 0.1.32 — 2026-10-28 (Koyu ve OLED tema)
+
+- Sistem / Açık / Koyu / OLED siyahı tema seçimi eklendi. Sistem varsayılandır ve açık/koyu değişimini izler; açık seçim sistemden bağımsız kalır. Windows'ta Ayarlar → Tema, Android'de ⋯ → Tema, örnek webde Ayarlar üzerinden seçilir. Tercih her cihazda yerel saklanır; Windows şifreli ayarları/yedekleri, Android özel görünüm tercihi ve web tarayıcı tercihi kullanılır. Hesap verisi paylaşılmaz; tema için ağ servisi veya periyodik kontrol yoktur.
+- Ortak `design/theme.json`, CSS değişkenlerini, Android paletini ve native pencere/dialog renklerini üretir. Arka plan, kart, kenarlık, metin, form, grafik, bildirim, arama paleti ve biyografi farkları koyu renklerle uyumludur. Düğme zemini ve okunur vurgu metni ayrı renklerdir. OLED ana zemini siyah, kartları hafif ayrışan koyudur. Profil görsellerine renk ters çevirme uygulanmaz.
+- Tema değişimi hesap/kontrol/bildirim tercihlerini, son hatayı ve 429 molasını korur. Eski Windows deposu ve yedekler Sistem tercihiyle açılır. Android'de dil ve tema yeniden oluşturması ortak arayüz yaşam döngüsünde ele alınır; yalnız görünüm değişimi nedeniyle yeni profil kontrolü yapılmaz. Türkçe/İngilizce etiketler birlikte güncellendi.
+- Windows 0.2.11 ve Android 0.1.32 önizleme sürümleridir. Web mevcut örnek veri önizlemesidir; yeni gerçek hesap işlevi eklenmedi. Test kapsamı ve canlı doğrulama sınırları [tema doğrulama kaydındadır](docs/APPEARANCE-TEST.md).
+
 ## Windows 0.2.10 — 2026-10-28 (Şeffaf tarama ilerlemesi)
 
 - Liste ilerlemesi; hesap, yön, sıradaki/alınan sayfa, kaydedilen benzersiz hesap sayısı ve son profil sayısıyla gösterilir. Bu bağlam profil hazırlığı, istek aralığı ve ağ yanıtı boyunca korunur. Toplam sayfa/yüzde tahmin edilmez; profil sayısının tarama sırasında değişebileceği belirtilir.
