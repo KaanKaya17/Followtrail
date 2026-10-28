@@ -30,6 +30,7 @@ def blank(gate=None):
                          'investigateMissing': False},
             'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
             'notificationRules': {}, 'notificationLog': [],
+            'automaticAttempts': {}, 'lastInvestigationAt': 0,
             'lastError': None, 'lastAutomatic': 0}
 
 
@@ -83,6 +84,7 @@ class Engine:
         data = self.vault.load() or blank()
         access_checks.initialize(data)
         notification_log.initialize(data)
+        initialize_schedule(data)
         validate_archive(data)
         return data
 
@@ -102,7 +104,7 @@ class Engine:
                 'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
                 'notificationTypes': notification_log.TYPES,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.3'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.4'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
@@ -493,47 +495,65 @@ class Engine:
         notification_log.mark_read(self.data, args.get('id'), self.clock())
         self.save()
 
-    def monitor_status(self):
+    def automatic_plan(self):
+        """One owner for per-profile deadlines and optional investigation cadence."""
         d = self.data
         candidates = ([d['account']] if d['account'] else []) + [p for p in d['people'].values() if p.get('watching')]
         interval = d['settings']['interval'] * 60
-        pending = sum(c['stage'] == 'pending' and c['id'] in d['people'] for c in d['access'].values()) if d['settings']['investigateMissing'] else 0
+        profiles = sorted([(max(p.get('observedAt') or 0, d['automaticAttempts'].get(p['id'], 0)) + interval, p['id'])
+                           for p in candidates])
+        pending = [c for c in d['access'].values() if c['stage'] == 'pending' and c['id'] in d['people']] if d['settings']['investigateMissing'] else []
+        scan = d['settings']['investigateMissing'] and d['accessPlan']['status'] == 'pending'
+        investigation = ('followers_scan', None) if scan else ('access', min(pending, key=lambda c: c['detectedAt'])['id']) if pending else None
+        return profiles, pending, investigation
+
+    def monitor_status(self):
+        d = self.data
+        profiles, pending, investigation = self.automatic_plan()
+        interval = d['settings']['interval'] * 60
+        deadlines = [due for due, _ in profiles]
+        if investigation:
+            deadlines.append(d['lastInvestigationAt'] + interval)
         reason = ('disabled' if not d['settings']['automatic'] else 'session' if not d['session'] else
                   'restricted' if d['gate'].get('manualOnly') else None)
         return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason,
-                'profileCount': len(candidates), 'intervalSeconds': interval,
-                'estimatedCycleSeconds': interval * len(candidates) * (2 if pending else 1),
-                'accessPending': pending, 'followerScanPending': d['settings']['investigateMissing'] and d['accessPlan']['status'] == 'pending',
-                'nextAt': None if reason else max(d['lastAutomatic'] + interval,
+                'profileCount': len(profiles), 'intervalSeconds': interval,
+                'estimatedCycleSeconds': max(interval, 15 * len(profiles)),
+                'accessPending': len(pending), 'followerScanPending': bool(investigation and investigation[0] == 'followers_scan'),
+                'nextAt': None if reason or not deadlines else max(min(deadlines),
                                                    d['gate'].get('blockedUntil', 0), d['gate'].get('nextAt', 0))}
 
     def automatic(self):
         now, d = self.clock(), self.data
         status = self.monitor_status()
-        if status['held'] or status['nextAt'] > now:
+        if status['held'] or status['nextAt'] is None or status['nextAt'] > now:
             return
+        profiles, _, investigation = self.automatic_plan()
+        profile_due = profiles and profiles[0][0] <= now
+        investigation_due = investigation and d['lastInvestigationAt'] + d['settings']['interval'] * 60 <= now
         d['lastAutomatic'] = now
-        self.save()
-        if d['settings']['investigateMissing']:
-            if d['accessPlan']['status'] == 'pending':
+        # Optional work may take a slot, but cannot monopolize due profiles.
+        if investigation_due and (not profile_due or d['lastAutomaticTask'] != 'access'):
+            task, identity = investigation
+            d['lastInvestigationAt'] = now
+            d['lastAutomaticTask'] = task
+            if task == 'followers_scan':
                 d['accessPlan']['status'] = 'needs_manual_scan'
-                d['lastAutomaticTask'] = 'followers_scan'
                 self.save()
                 self.scan({'direction': 'followers'})
                 return
-            pending = [case for case in d['access'].values() if case['stage'] == 'pending' and case['id'] in d['people']]
-            if pending and d['lastAutomaticTask'] != 'access':
-                d['lastAutomaticTask'] = 'access'
-                self.save()
-                self.check_access({'id': min(pending, key=lambda c: c['detectedAt'])['id']})
-                return
+            self.save()
+            self.check_access({'id': identity})
+            return
+        if not profile_due:
+            return
         d['lastAutomaticTask'] = 'profile'
-        # One cached profile per tick. Own profile and explicitly watched people
-        # share the same cadence. An opt-in follower-drop investigation above
-        # may consume one slot for a full own-follower scan.
-        candidates = [d['account'], *[p for p in d['people'].values() if p.get('watching')]]
-        selected = min(candidates, key=lambda p: p.get('observedAt') or 0)
-        self.refresh({'id': selected['id']})
+        identity = profiles[0][1]
+        # Reserve before I/O: transient failure, cancellation and restart must
+        # not immediately retry this profile or delay other due identities.
+        d['automaticAttempts'][identity] = now
+        self.save()
+        self.refresh({'id': identity})
 
     def export_backup(self, path):
         value = copy.deepcopy(self.data)
@@ -556,6 +576,7 @@ class Engine:
             # Round-trip through the exact vault schema validator before replace.
             access_checks.initialize(restored)
             notification_log.initialize(restored)
+            initialize_schedule(restored)
             validate_archive(restored)
         except Exception as exc:
             raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
@@ -591,6 +612,7 @@ class Engine:
             if operation == 'remove_person':
                 identity = str(args.get('id', ''))
                 self.data['people'].pop(identity, None)
+                self.data['automaticAttempts'].pop(identity, None)
                 self.save()
             elif operation == 'disconnect':
                 self.data['session'] = None
@@ -628,6 +650,13 @@ class Engine:
             args.pop('password', None)
             self.operation = None
             self.observation_group = None
+
+
+def initialize_schedule(d):
+    # Existing observations already carry per-profile successful read times.
+    # Preserve the old background timestamp only as the auxiliary job cadence.
+    d.setdefault('automaticAttempts', {})
+    d.setdefault('lastInvestigationAt', d.get('lastAutomatic', 0))
 
 
 def validate_archive(d):
@@ -695,7 +724,12 @@ def validate_archive(d):
                 or type(event.get('title')) is not str or not timestamp(event.get('at'))
                 or event.get('type') not in ('profile', 'list', 'check', 'error')):
             raise ValueError('event')
-    if 'lastAutomatic' not in d:
+    if (not timestamp(d.get('lastAutomatic')) or not timestamp(d.get('lastInvestigationAt'))
+            or not isinstance(d.get('automaticAttempts'), dict) or len(d['automaticAttempts']) > 201
+            or any(not identity(key) or not timestamp(value) for key, value in d['automaticAttempts'].items())):
         raise ValueError('automatic')
+    for p in [d.get('account'), *d['people'].values()]:
+        if p is not None and p.get('observedAt') is not None and not timestamp(p['observedAt']):
+            raise ValueError('profile observation time')
     access_checks.validate(d)
     notification_log.validate(d)

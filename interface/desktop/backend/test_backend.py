@@ -343,7 +343,7 @@ class BackendTests(unittest.TestCase):
             e.data['gate']['manualOnly']=True
             e.automatic();refresh.assert_not_called()
 
-    def test_automatic_reads_oldest_profile_once_not_lists(self):
+    def test_automatic_reads_due_profiles_without_waiting_an_interval_between_them(self):
         e=self.connected()
         e.data['settings']['automatic']=True
         e.data['people']['200']={'id':'200','username':'qa.200','watching':True,'observedAt':100}
@@ -362,11 +362,11 @@ class BackendTests(unittest.TestCase):
     def test_monitor_is_the_owner_of_due_time_and_cycle_estimate(self):
         e=self.connected();e.settings({'automatic':True,'interval':1})
         e.data['lastAutomatic']=1800000000
-        e.data['people']['200']={'id':'200','username':'qa.200','watching':True,'observedAt':100}
+        e.data['people']['200']={'id':'200','username':'qa.200','watching':True,'observedAt':1800000000}
         status=e.snapshot()['monitor']
         self.assertEqual(status['nextAt'],1800000060)
         self.assertEqual(status['profileCount'],2)
-        self.assertEqual(status['estimatedCycleSeconds'],120)
+        self.assertEqual(status['estimatedCycleSeconds'],60)
         e.data['gate']['nextAt']=1800000100
         self.assertEqual(e.monitor_status()['nextAt'],1800000100)
         e.data['gate']['manualOnly']=True

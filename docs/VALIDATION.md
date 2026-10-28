@@ -1,5 +1,11 @@
 # Doğrulama kaydı
 
+## Windows 0.2.4 — profil başına aralık
+
+- Profil son başarılı gözlemi ve kimlik bazlı kalıcı otomatik deneme zamanı, ortak N×T sıranın yerine geçti. Normal profiller, ek takipçi/erişim işleri ve ortak API beklemesi aynı backend planından en erken zamanını alır. Ek işler kendi aralığıyla çalışır, arka arkaya erişim işi süresi dolan profili sürekli ertelemez.
+- **84 offline backend testi geçti**: önceki 78 kontrol ve 6 yeni zamanlayıcı regresyonu. Üç profilde gerçek Engine.run→refresh→profil kaydı ve Windows DPAPI sınırı kullanılarak 300/315/330 ve 600/615/630 saniye başlangıçlarında her kimlik için 300 saniye fark ve 15 saniye ortak rezervasyon doğrulandı. HTTP taşıyıcısı sahtedir; bu üç Instagram hesabıyla canlı ölçüm değildir. Hata+yeniden başlatma, diğer hesapların devamı, elle okuma/izlemeyi kapatma, aralık değişimi, uyku sonrası geçmiş gözlemleri tekrar oynamama, eski depo migration ve geçersiz zamanlar, kişi kaldırma temizliği de geçti.
+- `npm run check` ve **9 Node zamanlayıcı/bildirim testi geçti**. **27 gerçek paketlenmiş EXE kontrolü geçti**, yalıtılmış sentetik depoyla; güncel aralık açıklaması ve kişi başına hedef monitor durumu IPC üzerinden doğrulandı. Dış renderer isteği 0, JavaScript hatası 0. Rapor `artifacts/desktop-0.2.4-qa/checks.json`. Bu sürümde yeni çok hesaplı canlı Instagram hız ölçümü veya gerçek Windows toast teslimi yapılmadı.
+
 ## Windows 0.2.3 — hesaba/türe göre tek bildirim ve uygulama içi kayıt
 
 - Kullanıcı, hesaba ve değişiklik türüne göre bildirim seçimi; aynı kontroldeki farkların tek bildirime toplanması ve uygulamada açılan eski/yeni değer log'u istedi. `notification_log.py`, 12 tür sözleşmesi, hesap tercihleri, kontrol grubu kimliği, seçim ve kalıcı kayıt/okunma bilgisinin sahibidir. Engine olay üretirken aynı operation kimliğiyle kaydı günceller; profil farkları, varsa aynı işlemde liste/erişim farkı tek gruptadır. Kısmi işlemin başarıyla kaydedilmiş profil gözlemi de kayıtta kalır. Başlangıç gözlemi/değişimsiz kontrol yeni bildirim üretmez.

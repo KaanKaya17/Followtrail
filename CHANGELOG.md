@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.4 — 2026-10-28 (her profil için ayrı kontrol aralığı)
+
+- Seçilen aralık her profilin kendi son kontrolüne uygulanır. 3 profil ve 5 dakika artık yaklaşık 5 dakikalık kişi başına kontrol hedefidir; aralık profil sayısıyla çarpılmaz. İstekler sırayla ve en az 15 saniye arayla gönderilir. Çok sayıda profil, uzun liste taraması ve sunucu molaları hedefi uzatabilir.
+- Otomatik denemeler kimliğe göre şifreli saklanır: hata/iptal/yeniden başlatma hemen tekrar döngüsü oluşturmaz, diğer süresi dolan kişiler ilerler. Elle başarılı okuma o profilin süresini yeniler; uyku sonrası geçmiş kontroller tekrar oynatılmaz. Ek erişim/liste incelemeleri kendi aralığı ve profil sırasıyla birlikte planlanır.
+- 84 offline backend, 9 Node ve 27 gerçek paketlenmiş EXE kontrolü geçti; üç profilli süre senaryosu sahte HTTP ile doğrulandı. Yeni çok hesaplı canlı Instagram hız ölçümü yapılmadı.
+- Ayarlar açıklaması kişi başına süreyi gösterir. Önceki hesap, bildirim tercihleri ve kontrol aralığı korunur. Android ve örnek web önizlemesinin zamanlayıcısı bu masaüstü değişikliğinde değiştirilmedi.
+
 ## Windows 0.2.3 — 2026-10-28 (hesaba göre bildirim türleri ve tek kontrol kaydı)
 
 - Kendi hesabı ve kayıtlı kişiler için ayrı bildirim tercihi: hesap genelinde aç/kapat, kullanıcı adı, görünen ad, biyografi, fotoğraf, takipçi/takip edilen/gönderi sayısı, bağlantı, gizlilik, doğrulanma, liste ve engellenme şüphesi türleri. Tercihler şifreli saklanır; genel Windows bildirim anahtarı ayrıca korunur.
