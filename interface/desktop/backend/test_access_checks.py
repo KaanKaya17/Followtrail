@@ -220,7 +220,7 @@ class AccessTests(unittest.TestCase):
                       ([profile(followers=1),page(['201'])],'idle'),
                       ([profile(followers=1),error()],'idle')]
         for index,(responses,plan) in enumerate(observations):
-            self.e.clock=lambda index=index:1800000000+61*index
+            self.e.clock=lambda index=index:1800000000+61*(index+1)
             client=ProbeClient(responses)
             with patch.object(self.e,'client',return_value=client):self.e.run('automatic',{})
             self.assertEqual(self.e.data['accessPlan']['status'],plan)

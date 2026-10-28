@@ -315,6 +315,10 @@ try {
         );
       }
       assert.equal(await page.locator(".monitor-summary").isVisible(), true);
+      assert.match(await page.locator(".monitor-summary").innerText(), /Her profil kendi son kontrolünden yaklaşık 5 dakika/);
+      const monitor = (await page.evaluate(() => window.TrackerDesktop.command("state"))).state.monitor;
+      assert.equal(monitor.intervalSeconds, 300);
+      assert.equal(monitor.estimatedCycleSeconds, Math.max(300, monitor.profileCount * 15));
     },
   );
   await check(
