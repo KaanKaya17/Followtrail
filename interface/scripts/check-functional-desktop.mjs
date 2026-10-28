@@ -90,6 +90,39 @@ try {
       );
     },
   );
+  await check("Hidden and minimized windows skip updates and resume the latest state once", async () => {
+    await page.evaluate(() => {
+      window.qaDOMUpdates = 0;
+      window.qaResumeCount = 0;
+      window.qaObserver = new MutationObserver(records => { window.qaDOMUpdates += records.length; });
+      window.qaObserver.observe(document.getElementById('app'), { childList: true, subtree: true });
+      window.qaUnsubscribe = window.TrackerDesktop.subscribe(event => { if (event.type === 'resume') window.qaResumeCount++; });
+    });
+    for (const mode of ['hide', 'minimize']) {
+      await page.evaluate(() => { window.qaDOMUpdates = 0; window.qaResumeCount = 0; });
+      await desktop.evaluate(({ BrowserWindow }, mode) => BrowserWindow.getAllWindows()[0][mode](), mode);
+      for (const compact of [false, true, false, true]) {
+        const result = await page.evaluate(compact => window.TrackerDesktop.command('settings', { compact }), compact);
+        assert.equal(result.ok, true);
+      }
+      assert.equal(await page.evaluate(() => window.qaDOMUpdates), 0);
+      await desktop.evaluate(({ app }) => app.emit('activate'));
+      await page.waitForFunction(() => document.body.dataset.density === 'compact');
+      assert.equal(await page.evaluate(() => window.qaResumeCount), 1);
+      await page.evaluate(() => window.TrackerDesktop.command('settings', { compact: false }));
+      await page.waitForFunction(() => document.body.dataset.density === 'comfortable');
+    }
+    await page.evaluate(() => { window.qaObserver.disconnect(); window.qaUnsubscribe(); });
+  });
+  await check("Resuming a code wait or failed service restores actionable UI", async () => {
+    const state = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
+    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', state, busy: true, progress: { phase: 'code' }, error: null }), state);
+    await page.locator('#code-form').waitFor();
+    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', state, busy: false, progress: null, error: { message: 'Synthetic service failure' } }), state);
+    await page.waitForFunction(() => !document.querySelector('#code-form')?.closest('dialog')?.open);
+    await page.getByText('Synthetic service failure', { exact: true }).waitFor();
+    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', state, busy: false, progress: null, error: null }), state);
+  });
   await check("Renderer isolation and no Node access", async () => {
     const prefs = await desktop.evaluate(({ BrowserWindow }) => {
       const p =

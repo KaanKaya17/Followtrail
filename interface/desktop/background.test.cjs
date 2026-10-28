@@ -123,3 +123,16 @@ test("quitting cancels the coordinator, permits window destruction and removes t
   s.owner.destroy();
   assert.equal(s.owner.tray.isDestroyed(), true);
 });
+
+test("progress events reuse the tray menu until an actionable state changes", () => {
+  const s = setup();
+  const initial = s.owner.tray.menu;
+  for (let n = 0; n < 100; n++) s.owner.update();
+  assert.equal(s.owner.tray.menu, initial);
+  s.backend.busy = true; s.owner.update();
+  const busyMenu = s.owner.tray.menu;
+  assert.notEqual(busyMenu, initial);
+  assert.equal(busyMenu.find(item => item.type === 'checkbox').enabled, false);
+  s.backend.busy = false; s.owner.update();
+  assert.equal(s.owner.tray.menu.find(item => item.type === 'checkbox').enabled, true);
+});

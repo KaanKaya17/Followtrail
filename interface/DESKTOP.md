@@ -1,6 +1,6 @@
-# InstagramTracker Windows 0.2.4
+# InstagramTracker Windows 0.2.5
 
-`artifacts/InstagramTracker-Desktop-0.2.4/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.5/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Kullanım
 
@@ -45,7 +45,7 @@ npm run check:functional
 
 Mevcut kendi paketi yenilenirken `npm run package:functional -- --refresh` önce eski paket varlıklarını artifacts altına yedekler. Yeni Electron runtime için ayrı sürüm klasörü gerekir. Paket Python bağımlılık bildirimlerini de içerir. `npm run desktop` kaynaktan işlevli uygulamayı, `npm run desktop:preview` yalnız örnek verili eski tasarımı açar.
 
-Backend testi: `desktop/backend` içinde derleme Python'u ile `-m unittest discover -p test_*.py -v`. Gerçek Windows DPAPI ve üretim sınırları kullanılır; ağ taşıyıcısı sahtedir. `npm run check:functional` paketlenmiş EXE'yi geçici `TrackerQA-*` verisiyle açar; bu kip worker'da ağ/oturum aktarımını kapatır. Gerçek kullanıcı deposuna, eski prototip oturumuna ve gerçek Başlat menüsüne yazmaz. Rapor/ekran görüntüleri `artifacts/desktop-0.2.4-qa` altındadır.
+Backend testi: `desktop/backend` içinde derleme Python'u ile `-m unittest discover -p test_*.py -v`. Gerçek Windows DPAPI ve üretim sınırları kullanılır; ağ taşıyıcısı sahtedir. `npm run check:functional` paketlenmiş EXE'yi geçici `TrackerQA-*` verisiyle açar; bu kip worker'da ağ/oturum aktarımını kapatır. Gerçek kullanıcı deposuna, eski prototip oturumuna ve gerçek Başlat menüsüne yazmaz. Rapor/ekran görüntüleri `artifacts/desktop-0.2.5-qa` altındadır.
 
 Önceki Windows 0.2.1 doğrulaması: 39 çevrimdışı backend testi, 4 masaüstü zamanlayıcı/tepsi testi ve 23 paketlenmiş Windows kontrolü geçti. Canlı test, kayıtlı Windows oturumunun kabulünü, kendi profil ve takipçi/takip edilen listelerinin HTTP 200 ile okunmasını doğruladı. Listeler bu hesapta birer sayfaydı. Çok sayfalı akış, kısmi kapsam, kesinti, 429, kod devamı ve iptal çevrimdışı sınandı. Yeni parola/2FA girişi, başka hesaplar, uzun süreli oturum, gerçek Windows bildirim teslimi ve uzun süreli otomatik çalışma bu sürümde canlı doğrulanmadı. 1 dakikalık aralıkla pencere gizliyken iki gerçek profil kontrolü HTTP 200 ile geldi; istek başlangıçları arasında 60,11 saniye ölçüldü. Tek elle profil kontrolü bu bağlantıda 1,28 saniye, istekten fotoğraf aşamasına kadar yaklaşık 0,74 saniyeydi. Bu tek örnek ağ/hesap ölçümüdür; hız garantisi değildir. Bu sonuçlar Android girişinin veya tarayıcı sürümünün çalıştığı anlamına gelmez.
 
@@ -55,7 +55,7 @@ Windows 0.2.4 itibarıyla kontrol aralığı her profil için ayrıdır. Örneğ
 
 Bir liste taraması, başlangıç profil okuması ve her sayfa için ayrı API isteği yapar. Sunucu sayfa başına 50 üye döndürürse 1.000 üyelik liste yaklaşık 20 sayfadır; 15 saniyelik aralık nedeniyle ilk profil isteğinden son sayfaya en az yaklaşık 5 dakika + yanıt süresi gerekir. Bu koddan hesaplanan örnektir, 1.000 üyeli canlı ölçüm değildir.
 
-Önceki otomatik kontrol ve aralık tercihin korunur; yeni aralık seçimi için Ayarlar → Kontrol aralığı kullan. 1/5 dakikalık ayarlar eski Windows 0.2.0 doğrulayıcısında yoktur; bu ayarları seçtikten sonra güncel 0.2.4 EXE kullan. Depo biçimi ve hesap verileri korunur. Windows başlangıcında otomatik başlatma eklenmedi.
+Önceki otomatik kontrol ve aralık tercihin korunur; yeni aralık seçimi için Ayarlar → Kontrol aralığı kullan. 1/5 dakikalık ayarlar eski Windows 0.2.0 doğrulayıcısında yoktur; bu ayarları seçtikten sonra güncel 0.2.5 EXE kullan. Depo biçimi ve hesap verileri korunur. Windows başlangıcında otomatik başlatma eklenmedi.
 
 ## Engellenme şüphesi / Erişim kontrolleri
 
@@ -84,3 +84,9 @@ Sol menüde **Bildirimler** veya üstteki zil, kontrol başına tek satır olan 
 Bu sürümden önceki zaman çizelgesi korunur; eski olaylardan yapay, geriye dönük Windows bildirimi/log üretilmez. İlk gözlem veya değişimsiz kontrol yeni bildirim oluşturmaz. Windows bildirimleri genel kapalıyken de yeni değişiklik log'u oluşur. “Windows bildirimi için seçildi” teslim edildi anlamına gelmez; Windows/odaklanma ayarları teslimi etkileyebilir. Listeler ve engellenme şüphesi önceki kapsam/mola kurallarını korur; şüphe kesin engelleme kanıtı değildir.
 
 28 Ekim doğrulaması: **78** offline backend testi, **9** ana süreç/bildirim testi ve **27** gerçek paketlenmiş EXE kontrolü geçti. Gerçek mevcut hesapla açılışta kayıtlar ve genel tercihler korundu; 12 türün penceresi açıldı, API istek sayısı artmadı. Birden çok gerçek Instagram alanını bu sürümde değiştirmedik; gruplama/filtreleme, click IPC ve kalıcı log üretim sınırında sentetik verilerle doğrulandı. Gerçek Windows toast teslimi/tıklaması ayrıca canlı doğrulanmadı.
+
+## Arka plan kaynak kullanımı · 0.2.5
+
+Pencere gizli veya küçültülmüşken ara durum/ilerleme/sonuçlar renderer’a gönderilmez. Gözlemler, şifreli kayıt ve bildirim seçimi ana süreç/worker’da sürer; pencere açılınca yalnız güncel durum bir kez gönderilir. Kod beklemesi, hizmet hatası, son bildirim uyarısı ve tıklanan kayıt korunur. Tepsi menüsü yalnız hazır/meşgul/otomatik/mola durumu değiştiğinde yeniden oluşturulur. Arayüz ve Python hizmeti bellekte tutulur; bu çalışma bir renderer kapatıp yeniden açma değişikliği değildir.
+
+Ölçüm: `node scripts/profile-desktop.mjs 0.2.5` ve `--large`. Gerçek paketlenmiş EXE, yalnız sentetik TrackerQA deposu ve ağsız worker kullanır. Üç saniye ısınma sonrası görünür boşta, gizli boşta ve gizli 40 yerel şifreli not güncellemesi için 20’şer saniye ölçer. PowerShell gözlemcisi uygulama ailesinin CPU süresini, 500 ms örneklemeyle toplam working set ve private bytes tepesini kaydeder; gözlemci uygulama maliyetine dahil değildir. Working set toplamı paylaşılan sayfaları birden fazla sayabilir; private bytes fiziksel RAM değil ayrılmış bellektir. Sonuçlar `artifacts/desktop-0.2.5-qa/performance*/summary.json`; kısa ısınmış örnekler saatler süren sızıntı veya zayıf cihaz garantisi değildir.

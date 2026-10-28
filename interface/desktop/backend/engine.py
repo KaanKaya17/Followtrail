@@ -104,7 +104,7 @@ class Engine:
                 'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
                 'notificationTypes': notification_log.TYPES,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.4'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.5'}
 
     def progress(self, phase, **details):
         self.emit({'type': 'progress', 'phase': phase, **details})
