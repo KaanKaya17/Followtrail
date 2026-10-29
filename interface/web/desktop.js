@@ -72,6 +72,17 @@
     notificationFilter: "all",
     notificationLimit: 100,
   };
+  function acceptState(next) {
+    if (data && next.activeAccountId !== data.activeAccountId) {
+      closeDialog();
+      document.querySelector('.command-palette')?.close();
+      Object.assign(ui, {page:'overview', query:'', filter:'all', owner:'', listQuery:'',
+        listFilter:'all', comparison:false, previous:null, current:null, eventLimit:100,
+        notificationFilter:'all', notificationLimit:100});
+      location.hash = '#overview';
+    }
+    data = next;
+  }
   function toast(message) {
     const node = document.getElementById("toast");
     node.textContent = stored(message);
@@ -206,7 +217,7 @@
     }
     try {
       const result = await api.command(operation, args);
-      if (result.state) data = result.state;
+      if (result.state) acceptState(result.state);
       if (!control) {
         busy = false;
         progress = null;
@@ -230,7 +241,7 @@
     try {
       const result = await api.file(action, args);
       if (result.state) {
-        data = result.state;
+        acceptState(result.state);
         render();
       }
       if (!result.ok)
@@ -251,7 +262,7 @@
       )
       .join(
         "",
-      )}</nav><div class="sidebar-bottom"><div class="privacy-note">${icon("shield")}<strong>${t("Çevren sana özel.")}</strong><p>${t("Oturum ve gözlemler bu Windows kullanıcısına bağlı şifrelenir.")}</p><button class="text-button" data-action="privacy">${t("Gizliliği incele {0}", icon("arrow"))}</button></div><div class="preview-label"><span class="status-dot"></span> ${t("Yerel masaüstü")} <span>0.2</span></div></div></aside>`;
+      )}</nav><div class="sidebar-bottom"><button class="account-switcher" data-action="accounts" aria-label="${t("Hesaplar arasında geçiş")}" ${busy ? "disabled" : ""}>${avatar(data.account)}<span><strong>${data.account ? "@" + esc(data.account.username) : t("Hesabını bağla")}</strong><small>${t("{0} kayıtlı hesap", (data.accounts || []).length)}</small></span>${icon("down")}</button><div class="privacy-note">${icon("shield")}<strong>${t("Çevren sana özel.")}</strong><p>${t("Oturum ve gözlemler bu Windows kullanıcısına bağlı şifrelenir.")}</p><button class="text-button" data-action="privacy">${t("Gizliliği incele {0}", icon("arrow"))}</button></div><div class="preview-label"><span class="status-dot"></span> ${t("Yerel masaüstü")} <span>0.2</span></div></div></aside>`;
   }
   function topbar() {
     const own = data.account;
@@ -728,9 +739,14 @@
       `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(data.lastError.message)} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Şifreli yerel kayıtlar · Son gözlem {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></footer></main></div>`;
     operationPanel();
   }
-  function accountDialog() {
+  function accountsDialog() {
+    dialog(`<span class="dialog-symbol lavender">${icon("people")}</span><h2 id="dialog-title">${t("Hesapların")}</h2><p>${t("Her hesabın oturumu ve gözlemleri ayrı şifreli kasada tutulur. Hesap değiştirmek Instagram isteği göndermez.")}</p><div class="saved-accounts">${(data.accounts || []).map(a => `<button class="saved-account ${a.id === data.activeAccountId ? 'selected' : ''}" data-action="switch-account" data-id="${esc(a.id)}" aria-pressed="${a.id === data.activeAccountId}" ${busy ? 'disabled' : ''}>${avatar(a)}<span><strong>@${esc(a.username)}</strong><small>${a.connected && !['session','verification'].includes(a.lastError) ? a.monitor?.enabled ? t("Arka plan takibi açık") : t("Oturum kayıtlı · Takip kapalı") : t("Yeniden bağlantı gerekli")}${a.monitor?.reason === 'restricted' ? ' · ' + t("Kontrol duraklatıldı") : ''}</small></span>${a.id === data.activeAccountId ? icon("check") : icon("arrow")}</button>`).join('')}</div>${button(t("Hesap ekle"), "add-account", "plus", "primary", busy ? 'disabled' : '')}<p class="dialog-note">${t("Arka plan takibini her hesabın Ayarlar ekranından ayrı açabilirsin. İstek sırası ve 429 molası bütün hesaplar için ortaktır.")}</p>`);
+  }
+  function accountDialog(adding = false) {
+    const own = adding ? null : data.account;
+    const connected = !adding && data.connected;
     dialog(
-      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${data.connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", data.account ? t("Kayıtlı hesap: @") + esc(data.account.username) + ". " : "")}</p>${data.connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(data.account?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${data.connected ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
+      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", own ? t("Kayıtlı hesap: @") + esc(own.username) + ". " : "")}</p>${connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(own?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${connected ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
     );
   }
   function requestsDialog() {
@@ -819,6 +835,16 @@
         break;
       case "account":
         accountDialog();
+        break;
+      case "accounts":
+        accountsDialog();
+        break;
+      case "add-account":
+        accountDialog(true);
+        break;
+      case "switch-account":
+        closeDialog();
+        await command('switch_account', {id});
         break;
       case "requests":
         requestsDialog();
@@ -1069,7 +1095,7 @@
         break;
       case "delete-all":
         dialog(
-          `<h2 id="dialog-title">${t("Bütün yerel veriler silinsin mi?")}</h2><p>${t("Bu uygulamadaki oturum, kişiler, notlar, liste ve geçmiş kayıtları silinir. Dışa aktardığın dosyalar ve önceki Windows prototipi etkilenmez. İstek molası korunur.")}</p><div class="dialog-buttons">${button(t("Vazgeç"), "close")}${button(t("Yerel verileri sil"), "delete-confirm", "close", "primary")}</div>`,
+          `<h2 id="dialog-title">${t("Seçili hesabın yerel verileri silinsin mi?")}</h2><p>${t("Yalnız seçili hesabın oturumu, kişiler, notlar, listeler ve geçmişi silinir. Diğer hesaplar ve dışa aktarılan dosyalar korunur. Ortak istek molası devam eder.")}</p><div class="dialog-buttons">${button(t("Vazgeç"), "close")}${button(t("Yerel verileri sil"), "delete-confirm", "close", "primary")}</div>`,
         );
         break;
       case "delete-confirm":
@@ -1232,7 +1258,7 @@
     }
     if (event.type === "notification_warning" || event.notificationWarning)
       toast(event.message || event.notificationWarning);
-    if (event.state) data = event.state;
+    if (event.state) acceptState(event.state);
     if (event.type === "resume") {
       windowVisible = event.visible;
       busy = event.busy;
@@ -1267,7 +1293,7 @@
   api
     .command("state")
     .then((result) => {
-      data = result.state;
+      acceptState(result.state);
       busy = result.busy;
       progress = result.progress;
       serviceError = result.error?.message;

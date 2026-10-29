@@ -879,7 +879,29 @@
   "Tema seçimi": "Theme selection",
   "Sistem temasını izle veya bu cihaz için bir görünüm seç.": "Follow the system theme or choose an appearance for this device.",
   "Ortak renk paleti": "Shared color palette",
-  "Açık tema": "Light"
+  "Açık tema": "Light",
+  "Hesaplar arasında geçiş": "Switch accounts",
+  "{0} kayıtlı hesap": "{0} saved accounts",
+  "Hesapların": "Your accounts",
+  "Her hesabın oturumu ve gözlemleri ayrı şifreli kasada tutulur. Hesap değiştirmek Instagram isteği göndermez.": "Each account’s session and observations are stored in a separate encrypted vault. Switching accounts sends no Instagram request.",
+  "Arka plan takibi açık": "Background monitoring on",
+  "Oturum kayıtlı · Takip kapalı": "Session saved · Monitoring off",
+  "Yeniden bağlantı gerekli": "Reconnection required",
+  "Kontrol duraklatıldı": "Monitoring paused",
+  "Hesap ekle": "Add account",
+  "Arka plan takibini her hesabın Ayarlar ekranından ayrı açabilirsin. İstek sırası ve 429 molası bütün hesaplar için ortaktır.": "Enable background monitoring separately in each account’s Settings. The request queue and 429 pause are shared across all accounts.",
+  "Bildirimi açmak için devam eden işlemi bitirip ilgili hesabı seç.": "Finish the current operation and select the relevant account to open this notification.",
+  "Seçili hesabın yerel verileri silinsin mi?": "Delete the selected account’s local data?",
+  "Yalnız seçili hesabın oturumu, kişiler, notlar, listeler ve geçmişi silinir. Diğer hesaplar ve dışa aktarılan dosyalar korunur. Ortak istek molası devam eder.": "Only the selected account’s session, people, notes, lists and history will be deleted. Other accounts and exported files are preserved. The shared request pause remains.",
+  "Kayıtlı hesap bulunamadı.": "Saved account not found.",
+  "Hesap dizini geçersiz. Mevcut dosyalar korundu.": "The account catalog is invalid. Existing files are preserved.",
+  "Hesap kasası bulunamadı. Mevcut kayıtlar korundu.": "The account vault was not found. Existing records are preserved.",
+  "Hesap kasası bulunamadı. Kayıtlar otomatik sıfırlanmadı.": "The account vault was not found. Records were not reset automatically.",
+  "Hesap kasasının kimliği uyuşmuyor. Dosyalar korundu.": "The account vault’s identity does not match. Files are preserved.",
+  "Yedek başka bir hesaba ait. Önce ilgili hesabı seç.": "This backup belongs to another account. Select the relevant account first.",
+  "Seçili hesabın otomatik kontrolü": "Automatic monitoring for the selected account",
+  "Bağlı hesap: @{0}": "Connected account: @{0}",
+  "Dosya seçimi sırasında hesap değişti. İlgili hesabı seçip yeniden dene.": "The account changed during file selection. Select the relevant account and try again."
 };
   const locales = { tr: 'tr-TR', en: 'en-US' };
   const formatterCache = new Map();

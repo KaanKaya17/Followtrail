@@ -28,6 +28,7 @@ const {
   ensureShortcut,
   showNotification,
   changeNotification,
+  openAccountNotification,
 } = require("./notifications.cjs");
 
 app.setName("InstagramTracker");
@@ -69,6 +70,7 @@ const rendererUpdates = new RendererUpdates({
 });
 const allowed = new Set([
   "state",
+  "switch_account",
   "login",
   "import_counter",
   "refresh",
@@ -107,6 +109,7 @@ function validate(operation, args) {
     throw new Error("Command too large");
   const fields = {
     state: [],
+    switch_account: ["id"],
     login: ["username", "password"],
     import_counter: [],
     refresh: ["id"],
@@ -281,6 +284,9 @@ else
           ok: false,
           error: { message: t("Önce devam eden işlemi bitir veya iptal et.") },
         };
+      const fileAccountId = backend.state?.activeAccountId;
+      const accountChanged = () => backend.state?.activeAccountId !== fileAccountId;
+      const accountChangedResult = () => ({ok:false,error:{message:t("Dosya seçimi sırasında hesap değişti. İlgili hesabı seçip yeniden dene.")}});
       if (action === "open_storage") {
         await fs.mkdir(dataDir, { recursive: true });
         await shell.openPath(dataDir);
@@ -293,6 +299,7 @@ else
           filters: [{ name: t("Tracker yedeği"), extensions: ["trackerbackup"] }],
         });
         if (selection.canceled) return { ok: true, cancelled: true };
+        if (accountChanged()) return accountChangedResult();
         const confirm = await dialog.showMessageBox(window, {
           type: "question",
           buttons: [t("Vazgeç"), t("Yedeği yükle")],
@@ -303,6 +310,7 @@ else
             t("Önceki depo şifreli önceki kopyada korunur. Oturum aktarılmaz; tekrar hesap bağlantısı gerekir. Mola bilgisi kısaltılmaz."),
         });
         if (confirm.response !== 1) return { ok: true, cancelled: true };
+        if (accountChanged()) return accountChangedResult();
         return backend.command(action, { path: selection.filePaths[0] });
       }
       const backup = action === "export_backup";
@@ -321,6 +329,7 @@ else
         ],
       });
       if (selection.canceled) return { ok: true, cancelled: true };
+      if (accountChanged()) return accountChangedResult();
       if (backup) return backend.command(action, { path: selection.filePath });
       const record =
         backend.state?.lists[`${String(args.id || "")}:${args.direction}`];
@@ -358,12 +367,11 @@ else
         const content = changeNotification(entry, backend.state?.settings.language || 'tr');
         showNotification({
           Notification,
-          title: content.title,
+          title: entry.ownerUsername ? `${content.title} · @${entry.ownerUsername}` : content.title,
           body: content.body,
-          onClick: () => {
-            showWindow();
-            send({ type: "open_notification", id: entry.id });
-          },
+          onClick: () => openAccountNotification({entry, backend, showWindow, send,
+            onBusy: () => send({type:'notification_warning', message:t("Bildirimi açmak için devam eden işlemi bitirip ilgili hesabı seç.")}),
+          }),
           onFailure: () =>
             send({
               type: "notification_warning",

@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.12 — 2026-10-29 (Çoklu hesap)
+
+- Sol altta hesap seçici ve Hesap ekle eklendi. Sayısal Instagram kimliğine göre bağımsız DPAPI kasaları kullanılır; geçiş Instagram isteği veya parola girişi göndermez. Mevcut ilk hesap ve oturumu yerinde korunur.
+- Kişiler, notlar, listeler, geçmiş, profil zaman tüneli, bildirim ve kontrol ayarları hesaplara ayrıldı. Dil, tema ve kompakt görünüm cihaz genelindedir. Silme/bağlantıyı kaldırma yalnız seçili hesabı etkiler; farklı hesaba ait yedeğin üzerine yazılması reddedilir.
+- Tek worker ve istek sırası bütün hesaplara hizmet verir. Arka planda işlenen hesabın sonuçları kendi kasasına yazılır, görünür hesap korunur. Bildirim ilgili hesabı belirtir ve doğru hesabın kaydına gider. İşlem sürerken geçişe izin verilmez. Ortak 429 molası, giriş aralığı ve istek rezervasyonu korunur.
+- Windows önizlemesidir. Gerçek iki hesap girişi/uzun süreli izleme ve native bildirim teslimi canlı doğrulanmadı. Android 0.1.34 ve webin örnek veri kapsamı değişmedi. [Doğrulama ve kullanım](docs/MULTI-ACCOUNT-TEST.md).
+
 ## Android 0.1.34 — 2026-10-29 (429 kaynağını doğru gösterme)
 
 - WebView'deki farklı bir Instagram kaynağının 429 yanıtının, A sürerken W01 profil yanıtı gibi yazılması düzeltildi. Profil isteğinin sahibi artık etkin HTTPS origin/yolu eşleştirir; gerçek profil 429'u ortak sonuç yolundan W01 ve sayaçlı HTTP kaydına bir kez işlenir.

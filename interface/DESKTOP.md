@@ -1,6 +1,14 @@
-# InstagramTracker Windows 0.2.11
+# InstagramTracker Windows 0.2.12
 
-`artifacts/InstagramTracker-Desktop-0.2.11/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.12/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Çoklu hesap
+
+Sol alttaki hesap düğmesi → **Hesap ekle** ile yeni hesap bağlanır; kayıtlı hesaplara oturumu kapatmadan geçilir. Geçiş Instagram isteği göndermez. Her hesabın ayrı şifreli kasası, kişileri, notları, liste/geçmişi, görsel arşivi, bildirim ve kontrol ayarları vardır. Dil, tema ve kompakt görünüm cihaz genelindedir. Oturum süresi dolarsa yalnız ilgili hesabı yeniden bağlamak gerekir.
+
+Arka plan takibini her hesabın Ayarlar ekranından ayrı aç. Tek işlem sırası ve en az 15 saniye aralık kullanılır; HTTP 429 molası bütün hesaplar için korunur. Tepsi durumu herhangi bir hesabın takibini gösterir; tepsideki aç/kapat seçeneği **seçili hesabı** etkiler. Bildirim başlığı ilgili hesabı belirtir; tıklamak o hesaba geçip kendi kaydını açar. İşlem sürerken geçiş yapılamaz. **Yerel verileri sil** yalnız seçili hesabı ve oturumlu önceki kopyasını kaldırır; diğer hesaplar korunur.
+
+Mevcut hesap yeniden giriş olmadan ilk kasa olarak korunur. Güncellemeden sonra eski sürümü aynı veri klasöründe kullanma: eski sürüm yeni hesap dizinini/ortak mola kaydını tanımaz. İlk bağlantılar Instagram'ın erişim ve doğrulama koşullarına tabidir; çoklu hesap desteği giriş sınırlamasını kaldırmaz. [Doğrulama ve sınırlar](../docs/MULTI-ACCOUNT-TEST.md).
 
 ## Tema
 
@@ -62,7 +70,7 @@ Windows bildirimini açmak, yalnız bu uygulamaya ait Başlat menüsü kısayolu
 
 ## Gizlilik ve yerel kayıt
 
-Veriler `%LOCALAPPDATA%\InstagramTracker-Desktop\tracker.vault` ve son önceki şifreli `tracker.previous.vault` içinde Windows DPAPI ile korunur. Atomik geçici dosyaya da yalnız şifreli içerik yazılır. Ayrı Electron kullanıcı dizini `%APPDATA%\InstagramTracker-Desktop` altındadır. Giriş parolası ve doğrulama kodu kaydedilmez; Instagram oturum ayarları ana arayüze gönderilmez. Oturumu kaldırmak önceki oturumlu depo kopyasını da kaldırır; bu uygulamanın gözlemleri korunur. **Yerel verileri sil** gözlemleri ve oturumu kaldırır, istek molasını korur. Eski InstagramCounter deposuna ve dışa aktarılan dosyalara dokunulmaz.
+Mevcut ilk hesap `%LOCALAPPDATA%\InstagramTracker-Desktop\tracker.vault` içinde kalır; yeni hesaplar `accounts/<rastgele yerel anahtar>/tracker.vault` kullanır. Her kasanın ayrı `tracker.previous.vault` şifreli önceki kopyası vardır. Hesap dizini, cihaz tercihleri ve ortak mola `accounts.vault` içinde DPAPI ile şifrelenir. Atomik geçici dosyaya da yalnız şifreli içerik yazılır. Ayrı Electron kullanıcı dizini `%APPDATA%\InstagramTracker-Desktop` altındadır. Giriş parolası ve doğrulama kodu kaydedilmez; Instagram oturum ayarları ana arayüze gönderilmez. Oturumu kaldırmak önceki oturumlu depo kopyasını da kaldırır; bu uygulamanın gözlemleri korunur. **Yerel verileri sil** gözlemleri ve oturumu kaldırır, istek molasını korur. Eski InstagramCounter deposuna ve dışa aktarılan dosyalara dokunulmaz.
 
 Şifreli `.trackerbackup` yedekler gözlem/not/tercih içerir; oturum içermez. Aynı Windows kullanıcısında açılmak içindir. Geri yüklemede önceki depo şifreli önceki kopyada korunur, otomatik kontrol kapatılır, oturum yeniden bağlanır ve daha uzun mevcut istek molası korunur. Bozuk depo sessizce sıfırlanmaz.
 

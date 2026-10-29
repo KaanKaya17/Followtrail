@@ -56,9 +56,11 @@ def atomic_write(path, data):
 
 
 class Vault:
-    def __init__(self, directory):
-        self.path = Path(directory) / 'tracker.vault'
-        self.backup = Path(directory) / 'tracker.previous.vault'
+    def __init__(self, directory, *, catalog=False):
+        self.catalog = catalog
+        name = 'accounts' if catalog else 'tracker'
+        self.path = Path(directory) / (name + '.vault')
+        self.backup = Path(directory) / (name + '.previous.vault')
 
     def load(self):
         if not self.path.exists():
@@ -67,10 +69,9 @@ class Vault:
             if self.path.stat().st_size > MAX_VAULT:
                 raise StorageFailure('Şifreli depo boyut sınırını aşıyor.')
             value = json.loads(protect(self.path.read_bytes(), decrypt=True))
+            fields = ('accounts', 'gate', 'preferences') if self.catalog else ('people', 'lists', 'gate')
             if (not isinstance(value, dict) or value.get('version') != 1
-                    or not isinstance(value.get('people'), dict)
-                    or not isinstance(value.get('lists'), dict)
-                    or not isinstance(value.get('gate'), dict)):
+                    or any(not isinstance(value.get(key), dict) for key in fields)):
                 raise StorageFailure('Şifreli depo biçimi desteklenmiyor.')
             return value
         except StorageFailure:

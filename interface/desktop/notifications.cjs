@@ -87,10 +87,20 @@ function showNotification({ Notification, title, body, onClick, onFailure }) {
     onFailure();
   }
 }
+
+async function openAccountNotification({entry, backend, showWindow, send, onBusy}) {
+  showWindow();
+  if (entry.ownerId && entry.ownerId !== backend.state?.activeAccountId) {
+    const result = await backend.command('switch_account', {id:entry.ownerId});
+    if (!result.ok) { onBusy(); return; }
+  }
+  send({type:'open_notification',id:entry.id});
+}
 module.exports = {
   APP_ID,
   TOAST_ID,
   ensureShortcut,
   showNotification,
   changeNotification,
+  openAccountNotification,
 };

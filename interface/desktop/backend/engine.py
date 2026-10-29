@@ -68,7 +68,10 @@ class Engine:
         self.list_scan_active = False
         self.scan_progress = None
         self.wayback_id = None
-        # Interrupted scans remain explicitly partial after a restart.
+        self.recover_interrupted()
+
+    def recover_interrupted(self):
+        # Interrupted scans remain explicitly partial after a restart or switch.
         changed = False
         for record in self.data['lists'].values():
             if record.get('draft', {}).get('status') == 'running':
@@ -115,7 +118,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.11'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.12'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -276,10 +279,10 @@ class Engine:
             identity = str(client.user_id or '')
             if not identity:
                 raise AppFailure('identity', 'Giriş yanıtında hesap kimliği bulunamadı.')
-            if self.data['account'] and self.data['account']['id'] != identity:
-                raise AppFailure('account', 'Bu depoda farklı bir hesap var. Önce yedek alıp yerel verileri kaldır.')
+            self.check_connection_identity(identity)
             profile = self.read_profile(client, identity)
             self.check_cancel()
+            self.select_connection_account(profile)
             # Commit a replacement only after the authenticated own profile agrees.
             self.record_profile(profile, own=True)
             self.data['session'] = client.get_settings()
@@ -289,6 +292,13 @@ class Engine:
         finally:
             args.pop('password', None)
             close_client(client)
+
+    def check_connection_identity(self, identity):
+        if self.data['account'] and self.data['account']['id'] != identity:
+            raise AppFailure('account', 'Bu depoda farklı bir hesap var. Önce yedek alıp yerel verileri kaldır.')
+
+    def select_connection_account(self, profile):
+        """Called only after the authenticated own profile has been validated."""
 
     def refresh(self, args):
         client = self.client()
@@ -632,6 +642,7 @@ class Engine:
             validate_archive(restored)
         except Exception as exc:
             raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
+        self.prepare_restore(restored)
         old_gate = self.data['gate']
         gate = restored['gate']
         for key in ('blockedUntil', 'nextAt', 'loginAfter', 'attempts', 'streak'):
@@ -639,10 +650,15 @@ class Engine:
         gate['manualOnly'] = True
         restored['session'] = None
         restored['settings']['automatic'] = False
-        self.vault.save(restored)
         self.data = restored
+        self.save()
 
-    def run(self, operation, args, *, group_id=None):
+    def prepare_restore(self, restored):
+        if (self.data['account'] and
+                self.data['account']['id'] != (restored['account'] or {}).get('id')):
+            raise AppFailure('backup', 'Yedek başka bir hesaba ait. Önce ilgili hesabı seç.')
+
+    def run(self, operation, args, *, group_id=None, project=True):
         self.operation = operation
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
@@ -660,7 +676,7 @@ class Engine:
                         'export_backup': lambda: self.export_backup(args['path']),
                         'import_backup': lambda: self.import_backup(args['path'])}
             if operation == 'state':
-                return self.snapshot()
+                return self.snapshot() if project else None
             if operation == 'remove_person':
                 identity = str(args.get('id', ''))
                 self.data['people'].pop(identity, None)
@@ -684,7 +700,7 @@ class Engine:
                 handlers[operation]()
             else:
                 raise AppFailure('operation', 'Desteklenmeyen işlem.')
-            return self.snapshot()
+            return self.snapshot() if project else None
         except Exception as exc:
             if isinstance(exc, StorageFailure):
                 # Never report volatile edits as successfully persisted records.

@@ -79,6 +79,24 @@ test("five-second coordinator runs a due check even when the window is hidden", 
   await s.tick();
   assert.deepEqual(s.calls, [{ operation: "automatic", args: {} }]);
 });
+
+test('aggregate monitor services a due unselected account while tray toggle remains selected-account scoped',async()=>{
+  const s=setup();
+  s.backend.state.settings.automatic=false;
+  s.backend.state.monitor={enabled:false,held:true,nextAt:null};
+  s.backend.state.accounts=[{id:'100'},{id:'400'}];
+  s.backend.state.activeAccountId='100';
+  s.backend.state.backgroundMonitor={enabled:true,held:false,nextAt:100};
+  s.owner.update();
+  await s.tick();
+  assert.deepEqual(s.calls,[{operation:'automatic',args:{}}]);
+  assert.match(s.owner.tray.tooltip,/açık/);
+  const toggle=s.owner.tray.menu.find(row=>row.type==='checkbox');
+  assert.equal(toggle.checked,false);
+  assert.match(toggle.label,/Seçili/);
+  await toggle.click();
+  assert.deepEqual(s.calls.at(-1),{operation:'settings',args:{automatic:true}});
+});
 test("busy, disabled, held, startup, and future states send no automatic command", async () => {
   for (const change of [
     (s) => (s.backend.busy = true),

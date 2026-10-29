@@ -35,7 +35,7 @@ class Background {
     });
   }
   tick() {
-    const monitor = this.backend.state?.monitor;
+    const monitor = this.backend.state?.backgroundMonitor || this.backend.state?.monitor;
     if (
       !this.stopping &&
       !this.backend.busy &&
@@ -50,11 +50,12 @@ class Background {
   }
   update() {
     if (this.stopping || this.tray.isDestroyed()) return;
-    const enabled = !!this.backend.state?.settings.automatic;
-    const held = this.backend.state?.monitor?.held;
+    const selectedEnabled = !!this.backend.state?.settings.automatic;
+    const enabled = this.backend.state?.backgroundMonitor?.enabled ?? selectedEnabled;
+    const held = (this.backend.state?.backgroundMonitor || this.backend.state?.monitor)?.held;
     const language = this.backend.state?.settings.language || 'tr';
     const t = (message, ...values) => i18n.translate(message, values, language);
-    const menuState = JSON.stringify([enabled, !!held, !!this.backend.ready, !!this.backend.busy, language]);
+    const menuState = JSON.stringify([enabled, selectedEnabled, this.backend.state?.activeAccountId, !!held, !!this.backend.ready, !!this.backend.busy, language]);
     if (menuState === this.menuState) return;
     const status = !this.backend.ready
       ? t("Yerel hizmet hazır değil")
@@ -69,13 +70,13 @@ class Background {
         { label: t("Tracker'ı aç"), click: this.showWindow },
         { label: status, enabled: false },
         {
-          label: t("Otomatik profil kontrolü"),
+          label: this.backend.state?.accounts ? t("Seçili hesabın otomatik kontrolü") : t("Otomatik profil kontrolü"),
           type: "checkbox",
-          checked: enabled,
+          checked: selectedEnabled,
           enabled: !!this.backend.ready && !this.backend.busy,
           click: async () => {
             try {
-              await this.backend.command("settings", { automatic: !enabled });
+              await this.backend.command("settings", { automatic: !selectedEnabled });
             } finally {
               this.update();
             }

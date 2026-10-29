@@ -32,6 +32,7 @@ for (const file of [
   "scripts/check-navigation-desktop.mjs",
   "scripts/check-progress-desktop.mjs",
   "scripts/check-appearance.mjs",
+  "scripts/check-accounts-desktop.mjs",
 ]) {
   execFileSync(process.execPath, ["--check", path.join(root, file)], {
     stdio: "inherit",
