@@ -16,7 +16,8 @@ object InitialLists {
 class InitialListPreparation(private val context: Context, private val vault: SessionVault,
     private val lists: FollowListVault, private val gate: RequestGate,
     private val factory: () -> FollowListSource, private val allowed: () -> Boolean,
-    private val changed: () -> Unit) : AutoCloseable {
+    private val changed: () -> Unit,
+    private val notify: (SavedAccount, ListDifference) -> Unit = { _, _ -> }) : AutoCloseable {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     @Volatile private var generation = 0
@@ -73,7 +74,7 @@ class InitialListPreparation(private val context: Context, private val vault: Se
                     val cancelled = { ticket != generation || Thread.currentThread().isInterrupted }
                     if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                     ForegroundListScan(vault, lists, gate, reader).read(session, session.userId, direction, cursor,
-                        pages = 1, cancelled = cancelled, progress = {})
+                        pages = 1, cancelled = cancelled, progress = {}, notify = notify)
                 } catch (error: ApiFailure) {
                     failure = error
                     if (ticket == generation && error.kind !in setOf(ApiFailure.Kind.CANCELLED, ApiFailure.Kind.TOO_SOON, ApiFailure.Kind.BUDGET)) {

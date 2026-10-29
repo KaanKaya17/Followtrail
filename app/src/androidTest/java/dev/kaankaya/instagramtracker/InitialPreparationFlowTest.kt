@@ -45,6 +45,7 @@ class InitialPreparationFlowTest {
     }
     @Test fun foregroundBuildsBothBaselinesWithoutNotificationPermissionAndKeepsCursorAcrossRestart(){
         val calls=mutableListOf<Pair<FollowDirection,String?>>()
+        val notices=mutableListOf<ListDifference>()
         val firstDone=CountDownLatch(1)
         val source=object: FollowListSource {
             override fun read(s: Session,target: String,d: FollowDirection,cursor: String?): FollowPage {
@@ -68,11 +69,40 @@ class InitialPreparationFlowTest {
             preparation!!.close()
             preparation=InitialListPreparation(context,vault,lists,gate,{source},{true},{
                 if(lists.read(session,"100")?.followers?.comparable()==true)prefs.edit().putLong("next_read_at",0).commit()
-            });preparation!!.resume()
+            },notify={_,difference->synchronized(notices){notices+=difference}});preparation!!.resume()
         }
         waitUntil{InitialLists.pending(lists.target(session,"100")).isEmpty()}
         assertEquals(listOf(FollowDirection.FOLLOWERS to null,FollowDirection.FOLLOWERS to "next",FollowDirection.FOLLOWING to null),synchronized(calls){calls.toList()})
         assertNull(ListAutomationPolicy.difference(lists.target(session,"100")!!,FollowDirection.FOLLOWERS))
+        assertTrue(synchronized(notices){notices.isEmpty()})
+    }
+    @Test fun resumedLaterScanEmitsOneDifferenceAndPreservesInitialBaseline(){
+        val now=System.currentTimeMillis()
+        val followers=FollowDirection.FOLLOWERS
+        lists.commitCurrent(session,page(followers,null,null,listOf("200","201")).copy(observedAt=now-2000),null,ListBasis(2,now-2000))
+        lists.commitCurrent(session,page(FollowDirection.FOLLOWING,null,null,listOf("300")).copy(observedAt=now-2000),null,ListBasis(1,now-2000))
+        val baseline=lists.read(session,"100")!!.followers!!
+        lists.commitCurrent(session,page(followers,null,"next",listOf("200")).copy(observedAt=now-1000),baseline,ListBasis(2,now-1000))
+        val delivered=CountDownLatch(1)
+        val notices=mutableListOf<ListDifference>()
+        val source=object: FollowListSource {
+            override fun read(s: Session,target: String,d: FollowDirection,cursor: String?): FollowPage {
+                assertEquals(followers,d);assertEquals("next",cursor);gate.begin()
+                return page(d,cursor,null,listOf("202"))
+            }
+            override fun cancel(){}
+        }
+        instrumentation.runOnMainSync {
+            preparation=InitialListPreparation(context,vault,lists,gate,{source},{true},{},notify={_,difference->
+                synchronized(notices){notices+=difference};delivered.countDown()
+            });preparation!!.resume()
+        }
+        assertTrue(delivered.await(8,TimeUnit.SECONDS))
+        instrumentation.waitForIdleSync()
+        val difference=synchronized(notices){notices.single()}
+        assertEquals(listOf("202"),difference.added.map{it.id})
+        assertEquals(listOf("201"),difference.missing.map{it.id})
+        assertEquals(baseline,lists.target(session,"100")!!.previous!!.followers)
     }
     @Test fun retainedRestrictionAndPausedPreparationNeverOpenAReader(){
         var calls=0
@@ -110,6 +140,7 @@ class InitialPreparationFlowTest {
     }
     private fun all(v: View): List<View> = listOf(v)+if(v is ViewGroup)(0 until v.childCount).flatMap { all(v.getChildAt(it)) } else emptyList()
     @Test fun mainScreenShowsPausedPreparationAndNoHistoricalUnfollowClaim(){
+        val cache=FollowListVault(context,"previewlists");cache.clear()
         val preview=SessionVault(context,"previewaccount");preview.write(PreviewMode.seed(true)!!)
         try {
             scenario=ActivityScenario.launch(Intent(context,MainActivity::class.java).putExtra("offline_preview",true))
@@ -120,7 +151,7 @@ class InitialPreparationFlowTest {
                 assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any { it.text.toString().contains("takipten çıkışlar bilinmiyor") })
                 assertTrue(all(a.window.decorView).filterIsInstance<Button>().any { it.text==a.getString(R.string.preparation_resume) })
             }
-        } finally { scenario?.close();scenario=null;preview.clear() }
+        } finally { scenario?.close();scenario=null;preview.clear();cache.clear() }
     }
     @Test fun connectedMainScreenStartsAndFinishesPreparationWithoutAStartButton(){
         val preview=SessionVault(context,"previewaccount")
