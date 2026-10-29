@@ -1,5 +1,26 @@
 # Geliştirme notları
 
+## Threads / Facebook genişlemesi — 29 Ekim 2026
+
+Kullanıcı ileride değerlendirmek üzere saklanmasını istedi; şu anda geliştirme başlatılmadı.
+
+- Önce Threads'te dar kapsamlı bağlantı ve veri erişim prototipi: hangi profil/sayaç/içerik alanları gerçekten alınabiliyor doğrulanmalı. Instagram'daki tam liste karşılaştırmasının diğer platformlarda da mümkün olduğu varsayılmamalı.
+- Meta'nın ortak hesap/giriş deneyimi, uygulamamıza bütün ürünler için ortak veri erişim yetkisi vermez. Her platformun yetkilendirmesi ve erişim yaşam döngüsü ayrı ele alınmalı. Kullanıcı her bağlantıda yeniden parola yazmak zorunda olmayabilir; platformun desteklediği resmî giriş kullanılmalı.
+- Facebook Sayfa erişimi ile kişisel hesap arkadaş/takipçi takibi ayrı kapsamdır. Önce veri yetkileri doğrulanmalı; erişilemeyen alanlar için özellik sözü verilmemeli.
+- Arayüz, yerel geçmiş, bildirimler ve şifreli kayıt altyapısı yeniden kullanılabilir; platform okuyucuları, kimlikler, oturumlar ve izinler ayrı sahiplenilmeli. Mevcut yalnız okuma ve kullanıcı verisini paylaşmama şartı korunmalı. Uygulama sırrı gerektiren OAuth adımları, tamamen yerel dağıtım hedefiyle ayrıca tasarlanmalı; APK/EXE içine sır gömülmemeli.
+- Kaynaklar: [Meta Account duyurusu](https://about.fb.com/news/2026/04/meta-account/), [Meta Threads API](https://www.postman.com/meta/threads/documentation/dht3nzz/threads-api), [Meta Facebook API](https://www.postman.com/meta/facebook/documentation/r56bjfd/facebook-api).
+
+## Görsel incelik önerileri — 29 Ekim 2026
+
+Kullanıcının paylaştığı altı CSS önerisi mevcut kaynaklar ve kayıtlı açık/koyu ekran görüntüleriyle değerlendirildi. Arayüze uygulanmadı; performans kıyası veya önerilerin canlı karşılaştırması yapılmadı.
+
+- Öncelik: ana sayaçlar ve sayısal sütunlarda seçici `tabular-nums`; basma geri bildirimini mevcut 1px düğme hareketiyle tutarlı kullanmak; koyu/OLED kartlarda mevcut yüzey ayrımını koruyan hafif kenar/üst ışık; okunur tema uyumlu scrollbar.
+- Geri sayımda tabular rakamlar, düğme basma geçişi ve işlem sırasında nabız zaten var. Yeni davranış bunları çoğaltmamalı. Sabit rakam genişliği, basamak sayısı artışındaki genişlemeyi tek başına çözmez.
+- Cam efekti isteğe bağlı görsel deneme olabilir; mevcut sabit yan menünün arkasında detay olmadığı için kazancı sınırlı olabilir. CSS blur, native Mica değildir. OLED'de katı siyah yüzey tercih edilmeli; ek GPU maliyeti ölçülmeden yok sayılmamalı.
+- Önerilen "inner highlight" CSS'i inset içermez; dış gölge ve kenarlık değiştirir. Sabit beyaz yüzde 8 kenarlık mevcut koyu kenardan daha zayıf olabilir. Sabit renk yerine ortak tema kaynağı kullanılmalı; Sistem koyu modu da kapsanmalı.
+- Nabız yalnız gerçekten yürüyen işlem için; izleme açık fakat bir sonraki kontrol beklenirken sürekli çalışıyor izlenimi vermemeli. Görünürlük ve azaltılmış hareket tercihine uymalı. Scrollbar gizlenmemeli veya tutması zor hale getirilmemeli.
+- CSS örneklerindeki bazı sınıflar mevcut arayüzde yok. Web/Windows CSS değişikliği native Android'e otomatik geçmez; görsel dil Android bileşenlerinde ayrıca eşlenmeli.
+
 ## Anonim erişim karşılaştırması — 28 Ekim 2026
 
 Windows 0.2.8'de ilk adım: sağlıklı bağlı oturumda hedef ID bulunamadığında son bilinen kullanıcı adına tek çerezsiz profil sayfası isteği. Pozitif sonuç için aynı sayısal kimlik doğrulanır. İki tarafın da bulunamaması nedeni açıklamaz; giriş ekranı, kimliği doğrulanamayan HTTP 200 ve sınırlama belirsizdir. Arayüz yapılan yöntemi ve sınırlamaları açıklar.
