@@ -14,7 +14,7 @@ import java.io.ByteArrayInputStream
 /** Complete offline fixture used only by the isolated debug UI tests. */
 object WebLoginMode {
     fun relayClient(activity: Activity, enabled: Boolean): Call.Factory {
-        if (!enabled || !activity.intent.getBooleanExtra("web_auth_fixture", false)) return PrivateReadTransport.client()
+        if (!enabled || !activity.intent.getBooleanExtra("web_auth_fixture", false)) return WebRequestClients.create(activity)
         return Call.Factory { request -> object : Call by PrivateReadTransport.client().newCall(request) {
             override fun execute(): Response {
                 val captcha = activity.intent.getBooleanExtra("web_captcha_fixture", false)

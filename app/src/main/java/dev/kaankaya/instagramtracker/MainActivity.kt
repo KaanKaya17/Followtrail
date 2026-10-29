@@ -79,6 +79,8 @@ class MainActivity : LocalizedActivity() {
     private var autoVerifyLogin = false
     @Volatile private var loginChallenge: WebLoginChallenge? = null
     private var challengeButton: Button? = null
+    private var directNativeButton: Button? = null
+    private var replacementConfirmedFor: String? = null
     private var loginTraceFailed = false
     private var loginPageEpoch = 0L
     private val inspectPage = Runnable { inspectLoginPage() }
@@ -804,6 +806,7 @@ class MainActivity : LocalizedActivity() {
         val now = System.currentTimeMillis()
         val lines = mutableListOf(getString(R.string.ui_read_attempts_started, number(gate.attempts())),
             getString(R.string.web_compare_last_counted_http, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
+        lines += getString(R.string.web_transport_selected, getString(if(WebRequestClients.platformAvailable()) R.string.web_transport_android else R.string.web_transport_standard))
         lines += getString(R.string.security_budget_info, RequestBudgetPolicy.HOURLY, RequestBudgetPolicy.DAILY)
         if (gate.budgetNextAt() > now) lines += getString(R.string.security_budget_next, date(gate.budgetNextAt()))
         if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))
@@ -1398,6 +1401,7 @@ class MainActivity : LocalizedActivity() {
         loginTraceFailed = false
         loginRelayIssue = false
         loginAuthenticating = false; autoVerifyLogin = false; loginChallenge = null
+        replacementConfirmedFor = null; directNativeButton = null
         val pageTrace = LoginPageTrace(this)
         loginTrace = pageTrace
         recordLoginPage(pageTrace) { it.flush() }
@@ -1418,6 +1422,10 @@ class MainActivity : LocalizedActivity() {
         CookieManager.getInstance().apply { setAcceptCookie(true); setAcceptThirdPartyCookies(browser, false) }
         challengeButton = button(getString(R.string.web_login_show_challenge), false) { showLoginChallenge() }.apply { visibility = View.GONE }
         page.addView(challengeButton)
+        if(compare) {
+            directNativeButton=button(getString(R.string.web_compare_direct_native),false,networkAction=true) {checkLogin(compareBrowser=false)}
+            page.addView(directNativeButton)
+        }
         loginRelay = WebLoginRelay(this, browser, gate, worker, pageTrace, { problem, status ->
             if (web === browser) {
                 loginAuthenticating = false
@@ -1549,6 +1557,10 @@ class MainActivity : LocalizedActivity() {
             loginNextAllowedAt() <= System.currentTimeMillis()
         completionButton?.isEnabled = enabled
         completionButton?.alpha = if (enabled) 1f else .5f
+        directNativeButton?.apply {
+            visibility=if(browserProof==null && completionButton?.visibility==View.VISIBLE)View.VISIBLE else View.GONE
+            isEnabled=enabled;alpha=if(enabled)1f else .5f
+        }
     }
 
     private fun loginNextAllowedAt(): Long = if (webComparison && browserProof != null) gate.nextAllowedAt() else gate.nextPrototypeAt()
@@ -1607,7 +1619,7 @@ class MainActivity : LocalizedActivity() {
         catch (error: Exception) { loginChecking = false;webLoginFailed(error as? ApiFailure ?: ApiFailure(ApiFailure.Kind.STORAGE),null) }
     }
 
-    private fun checkLogin() {
+    private fun checkLogin(compareBrowser: Boolean = true) {
         val browser = web ?: return
         if (!loginLoaded || loginChecking || loginAttempted) return
         if (loginNextAllowedAt() > System.currentTimeMillis()) {
@@ -1620,7 +1632,19 @@ class MainActivity : LocalizedActivity() {
             loginStatus?.setText(R.string.connection_incomplete)
             return
         }
-        if (webComparison && browserProof == null) { startBrowserComparison(browser,state); return }
+        if (webComparison && browserProof == null && compareBrowser) { startBrowserComparison(browser,state); return }
+        val previous=account
+        if(previous!=null && previous.session.userId!=state.owner && replacementConfirmedFor!=state.owner) {
+            AlertDialog.Builder(this).setTitle(R.string.ui_connect_another_account)
+                .setMessage(getString(R.string.web_login_replace_warning,previous.profile.username))
+                .setNegativeButton(R.string.ui_cancel) { _, _ -> if(web===browser)leaveLogin() }
+                .setPositiveButton(R.string.web_login_replace_confirm) { _, _ ->
+                    if(web===browser && account?.session==previous.session) {
+                        replacementConfirmedFor=state.owner;checkLogin(compareBrowser)
+                    }
+                }.show()
+            return
+        }
         val proof = browserProof
         if (webComparison) {
             try { WebConnectionJournal(this).begin(WebConnectionJournal.Step.NATIVE); nativeComparisonStarted = true }
@@ -1682,6 +1706,7 @@ class MainActivity : LocalizedActivity() {
         main.removeCallbacks(inspectPage)
         main.removeCallbacks(gateWake)
         loginChallenge?.close(); loginChallenge = null; challengeButton = null
+        directNativeButton=null;replacementConfirmedFor=null
         autoVerifyLogin = false; loginAuthenticating = false
         loginRelay?.close(); loginRelay = null
         recordLoginPage { it.close() }; loginTrace = null

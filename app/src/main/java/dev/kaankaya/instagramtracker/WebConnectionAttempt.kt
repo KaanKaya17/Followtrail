@@ -6,7 +6,7 @@ import okhttp3.Call
 /** A verified web connection is committed once; cancellation preserves the previous account. */
 class WebConnectionAttempt(context: Context, private val gate: RequestGate,
     private val sessions: WebSessions = WebSessions(context), private val vault: SessionVault = SessionVault(context),
-    client: Call.Factory = PrivateReadTransport.client()) {
+    client: Call.Factory = WebRequestClients.create(gate.context)) {
     private val reader = WebReadTransport(gate, sessions, client)
     private val lock = Any()
     @Volatile private var cancelled = false

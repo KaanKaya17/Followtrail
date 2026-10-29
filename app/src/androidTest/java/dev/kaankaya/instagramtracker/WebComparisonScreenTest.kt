@@ -46,7 +46,8 @@ class WebComparisonScreenTest {
         val index=(0 until list.adapter.count).first {list.adapter.getItem(it).toString()==a.getString(id)}
         list.performItemClick(list.getChildAt(index),index,list.adapter.getItemId(index))
     }
-    private fun open(browserStatus: Int=200,nativeStatus: Int=200) {
+    private fun open(browserStatus: Int=200,nativeStatus: Int=200, previous: SavedAccount?=null) {
+        previous?.let {SessionVault(context).write(it)}
         scenario=ActivityScenario.launch(Intent(context,MainActivity::class.java).putExtra("offline_web_login",true)
             .putExtra("web_browser_status",browserStatus).putExtra("web_login_status",nativeStatus))
         until {a->all(a.window.decorView).any {it.contentDescription==a.getString(R.string.ui_options)}}
@@ -74,6 +75,22 @@ class WebComparisonScreenTest {
         instrumentation.uiAutomation.takeScreenshot()?.let {bitmap->
             context.openFileOutput("web-comparison-$name.png",0).use {bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
         }
+    }
+    @Test fun directNativeReaderNeedsNoBrowserReadAndCommitsAfterItsOwnSuccess() {
+        open();click(R.string.web_compare_direct_native)
+        until {SessionVault(context).read()!=null}
+        assertEquals(1L,RequestGate(context).attempts())
+        val entry=WebConnectionJournal(context).read().single()
+        assertEquals(WebConnectionJournal.Step.NATIVE,entry.step);assertEquals(WebConnectionJournal.Outcome.SUCCESS,entry.outcome)
+    }
+    @Test fun aDifferentOwnerRequiresConfirmationBeforeReplacingTheCurrentRecord() {
+        val previous=SavedAccount(Session("777","ds_user_id=777; sessionid=synthetic-current-cookie","ua"),Profile("777","old.synthetic",1,2,System.currentTimeMillis()))
+        open(previous=previous);click(R.string.web_compare_direct_native)
+        until {a->WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_login_replace_confirm)}}
+        assertEquals(previous,SessionVault(context).read());assertEquals(0L,RequestGate(context).attempts())
+        instrumentation.runOnMainSync {WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>().single {it.id==android.R.id.button2}.performClick()}
+        until {a->all(a.window.decorView).none {it is WebView}}
+        assertEquals(previous,SessionVault(context).read());assertEquals(0L,RequestGate(context).attempts())
     }
     @Test fun twoExplicitReadsUseSameProfileAndCommitOnlyAfterNativeSuccess() {
         open()

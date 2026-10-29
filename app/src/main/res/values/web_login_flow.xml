@@ -8,6 +8,9 @@
     <string name="web_login_rejected">Instagram bu tek giriş denemesinde oturum açmadı. Giriş formu kapatıldı; yeni bir hesap veya parola denemesi gönderilmedi. Bu yanıt nedenini tek başına doğrulamaz.</string>
     <string name="web_login_not_accepted">Instagram girişi tamamlanmadı</string>
     <string name="web_login_not_sent">Bu ekrandan yeni bir giriş gönderilmedi. Önceki tek denemenin yanıtı başka hesapların bilgilerini doğrulamaz. Yeni deneme için aşağıdaki zamanı bekle.</string>
+    <string name="web_compare_direct_native">Uygulama okuyucusunu doğrudan dene</string>
+    <string name="web_login_replace_warning">Farklı bir Instagram hesabına giriş yapıldı. Bağlantı tamamlanırsa bu telefondaki @%1$s etkin kaydı ve ona ait izlenen kişiler yeni hesabın kaydıyla değiştirilecek. Önceki kayıtlar kendiliğinden geri yüklenmez. Mevcut kaydı korumak için Vazgeç’i seç.</string>
+    <string name="web_login_replace_confirm">Farklı hesaba geç</string>
     <string name="web_login_show_challenge">Instagram doğrulamasını göster</string>
     <string name="web_login_challenge_privacy">Instagram’ın güvenlik sayfası açılacak. Gerektiğinde Meta’nın CAPTCHA çerçevesi ve Google reCAPTCHA yüklenir; bu sağlayıcılar IP adresi ve tarayıcı bilgilerini alabilir. Uygulama parolanı veya Instagram oturumunu bu alan adlarına aktarmaz. Doğrulamayı kendin tamamla; iptal edersen bu kaynaklar açılmaz.</string>
     <string name="web_login_complete_challenge">Instagram güvenlik adımını bu sayfada tamamla. Başarılı olunca profilin kontrol edilir. Sayfa kendiliğinden ilerlemezse doğrulamayı bitirdikten sonra Hesabı doğrula’ya bir kez dokun.</string>

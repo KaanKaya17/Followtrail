@@ -23,7 +23,7 @@ import java.util.concurrent.Future
 class WebLoginRelay(private val context: Context, private val browser: WebView, private val gate: RequestGate,
     private val worker: ExecutorService, private val trace: LoginPageTrace,
     private val failure: (ApiFailure, Int?) -> Unit,
-    private val client: Call.Factory = PrivateReadTransport.client(),
+    private val client: Call.Factory = WebRequestClients.create(context),
     private val started: () -> Unit = {},
     private val completed: (WebLoginResponseFacts, WebLoginChallenge?) -> Unit = { _, _ -> }) : AutoCloseable {
     private val main = Handler(Looper.getMainLooper())
@@ -71,7 +71,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
             }
             id = envelope.getString("id"); require(id.matches(Regex("[1-9][0-9]{0,5}")))
             require(envelope.keys().asSequence().toSet() == setOf("id", "body", "headers"))
-            val body = WebLoginContract.normalize(envelope.getString("body"))
+            val authorized = WebLoginContract.authorize(envelope.getString("body"))
             val headers = envelope.getJSONObject("headers"); require(headers.length() <= 24)
             val accepted = linkedMapOf<String, String>()
             for (key in headers.keys()) {
@@ -82,7 +82,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
             if (submitted || active != null) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
             val cookies = CookieManager.getInstance().getCookie("https://www.instagram.com/").orEmpty()
             require(cookies.length <= 16384 && cookies.all { it.code in 32..126 })
-            val request = WebRequestContext.sameOrigin(Request.Builder().url(WebLoginContract.URL).post(body)
+            val request = WebRequestContext.sameOrigin(authorized.apply(Request.Builder().url(WebLoginContract.URL))
                 .header("User-Agent", browser.settings.userAgentString).header("Origin", "https://www.instagram.com")
                 .header("Referer", "https://www.instagram.com/accounts/login/")
                 // Derived only after the actual source origin/main frame has been verified above.
