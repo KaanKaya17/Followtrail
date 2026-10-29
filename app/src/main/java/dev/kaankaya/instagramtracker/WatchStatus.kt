@@ -10,7 +10,8 @@ object WatchIntervals {
 
 data class WatchConditions(val notificationsAllowed: Boolean = true, val offline: Boolean = false,
     val connectionRequired: Boolean = false, val connectionInProgress: Boolean = false,
-    val blockedUntil: Long = 0, val manualOnly: Boolean = false, val automaticAt: Long = 0)
+    val blockedUntil: Long = 0, val manualOnly: Boolean = false, val automaticAt: Long = 0,
+    val notificationsRequired: Boolean = true)
 
 enum class WatchReason { OFF, NOTIFICATIONS_OFF, LIMITED, CONNECTION_REQUIRED, CONNECTION_IN_PROGRESS,
     MANUAL_ONLY, OFFLINE, INTERVAL, SHARED_BUDGET, QUEUED, READY }
@@ -22,7 +23,7 @@ object WatchStatusPolicy {
     fun status(person: TrackedPerson, people: List<TrackedPerson>, conditions: WatchConditions, now: Long): WatchStatus {
         val paused = when {
             !person.watching -> WatchReason.OFF
-            !conditions.notificationsAllowed -> WatchReason.NOTIFICATIONS_OFF
+            !conditions.notificationsAllowed && conditions.notificationsRequired -> WatchReason.NOTIFICATIONS_OFF
             conditions.blockedUntil > now -> WatchReason.LIMITED
             conditions.connectionRequired -> WatchReason.CONNECTION_REQUIRED
             conditions.connectionInProgress -> WatchReason.CONNECTION_IN_PROGRESS

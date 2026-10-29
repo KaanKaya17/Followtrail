@@ -95,7 +95,7 @@ class SessionVault(context: Context, slot: String = "account") {
     fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
         val previous = read()
         val sameOwner = previous?.takeIf { it.session.userId == session.userId }
-        SavedAccount(session, profile, sameOwner?.people.orEmpty(), sameOwner?.automation ?: ListAutomation())
+        SavedAccount(session, profile, sameOwner?.people.orEmpty(), sameOwner?.automation ?: ListAutomation(enabled = true, targets = setOf(session.userId)))
             .also { write(it) }
     }
     /** A completed login cannot overwrite a connection changed while the user was authenticating. */

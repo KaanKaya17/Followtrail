@@ -1,5 +1,15 @@
 # Profil okuma politikası — 0.1.7
 
+## Windows 0.2.17 / Android 0.1.37 otomatik başlangıç
+
+Yeni doğrulanmış hesapta kendi liste hazırlığı varsayılan açıktır. Windows yeni hesapta profil otomasyonunu da açar; mevcut profil aralığı sözleşmesi değişmez. Android yeni bağlantıda yalnız kendi hesabını mevcut liste otomasyonuna ekler. Aynı hesaba yeniden giriş kayıtlı kapalı tercihi korur. Önceki sürümden Windows'a geçişte otomasyon açıksa eksik kendi listeleri hazırlanabilir; kapalı hesaplar zorla açılmaz. Android'de mevcut kayıtlı liste hedefleri korunur.
+
+Windows arka plan işi tur başına bir liste sayfasını işler; ilk sayfa öncesi güncel profil sayısı okuması da gerekir. Tamamlanmış kayıt yaklaşık 24 saat sonra veya profil sayısı değişince yeniden sıraya girer; sayı değişikliği için önceki tamamlanmadan itibaren en az 15 dakika ayrılır. Sayfa devamı bu alt aralık yüzünden beklemez. Profil ve diğer hesapların işleriyle aynı ortak sırayı kullanır. Kısmi devam, hata nedeni ve yeniden deneme zamanı şifreli saklanır. Ağ hatasında 30 dakika yerel erteleme, kapsam/sayfalama/kapasite hatasında manuel inceleme vardır. HTTP 429 ve oturum/doğrulama hatalarında mevcut otomatik durma politikası önceliklidir.
+
+Android görünür hazırlık bir seferde tek sayfa okur; ilk tarama bildirim izni gerektirmez. Görünürlük sona erince mevcut okuma iptal edilir ve kaydedilmiş sayfalar kalır. Periyodik sistem işi korunur; Android koşulları izin verince devam eder. Bildirim izni, bildirim gönderimi için ayrı kontrol edilir. Mevcut 6 sayfa/90 saniye arka plan turu ve en az 15 dakikalık sistem aktivasyon hedefi devam eder. Profili güncelleyen mevcut otomasyon sayı değişimini öğrenir; değişmez sayılardaki üye farkı günlük hedefte gözlenebilir. Bu zamanlar kesin çalışma veya bitiş sözü değildir.
+
+Her iki platformun yerel kayan bütçesi, API aralığı, tek istek sahipliği ve 429/Retry-After korumaları korunur. Otomatik hazırlık yeni uç eklemez; yalnız izinli profil/liste okuma sözleşmeleri kullanılır. Başlangıç taraması hiçbir geçmiş farkı üretmez. [Doğrulama](AUTOMATIC-PREPARATION-TEST.md).
+
 ## Windows 0.2.15 / Android 0.1.35 ek sınırları
 
 Sayaçlı uygulama API okuyucuları yalnız bilinen profil ve liste GET sözleşmelerini kabul eder. Yöntem/yol/gövde denetimi gönderim ve sayaç rezervasyonundan önce yapılır. Giriş POST'ları bunun ayrı istisnasıdır: yalnız kimlik doğrulama, doğrulama kodu ve kesin cihaz kaydı sözleşmeleri. HTTP yönteminin tek başına GET olması sosyal yan etki taşımadığını kanıtlamaz; bu yüzden yol da sınırlandırılır. Yeni sosyal işlem yetkisi yoktur.

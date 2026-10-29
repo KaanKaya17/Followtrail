@@ -67,6 +67,7 @@ class PhoneLoginActivity : LocalizedActivity() {
         page.addView(AppUi.iconButton(this, "back", getString(R.string.list_back), ::close), LinearLayout.LayoutParams(dp(48), dp(48))); gap(20)
         page.addView(AppUi.heading(this, getString(R.string.phone_title), 30f)); gap(12)
         text(R.string.phone_intro, 15f)
+        gap(8); text(R.string.preparation_scope, 12f)
         val error = value.failure?.let { ApiFailure(it).userMessage(this) } ?: value.reason?.let { reason -> getString(when (reason) {
             PhoneLoginFailure.Reason.INPUT -> R.string.phone_input_error
             PhoneLoginFailure.Reason.CREDENTIALS -> R.string.phone_credentials_error

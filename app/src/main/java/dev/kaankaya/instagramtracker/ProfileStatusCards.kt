@@ -85,7 +85,8 @@ class ProfileStatusCards(private val context: Context, private val vault: Sessio
             watching = saved.automation.enabled && id in saved.automation.targets,
             nextCheckAt = maxOf(saved.automation.ownNextCheckAt, saved.profile.observedAt + ListAutomationPolicy.OWN_PROFILE_MS))
         return WatchStatusPolicy.status(person.copy(watching = person.watching ||
-            (saved.automation.enabled && id in saved.automation.targets)), saved.people, conditions(), now)
+            (saved.automation.enabled && id in saved.automation.targets)), saved.people,
+            conditions().copy(notificationsRequired = !saved.automation.enabled), now)
     }
     private fun headline(value: Snapshot, id: String, now: Long): String {
         val saved = value.account

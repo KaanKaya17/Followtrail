@@ -243,28 +243,27 @@ class AccessTests(unittest.TestCase):
         self.e.record_profile(parse_profile(profile(followers=1)),own=True)
         self.assertEqual(self.e.data['accessPlan']['status'],'baseline_needed')
 
-    def test_access_jobs_alternate_with_profiles_and_failed_scan_is_not_retried(self):
+    def test_access_jobs_alternate_with_profiles_and_paused_lists_do_not_restart(self):
         self.missing();self.e.settings({'automatic':True,'investigateMissing':True,'interval':1})
         with patch.object(self.e,'check_access') as check,patch.object(self.e,'refresh') as refresh:
             self.e.automatic();check.assert_called_once()
             self.e.clock=lambda:1800000061;self.e.automatic();refresh.assert_called_once()
         self.e.data['accessPlan']={'status':'pending'}
         self.e.clock=lambda:1800000122
-        with patch.object(self.e,'scan',side_effect=AppFailure('connection','Synthetic failure')) as scan:
-            with self.assertRaises(AppFailure):self.e.automatic()
-            self.assertEqual(self.e.data['accessPlan']['status'],'needs_manual_scan')
-            self.e.clock=lambda:1800000183
-            with patch.object(self.e,'check_access'),patch.object(self.e,'refresh'):self.e.automatic()
-            self.assertEqual(scan.call_count,1)
+        with patch.object(self.e,'scan') as scan,patch.object(self.e,'check_access'),patch.object(self.e,'refresh'):
+            self.e.automatic()
+            self.assertEqual(self.e.data['accessPlan']['status'],'pending')
+            scan.assert_not_called()
 
     def test_production_automatic_pipeline_count_drop_scan_identity_probe_and_alert(self):
         self.scan(['200','201'])
-        self.e.settings({'automatic':True,'investigateMissing':True,'interval':1})
-        observations=[([profile(followers=1)],'pending'),
-                      ([profile(followers=1),page(['201'])],'idle'),
-                      ([profile(followers=1),error()],'idle')]
-        for index,(responses,plan) in enumerate(observations):
-            self.e.clock=lambda index=index:1800000000+61*(index+1)
+        self.scan(['300','301'],direction='following')
+        self.e.settings({'automatic':True,'automaticLists':True,'investigateMissing':True,'interval':1})
+        observations=[(61,[profile(followers=1,following=2)],'pending'),
+                      (901,[profile(followers=1,following=2),page(['201'])],'idle'),
+                      (962,[profile(followers=1,following=2),error()],'idle')]
+        for elapsed,responses,plan in observations:
+            self.e.clock=lambda elapsed=elapsed:1800000000+elapsed
             client=ProbeClient(responses)
             with patch.object(self.e,'client',return_value=client):self.e.run('automatic',{})
             self.assertEqual(self.e.data['accessPlan']['status'],plan)

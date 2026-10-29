@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.17 / Android 0.1.37 — 2026-10-29 (Otomatik başlangıç listeleri)
+
+- Yeni hesap bağlantısı başarıyla doğrulanınca kendi takipçi/takip edilen listeleri otomatik hazırlanır. Başlangıç, ilerleme, bekleme, duraklatma ve hazır durumları ana ekranda görünür. Geçmişteki takipten çıkışların bilinmediği ve ilk kaydın yalnız başlangıç olduğu açıklanır. Mevcut hesaba yeniden giriş, kayıtlı kapalı otomasyon tercihini açmaz; önceki başlangıç kayıtları yeniden giriş yüzünden taratılmaz.
+- Windows otomatik liste işi tur başına tek sayfa kaydeder. Devam bilgisi şifreli kasada tutulur, arayüze ve gözlem yedeğine aktarılmaz. Yeniden açılış/hesap geçişinde devam eder; eski veya reddedilen devam bilgisi güvenli yeni okumaya döner. Kısmi kayıtlar ve önceki tamamlanmış liste ayrı kalır. Profil işleriyle sıra paylaşır; hesaplar birbirinin kaydına yazmaz.
+- Liste sayısı değiştiğinde ve yaklaşık günlük hedefte yeni taramalar sıraya girer. Windows'ta sayı değişikliği taraması için en az 15 dakikalık alt aralık vardır; gerçek zaman profil kontrolü, sayfalama ve ortak bütçeye bağlıdır. İlk taramadan fark/engellenme bildirimi üretilmez. Yarım, belirsiz veya sayı uyumsuz listeden yeni karşılaştırma yapılmaz.
+- Android ilk hazırlığı görünür ekranda bildirim izni olmadan ilerletir; sayfa kayıtları ekran kapanınca korunur. Mevcut JobScheduler daha sonra kendi kısıtları içinde devam edebilir; anlık veya kesin bitiş garantisi yoktur. Kayan bütçe, HTTP 429 ve doğrulama durdurmaları korunur. Bildirim teslimi için izin hâlâ gereklidir; okuma durumunda yanlış izin bekleniyor mesajı düzeltilir.
+- Türkçe/İngilizce birlikte güncellendi. Yeni veri paylaşımı veya sosyal işlem isteği yoktur. Canlı Instagram ve önceki Android giriş sorunu bu değişiklikte doğrulanmadı. [Kullanım, test ve sınırlar](docs/AUTOMATIC-PREPARATION-TEST.md).
+
 ## Windows/web 0.2.16 / Android 0.1.36 — 2026-10-29 (Görsel incelikler)
 
 - Ana sayaçlar, kişi sayıları ve sayısal ayrıntılarda eşit genişlikli rakamlar kullanılır. Kullanıcı metinlerinin harf aralığı değiştirilmez. Android profil özetindeki uzun sayılar tek satırda uyarlanır; tam değer metinde korunur.

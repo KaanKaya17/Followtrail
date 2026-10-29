@@ -82,7 +82,8 @@ class AccountsTests(unittest.TestCase):
         self.e.run('settings', {'language':'en', 'theme':'oled', 'compact':True})
         e = Accounts(self.home.name, clock=lambda:self.now)
         self.assertEqual(e.active_id, '300')
-        self.assertFalse(e.data['settings']['automatic'])
+        self.assertTrue(e.data['settings']['automatic'])
+        self.assertTrue(e.data['settings']['automaticLists'])
         e.run('switch_account', {'id':'100'})
         self.assertTrue(e.data['settings']['automatic'])
         self.assertTrue(e.data['settings']['notifications'])
@@ -107,10 +108,11 @@ class AccountsTests(unittest.TestCase):
         self.assertEqual(restart.data['gate']['blockedUntil'], hold['blockedUntil'])
 
     def test_background_services_other_account_then_restores_ui_and_owns_notification(self):
-        self.e.run('settings', {'automatic':True, 'notifications':True, 'interval':5})
+        self.e.run('settings', {'automatic':True, 'automaticLists':False, 'notifications':True, 'interval':5})
         self.add()
         self.now += 301
         operations = []
+        self.e.run('settings', {'automaticLists':False})
         def refresh(engine, args):
             operations.append((engine.active_id, args['id']))
             p = parse_profile(profile(followers=15))
@@ -129,9 +131,9 @@ class AccountsTests(unittest.TestCase):
         self.assertEqual(self.e.data['notificationLog'][0]['id'], 'background-qa')
 
     def test_background_auth_failure_only_holds_own_account_and_restores_selection(self):
-        self.e.run('settings', {'automatic':True, 'interval':5})
+        self.e.run('settings', {'automatic':True, 'automaticLists':False, 'interval':5})
         self.add()
-        self.e.run('settings', {'automatic':True, 'interval':5})
+        self.e.run('settings', {'automatic':True, 'automaticLists':False, 'interval':5})
         self.now += 301
         with patch.object(Engine, 'refresh', side_effect=AppFailure('session', 'Synthetic expired session')):
             with self.assertRaises(AppFailure):

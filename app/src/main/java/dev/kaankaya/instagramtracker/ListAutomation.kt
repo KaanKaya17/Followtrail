@@ -33,7 +33,7 @@ object ListAutomationPolicy {
         val before = target.previous?.run(direction) ?: return null
         val after = target.snapshot?.run(direction) ?: return null
         // Reaching the observed end is necessary, not a guarantee of an atomic/complete Instagram snapshot.
-        if (before.coverage() != FollowCoverage.END_OBSERVED || after.coverage() != FollowCoverage.END_OBSERVED ||
+        if (!before.comparable() || !after.comparable() ||
             before.latest.observedAt >= after.pages.first().observedAt) return null
         val old = before.users.map { it.id }.toSet(); val current = after.users.map { it.id }.toSet()
         return ListDifference(target.target, direction, before.latest.observedAt, after.latest.observedAt,
@@ -42,11 +42,11 @@ object ListAutomationPolicy {
     fun record(target: ListTarget, session: Session, page: FollowPage): ListTarget {
         var previous = target.previous
         val old = target.snapshot?.run(page.direction)
-        if (page.inputCursor == null && old?.coverage() == FollowCoverage.END_OBSERVED) {
+        if (page.inputCursor == null && old?.comparable() == true) {
             val base = previous ?: FollowSnapshot(session.userId, session.connectionBinding, target.target)
             previous = if (page.direction == FollowDirection.FOLLOWERS) base.copy(followers = old) else base.copy(following = old)
         }
-        val snapshot = (target.snapshot ?: FollowSnapshot(session.userId, session.connectionBinding, target.target)).record(page)
+        val snapshot = (target.snapshot ?: FollowSnapshot(session.userId, session.connectionBinding, target.target)).record(page, target.scan(page.direction).basisCount)
         val more = snapshot.run(page.direction)!!.coverage() == FollowCoverage.MORE
         return target.copy(snapshot = snapshot, previous = previous).withScan(page.direction,
             target.scan(page.direction).copy(nextAt = page.observedAt + if (more) MonitorPolicy.POLL_MS else RESCAN_MS,
@@ -76,7 +76,7 @@ object AutomaticQueue {
             (state.basisCount == null || basis.count != state.basisCount)
         val dueAt = if (changed) minOf(state.nextAt, basis!!.observedAt) else state.nextAt
         if (dueAt > now && !continuingRound) return null
-        return AutomaticTask.Page(target.target, dueAt, direction, if (state.continuing) run?.cursor() else null,
+        return AutomaticTask.Page(target.target, dueAt, direction, if (state.continuing && run != null && now - run.latest.observedAt < ListAutomationPolicy.RESCAN_MS) run.cursor() else null,
             run?.latest?.observedAt, basis)
     }
     fun next(account: SavedAccount, archive: ListArchive, now: Long, preferProfile: Boolean = false): AutomaticTask? {

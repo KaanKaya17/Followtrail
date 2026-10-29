@@ -1,6 +1,12 @@
-# InstagramTracker Windows 0.2.16
+# InstagramTracker Windows 0.2.17
 
-`artifacts/InstagramTracker-Desktop-0.2.16/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.17/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Otomatik başlangıç hazırlığı
+
+Yeni hesap bağlantısından sonra ilk takipçi ve takip edilen listeleri kendiliğinden sıraya girer. Özet'teki Liste hazırlığı kartı sayfa/hesap sayısını, hazır/bekleyen yönleri ve duraklatma seçeneğini gösterir. İlk kayıt geçmiş takipten çıkışları açıklamaz. Sonraki tamamlanan taramalarla farklar oluşur. Sayı değişimlerinde ve günlük hedefte yeni tarama planlanır; aynı sayı içinde üye değişimi günlük taramayla gözlenebilir. Kısıtlama, büyük listeler ve istek bütçesi geciktirebilir.
+
+Otomatik liste işi tek sayfa işler; devam bilgisi yalnız şifreli kasadadır. Tepside sürer, tamamen kapatılınca durur; açılınca uygun sayfadan devam edebilir. 24 saatten eski, yeni oturuma ait olmayan veya sunucunun reddettiği devam bilgisiyle kayıt birleştirilmez. Mevcut hesapta otomasyon kapalıysa tercihi korunur ve kartta Hazırlığa devam et görünür. 429 molasını bu düğme kaldırmaz; önceki manuel doğrulama kuralı devam eder. [Testler ve ayrıntılar](../docs/AUTOMATIC-PREPARATION-TEST.md).
 
 ## Görsel incelikler
 

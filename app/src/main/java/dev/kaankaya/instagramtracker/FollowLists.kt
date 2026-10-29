@@ -19,8 +19,9 @@ data class FollowPage(val target: String, val direction: FollowDirection, val in
         else -> FollowCoverage.UNKNOWN
     }
 }
-data class FollowRun(val pages: List<FollowPage>) {
-    init { require(pages.isNotEmpty()) }
+data class FollowRun(val pages: List<FollowPage>, val expectedCount: Long? = null) {
+    init { require(pages.isNotEmpty() && (expectedCount == null || expectedCount >= 0)) }
+    fun comparable() = coverage() == FollowCoverage.END_OBSERVED && (expectedCount == null || users.size.toLong() == expectedCount)
     val users: List<FollowUser> get() = pages.flatMap { it.users }.distinctBy { it.id }
     val latest: FollowPage get() = pages.last()
     fun coverage(): FollowCoverage {
@@ -32,16 +33,16 @@ data class FollowRun(val pages: List<FollowPage>) {
     fun append(page: FollowPage): FollowRun {
         require(coverage() == FollowCoverage.MORE && page.inputCursor == cursor())
         require(page.target == latest.target && page.direction == latest.direction)
-        return FollowRun(pages + page)
+        return copy(pages = pages + page)
     }
 }
 data class FollowSnapshot(val owner: String, val binding: String?, val target: String,
     val followers: FollowRun? = null, val following: FollowRun? = null) {
     fun run(direction: FollowDirection) = if (direction == FollowDirection.FOLLOWERS) followers else following
     fun matches(session: Session, targetId: String) = owner == session.userId && binding == session.connectionBinding && target == targetId
-    fun record(page: FollowPage): FollowSnapshot {
+    fun record(page: FollowPage, expectedCount: Long? = null): FollowSnapshot {
         require(page.target == target)
-        val run = if (page.inputCursor == null) FollowRun(listOf(page)) else
+        val run = if (page.inputCursor == null) FollowRun(listOf(page), expectedCount) else
             (run(page.direction) ?: error("Missing first page")).append(page)
         return if (page.direction == FollowDirection.FOLLOWERS) copy(followers = run) else copy(following = run)
     }
