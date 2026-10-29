@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Android 0.1.40 — 2026-10-29 (Giriş sayfası tanısı)
+
+- Giriş formu gelmeden kalan WebView için Sayfa tanısı / LP01 eklendi: sabit kaynak kategorileri, izin/engel sayaçları, sayısal hata ve giriş alanı görünürlüğü. URL, parola, kod, çerez veya form içeriği tutulmaz; yeni ağ izni/isteği eklenmez.
+- Tanı mevcut ekran kapatılmadan okunur. Yüklenen belge ile hazır giriş formu ayrılır; eski sayfa olayları yeni tanıya yazılmaz. 429 ve sosyal işlem engelleri korunur. Bu bir tanı sürümüdür; canlı giriş başarısı henüz doğrulanmadı. [Kapsam ve test](docs/LOGIN-PAGE-DIAGNOSTICS.md).
+
 ## Windows/web 0.2.19 / Android 0.1.39 — 2026-10-29 (Sade kullanıcı dili)
 
 - Gözlem zamanı → Son kontrol; Kayıt kapsamı → Neler kontrol edildi?; Kısmi kayıt → Liste henüz tamamlanmadı. Sayaç, geçmiş, bildirim, liste ve profil durumlarındaki Türkçe/İngilizce açıklamalar günlük dile uyarlandı.

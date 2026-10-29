@@ -17,6 +17,7 @@ import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceError
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebStorage
@@ -71,6 +72,10 @@ class MainActivity : LocalizedActivity() {
     private var loginChecking = false
     private var loginAttempted = false
     private var loginLoaded = false
+    private var loginTrace: LoginPageTrace? = null
+    private var loginTraceFailed = false
+    private var loginPageEpoch = 0L
+    private val inspectPage = Runnable { inspectLoginPage() }
     private var peopleScreen = false
     private var selectedPersonId: String? = null
     private var visiblePeople = 20
@@ -159,6 +164,7 @@ class MainActivity : LocalizedActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (web != null) { main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000) }
         visible = true
         if (::profileStatuses.isInitialized) profileStatuses.resume()
         if (recreatingForInterface) return
@@ -787,6 +793,7 @@ class MainActivity : LocalizedActivity() {
             }.setNegativeButton(R.string.ui_cancel, null).show()
     }
     private fun requestInfo() {
+        recordLoginPage { it.flush() }
         val now = System.currentTimeMillis()
         val lines = mutableListOf(getString(R.string.ui_read_attempts_started, number(gate.attempts())),
             getString(R.string.web_compare_last_counted_http, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
@@ -817,6 +824,11 @@ class MainActivity : LocalizedActivity() {
                     }), it.http?.toString() ?: "—",date(it.at))
             }
         } catch (_: Exception) { lines += getString(R.string.web_compare_journal_failed) }
+        if (!preview) try {
+            val report = if (loginTraceFailed) null else LoginPageTrace.read(this)
+            if (loginTraceFailed) lines += getString(R.string.page_trace_unavailable)
+            else if (report != null) lines += getString(R.string.page_trace_report, report)
+        } catch (_: Exception) { lines += getString(R.string.page_trace_unavailable) }
         if (gate.restrictionPending()) {
             lines += getString(R.string.ui_signal, gate.limitReasonMessage(this))
             lines += getString(R.string.ui_last_limit, date(gate.lastLimitedAt()))
@@ -1330,6 +1342,27 @@ class MainActivity : LocalizedActivity() {
             }.show()
     }
 
+    private fun recordLoginPage(trace: LoginPageTrace? = loginTrace, action: (LoginPageTrace) -> Unit) {
+        try { trace?.let(action) } catch (_: Exception) { if (loginTrace === trace) loginTraceFailed = true }
+    }
+    private fun inspectLoginPage() {
+        val browser = web ?: return
+        if (!visible || loginChecking || loginAttempted || browserProof != null) return
+        val epoch = loginPageEpoch
+        val trace = loginTrace
+        // Presence/visibility only: never read input values, page text, cookies or URLs into diagnostics.
+        browser.evaluateJavascript("(function(){return Array.prototype.some.call(document.querySelectorAll('input[name=username],input[name=password],input[type=email]'),function(n){return n.getClientRects().length>0})})()") { raw ->
+            if (web !== browser || loginPageEpoch != epoch) return@evaluateJavascript
+            val form = when (raw) { "true" -> true; "false" -> false; else -> null }
+            recordLoginPage(trace) { it.form(form) }
+            if (!loginChecking && !loginAttempted && browserProof == null) {
+                if (form == true) loginStatus?.setText(if (webComparison) R.string.web_compare_instruction else R.string.web_connection_instruction)
+                else if (form == false && try { java.net.URI(browser.url ?: "").rawPath == "/accounts/login/" } catch (_: Exception) { false })
+                    loginStatus?.setText(R.string.page_trace_waiting)
+            }
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun startLogin(compare: Boolean = false) {
         if (preview) { message = getString(R.string.ui_real_account_connections_are_unavailable_in_demo); render(); return }
@@ -1343,7 +1376,8 @@ class MainActivity : LocalizedActivity() {
         val page = stack().apply { setBackgroundColor(bg) }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), dp(8), dp(12), dp(8)) }
         header.addView(button(getString(R.string.ui_cancel), false) { leaveLogin() }, LinearLayout.LayoutParams(-2, dp(48)))
-        header.addView(text("  instagram.com", 16f, accent, true))
+        header.addView(text("  instagram.com", 16f, accent, true), LinearLayout.LayoutParams(0, -2, 1f))
+        header.addView(button(getString(R.string.page_trace_open), false) { requestInfo() }, LinearLayout.LayoutParams(-2, dp(48)))
         page.addView(header)
         loginStatus = text(getString(if(compare) R.string.web_compare_instruction else R.string.web_connection_instruction), 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
         page.addView(loginStatus)
@@ -1354,6 +1388,10 @@ class MainActivity : LocalizedActivity() {
             render(); return
         }
         web = browser
+        loginTraceFailed = false
+        val pageTrace = LoginPageTrace(this)
+        loginTrace = pageTrace
+        recordLoginPage(pageTrace) { it.flush() }
         WebView.setWebContentsDebuggingEnabled(false)
         LoginBrowserResources.restrictWorkers()
         browser.setBackgroundColor(Color.WHITE)
@@ -1370,23 +1408,34 @@ class MainActivity : LocalizedActivity() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !LoginBrowserPolicy.navigation(request.url.toString()).also { allowed ->
                 if (!allowed) loginStatus?.setText(R.string.security_login_scope)
             }
-            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                if (!LoginBrowserPolicy.resource(request.method, request.url.toString())) LoginBrowserResources.blocked()
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                val decision = LoginBrowserPolicy.resourceDecision(request.method, request.url.toString())
+                if (web === view) recordLoginPage(pageTrace) { it.resource(request.method, decision) }
+                return if (!decision.allowed) LoginBrowserResources.blocked()
                 else WebLoginMode.intercept(request, webFixture, this@MainActivity)
                     ?: if (request.method == "GET" && LoginBrowserPolicy.landing(request.url.toString())) LoginBrowserResources.landing() else null
+            }
             @Suppress("OVERRIDE_DEPRECATION")
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 handler.cancel()
+                if (web === view) recordLoginPage(pageTrace) { it.error(WebViewClient.ERROR_FAILED_SSL_HANDSHAKE, true) }
                 main.post { if (web === view) { message = getString(R.string.connection_tls_error); leaveLogin() } }
             }
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 if (web !== view) return
+                loginPageEpoch++
+                recordLoginPage(pageTrace) { it.started() }
+                main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000)
                 loginLoaded = false; completionButton?.isEnabled = false
                 if (webComparison && (browserProbe?.running == true || browserProof != null)) {
                     message = getString(R.string.web_compare_cancelled); leaveLogin()
                 }
             }
             override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+                if (web === view && response.statusCode in 400..599) recordLoginPage(pageTrace) {
+                    it.http(response.statusCode, request.isForMainFrame,
+                        LoginBrowserPolicy.resourceDecision(request.method, request.url.toString()).allowed)
+                }
                 if (response.statusCode != 429 || !NavigationPolicy.isInstagram(request.url.toString())) return
                 val retry = response.responseHeaders?.entries?.firstOrNull { it.key.equals("Retry-After", true) }?.value
                 val responseUrl = request.url.toString()
@@ -1407,11 +1456,18 @@ class MainActivity : LocalizedActivity() {
             }
             override fun onPageFinished(view: WebView, url: String) {
                 if (web !== view) return
+                recordLoginPage(pageTrace) { it.finished() }
+                main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000)
                 if (NavigationPolicy.isInstagram(url)) {
                     loginLoaded = true
                     completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
                     completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 }
+            }
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (web !== view) return
+                recordLoginPage(pageTrace) { it.error(error.errorCode, request.isForMainFrame) }
+                if (request.isForMainFrame) main.post { if (web === view) loginStatus?.setText(R.string.page_trace_waiting) }
             }
         }
         page.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -1522,6 +1578,8 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun leaveLogin() {
+        main.removeCallbacks(inspectPage)
+        recordLoginPage { it.close() }; loginTrace = null
         try { browserProbe?.cancel() } catch (_: Exception) { message = getString(R.string.web_compare_journal_failed) }
         browserProbe = null; browserProof = null
         if (nativeComparisonStarted) {
@@ -1565,6 +1623,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     override fun onDestroy() {
+        recordLoginPage { it.close() }; loginTrace = null
         if (::preparation.isInitialized) preparation.close()
         if (::profileStatuses.isInitialized) profileStatuses.close()
         if (::quickWatch.isInitialized) quickWatch.close()
@@ -1584,6 +1643,7 @@ class MainActivity : LocalizedActivity() {
     }
     override fun onPause() {
         visible = false
+        main.removeCallbacks(inspectPage)
         if (::preparation.isInitialized) preparation.pause()
         if (webComparison && web != null && (loginChecking || browserProof != null)) {
             message = getString(R.string.web_compare_cancelled); leaveLogin()

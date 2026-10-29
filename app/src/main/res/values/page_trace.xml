@@ -1,0 +1,6 @@
+<resources>
+    <string name="page_trace_open">Sayfa tanısı</string>
+    <string name="page_trace_report">Giriş sayfası tanısı · LP01\nYalnız istek türü/sayısı, belge yükleme olayları, sayısal hata ve giriş alanının görünür olup olmadığı. URL, parola, kod, çerez veya form içeriği kaydedilmez. ALLOWED_RESOURCE, kaynağın yerel filtrece izinli olduğunu belirtir; yanıtın Instagram’dan geldiğini tek başına kanıtlamaz.\n%1$s</string>
+    <string name="page_trace_unavailable">Giriş sayfası tanısı kaydedilemedi veya okunamadı.</string>
+    <string name="page_trace_waiting">Giriş alanı henüz görünmüyor. Sayfayı tekrar açmadan Sayfa tanısı bölümünü inceleyebilirsin. Yeni giriş denemesi başlatılmadı.</string>
+</resources>
