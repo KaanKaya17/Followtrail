@@ -19,9 +19,11 @@ object WebLoginMode {
             override fun execute(): Response {
                 val captcha = activity.intent.getBooleanExtra("web_captcha_fixture", false)
                 val builder = Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture")
-                if (!captcha) builder.addHeader("Set-Cookie", "sessionid=synthetic-session; Path=/; Secure; HttpOnly")
+                val rejected = activity.intent.getBooleanExtra("web_rejected_fixture", false)
+                if (!captcha && !rejected) builder.addHeader("Set-Cookie", "sessionid=synthetic-session; Path=/; Secure; HttpOnly")
                     .addHeader("Set-Cookie", "ds_user_id=123; Path=/; Secure")
-                val body = if (captcha) """{"data":{"caa_login_web":{"ig_authenticated":false,"recaptcha_needed":true,"redirect_uri":"/challenge/action/synthetic-token/","error_message":{"text":"The login information you entered is incorrect."}}}}"""
+                val body = if (rejected) """{"data":{"caa_login_web":{"ig_authenticated":false,"recaptcha_needed":false,"error_code":1348009,"error_message":{"text":"The login information you entered is incorrect."}}}}"""
+                    else if (captcha) """{"data":{"caa_login_web":{"ig_authenticated":false,"recaptcha_needed":true,"redirect_uri":"/challenge/action/synthetic-token/","error_message":{"text":"The login information you entered is incorrect."}}}}"""
                     else """{"data":{"caa_login_web":{"ig_authenticated":true,"recaptcha_needed":false,"redirect_uri":"/accounts/onetap/"}}}"""
                 return builder.body(body.toResponseBody()).build()
             }

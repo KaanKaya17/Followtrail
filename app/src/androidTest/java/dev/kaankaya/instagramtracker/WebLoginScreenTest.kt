@@ -48,10 +48,10 @@ class WebLoginScreenTest {
             .filterIsInstance<TextView>().joinToString(" | ") { it.text.toString() } }
         fail("Offline UI condition not reached: $visible")
     }
-    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false) {
+    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false, rejected: Boolean = false) {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java)
             .putExtra("offline_web_login", offline).putExtra("web_login_status", status).putExtra("web_bootstrap_fixture", bootstrap)
-            .putExtra("web_auth_fixture", auth).putExtra("web_captcha_fixture", captcha))
+            .putExtra("web_auth_fixture", auth).putExtra("web_captcha_fixture", captcha).putExtra("web_rejected_fixture", rejected))
         until { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text == a.getString(R.string.ui_connect_account) } }
         scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.ui_connect_account) }.performClick() }
         instrumentation.waitForIdleSync()
@@ -126,6 +126,16 @@ class WebLoginScreenTest {
         scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
         until {SessionVault(context).read()!=null}
         assertEquals(2L,RequestGate(context).attempts())
+    }
+    @Test fun rejectedLoginClosesTheFormAndShowsOneVerdictWithoutAllowingMisleadingRetries() {
+        open(auth=true,rejected=true);submitSyntheticLogin()
+        until { a -> all(a.window.decorView).none {it is WebView} &&
+            WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_not_accepted)} }
+        assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+        val facts=org.json.JSONObject(LoginPageTrace.read(context)!!).getJSONObject("authentication")
+        assertFalse(facts.getBoolean("authenticated"));assertFalse(facts.getBoolean("captchaNeeded"))
+        assertEquals(1348009,facts.getJSONArray("errorCodes").getInt(0))
+        assertTrue(RequestGate(context).nextWebAuthenticationAt()>System.currentTimeMillis())
     }
     @Test fun authenticationReadPauseReenablesVerificationWithoutReadingOrErasingFailure() {
         open()

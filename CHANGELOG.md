@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.48 — 2026-10-29 (Tek denemenin sonucunu açık gösterme)
+
+- Instagram oturum açılmadığını döndürdüğünde giriş formu kapatılır; native sonuç ve bir sonraki yerel deneme zamanı gösterilir. Yerel engelden sonraki denemeler sunucu reddi gibi algılanmaz. Mevcut 429, bütçe ve giriş aralığı değiştirilmedi.
+- CAPTCHA ve iki aşamalı işlem insan doğrulamasında kalır; başarılı normal girişteki tek profil okuması korunur. Hesap doğrulanmadan etkin kayıt değiştirilmez.
+- [Telefon tanısı, test kapsamı ve açık kalan giriş doğrulaması](docs/WEB-LOGIN-TERMINAL-RESULT-TEST.md). Bu değişiklik tek başına Instagram girişinin her cihazda çalıştığı anlamına gelmez.
+
 ## Android 0.1.47 — 2026-10-29 (Tek akışta giriş ve güvenlik doğrulaması)
 
 - Girişin yanıtı native arayüzde gösterilir; CAPTCHA gereksinimi genel parola mesajından önce değerlendirilir. Sonuç dönmüşken kullanıcıya hâlâ giriş bekleniyormuş izlenimi verilmez.
