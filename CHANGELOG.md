@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Windows 0.2.13 — 2026-10-29 (Ortak molayı uzatmayan yerel ret)
+
+- 0.2.12’de hesap değişiminden sonra mola sürerken elle yenilemenin, yeni HTTP yanıtı olmadan yeni sınırlama gibi yorumlanıp süreyi uzatması düzeltildi. Yerel mola `cooldown`, yeni Instagram sınırlaması `limited` olarak ayrılır. Erişim ve anonim inceleme aynı ayrımı kullanır.
+- Yeni regresyon, iki ardışık elle yenilemede HTTP gönderilmediğini; bitiş, sayaç ve sınırlama serisinin değişmediğini ve yeniden açılışta korunduğunu doğrular. Önceki 0.2.12 ZIP’i korunur; güncel önerilen önizleme 0.2.13’tür.
+
 ## Windows 0.2.12 — 2026-10-29 (Çoklu hesap)
 
 - Sol altta hesap seçici ve Hesap ekle eklendi. Sayısal Instagram kimliğine göre bağımsız DPAPI kasaları kullanılır; geçiş Instagram isteği veya parola girişi göndermez. Mevcut ilk hesap ve oturumu yerinde korunur.

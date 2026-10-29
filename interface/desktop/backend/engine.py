@@ -118,7 +118,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.12'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.13'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -133,7 +133,7 @@ class Engine:
         gate = self.data['gate']
         now = self.clock()
         if gate.get('blockedUntil', 0) > now:
-            raise AppFailure('limited', 'Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.')
+            raise AppFailure('cooldown', 'Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.')
         remaining = gate.get('nextAt', 0) - now
         if remaining > 0:
             self.progress('waiting', until=gate['nextAt'], waitStartedAt=now)

@@ -1,4 +1,6 @@
-# Windows 0.2.12 — Çoklu hesap önizlemesi
+# Windows 0.2.13 — Çoklu hesap önizlemesi
+
+0.2.12 ilk çoklu hesap paketidir; **güncel önerilen önizleme 0.2.13** yerel mola reddinin yeni HTTP 429 gibi sayılıp süreyi uzatmasını düzeltir. Yerel `cooldown` ve sunucu `limited` hataları üretildikleri sınırda ayrılır; erişim/anonim kontrol tüketicileri buna uyar. Eski ZIP değiştirilmedi.
 
 ## Kullanım ve kapsam
 
@@ -28,7 +30,7 @@ Testler ayrı `TrackerQA-*` dizinlerinde sentetik verilerle çalışır. DPAPI, 
 - Node testleri: arka plan seçilmemiş hesabı işlerken tepsi anahtarının seçili hesaba bağlı kalması; worker bildiriminde hesap sahibinin korunması; bildirimin önce doğru hesaba geçmesi; meşgulken yabancı kayıt açılmaması.
 - `check-accounts-desktop.mjs`: gerçek EXE üzerinde hesap menüsü, boş yeni bağlantı formu, geçişte eski palet/filtrelerin kapanması, ayrı not/listeler, cihaz genelinde Türkçe/İngilizce ve OLED, 960×680 pencere, yeniden açılış, hesaba özel silme ve değişmeyen istek sayacı. Yerel dosya seçimi açıkken hesap değişirse başka hesabın yedeğinin dışa aktarılmaması da gerçek IPC/dosya sınırında doğrulandı. Sentetik ekranlar `artifacts/accounts-ui/` altında yereldir.
 
-Çalıştırılan kontroller: Python discovery **140 test** (20 yeni çoklu hesap testi), Node **28 test**, `npm run check`, paketlenmiş EXE için **10 çoklu hesap**, **30 işlev**, **10 kısayol/onboarding**, **9 ilerleme** kontrolü ve Windows/web için **8 tema senaryo grubu** geçti. Zaman tüneli ayrıntısının koordinatörden geçerken korunması ve sonraki durumlara tekrar eklenmemesi ayrıca doğrulandı. Android kaynakları değiştirilmedi; Android derleme/telefon testleri bu değişiklik için yeniden çalıştırılmadı.
+Çalıştırılan kontroller: Python discovery **141 test** (21 yeni çoklu hesap testi), Node **28 test**, `npm run check`, paketlenmiş EXE için **10 çoklu hesap**, **30 işlev**, **10 kısayol/onboarding**, **9 ilerleme** kontrolü ve Windows/web için **8 tema senaryo grubu** geçti. Zaman tüneli ayrıntısının koordinatörden geçerken korunması ve sonraki durumlara tekrar eklenmemesi ayrıca doğrulandı. Android kaynakları değiştirilmedi; Android derleme/telefon testleri bu değişiklik için yeniden çalıştırılmadı.
 
 Son işlev testinin bir tekrarında, gizli/küçültülmüş pencerede `page.evaluate` üzerinden ayar komutu beklemesi tamamlanmadı (test script'i satır 105). Yaklaşık üç dakika sonra yalnız kimliği doğrulanmış offline QA süreçleri kapatıldı. Aynı paket yeniden başlatıldığında 30 kontrolün tamamı geçti ve QA süreçleri normal çıktı. Önceki tam koşular da geçmişti. Bu tek olayın kök nedeni belirlenmedi; test/işletim sistemi veya uygulama kaynaklı olduğu kesinleştirilmedi ve kalıcı donmanın düzeltildiği iddia edilmez.
 
@@ -41,5 +43,7 @@ Son işlev testinin bir tekrarında, gizli/küçültülmüş pencerede `page.eva
 - Her üç fazda iki sürümde de uygulama ana DOM mutasyon sayısı **0** kaldı. Yeni sürüm yerel not değişirken aynı kalan hesap dizinini yeniden şifreleyip yazmaz; yalnız değişen büyük kasa yazılır.
 
 500 ms örnekleme yapıldı; working-set toplamı paylaşılan sayfaları birden fazla sayabilir. Soğuk açılış, saatler süren bellek sızıntısı, çok sayıda büyük kasa, gerçek ağ/bildirim yükü ve zayıf cihazlar ölçülmedi. Yerel ham sonuçlar `artifacts/desktop-0.2.11-qa/performance/` ve `artifacts/desktop-0.2.12-qa/performance-accounts/` altındadır.
+
+0.2.13 üzerinde 141 Python testi, 28 Node testi, kaynak kontrolleri, 10 çoklu hesap ve 30 işlev EXE kontrolü yeniden çalıştırıldı ve geçti. Yukarıdaki ölçümler ve diğer arayüz senaryoları 0.2.12’de alınmıştır; 0.2.13 performansı ayrıca ölçülmedi.
 
 Yeni hesapların gerçek Instagram girişleri, iki canlı oturumla uzun süreli izleme, gerçek Windows bildirim teslimi/tıklaması ve başka Windows kullanıcıları bu sürümde canlı doğrulanmadı. Android 0.1.34 ve örnek web arayüzüne çoklu hesap eklenmedi; Android giriş sorunu bu özellikle çözülmüş sayılmaz. Bu sürüm önizlemedir.
