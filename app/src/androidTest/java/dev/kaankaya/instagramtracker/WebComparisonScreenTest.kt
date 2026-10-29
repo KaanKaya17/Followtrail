@@ -94,6 +94,7 @@ class WebComparisonScreenTest {
         val report=WebConnectionJournal(context).read();assertEquals(1,report.size);assertEquals(429,report.single().http)
         assertEquals(WebConnectionJournal.Outcome.LIMITED,report.single().outcome)
         assertEquals(1,context.getSharedPreferences("request_gate",0).getInt("limit_streak",0))
+        assertEquals(429,RequestGate(context).lastHttpStatus())
         scenario!!.recreate();assertEquals(report,WebConnectionJournal(context).read())
     }
     @Test fun browserSuccessNative429DoesNotClaimWorkingConnection() {
@@ -116,5 +117,29 @@ class WebComparisonScreenTest {
         scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
         until {a->all(a.window.decorView).none {it is WebView}}
         assertEquals(1L,RequestGate(context).attempts());assertEquals(1,WebConnectionJournal(context).read().size)
+    }
+    @Test fun unrelatedPage429DuringBrowserReadDoesNotBecomeAProfileResponse() {
+        open()
+        scenario!!.onActivity {activity->
+            all(activity.window.decorView).filterIsInstance<Button>().single {it.text==activity.getString(R.string.web_compare_browser)}.performClick()
+            val browser=all(activity.window.decorView).filterIsInstance<WebView>().single()
+            val request=object: android.webkit.WebResourceRequest {
+                override fun getUrl()=android.net.Uri.parse("https://www.instagram.com/api/v1/other-page-resource/")
+                override fun isForMainFrame()=false
+                override fun isRedirect()=false
+                override fun hasGesture()=false
+                override fun getMethod()="GET"
+                override fun getRequestHeaders()=emptyMap<String,String>()
+            }
+            browser.webViewClient.onReceivedHttpError(browser,request,android.webkit.WebResourceResponse("application/json","UTF-8",429,"fixture",emptyMap(),java.io.ByteArrayInputStream("{}".toByteArray())))
+        }
+        until {a->all(a.window.decorView).none {it is WebView}}
+        val report=WebConnectionJournal(context).read()
+        assertEquals(WebConnectionJournal.Outcome.LIMITED,report.single {it.step==WebConnectionJournal.Step.PAGE}.outcome)
+        assertEquals(429,report.single {it.step==WebConnectionJournal.Step.PAGE}.http)
+        assertEquals(WebConnectionJournal.Outcome.CANCELLED,report.single {it.step==WebConnectionJournal.Step.BROWSER}.outcome)
+        assertNull(report.single {it.step==WebConnectionJournal.Step.BROWSER}.http)
+        assertTrue(report.none {it.step==WebConnectionJournal.Step.NATIVE})
+        assertNull(RequestGate(context).lastHttpStatus());assertNull(SessionVault(context).read())
     }
 }

@@ -22,6 +22,7 @@ fun RequestGate.limitReasonMessage(context: android.content.Context): String {
         InstagramResponsePolicy.Restriction.WAIT.label -> R.string.limit_wait_signal
         InstagramResponsePolicy.Restriction.FEEDBACK.label -> R.string.limit_feedback_signal
         "HTTP 429 / prototip sayfası" -> R.string.limit_prototype_signal
+        "HTTP 429 / Instagram sayfa kaynağı" -> R.string.web_compare_page_limit_signal
         "Önceki sürümde kaydedilen sınırlama" -> R.string.limit_legacy_signal
         else -> return source
     }

@@ -10,12 +10,12 @@ import java.util.UUID
 
 /** Fixed-value local diagnostics. No identity, cookie, URL, body or header is accepted. */
 class WebConnectionJournal(context: Context) {
-    enum class Step { BROWSER, NATIVE }
+    enum class Step { PAGE, BROWSER, NATIVE }
     enum class Outcome { STARTED, SUCCESS, LIMITED, AUTH, INVALID, CONNECTION, CANCELLED }
     data class Entry(val step: Step, val at: Long, val outcome: Outcome, val http: Int?)
     private val preferences=context.getSharedPreferences("web_connection_diagnostic",Context.MODE_PRIVATE)
     fun begin(step: Step) {
-        if(step==Step.BROWSER) check(preferences.edit().clear().commit())
+        if(step==Step.BROWSER) reset()
         write(Entry(step,System.currentTimeMillis(),Outcome.STARTED,null))
     }
     fun end(step: Step, outcome: Outcome, http: Int?) {
@@ -37,6 +37,8 @@ class WebConnectionJournal(context: Context) {
         }
     }
     fun clear() {check(preferences.edit().clear().commit())}
+    fun reset() {check(preferences.edit().clear().putInt("format",2).commit())}
+    fun legacyAttribution(): Boolean = !preferences.contains("format") && read().any {it.http==429}
     companion object {
         fun outcome(error: ApiFailure.Kind): Outcome = when(error) {
             ApiFailure.Kind.LIMITED->Outcome.LIMITED
@@ -68,6 +70,19 @@ class BrowserProfileProbe(private val context: Context, private val browser: Web
     private var session: WebSession?=null
     private var started=0L
     val running get()=lease!=null
+    fun receivedHttpError(url: String, status: Int, retry: String?): Boolean {
+        val state=session ?: return false
+        if(!running || status!=429)return false
+        val matches=try {
+            val uri=java.net.URI(url)
+            uri.scheme=="https" && uri.host=="www.instagram.com" && uri.port in listOf(-1,443) &&
+                uri.rawUserInfo==null && uri.rawQuery==null && uri.rawFragment==null &&
+                uri.rawPath==WebRequests.profile(state,state.owner).url.encodedPath
+        }catch(_: Exception) {false}
+        if(!matches)return false
+        finish(JSONObject().put("status",status).put("reason","limited").put("retryAfter",retry))
+        return true
+    }
     fun start(state: WebSession) {
         check(!running)
         if(!ProbePolicy.usablePage(browser.url))throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)

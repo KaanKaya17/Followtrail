@@ -9,7 +9,7 @@
     <string name="web_compare_cancelled">Connection comparison stopped after navigating or leaving the app. This does not establish a new connection. Review the result in Request information.</string>
     <string name="web_compare_journal_failed">Could not read or write web connection diagnostics.</string>
     <string name="web_compare_no_report">No web connection comparison recorded.</string>
-    <string name="web_compare_report">Latest web connection comparison · W01 browser / W02 app. Only step, time, result and HTTP are retained.</string>
+    <string name="web_compare_report">Latest web connection comparison · W00 page resource / W01 browser profile / W02 app. Only step, time, result and HTTP are retained.</string>
     <string name="web_compare_report_row">%1$s · %2$s · HTTP %3$s · %4$s</string>
     <string name="web_compare_started">Started; no completed result</string>
     <string name="web_compare_success">Succeeded</string>
@@ -18,4 +18,7 @@
     <string name="web_compare_invalid">Response or identity not verified</string>
     <string name="web_compare_connection">Connection did not complete</string>
     <string name="web_compare_cancel">Cancelled; no completed result</string>
+    <string name="web_compare_legacy_attribution">Legacy diagnostic: this version may not have distinguished which WebView request returned 429. This W01 record is not verified evidence of a profile HTTP response.</string>
+    <string name="web_compare_last_counted_http">Last counted request HTTP response: %1$s</string>
+    <string name="web_compare_page_limit_signal">HTTP 429 / Instagram page resource</string>
 </resources>
