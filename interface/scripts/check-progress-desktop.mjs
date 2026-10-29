@@ -60,7 +60,8 @@ try {
  assert.doesNotMatch(await page.locator('#operation-root').innerText(),/Sayfa 1|250/);
  checks.push('Initial profile preparation is separate from list pagination');
 
- await wait();const text=await page.locator('#operation-root').innerText();
+ await wait(12);const text=await page.locator('#operation-root').innerText();
+ assert.equal(Number(await page.locator('#operation-root progress').getAttribute('max')),12);
  assert.match(text,/@qa.owner/);assert.match(text,/Sayfa 4 sırada/);assert.match(text,/3 sayfa alındı · 150 hesap kaydedildi/);
  assert.match(text,/Son profil sayısı: 250/);assert.match(text,/Toplam sayfa sayısı henüz bilinmiyor/);assert.doesNotMatch(text,/4\/12|%/);
  assert.equal(await timers(),1);
@@ -126,14 +127,18 @@ try {
  assert.equal(await page.locator('#operation-root [data-action="cancel"]').count(),0);
  assert.equal(await page.locator('#operation-root progress').count(),0);
  await page.locator('#operation-root [data-action="requests"]').click();
- await page.locator('#overlay-root dialog').waitFor();await page.keyboard.press('Escape');
+ await page.locator('#overlay-root dialog').waitFor();
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/12–18 saniyelik rastgele/);
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/en az 15 dakika/);
+ await page.keyboard.press('Escape');
  await page.screenshot({path:path.join(output,'cooldown-tr.png')});
  checks.push('HTTP 429 stays a static stopped state with request details, separate from normal request spacing');
 
  await result();await page.evaluate(()=>window.TrackerDesktop.command('settings',{language:'en'}));
  await page.getByRole('heading',{name:'What is happening in your circle?'}).waitFor();
  await page.locator('#toast.visible').waitFor({state:'hidden'});
- await wait();await page.getByText('Page 4 queued',{exact:true}).waitFor();
+ await wait(18);await page.getByText('Page 4 queued',{exact:true}).waitFor();
+ assert.equal(Number(await page.locator('#operation-root progress').getAttribute('max')),18);
  assert.match(await page.locator('#operation-root').innerText(),/150 accounts saved/);
  await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(960,760));
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -143,6 +148,11 @@ try {
  assert.doesNotMatch(await page.locator('#operation-root').innerText(),/Page 4|150 accounts/);
  await result();
  checks.push('English and minimum window width render correctly; non-list operations carry no stale scan counts');
+ await page.locator('main [data-action="requests"]').first().click();
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/random 12–18 second spacing/);
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/at least 15 minutes/);
+ await page.keyboard.press('Escape');
+ checks.push('TR/EN request information shows backend-owned 12–18 second pacing; countdown bars accept both bounds and login spacing stays 15 minutes');
  assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
  await writeFile(path.join(output,'checks.json'),JSON.stringify({checks,errors,externalRequests:requests.length,synthetic:true,liveInstagram:false},null,2));
  console.log(`${checks.length} packaged progress checks passed; no external requests.`);

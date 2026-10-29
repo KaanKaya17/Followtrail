@@ -45,7 +45,7 @@ class ScanProgressTests(unittest.TestCase):
         self.home = tempfile.TemporaryDirectory(prefix='TrackerQA-')
         self.now = [1800000000.0]
         self.events = []
-        self.engine = Engine(self.home.name, emit=self.events.append, clock=lambda: self.now[0])
+        self.engine = Engine(self.home.name, emit=self.events.append, clock=lambda: self.now[0], request_delay=lambda:15)
         self.engine.cancel = ClockWait(self.now)
         self.engine.record_profile(parse_profile(profile()), own=True)
         self.engine.data['session'] = {'cookies': {'ds_user_id': '100', 'sessionid': 'SYNTHETIC'}}
