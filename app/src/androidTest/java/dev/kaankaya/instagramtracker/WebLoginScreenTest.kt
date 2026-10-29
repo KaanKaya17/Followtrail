@@ -75,6 +75,20 @@ class WebLoginScreenTest {
     private fun verify() = scenario!!.onActivity { a ->
         all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.web_connection_verify) }.performClick()
     }
+    @Test fun authenticationReadPauseReenablesVerificationWithoutReadingOrErasingFailure() {
+        open()
+        val gate=RequestGate(context);gate.beginWebAuthentication()
+        scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<WebView>().single()
+            .loadUrl("https://www.instagram.com/accounts/login/?fixture=gate-wake") }
+        until { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text==a.getString(R.string.web_connection_verify) && !it.isEnabled } }
+        scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<WebView>().single()
+            .evaluateJavascript("fetch('/api/graphql',{method:'POST',body:'unapproved-local'}).catch(()=>{})",null) }
+        until { a -> all(a.window.decorView).filterIsInstance<TextView>().any { it.text==a.getString(R.string.web_relay_blocked) } }
+        until(22000) { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text==a.getString(R.string.web_connection_verify) && it.isEnabled } }
+        scenario!!.onActivity { a -> assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any { it.text==a.getString(R.string.web_relay_blocked) }) }
+        assertEquals(1L,gate.attempts());assertNull(SessionVault(context).read())
+        assertTrue(gate.nextWebAuthenticationAt()>System.currentTimeMillis())
+    }
     @Test fun desktopLoginLoadsExactBootstrapReadsAndDetectsModernFieldsWithoutVerifyingAnAccount() {
         open(bootstrap = true)
         until(20000) { LoginPageTrace.read(context)?.let { org.json.JSONObject(it).optBoolean("formVisible", false) } == true }

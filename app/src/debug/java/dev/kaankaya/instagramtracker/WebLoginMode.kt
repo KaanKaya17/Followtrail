@@ -16,6 +16,7 @@ object WebLoginMode {
     fun enabled(activity: Activity) = activity.intent.getBooleanExtra("offline_web_login", false)
     fun intercept(request: WebResourceRequest, enabled: Boolean, activity: Activity): WebResourceResponse? {
         if (!enabled) return null
+        if (LoginBrowserPolicy.landing(request.url.toString())) return LoginBrowserResources.landing()
         if (activity.intent.getBooleanExtra("web_bootstrap_fixture", false)) {
             if (request.url.path in setOf("/ajax/bootloader-endpoint/", "/ajax/bulk-route-definitions/"))
                 return WebResourceResponse("application/json", "UTF-8", ByteArrayInputStream("{}".toByteArray()))
