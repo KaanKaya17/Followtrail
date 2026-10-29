@@ -18,7 +18,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
 import java.io.ByteArrayInputStream
-import java.net.URLEncoder
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -66,14 +65,7 @@ class WebLoginRelayTest {
         instrumentation.runOnMainSync { CookieManager.getInstance().removeAllCookies { done.countDown() } }
         assertTrue(done.await(5,TimeUnit.SECONDS))
     }
-    private fun validBody(doc: String = WebLoginContract.DOCUMENT): String {
-        val cipher="#PWD_BROWSER:5:1790000000:"+"A".repeat(96)
-        val input=JSONObject().put("actor_id","0").put("identifier","synthetic.account").put("app","instagram")
-            .put("credential_type","password").put("use_uid_to_login",false).put("passkey_payload",JSONObject.NULL)
-            .put("password",JSONObject().put("sensitive_string_value",cipher)).put("enc_password",JSONObject().put("sensitive_string_value",cipher))
-        return "doc_id=$doc&fb_api_req_friendly_name=${WebLoginContract.OPERATION}&variables="+
-            URLEncoder.encode(JSONObject().put("input",input).put("scale",1).toString(),"UTF-8")
-    }
+    private fun validBody(doc: String = WebLoginContract.DOCUMENT) = SyntheticWebLogin.body(doc)
     private fun open(frame: Boolean = false) {
         scenario=ActivityScenario.launch(WebRelayFixtureActivity::class.java)
         scenario!!.onActivity { activity ->

@@ -23,7 +23,9 @@ import java.util.concurrent.Future
 class WebLoginRelay(private val context: Context, private val browser: WebView, private val gate: RequestGate,
     private val worker: ExecutorService, private val trace: LoginPageTrace,
     private val failure: (ApiFailure, Int?) -> Unit,
-    private val client: Call.Factory = PrivateReadTransport.client()) : AutoCloseable {
+    private val client: Call.Factory = PrivateReadTransport.client(),
+    private val started: () -> Unit = {},
+    private val completed: (WebLoginResponseFacts, WebLoginChallenge?) -> Unit = { _, _ -> }) : AutoCloseable {
     private val main = Handler(Looper.getMainLooper())
     private var script: ScriptHandler? = null
     private var installed = false
@@ -94,6 +96,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
             val pending = Pending(id, proxy, lease); active = pending
             try {
                 trace.resource("POST", LoginBrowserPolicy.ResourceDecision(true, LoginBrowserPolicy.ResourceKind.AUTH)); trace.flush()
+                started()
                 pending.future = worker.submit { exchange(pending, request) }
             }
             catch (error: Exception) { active = null; lease.close(); throw error }
@@ -151,11 +154,13 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                     if (closed || active !== pending) return@post
                     fun finish() {
                         if (closed || active !== pending) return
-                        try { record(facts.copy(cookiesApplied = cookies.isNotEmpty())) }
+                        val finalFacts = facts.copy(cookiesApplied = cookies.isNotEmpty())
+                        try { record(finalFacts) }
                         catch (problem: ApiFailure) {
                             active = null; reply(pending.reply, pending.id, JSONObject().put("error", true)); failure(problem, null); return
                         }
                         active = null; reply(pending.reply, pending.id, result)
+                        completed(finalFacts, WebLoginChallenge.fromResponse(json, finalFacts))
                     }
                     if (cookies.isEmpty()) finish() else {
                         var remaining = cookies.size

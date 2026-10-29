@@ -51,7 +51,7 @@ object LoginBrowserPolicy {
     private fun uri(url: String) = try { URI(url).takeIf { it.scheme == "https" && it.rawUserInfo == null && it.port in listOf(-1,443) && !it.rawPath.contains('%') && !it.rawPath.contains("..") } } catch (_: Exception) { null }
     private fun page(path: String) = path in setOf("/", "/accounts/login/", "/accounts/login/two_factor/", "/accounts/two_factor_authentication/", "/accounts/onetap/") || path.startsWith("/challenge/") || path.startsWith("/checkpoint/")
     fun navigation(url: String): Boolean = uri(url)?.let { it.host in setOf("www.instagram.com","instagram.com") && page(it.rawPath) } == true
-    enum class ResourceKind { PAGE, STATIC, BOOTSTRAP, PROFILE, CDN, AUTH, GRAPHQL, INSTAGRAM_OTHER, OTHER_HOST, INVALID }
+    enum class ResourceKind { PAGE, STATIC, BOOTSTRAP, PROFILE, CDN, AUTH, CAPTCHA, GRAPHQL, INSTAGRAM_OTHER, OTHER_HOST, INVALID }
     data class ResourceDecision(val allowed: Boolean, val kind: ResourceKind)
     fun resource(method: String, url: String): Boolean = resourceDecision(method, url).allowed
     fun resourceDecision(method: String, url: String): ResourceDecision {

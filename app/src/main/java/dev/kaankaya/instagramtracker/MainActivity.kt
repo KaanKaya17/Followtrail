@@ -75,6 +75,10 @@ class MainActivity : LocalizedActivity() {
     private var loginTrace: LoginPageTrace? = null
     private var loginRelay: WebLoginRelay? = null
     private var loginRelayIssue = false
+    private var loginAuthenticating = false
+    private var autoVerifyLogin = false
+    @Volatile private var loginChallenge: WebLoginChallenge? = null
+    private var challengeButton: Button? = null
     private var loginTraceFailed = false
     private var loginPageEpoch = 0L
     private val inspectPage = Runnable { inspectLoginPage() }
@@ -168,6 +172,7 @@ class MainActivity : LocalizedActivity() {
         super.onResume()
         if (web != null) { main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000) }
         visible = true
+        if (web != null) { scheduleGateWake(); continueAuthenticatedLogin() }
         if (::profileStatuses.isInitialized) profileStatuses.resume()
         if (recreatingForInterface) return
         if (!::gate.isInitialized || web != null || loading) return
@@ -1244,6 +1249,7 @@ class MainActivity : LocalizedActivity() {
                 // No automatic retry when a pause expires.
                 if (!loginAttempted && !loginRelayIssue) loginStatus?.text = if(webComparison && browserProof != null && gate.nextAllowedAt() <= System.currentTimeMillis())
                     getString(R.string.web_compare_native_ready) else pauseMessage() ?: getString(if(webComparison) R.string.web_compare_instruction else R.string.connection_ready)
+                continueAuthenticatedLogin()
             }
         }
     }
@@ -1391,6 +1397,7 @@ class MainActivity : LocalizedActivity() {
         web = browser
         loginTraceFailed = false
         loginRelayIssue = false
+        loginAuthenticating = false; autoVerifyLogin = false; loginChallenge = null
         val pageTrace = LoginPageTrace(this)
         loginTrace = pageTrace
         recordLoginPage(pageTrace) { it.flush() }
@@ -1409,8 +1416,11 @@ class MainActivity : LocalizedActivity() {
             @Suppress("DEPRECATION") setSaveFormData(false)
         }
         CookieManager.getInstance().apply { setAcceptCookie(true); setAcceptThirdPartyCookies(browser, false) }
+        challengeButton = button(getString(R.string.web_login_show_challenge), false) { showLoginChallenge() }.apply { visibility = View.GONE }
+        page.addView(challengeButton)
         loginRelay = WebLoginRelay(this, browser, gate, worker, pageTrace, { problem, status ->
             if (web === browser) {
+                loginAuthenticating = false
                 loginRelayIssue = true
                 if (problem.kind == ApiFailure.Kind.LIMITED) webLoginFailed(problem, status)
                 else loginStatus?.text = when (problem.kind) {
@@ -1421,13 +1431,39 @@ class MainActivity : LocalizedActivity() {
                 updateLoginCompletion()
                 scheduleGateWake()
             }
+        }, client = WebLoginMode.relayClient(this, webFixture), started = {
+            if (web === browser) {
+                loginAuthenticating = true; loginRelayIssue = true
+                loginStatus?.setText(R.string.web_login_sending); updateLoginCompletion()
+            }
+        }, completed = { facts, challenge ->
+            if (web === browser) {
+                loginAuthenticating = false; loginRelayIssue = true
+                loginChallenge?.close(); loginChallenge = challenge
+                challengeButton?.visibility = if (challenge != null) View.VISIBLE else View.GONE
+                completionButton?.visibility = if (facts.captchaNeeded == true) View.GONE else View.VISIBLE
+                when {
+                    facts.captchaNeeded == true -> loginStatus?.setText(if (challenge != null) R.string.web_login_captcha else R.string.web_login_captcha_unavailable)
+                    facts.twoFactorPayloadPresent == true -> loginStatus?.setText(R.string.web_login_two_factor)
+                    facts.authenticated == true && facts.sessionCookieReceived && facts.ownerCookieReceived && facts.cookiesApplied == true -> {
+                        autoVerifyLogin = !webComparison
+                        loginStatus?.setText(if (webComparison) R.string.web_login_comparison_ready else R.string.web_login_profile_pending)
+                    }
+                    facts.authenticated == false -> loginStatus?.setText(R.string.web_login_rejected)
+                    else -> loginStatus?.setText(R.string.web_relay_invalid_response)
+                }
+                updateLoginCompletion(); scheduleGateWake(); continueAuthenticatedLogin()
+            } else challenge?.close()
         }).also { if (!it.install()) { loginRelayIssue = true; loginStatus?.setText(R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !LoginBrowserPolicy.navigation(request.url.toString()).also { allowed ->
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !(LoginBrowserPolicy.navigation(request.url.toString()) ||
+                !request.isForMainFrame && loginChallenge?.subframe(request.url.toString()) == true).also { allowed ->
                 if (!allowed) loginStatus?.setText(R.string.security_login_scope)
             }
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                val decision = LoginBrowserPolicy.resourceDecision(request.method, request.url.toString())
+                val decision = if (loginChallenge?.resource(request.method, request.url.toString()) == true)
+                    LoginBrowserPolicy.ResourceDecision(true, LoginBrowserPolicy.ResourceKind.CAPTCHA)
+                    else LoginBrowserPolicy.resourceDecision(request.method, request.url.toString())
                 if (web === view) recordLoginPage(pageTrace) { it.resource(request.method, decision) }
                 return if (!decision.allowed) LoginBrowserResources.blocked()
                 else WebLoginMode.intercept(request, webFixture, this@MainActivity)
@@ -1454,7 +1490,7 @@ class MainActivity : LocalizedActivity() {
             override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
                 if (web === view && response.statusCode in 400..599) recordLoginPage(pageTrace) {
                     it.http(response.statusCode, request.isForMainFrame,
-                        LoginBrowserPolicy.resourceDecision(request.method, request.url.toString()).allowed)
+                        loginChallenge?.resource(request.method, request.url.toString()) == true || LoginBrowserPolicy.resourceDecision(request.method, request.url.toString()).allowed)
                 }
                 if (response.statusCode != 429 || !NavigationPolicy.isInstagram(request.url.toString())) return
                 val retry = response.responseHeaders?.entries?.firstOrNull { it.key.equals("Retry-After", true) }?.value
@@ -1482,6 +1518,7 @@ class MainActivity : LocalizedActivity() {
                     loginLoaded = true
                     updateLoginCompletion()
                     scheduleGateWake()
+                    continueAuthenticatedLogin()
                 }
             }
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -1504,13 +1541,39 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun updateLoginCompletion() {
-        val enabled = web != null && loginLoaded && !loginAttempted && !loginChecking &&
+        val enabled = web != null && loginLoaded && !loginAttempted && !loginChecking && !loginAuthenticating &&
             loginNextAllowedAt() <= System.currentTimeMillis()
         completionButton?.isEnabled = enabled
         completionButton?.alpha = if (enabled) 1f else .5f
     }
 
     private fun loginNextAllowedAt(): Long = if (webComparison && browserProof != null) gate.nextAllowedAt() else gate.nextPrototypeAt()
+
+    private fun showLoginChallenge() {
+        val browser = web ?: return
+        val challenge = loginChallenge ?: return
+        AlertDialog.Builder(this).setTitle(R.string.web_login_show_challenge).setMessage(R.string.web_login_challenge_privacy)
+            .setNegativeButton(R.string.ui_cancel, null).setPositiveButton(R.string.web_login_show_challenge) { _, _ ->
+                if (web === browser && loginChallenge === challenge) {
+                    challenge.authorize(); challengeButton?.visibility = View.GONE
+                    completionButton?.visibility = View.VISIBLE
+                    autoVerifyLogin = !webComparison
+                    loginStatus?.setText(R.string.web_login_complete_challenge)
+                    browser.loadUrl(challenge.page)
+                }
+            }.show()
+    }
+
+    private fun continueAuthenticatedLogin() {
+        if (!visible || !autoVerifyLogin || webComparison || !loginLoaded || loginAttempted || loginChecking || loginAuthenticating) return
+        val browser = web ?: return
+        val ready = try { WebSessionCodec.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"), browser.settings.userAgentString); true }
+            catch (_: Exception) { false }
+        if (!ready) return
+        if (loginNextAllowedAt() > System.currentTimeMillis()) { scheduleGateWake(); return }
+        autoVerifyLogin = false
+        checkLogin()
+    }
 
     private fun startBrowserComparison(browser: WebView, state: WebSession) {
         if (browserProbe != null) return
@@ -1604,6 +1667,9 @@ class MainActivity : LocalizedActivity() {
 
     private fun leaveLogin() {
         main.removeCallbacks(inspectPage)
+        main.removeCallbacks(gateWake)
+        loginChallenge?.close(); loginChallenge = null; challengeButton = null
+        autoVerifyLogin = false; loginAuthenticating = false
         loginRelay?.close(); loginRelay = null
         recordLoginPage { it.close() }; loginTrace = null
         try { browserProbe?.cancel() } catch (_: Exception) { message = getString(R.string.web_compare_journal_failed) }
@@ -1649,6 +1715,8 @@ class MainActivity : LocalizedActivity() {
     }
 
     override fun onDestroy() {
+        loginChallenge?.close(); loginChallenge = null
+        autoVerifyLogin = false; loginAuthenticating = false
         loginRelay?.close(); loginRelay = null
         recordLoginPage { it.close() }; loginTrace = null
         if (::preparation.isInitialized) preparation.close()
