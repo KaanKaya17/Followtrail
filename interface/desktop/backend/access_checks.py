@@ -120,7 +120,7 @@ def probe(client, identity):
         return {**parse_visibility(payload, identity), 'targetHTTP': response_status(client)}
     except Exception as exc:
         error = failure(exc)
-        if error['code'] in ('limited', 'session', 'verification', 'cancelled', 'storage'):
+        if error['code'] in ('limited', 'cooldown', 'session', 'verification', 'cancelled', 'storage'):
             raise
         status = getattr(getattr(exc, 'response', None), 'status_code', None)
         # A bare "Not Found" is a masked challenge in the pinned client and is

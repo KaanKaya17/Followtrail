@@ -31,6 +31,7 @@ const switchTo=async id=>{
 try {
  await launch();
  let first=(await state()).state;
+ assert.equal(first.version,version);
  assert.equal(first.activeAccountId,'100');assert.equal(first.accounts.length,2);
  const attempts=first.gate.attempts;
  await page.locator('.account-switcher').click();
@@ -116,6 +117,6 @@ try {
  assert.equal((await state()).state.gate.attempts,attempts);
  assert.deepEqual(requests,[]);assert.deepEqual(errors,[]);
  checks.push('No renderer network requests or JavaScript errors; global request counter unchanged');
- await writeFile(path.join(output,'results.json'),JSON.stringify({checks,errors,requests,liveInstagram:false},null,2));
+ await writeFile(path.join(output,'results.json'),JSON.stringify({version,checks,errors,requests,liveInstagram:false},null,2));
  for(const check of checks)console.log('PASS '+check);
 } finally {if(app)await app.close();}

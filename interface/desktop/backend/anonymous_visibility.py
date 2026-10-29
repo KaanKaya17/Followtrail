@@ -176,7 +176,7 @@ def probe(engine, identity, username):
                 engine.check_cancel()
                 return {**evidence, **parse_page(raw, identity, username)}
     except AppFailure as error:
-        if error.code != 'limited':
+        if error.code not in ('limited', 'cooldown'):
             raise
         return {**evidence, 'reason': 'limited' if evidence['http'] == 429 else 'cooldown'}
     except StorageFailure:

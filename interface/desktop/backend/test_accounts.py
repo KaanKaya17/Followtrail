@@ -286,6 +286,25 @@ class AccountsTests(unittest.TestCase):
         self.assertEqual(writes.call_count,0)
         self.assertEqual(Accounts(self.home.name).data['people']['200']['note'],'Local edit')
 
+    def test_local_hold_after_switch_does_not_invent_new_429_or_extend_deadline(self):
+        self.add()
+        self.e.limited()
+        self.e.run('switch_account', {'id':'100'})
+        before = copy.deepcopy(self.e.catalog['gate'])
+        fake = FakeClient([])
+        def gated_profile(client, identity):
+            self.e.before_request()
+            raise AssertionError('Local hold must prevent transport')
+        with patch.object(self.e,'client',return_value=fake), patch.object(self.e,'read_profile',side_effect=gated_profile):
+            for _ in range(2):
+                with self.assertRaises(AppFailure) as caught:
+                    self.e.run('refresh', {})
+                self.assertEqual(caught.exception.code,'cooldown')
+        self.assertEqual(self.e.catalog['gate'],before)
+        self.assertEqual(fake.calls,[])
+        restart = Accounts(self.home.name,clock=lambda:self.now)
+        self.assertEqual(restart.catalog['gate'],before)
+
 
 if __name__ == '__main__':
     unittest.main()
