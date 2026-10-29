@@ -1,6 +1,6 @@
 <resources>
     <string name="web_connection_menu">Connect with Instagram · Recommended</string>
-    <string name="web_connection_instruction">Complete sign-in and any verification on the Instagram page. Then tap Verify account.</string>
+    <string name="web_connection_instruction">Sign in on Instagram and complete any verification. After a successful sign-in, your profile is checked automatically once.</string>
     <string name="web_connection_privacy">Your password and verification code are not saved. Your encrypted sign-in request goes only to Instagram; your session is encrypted on this device.</string>
     <string name="web_connection_verify">Verify account</string>
     <string name="web_connection_failed">Account verification failed</string>

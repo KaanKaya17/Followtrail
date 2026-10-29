@@ -1,0 +1,12 @@
+<resources>
+    <string name="web_login_sending">Instagram is checking your sign-in. A result should appear within about 35 seconds; do not submit again.</string>
+    <string name="web_login_profile_pending">Signed in. After the short request interval, your profile will be checked once to complete the connection.</string>
+    <string name="web_login_comparison_ready">Signed in. Use A to check the browser reader, then B to compare the app reader.</string>
+    <string name="web_login_captcha">Instagram requires an extra security check; sign-in is not complete. Open verification below instead of sending your password again.</string>
+    <string name="web_login_captcha_unavailable">Instagram requires an extra security check; sign-in is not complete. This version cannot open the returned verification link. Check security alerts in the official Instagram app; avoid repeated sign-in attempts.</string>
+    <string name="web_login_two_factor">Instagram requires additional verification. Complete the code or approval step on its page; you do not need to share the code with this app.</string>
+    <string name="web_login_rejected">Instagram did not create a session for this sign-in; the app is no longer waiting for a response. Check the result on the page. No new sign-in will be sent automatically.</string>
+    <string name="web_login_show_challenge">Show Instagram verification</string>
+    <string name="web_login_challenge_privacy">This opens Instagram’s security page. Meta’s CAPTCHA frame and Google reCAPTCHA may load and receive your IP address and browser information. The app does not forward your password or Instagram session to these domains. Complete verification yourself; cancelling leaves these resources blocked.</string>
+    <string name="web_login_complete_challenge">Complete Instagram’s security step on this page. After success, your profile will be checked. If the page does not continue, finish verification and tap Verify account once.</string>
+</resources>

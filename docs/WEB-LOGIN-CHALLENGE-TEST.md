@@ -1,0 +1,31 @@
+# Android 0.1.47 — giriş sonucunu tamamlama ve CAPTCHA desteği
+
+29 Ekim 2026. Fiziksel 0.1.46 telefonundaki mevcut deneme, yeni giriş gönderilmeden LP01 üzerinden okundu: HTTP 200; `caa_login_web` var; `ig_authenticated=false`, `recaptcha_needed=true`, hata kodu 1348009; oturum/hesap çerezi yok. Sayfa formu görünüyordu. Eski 09:25 sınırlama kaydı bu denemenin HTTP sonucu değildir. Aynı yanıtta genel yanlış giriş bilgileri metni bulunması, CAPTCHA işaretini veya oturum açılmadığı gerçeğini ortadan kaldırmaz. Bu kodun bütün Meta uçlarında aynı anlama geldiği iddia edilmez.
+
+## Kanıt ve üretici
+
+Herkese açık giriş sayfası ayrı ve oturumsuz Edge bağlamında yüklendi; parola girilmedi, kimlik doğrulama POST'ları engellendi. Yalnız statik betikler ve sayfanın kendi dar bootstrap yüklemeleri kullanıldı. 429 görülmedi. Dinamik yüklenen `CAAIGLoginRecaptchaDialog.react`, kullanıcının hesabı veya CAPTCHA'sı açılmadan statik kaynak olarak alındı.
+
+- İlk iki betik toplam 473.002 bayt. `useCAALoginSubmitResponseCommonCallback` CAPTCHA sonucu ile normal başarılı yönlendirmeyi ayırıyor.
+- Diyalog kaynağı SHA256 `d4e8644fe92e85585fcb6e66fd94f1a70c2028564dc94bae08259c8643447efe`: `login_recaptcha_url` içinden challenge belirtecini alıp `/api/v1/challenge/web/…` okumasını yapıyor. Kullanıcının çözümünden sonra `challenge_context`, `g-recaptcha-response`, `is_from_recaptcha_dialog` ile ilerliyor. Yardımcının sabit yedek yolu `/api/v1/challenge/web/action/`.
+- `ReCaptcha.react` Meta'nın `www.fbsbx.com/captcha/recaptcha/iframe/` çerçevesini kullanıyor. Google'ın [resmi CAPTCHA kaynak yönergeleri](https://developers.google.com/recaptcha/docs/faq) Google/gstatic reCAPTCHA yollarını belirtir. Google, [gömülü WebView yerine kendi SDK'larını önerir](https://docs.cloud.google.com/recaptcha/docs/choose-key-type); Instagram'a ait anahtar/SDK değiştirilmedi, WebView'da canlı CAPTCHA başarısı ayrıca doğrulanmalıdır.
+- İlk giriş betiklerinin REA 6.7.0 statik Evidence kimliği `ev_1be8a0560d3a5b8cdca59e9daae6f0403dce06db19bd55840f8d1a1a973b9cd9`, hedef özeti `2f8ca88fde028b050ca82c23ba3e38c5aaf8b5f8157033c9f2f24f2e5f4e4e29`. Grafik kapsamı kısmi; dinamik çalışma başarısı sayılmaz. Diyaloğun sonraki kaynak incelemesi sıradan yerel metin incelemesidir. Ham Evidence ve statik kaynaklar yerel artifacts altında tutuldu; Git'e eklenmedi. REA MCP bu oturumda yoktu; mevcut önbellekteki CLI kullanıldı, REA/client yapılandırması değiştirilmedi.
+
+## Davranış ve sınırlar
+
+- Native giriş aktarımı başlama ve sonuç olaylarını sahibine bildirir. Sonuç üstte açıkça görünür: başarılı giriş, CAPTCHA, iki aşamalı işlem, reddedilmiş giriş veya bilinmeyen yanıt. CAPTCHA işareti genel parola mesajından önce değerlendirilir.
+- Normal önerilen bağlantı, doğrulanmış oturum/hesap çerezleri uygulanınca kısa okuma aralığını bekler ve yalnız bir profil GET'i gönderir. Başarıyla bitince şifreli hesap kaydedilir. A/B gelişmiş karşılaştırması kullanıcı denetiminde kalır. Giriş tekrar gönderilmez. Arka plandayken yeni otomatik profil isteği başlamaz; dönüşte hazır işlem sürer.
+- `WebLoginChallenge`, yalnız aynı giriş yanıtındaki geçerli HTTPS `www.instagram.com/challenge/…` bağlantısından doğar; URL/belirteç diske veya tanıya yazılmaz. Nesne metni redaktedir. Kullanıcı onayından önce dış kaynak izni yoktur.
+- Onay açıklaması Meta/Google'ın IP ve tarayıcı bilgisi alabileceğini belirtir. Instagram çerezleri/başlıkları bu alan adlarına uygulama tarafından kopyalanmaz; üçüncü taraf çerez ayarı kapalı kalır. Native mesaj köprüsü yalnız Instagram ana çerçevesine açıktır. CAPTCHA çözümü otomatikleştirilmez.
+- Onaydan sonra yalnız bu challenge'ın API GET yolu, sabit challenge action POST yolu, Meta'nın kesin CAPTCHA çerçevesi ve Google/gstatic reCAPTCHA yolları açılır. Diğer challenge belirteçleri, sosyal yollar, genel GraphQL ve genel üçüncü taraf trafiği bu izne dahil değildir. Instagram güvenlik sayfasının mevcut dar gezinme sınırı korunur; yabancı ana sayfa yönlendirmesi reddedilir.
+- Doğrulama desteklenmeyen bir bağlantı döndürürse açık hata gösterilir; rastgele adres denenmez. 429, bütçe ve kalıcı giriş aralığı korunur. Önceki 0.1.46 profil okumasındaki 429'un çözüldüğü iddia edilmez.
+
+## Doğrulama
+
+102 JVM testi geçti; release lint 0 hata / 22 uyarı. Son derleme 2 dk 40 sn. İlk geliştirme derlemesi 4 dk 23 sn; son derleme yaşam döngüsü/son arayüz değişikliklerini içerir.
+
+0.1.47/kod 48, 2.208.408 bayt; SHA256 `17557360ac7e4cef2268b303043d42f0b4666c0b358b8c28ad8324160894ccc7`. Mevcut üretim imzası kullanıldı; debug, yedekleme ve açık HTTP kapalı, izinler değişmedi. Yeni sentetik auth/CAPTCHA fixture anahtarlarının üretim DEX'inde bulunmadığı da denetlendi.
+
+İlk emülatör turu 174,849 sn / 42 vaka: CAPTCHA testinin tek doğrudan yanıt durumu kontrolü 200 yerine 0 gördü. Debug HTML fixture, Android'in durum kodu belirtilmeyen yanıt kurucusunu kullanıyordu; WebView bunu başarı olarak işlerken doğrudan getter 0 döndürüyordu. Fixture HTML yanıtı artık açık HTTP 200 üretir; üretim APK'sı bu test düzeltmesiyle değişmedi. Otomatik giriş, arka plan bekletme ve mevcut diğer bağlantı vakaları ilk turda geçti. Son API 37 emülatör turu 165,135 sn / 42 vaka: 41 başarılı; isteğe bağlı canlı form vakası 1 atlandı. Normal girişte elle doğrulama olmadan tek profil okuması ve şifreli bağlantı, arka planda yeni okuma yapılmaması, CAPTCHA sonucu/onay duvarı, sosyal istek engeli ve mevcut iptal/429/kimlik sınırları geçti. Debug fixture ek derlemesi 42 sn.
+
+Fiziksel telefona üretim imzasıyla `install -r` yapıldı ve 0.1.47/kod 48 doğrulandı; veriler silinmedi. Önerilen tek bağlantı yoluyla aynı hesabın canlı testi kullanıcıya verildi. Canlı CAPTCHA tamamlama ve profil bağlantısı sonucu henüz alınmadı; tam bağlantı başarısı iddia edilmez. Sahipli emülatör kapatıldı. Sentetik CAPTCHA testi, Google'daki gerçek bir insan doğrulamasının başarıyla tamamlandığı kanıtı değildir.

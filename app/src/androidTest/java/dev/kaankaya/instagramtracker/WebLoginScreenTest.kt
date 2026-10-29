@@ -48,9 +48,10 @@ class WebLoginScreenTest {
             .filterIsInstance<TextView>().joinToString(" | ") { it.text.toString() } }
         fail("Offline UI condition not reached: $visible")
     }
-    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true) {
+    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false) {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java)
-            .putExtra("offline_web_login", offline).putExtra("web_login_status", status).putExtra("web_bootstrap_fixture", bootstrap))
+            .putExtra("offline_web_login", offline).putExtra("web_login_status", status).putExtra("web_bootstrap_fixture", bootstrap)
+            .putExtra("web_auth_fixture", auth).putExtra("web_captcha_fixture", captcha))
         until { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text == a.getString(R.string.ui_connect_account) } }
         scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.ui_connect_account) }.performClick() }
         instrumentation.waitForIdleSync()
@@ -74,6 +75,57 @@ class WebLoginScreenTest {
     }
     private fun verify() = scenario!!.onActivity { a ->
         all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.web_connection_verify) }.performClick()
+    }
+    private fun submitSyntheticLogin() = scenario!!.onActivity { a ->
+        val body=org.json.JSONObject.quote(SyntheticWebLogin.body())
+        all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(
+            "fetch('/api/graphql',{method:'POST',body:$body}).then(r=>r.json()).then(j=>{if(j.data.caa_login_web.ig_authenticated)location.href='/accounts/onetap/';}).catch(()=>{})",null)
+    }
+    @Test fun successfulLoginAutomaticallyReadsOnceAndLinksWithoutPressingVerify() {
+        open(auth=true);submitSyntheticLogin()
+        until(23000) { SessionVault(context).read()!=null }
+        assertEquals("123",SessionVault(context).read()!!.profile.userId)
+        assertEquals(2L,RequestGate(context).attempts())
+        assertNotNull(SessionVault(context).read()!!.session.webBinding)
+        Thread.sleep(400);assertEquals(2L,RequestGate(context).attempts())
+    }
+    @Test fun captchaIsShownAsUserActionAndExternalResourcesStayBlockedUntilConsent() {
+        open(auth=true,captcha=true);submitSyntheticLogin()
+        until {a->all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_login_show_challenge)&&it.visibility==View.VISIBLE}}
+        scenario!!.onActivity {a->assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_captcha)})}
+        assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+        fun resource(method: String,url: String): Int {
+            var status=0
+            scenario!!.onActivity {a->val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
+                val request=object: android.webkit.WebResourceRequest {
+                    override fun getUrl()=android.net.Uri.parse(url)
+                    override fun isForMainFrame()=false
+                    override fun isRedirect()=false
+                    override fun hasGesture()=false
+                    override fun getMethod()=method
+                    override fun getRequestHeaders()=emptyMap<String,String>()
+                }
+                status=browser.webViewClient.shouldInterceptRequest(browser,request)!!.statusCode
+            };return status
+        }
+        val frame="https://www.fbsbx.com/captcha/recaptcha/iframe/"
+        assertEquals(403,resource("GET",frame))
+        scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<Button>().single {it.text==a.getString(R.string.web_login_show_challenge)}.performClick()}
+        instrumentation.runOnMainSync { WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>().single {it.id==android.R.id.button1}.performClick() }
+        until {a->all(a.window.decorView).filterIsInstance<WebView>().single().url?.contains("challenge/")==false}
+        assertEquals(200,resource("GET",frame))
+        assertEquals(403,resource("POST","https://www.instagram.com/api/v1/web/friendships/123/follow/"))
+        assertNull(SessionVault(context).read());assertEquals(1L,RequestGate(context).attempts())
+    }
+    @Test fun automaticConnectionWaitsWhileTheLoginScreenIsInBackground() {
+        open(auth=true);submitSyntheticLogin()
+        until { org.json.JSONObject(LoginPageTrace.read(context)!!).optJSONObject("authentication")?.optBoolean("cookiesApplied")==true }
+        scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
+        Thread.sleep(16000)
+        assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+        scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
+        until {SessionVault(context).read()!=null}
+        assertEquals(2L,RequestGate(context).attempts())
     }
     @Test fun authenticationReadPauseReenablesVerificationWithoutReadingOrErasingFailure() {
         open()

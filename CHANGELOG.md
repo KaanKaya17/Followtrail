@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.47 — 2026-10-29 (Tek akışta giriş ve güvenlik doğrulaması)
+
+- Girişin yanıtı native arayüzde gösterilir; CAPTCHA gereksinimi genel parola mesajından önce değerlendirilir. Sonuç dönmüşken kullanıcıya hâlâ giriş bekleniyormuş izlenimi verilmez.
+- Önerilen bağlantıda başarılı oturumdan sonra kısa okuma aralığı beklenir ve tek profil isteğiyle bağlantı tamamlanır. Gelişmiş A/B karşılaştırması elle çalışır; otomatik yeni giriş veya başarısız profil okumasını tekrar deneme eklenmedi.
+- Instagram'ın aynı giriş yanıtından gelen geçerli güvenlik bağlantısı, kullanıcının açıklamayı onaylamasıyla açılabilir. Yalnız bu challenge'ın okuması, güvenlik action yolu ve Meta/Google CAPTCHA kaynakları için geçici izin vardır. Instagram oturumu dış alan adlarına kopyalanmaz; izin giriş ekranı kapatılınca bırakılır. CAPTCHA'yı kullanıcı tamamlar.
+- Telefonda son HTTP 200 yanıtında oturum yoktu ve CAPTCHA isteniyordu; önceki profil HTTP 429 sorunu ayrı kalır. [Kanıt, gizlilik sınırı ve doğrulama](docs/WEB-LOGIN-CHALLENGE-TEST.md).
+
 ## Android 0.1.46 — 2026-10-29 (Giriş sonrası doğrulama)
 
 - Doğrulama düğmesi giriş sonrası kısa okuma aralığında kendiliğinden yeniden etkinleşir. Düğme hazırlığı tek yerde hesaplanır; zamanlayıcı ağ isteği göndermez veya hata mesajını silmez.
