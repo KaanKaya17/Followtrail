@@ -61,12 +61,15 @@ object LoginBrowserPolicy {
             instagram && u.rawPath in setOf("/api/graphql", "/api/graphql/", "/graphql/query/", "/graphql_www") -> ResourceKind.GRAPHQL
             instagram && page(u.rawPath) -> ResourceKind.PAGE
             instagram && (u.rawPath.startsWith("/static/") || u.rawPath.startsWith("/rsrc.php/")) -> ResourceKind.STATIC
-            instagram && u.rawPath in setOf("/data/shared_data/", "/api/v1/web/data/shared_data/") -> ResourceKind.BOOTSTRAP
+            instagram && u.rawPath in setOf("/data/shared_data/", "/api/v1/web/data/shared_data/", "/ajax/bootloader-endpoint/", "/ajax/bulk-route-definitions/") -> ResourceKind.BOOTSTRAP
             instagram && AccountRequestPolicy.readAllowed("GET", url) -> ResourceKind.PROFILE
             instagram -> ResourceKind.INSTAGRAM_OTHER
             listOf("cdninstagram.com", "fbcdn.net").any { u.host == it || u.host?.endsWith(".$it") == true } -> ResourceKind.CDN
             else -> ResourceKind.OTHER_HOST
         }
+        if (u.rawPath == "/ajax/bulk-route-definitions/") return ResourceDecision(
+            method == "POST" && u.host == "www.instagram.com", kind)
+        if (u.rawPath == "/ajax/bootloader-endpoint/" && u.host != "www.instagram.com") return ResourceDecision(false, kind)
         if (method == "GET") return ResourceDecision(kind in setOf(ResourceKind.PAGE, ResourceKind.STATIC,
             ResourceKind.BOOTSTRAP, ResourceKind.PROFILE, ResourceKind.CDN), kind)
         val auth = method == "POST" && u.host == "www.instagram.com" &&

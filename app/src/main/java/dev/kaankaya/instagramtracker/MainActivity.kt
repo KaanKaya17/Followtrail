@@ -1351,7 +1351,7 @@ class MainActivity : LocalizedActivity() {
         val epoch = loginPageEpoch
         val trace = loginTrace
         // Presence/visibility only: never read input values, page text, cookies or URLs into diagnostics.
-        browser.evaluateJavascript("(function(){return Array.prototype.some.call(document.querySelectorAll('input[name=username],input[name=password],input[type=email]'),function(n){return n.getClientRects().length>0})})()") { raw ->
+        browser.evaluateJavascript("(function(){return Array.prototype.some.call(document.querySelectorAll('input[name=username],input[name=password],input[name=email],input[type=email],input[type=password]'),function(n){return n.getClientRects().length>0})})()") { raw ->
             if (web !== browser || loginPageEpoch != epoch) return@evaluateJavascript
             val form = when (raw) { "true" -> true; "false" -> false; else -> null }
             recordLoginPage(trace) { it.form(form) }
@@ -1397,6 +1397,9 @@ class MainActivity : LocalizedActivity() {
         browser.setBackgroundColor(Color.WHITE)
         browser.settings.apply {
             javaScriptEnabled = true; domStorageEnabled = true
+            userAgentString = LoginBrowserResources.desktopUserAgent(userAgentString)
+            useWideViewPort = true; loadWithOverviewMode = true
+            setSupportZoom(true); builtInZoomControls = true; displayZoomControls = false
             allowFileAccess = false; allowContentAccess = false
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
             cacheMode = WebSettings.LOAD_NO_CACHE

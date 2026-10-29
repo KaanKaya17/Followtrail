@@ -16,6 +16,17 @@ object WebLoginMode {
     fun enabled(activity: Activity) = activity.intent.getBooleanExtra("offline_web_login", false)
     fun intercept(request: WebResourceRequest, enabled: Boolean, activity: Activity): WebResourceResponse? {
         if (!enabled) return null
+        if (activity.intent.getBooleanExtra("web_bootstrap_fixture", false)) {
+            if (request.url.path in setOf("/ajax/bootloader-endpoint/", "/ajax/bulk-route-definitions/"))
+                return WebResourceResponse("application/json", "UTF-8", ByteArrayInputStream("{}".toByteArray()))
+            if (request.url.path == "/accounts/login/") {
+                val html = """<!doctype html><meta name="viewport" content="width=device-width"><script>
+                    Promise.all([fetch('/ajax/bootloader-endpoint/'),fetch('/ajax/bulk-route-definitions/',{method:'POST',body:'synthetic-route-fields'})])
+                    .then(rs=>{if(rs.every(r=>r.status===200))document.body.innerHTML='<input name="email"><input name="pass" type="password">';});
+                    </script><body></body>"""
+                return WebResourceResponse("text/html", "UTF-8", ByteArrayInputStream(html.toByteArray()))
+            }
+        }
         if(request.url.path?.matches(Regex("/api/v1/users/[1-9][0-9]{0,29}/info/")) == true) {
             val status=activity.intent.getIntExtra("web_browser_status",200)
             val body="""{"status":"ok","user":{"pk":"123","username":"web.demo","follower_count":0,"following_count":7}}"""
