@@ -62,6 +62,10 @@ class MainActivity : LocalizedActivity() {
     private var completionButton: Button? = null
     @Volatile private var generation = 0
     private var webAttempt: WebConnectionAttempt? = null
+    private var webComparison = false
+    private var browserProbe: BrowserProfileProbe? = null
+    private var browserProof: BrowserConnectionProof? = null
+    private var nativeComparisonStarted = false
     private var webFixture = false
     private var loginChecking = false
     private var loginAttempted = false
@@ -695,7 +699,7 @@ class MainActivity : LocalizedActivity() {
                 R.string.timeline_menu -> openTimeline()
                 R.string.ui_request_information -> requestInfo()
                 R.string.ui_privacy -> privacy()
-                R.string.ui_advanced -> AlertDialog.Builder(this).setTitle(R.string.ui_advanced).setItems(arrayOf(getString(R.string.ui_web_connection_experiment))) { _, _ -> openLab() }.setNegativeButton(R.string.ui_close, null).show()
+                R.string.ui_advanced -> AlertDialog.Builder(this).setTitle(R.string.ui_advanced).setItems(arrayOf(getString(R.string.web_compare_menu),getString(R.string.ui_web_connection_experiment))) { _, item -> if(item == 0) startLogin(compare = true) else openLab() }.setNegativeButton(R.string.ui_close, null).show()
                 R.string.ui_my_lists -> account?.profile?.let(::openLists)
                 R.string.ui_open_offline_demo -> startActivity(Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
             }
@@ -738,6 +742,21 @@ class MainActivity : LocalizedActivity() {
                         saved.status?.toString() ?: getString(R.string.ui_no_response_yet), date(saved.attemptedAt))
             } catch (_: Exception) { lines += getString(R.string.phone_diagnostic_unavailable) }
         }
+        if (!preview) try {
+            val report = WebConnectionJournal(this).read()
+            lines += if (report.isEmpty()) getString(R.string.web_compare_no_report) else getString(R.string.web_compare_report) + "\n" + report.joinToString("\n") {
+                getString(R.string.web_compare_report_row, if(it.step == WebConnectionJournal.Step.BROWSER) "W01" else "W02",
+                    getString(when(it.outcome) {
+                        WebConnectionJournal.Outcome.STARTED -> R.string.web_compare_started
+                        WebConnectionJournal.Outcome.SUCCESS -> R.string.web_compare_success
+                        WebConnectionJournal.Outcome.LIMITED -> R.string.web_compare_limited
+                        WebConnectionJournal.Outcome.AUTH -> R.string.web_compare_auth
+                        WebConnectionJournal.Outcome.INVALID -> R.string.web_compare_invalid
+                        WebConnectionJournal.Outcome.CONNECTION -> R.string.web_compare_connection
+                        WebConnectionJournal.Outcome.CANCELLED -> R.string.web_compare_cancel
+                    }), it.http?.toString() ?: "—",date(it.at))
+            }
+        } catch (_: Exception) { lines += getString(R.string.web_compare_journal_failed) }
         if (gate.restrictionPending()) {
             lines += getString(R.string.ui_signal, gate.limitReasonMessage(this))
             lines += getString(R.string.ui_last_limit, date(gate.lastLimitedAt()))
@@ -1142,10 +1161,11 @@ class MainActivity : LocalizedActivity() {
         if (!isDestroyed) {
             if (web == null) render()
             else {
-                completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
+                completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
                 completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 // No automatic retry when a pause expires.
-                if (!loginAttempted) loginStatus?.text = pauseMessage() ?: getString(R.string.connection_ready)
+                if (!loginAttempted) loginStatus?.text = if(webComparison && browserProof != null && gate.nextAllowedAt() <= System.currentTimeMillis())
+                    getString(R.string.web_compare_native_ready) else pauseMessage() ?: getString(if(webComparison) R.string.web_compare_instruction else R.string.connection_ready)
             }
         }
     }
@@ -1153,7 +1173,7 @@ class MainActivity : LocalizedActivity() {
         main.removeCallbacks(gateWake)
         val displayed = if (peopleScreen) account?.people?.firstOrNull { it.latest.userId == selectedPersonId }?.latest else account?.profile
         val freshUntil = displayed?.observedAt?.plus(PeoplePolicy.FRESH_MS) ?: 0L
-        val next = if (web != null) gate.nextPrototypeAt() else maxOf(gate.nextAllowedAt(), freshUntil)
+        val next = if (web != null) loginNextAllowedAt() else maxOf(gate.nextAllowedAt(), freshUntil)
         val wait = next - System.currentTimeMillis()
         if (wait > 0) main.postDelayed(gateWake, wait)
     }
@@ -1228,7 +1248,7 @@ class MainActivity : LocalizedActivity() {
                         ViewedProfiles.clear()
                         avatars.remove()
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
-                        if (!preview) { MobileSessions(this).clear(); WebSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); PhoneLoginJournal(this).clear(); gate.setPhoneLoginActive(false) }
+                        if (!preview) { MobileSessions(this).clear(); WebSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); PhoneLoginJournal(this).clear(); WebConnectionJournal(this).clear(); gate.setPhoneLoginActive(false) }
                         FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
                         gate.clearListCapacityPause()
                         vault.clear(); ChangeNotifications(this, preview).clear(); true
@@ -1246,20 +1266,21 @@ class MainActivity : LocalizedActivity() {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun startLogin() {
+    private fun startLogin(compare: Boolean = false) {
         if (preview) { message = getString(R.string.ui_real_account_connections_are_unavailable_in_demo); render(); return }
         if (loading || web != null) return
         if (gate.nextPrototypeAt() > System.currentTimeMillis()) { message = getString(R.string.ui_next_connection_attempt, clock(gate.nextPrototypeAt())); render(); return }
         try { gate.pauseAutomatic(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         loading = false; loginChecking = false; loginAttempted = false; loginLoaded = false
+        webComparison = compare; browserProbe = null; browserProof = null; nativeComparisonStarted = false
         webFixture = WebLoginMode.enabled(this)
         val page = stack().apply { setBackgroundColor(bg) }
         val header = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), dp(8), dp(12), dp(8)) }
         header.addView(button(getString(R.string.ui_cancel), false) { leaveLogin() }, LinearLayout.LayoutParams(-2, dp(48)))
         header.addView(text("  instagram.com", 16f, accent, true))
         page.addView(header)
-        loginStatus = text(getString(R.string.web_connection_instruction), 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
+        loginStatus = text(getString(if(compare) R.string.web_compare_instruction else R.string.web_connection_instruction), 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
         page.addView(loginStatus)
         page.addView(text(getString(R.string.web_connection_privacy), 12f, muted).apply { setPadding(dp(18), 0, dp(18), dp(8)) })
         val browser = try { WebView(this) } catch (_: Exception) {
@@ -1282,7 +1303,7 @@ class MainActivity : LocalizedActivity() {
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !NavigationPolicy.isInstagram(request.url.toString())
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                if (NavigationPolicy.isLoginResource(request.url.toString())) WebLoginMode.intercept(request, webFixture)
+                if (NavigationPolicy.isLoginResource(request.url.toString())) WebLoginMode.intercept(request, webFixture, this@MainActivity)
                 else WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(byteArrayOf()))
             @Suppress("OVERRIDE_DEPRECATION")
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
@@ -1292,6 +1313,9 @@ class MainActivity : LocalizedActivity() {
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 if (web !== view) return
                 loginLoaded = false; completionButton?.isEnabled = false
+                if (webComparison && (browserProbe?.running == true || browserProof != null)) {
+                    message = getString(R.string.web_compare_cancelled); leaveLogin()
+                }
             }
             override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
                 if (response.statusCode != 429 || !NavigationPolicy.isInstagram(request.url.toString())) return
@@ -1300,6 +1324,7 @@ class MainActivity : LocalizedActivity() {
                     if (web !== view) return@post
                     try {
                         gate.limited(retry, reason = "HTTP 429 / Instagram giriş sayfası")
+                        if (webComparison) WebConnectionJournal(this@MainActivity).end(WebConnectionJournal.Step.BROWSER, WebConnectionJournal.Outcome.LIMITED,429)
                         webLoginFailed(ApiFailure(ApiFailure.Kind.LIMITED), 429)
                     }
                     catch (_: Exception) { webLoginFailed(ApiFailure(ApiFailure.Kind.STORAGE), 429) }
@@ -1309,13 +1334,13 @@ class MainActivity : LocalizedActivity() {
                 if (web !== view) return
                 if (NavigationPolicy.isInstagram(url)) {
                     loginLoaded = true
-                    completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
+                    completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
                     completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 }
             }
         }
         page.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
-        completionButton = button(getString(R.string.web_connection_verify), false, networkAction = true) { checkLogin() }
+        completionButton = button(getString(if(compare) R.string.web_compare_browser else R.string.web_connection_verify), false, networkAction = true) { checkLogin() }
         completionButton?.isEnabled = false
         page.addView(completionButton, LinearLayout.LayoutParams(-1, dp(54)))
         root.removeAllViews(); root.addView(page)
@@ -1327,11 +1352,33 @@ class MainActivity : LocalizedActivity() {
         }
     }
 
+    private fun loginNextAllowedAt(): Long = if (webComparison && browserProof != null) gate.nextAllowedAt() else gate.nextPrototypeAt()
+
+    private fun startBrowserComparison(browser: WebView, state: WebSession) {
+        if (browserProbe != null) return
+        val probe = BrowserProfileProbe(this,browser,gate,WebConnectionJournal(this)) { result, proof ->
+            if (web !== browser || isDestroyed) return@BrowserProfileProbe
+            loginChecking = false
+            result.onSuccess { profile ->
+                browserProof = proof; loginAttempted = false
+                completionButton?.setText(R.string.web_compare_native)
+                loginStatus?.text = getString(R.string.web_compare_browser_success,number(profile.followers),number(profile.following))
+                completionButton?.isEnabled = gate.nextAllowedAt() <= System.currentTimeMillis()
+                completionButton?.alpha = if(completionButton?.isEnabled == true) 1f else .5f
+                scheduleGateWake()
+            }.onFailure { webLoginFailed(it as? ApiFailure ?: ApiFailure(ApiFailure.Kind.INVALID_RESPONSE),gate.lastHttpStatus()) }
+        }
+        browserProbe = probe;loginChecking = true;loginAttempted = true
+        completionButton?.isEnabled = false;loginStatus?.setText(R.string.web_compare_reading)
+        try { probe.start(state) }
+        catch (error: Exception) { loginChecking = false;webLoginFailed(error as? ApiFailure ?: ApiFailure(ApiFailure.Kind.STORAGE),null) }
+    }
+
     private fun checkLogin() {
         val browser = web ?: return
         if (!loginLoaded || loginChecking || loginAttempted) return
-        if (gate.nextPrototypeAt() > System.currentTimeMillis()) {
-            loginStatus?.text = getString(R.string.connection_next_try, clock(gate.nextPrototypeAt()))
+        if (loginNextAllowedAt() > System.currentTimeMillis()) {
+            loginStatus?.text = getString(R.string.connection_next_try, clock(loginNextAllowedAt()))
             scheduleGateWake(); return
         }
         val state = try { WebSessionCodec.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"), browser.settings.userAgentString) }
@@ -1339,6 +1386,12 @@ class MainActivity : LocalizedActivity() {
         if (state == null) {
             loginStatus?.setText(R.string.connection_incomplete)
             return
+        }
+        if (webComparison && browserProof == null) { startBrowserComparison(browser,state); return }
+        val proof = browserProof
+        if (webComparison) {
+            try { WebConnectionJournal(this).begin(WebConnectionJournal.Step.NATIVE); nativeComparisonStarted = true }
+            catch (_: Exception) { webLoginFailed(ApiFailure(ApiFailure.Kind.STORAGE),null); return }
         }
         loginChecking = true; loginAttempted = true
         completionButton?.isEnabled = false; completionButton?.alpha = .5f
@@ -1350,12 +1403,19 @@ class MainActivity : LocalizedActivity() {
         webAttempt = attempt
         worker.execute {
             val result = try {
-                Result.success(attempt.connect(state, expected))
+                Result.success(attempt.connect(state, expected, proof))
             } catch (failure: ApiFailure) { Result.failure(failure) }
             catch (_: Exception) { Result.failure(ApiFailure(ApiFailure.Kind.STORAGE)) }
             main.post {
                 if (isDestroyed || ticket != generation || web !== browser) return@post
                 loginChecking = false
+                if (webComparison) {
+                    val http = gate.lastHttpStatus().takeIf { gate.attempts() > attemptsBefore }
+                    try { WebConnectionJournal(this).end(WebConnectionJournal.Step.NATIVE,
+                        if (result.isSuccess) WebConnectionJournal.Outcome.SUCCESS else WebConnectionJournal.outcome((result.exceptionOrNull() as? ApiFailure)?.kind ?: ApiFailure.Kind.STORAGE),http) }
+                    catch (_: Exception) { message = getString(R.string.web_compare_journal_failed) }
+                    nativeComparisonStarted = false
+                }
                 result.onSuccess {
                     // The attempt owns the commit; this ticket only publishes its result to the current screen.
                     try {
@@ -1367,7 +1427,7 @@ class MainActivity : LocalizedActivity() {
                     val status = gate.lastHttpStatus().takeIf { gate.attempts() > attemptsBefore }
                     webLoginFailed(it as ApiFailure, status)
                 }
-                completionButton?.isEnabled = !loginAttempted && !loginChecking && gate.nextPrototypeAt() <= System.currentTimeMillis()
+                completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
                 completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
                 scheduleGateWake()
             }
@@ -1387,6 +1447,12 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun leaveLogin() {
+        try { browserProbe?.cancel() } catch (_: Exception) { message = getString(R.string.web_compare_journal_failed) }
+        browserProbe = null; browserProof = null
+        if (nativeComparisonStarted) {
+            try { WebConnectionJournal(this).end(WebConnectionJournal.Step.NATIVE,WebConnectionJournal.Outcome.CANCELLED,null) } catch (_: Exception) { }
+            nativeComparisonStarted = false
+        }
         webAttempt?.cancel(); webAttempt = null
         ++generation; api.cancel()
         val browser = web
@@ -1427,6 +1493,8 @@ class MainActivity : LocalizedActivity() {
         if (::profileStatuses.isInitialized) profileStatuses.close()
         if (::quickWatch.isInitialized) quickWatch.close()
         if (::avatars.isInitialized) avatars.close()
+        try { browserProbe?.cancel() } catch (_: Exception) { }
+        browserProbe = null; browserProof = null
         webAttempt?.cancel(); webAttempt = null
         ++generation; main.removeCallbacksAndMessages(null); api.cancel()
         if (web != null) {
@@ -1440,6 +1508,9 @@ class MainActivity : LocalizedActivity() {
     }
     override fun onPause() {
         visible = false
+        if (webComparison && web != null && (loginChecking || browserProof != null)) {
+            message = getString(R.string.web_compare_cancelled); leaveLogin()
+        }
         if (::profileStatuses.isInitialized) profileStatuses.pause()
         if (::quickWatch.isInitialized) { quickWatch.pause(); if (::vault.isInitialized) syncMonitoring() }
         super.onPause()
