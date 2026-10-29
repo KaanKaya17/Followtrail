@@ -33,7 +33,7 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     // Activity recreation can create multiple owners of the same preferences.
     // Reserve requests across those instances, not only within one instance.
     companion object {
-        private val lock = Any(); private val active = mutableSetOf<String>(); private val quickOwners = mutableMapOf<String, Any>()
+        private val lock = Any(); private val active = mutableSetOf<String>(); private val quickOwners = mutableMapOf<String, Any>(); private val preparationOwners = mutableMapOf<String, Any>()
         const val AUTO_INTERVAL_MS = MonitorPolicy.POLL_MS
     }
     private val identity = "${context.packageName}:$name"
@@ -48,8 +48,14 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0), budgetNextAt()) }
     fun automaticNextAllowedAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("auto_after", 0)) }
     fun quickWatchActive(): Boolean = synchronized(lock) { identity in quickOwners }
+    fun preparationActive(): Boolean = synchronized(lock) { identity in preparationOwners }
+    fun claimPreparation(): AutoCloseable = synchronized(lock) {
+        if (identity in preparationOwners || identity in quickOwners) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        val owner = Any(); preparationOwners[identity] = owner
+        AutoCloseable { synchronized(lock) { if (preparationOwners[identity] === owner) preparationOwners.remove(identity); Unit } }
+    }
     fun claimQuickWatch(): AutoCloseable = synchronized(lock) {
-        if (identity in quickOwners) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        if (identity in quickOwners || identity in preparationOwners) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
         val owner = Any(); quickOwners[identity] = owner
         AutoCloseable { synchronized(lock) { if (quickOwners[identity] === owner) quickOwners.remove(identity); Unit } }
     }

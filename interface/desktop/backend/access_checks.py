@@ -15,7 +15,6 @@ STAGES = {'pending', 'checking', 'done'}
 def initialize(data):
     data.setdefault('access', {})
     data.setdefault('accessPlan', {'status': 'idle'})
-    data.setdefault('lastAutomaticTask', 'profile')
     for case in data['access'].values():
         if isinstance(case, dict):
             case.setdefault('alertStrength', 'limited' if case.get('alertRecorded') else None)
@@ -187,8 +186,6 @@ def validate(data):
         raise ValueError('access cases')
     if type(data['settings'].get('investigateMissing')) is not bool:
         raise ValueError('access setting')
-    if data.get('lastAutomaticTask') not in ('profile', 'access', 'followers_scan'):
-        raise ValueError('access scheduler')
     plan = data.get('accessPlan')
     if not isinstance(plan, dict) or plan.get('status') not in ('idle', 'pending', 'baseline_needed', 'needs_manual_scan'):
         raise ValueError('access plan')

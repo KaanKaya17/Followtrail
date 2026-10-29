@@ -123,6 +123,7 @@ function validate(operation, args) {
       "compact",
       "notifications",
       "automatic",
+      "automaticLists",
       "interval",
       "investigateMissing",
     ],

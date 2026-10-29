@@ -57,6 +57,18 @@ class Accounts(Engine):
             self.persist_catalog()
         self.bind_shared_state()
         self.recover_interrupted()
+        # Upgrade scheduling metadata once, including unselected accounts. Read
+        # their own vaults; never infer pending preparation from the catalog.
+        selected_id = self.active_id
+        try:
+            for identity, entry in list(self.catalog['accounts'].items()):
+                if entry['monitor'].get('listPlanVersion') != 1:
+                    self.activate(identity)
+                    self.update_entry()
+            self.persist_catalog()
+        finally:
+            if self.active_id != selected_id:
+                self.activate(selected_id)
 
     def recover_interrupted(self):
         # Bind the shared gate before any startup repair can write the vault.

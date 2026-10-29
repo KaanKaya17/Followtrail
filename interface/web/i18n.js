@@ -905,7 +905,26 @@
   "Bu cihazdaki oturum kopyası silinir; gözlem ve notlar korunur. Bu işlem Instagram sunucusundaki oturumu iptal etmez. Şüpheli bir giriş varsa resmî Instagram üzerinden giriş hareketlerini kontrol et.": "The session copy on this device is deleted; observations and notes are preserved. This does not revoke the session on Instagram’s server. Review login activity in the official Instagram app if a login looks suspicious.",
   "Yerel istek bütçesi doldu. Sonraki zaman İstek bilgileri bölümünde; otomatik tekrar gönderilmedi.": "The local request budget is full. See Request information for the next available time; no automatic retry was sent.",
   "Giriş cihaz kaydı açılamadı. Mevcut dosya korundu.": "The sign-in device record could not be opened. The existing file was preserved.",
-  "Giriş cihaz kaydı saklanamadı; istek durduruldu.": "The sign-in device record could not be saved; the request was stopped."
+  "Giriş cihaz kaydı saklanamadı; istek durduruldu.": "The sign-in device record could not be saved; the request was stopped.",
+  "Liste hazırlığı duraklatıldı": "List preparation is paused",
+  "Liste hazırlığı bekliyor": "List preparation is waiting",
+  "Başlangıç listelerin hazır": "Your baseline lists are ready",
+  "Hesabın bağlandı, listelerin hazırlanıyor": "Account connected. Preparing your lists",
+  "İlk kayıt bir başlangıçtır. Sonraki otomatik taramalarda liste farklarını karşılaştırabilirsin.": "The first record is a baseline. Later automatic scans let you compare list changes.",
+  "Takipçilerin, ardından takip edilenlerin otomatik okunur. Uygulamayı kullanmaya başlamadan önceki takipten çıkışlar bilinmiyor.": "Your followers, then following, are read automatically. Unfollows from before you started using the app are unknown.",
+  "Tarama tamamlanmadı; kayıtlar korundu.": "The scan is incomplete; saved records were preserved.",
+  "Başlangıç kaydı hazır": "Baseline ready",
+  "{0} sayfa · {1} hesap kaydedildi": "{0} pages · {1} accounts saved",
+  "Okuma sırada": "Read queued",
+  "Başlangıç listeleri": "Baseline lists",
+  "LİSTE HAZIRLIĞI": "LIST PREPARATION",
+  "Instagram molası veya doğrulama sürüyor. Otomatik tekrar yapılmaz; İstek bilgilerini incele.": "An Instagram restriction or verification is pending. No automatic retry is sent; check Request information.",
+  "Sayı değişikliklerinde ve günlük kontrol hedefinde yeni tarama sıraya alınır. İstek bütçesine göre gecikebilir.": "Count changes and the daily check target queue another scan. Request budgets may delay it.",
+  "Hazırlığa devam et": "Resume preparation",
+  "Liste taramalarını duraklat": "Pause list scans",
+  "Listeleri aç": "Open lists",
+  "Sonraki istek için en erken saat: {0}": "Earliest time for the next request: {0}",
+  "İlk bağlantıdan sonra başlangıç listelerin otomatik hazırlanır. Tarama ve sonraki kontrolleri ana ekrandan duraklatabilirsin.": "After your first connection, baseline lists are prepared automatically. You can pause scans and later checks from the overview."
 };
   const locales = { tr: 'tr-TR', en: 'en-US' };
   const formatterCache = new Map();

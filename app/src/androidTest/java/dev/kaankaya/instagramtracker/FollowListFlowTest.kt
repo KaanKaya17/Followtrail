@@ -169,7 +169,7 @@ class FollowListFlowTest {
             "200", FollowDirection.FOLLOWING, null, 2000)
         val saved = lists.commit(account.session, empty)
         scenario = ActivityScenario.launch(Intent(context, FollowListActivity::class.java).putExtra("target_id", "200").putExtra("offline_preview", true))
-        awaitText("Alınan hesap: 1 · Sayfa: 1"); awaitText(context.getString(R.string.list_limited))
+        awaitText("Alınan hesap: 1 · Sayfa: 1"); awaitText(AppLanguage.wrap(context).getString(R.string.list_limited))
         click("Takip edilenler"); awaitText("Alınan hesap: 0 · Sayfa: 1"); awaitText("Bu kayıtta hesap yok")
         scenario!!.recreate(); awaitText("Alınan hesap: 0 · Sayfa: 1")
         assertEquals(saved, lists.read(account.session, "200")); assertEquals(0L, RequestGate(context, "preview_gate").attempts())
@@ -188,7 +188,7 @@ class FollowListFlowTest {
         val account = vault.read()!!
         vault.write(account.copy(session = account.session.copy(cookie = "ds_user_id=100; sessionid=changed")))
         click("İlk sayfayı oku")
-        awaitText(ApiFailure(ApiFailure.Kind.CANCELLED).userMessage(context))
+        awaitText(ApiFailure(ApiFailure.Kind.CANCELLED).userMessage(AppLanguage.wrap(context)))
         assertEquals(0L, RequestGate(context, "preview_gate").attempts())
         assertNull(lists.read(account.session, "200"))
     }

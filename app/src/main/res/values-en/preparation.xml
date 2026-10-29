@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="preparation_title">Account connected. Preparing your lists</string>
+    <string name="preparation_paused">List preparation is paused</string>
+    <string name="preparation_waiting">List preparation is waiting</string>
+    <string name="preparation_ready">Your baseline lists are ready</string>
+    <string name="preparation_scope">Your followers, then following, are read automatically. Unfollows from before you started using the app are unknown.</string>
+    <string name="preparation_ready_scope">The first record is a baseline. Later completed scans let you see list changes.</string>
+    <string name="preparation_incomplete">The scan is incomplete; saved records were preserved.</string>
+    <string name="preparation_baseline">Baseline ready</string>
+    <string name="preparation_progress">%1$d pages · %2$d accounts saved</string>
+    <string name="preparation_queued">Read queued</string>
+    <string name="preparation_held">An Instagram restriction or verification is pending. No new request is sent; check Request information.</string>
+    <string name="preparation_daily">Count changes and the daily check target queue another scan.</string>
+    <string name="preparation_reading">Reading a list page…</string>
+    <string name="preparation_seconds">Next request in %1$d seconds.</string>
+    <string name="preparation_background">Preparation runs automatically. Android background restrictions and request budgets may cause delays.</string>
+    <string name="preparation_pause">Pause list scans</string>
+    <string name="preparation_resume">Resume preparation</string>
+</resources>

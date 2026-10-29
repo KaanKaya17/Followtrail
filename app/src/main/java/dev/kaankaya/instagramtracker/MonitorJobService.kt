@@ -18,7 +18,8 @@ object MonitorScheduler {
     fun sync(context: Context, account: SavedAccount?, gate: RequestGate, jobId: Int = JOB_ID,
         service: Class<out JobService> = MonitorJobService::class.java): Boolean {
         val scheduler = context.getSystemService(JobScheduler::class.java)
-        if ((account?.people?.any { it.watching } != true && account?.automation?.enabled != true) || !ChangeNotifications(context).allowed() || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) {
+        if ((account?.people?.any { it.watching } != true && account?.automation?.enabled != true) ||
+            account?.automation?.enabled != true && !ChangeNotifications(context).allowed() || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) {
             scheduler.cancel(jobId); return false
         }
         if (scheduler.getPendingJob(jobId) != null) return true
@@ -45,13 +46,17 @@ open class MonitorJobService : JobService() {
     override fun onStartJob(params: JobParameters): Boolean {
         val notices = ChangeNotifications(this, preview)
         val gate = RequestGate(this, gateName)
-        if (!notices.allowed() || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) { MonitorScheduler.cancel(this, jobId); return false }
+        val listWork = try { SessionVault(this, vaultSlot).read()?.automation?.enabled == true } catch (_: Exception) { false }
+        if (!notices.allowed() && !listWork || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) { MonitorScheduler.cancel(this, jobId); return false }
+        // Foreground owns the current request; retain the periodic job so a
+        // later Android activation can resume after the activity leaves.
+        if (gate.preparationActive()) return false
         active?.cancel()
         val run = Run(params, createApi(gate), createListSource(gate)); active = run
         run.future = worker.submit {
             val vault = SessionVault(this, vaultSlot)
             try { AutomaticEngine(vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
-                run.api, run.lists, notices::allowed, notices::post, notices::postList).cycle(cancelled = run.cancelled::get) }
+                run.api, run.lists, { listWork || notices.allowed() }, notices::post, notices::postList).cycle(cancelled = run.cancelled::get) }
             catch (_: ApiFailure) { /* The gate preserves restrictions and auth pauses; no immediate retries. */ }
             catch (_: Exception) { gate.pauseForConnection() }
             finally {

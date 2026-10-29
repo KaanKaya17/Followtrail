@@ -16,6 +16,8 @@ import notification_log
 import localization
 import wayback
 import request_budget
+import list_preparation
+import hashlib
 from login_identity import LoginIdentity, device_settings
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
@@ -34,7 +36,7 @@ def blank(gate=None):
     return {'version': 1, 'account': None, 'session': None, 'people': {},
             'history': {}, 'lists': {}, 'events': [], 'gate': gate or {},
             'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60,
-                         'investigateMissing': False, 'language': 'tr', 'theme': 'system'},
+                         'investigateMissing': False, 'language': 'tr', 'theme': 'system', 'automaticLists': False},
             'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
             'notificationRules': {}, 'notificationLog': [],
             'wayback': {'profiles': {}, 'images': {}},
@@ -102,6 +104,7 @@ class Engine:
         localization.initialize(data)
         data['settings'].setdefault('theme', 'system')
         initialize_schedule(data)
+        list_preparation.initialize(data)
         wayback.initialize(data)
         validate_archive(data)
         return data
@@ -111,7 +114,8 @@ class Engine:
         records = {}
         for key, record in d['lists'].items():
             snapshots = record.get('snapshots', [])
-            records[key] = {'snapshots': snapshots, 'draft': record.get('draft'),
+            draft = record.get('draft')
+            records[key] = {'snapshots': snapshots, 'draft': {k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')} if draft else None,
                             'comparison': compare(snapshots[-2], snapshots[-1]) if len(snapshots) > 1 else None}
         return {'account': public_person(d['account']) if d['account'] else None,
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
@@ -122,13 +126,14 @@ class Engine:
                                   'accountHourly':request_budget.ACCOUNT[0], 'accountDaily':request_budget.ACCOUNT[1],
                                   'nextAt':self.budget_available_at()},
                 'monitor': self.monitor_status(),
+                'listPreparation': list_preparation.view(d, self.clock()),
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
                 'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
                 'notificationTypes': {key: localization.translate(value, d['settings']['language']) for key, value in notification_log.TYPES.items()},
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.16'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.17'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -317,9 +322,16 @@ class Engine:
             profile = self.read_profile(client, identity)
             self.check_cancel()
             self.select_connection_account(profile)
+            first_connection = self.data['account'] is None
             # Commit a replacement only after the authenticated own profile agrees.
             self.record_profile(profile, own=True)
             self.data['session'] = client.get_settings()
+            if first_connection:
+                self.data['settings'].update(automatic=True, automaticLists=True)
+            for record in self.data['lists'].values():
+                if record.get('draft'):
+                    record['draft'].pop('nextCursor', None)
+                    record['draft'].pop('seenCursors', None)
             self.data['gate']['manualOnly'] = False
             self.data['lastError'] = None
             self.save()
@@ -383,7 +395,7 @@ class Engine:
         finally:
             close_client(client)
 
-    def scan(self, args):
+    def scan(self, args, *, one_page=False, resume=False):
         direction = args.get('direction')
         if direction not in ('followers', 'following'):
             raise AppFailure('input', 'Liste yönü geçersiz.')
@@ -392,72 +404,92 @@ class Engine:
         if not owner:
             raise AppFailure('input', 'Liste sahibi kayıtlı değil.')
         client = self.client()
-        key = identity + ':' + direction
-        record = self.data['lists'].setdefault(key, {'snapshots': []})
-        draft = {'id': uuid.uuid4().hex, 'ownerId': identity, 'direction': direction,
-                 'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
-                 'status': 'running', 'pages': 0, 'expected': None}
-        record['draft'] = draft
+        record = self.data['lists'].setdefault(identity + ':' + direction, {'snapshots': []})
+        draft = record.get('draft')
+        continuing = resume and list_preparation.resumable(draft, self.clock())
+        if not continuing:
+            draft = {'id': uuid.uuid4().hex, 'ownerId': identity, 'direction': direction,
+                     'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
+                     'status': 'running', 'pages': 0, 'expected': None, 'nextCursor': None, 'seenCursors': []}
+            record['draft'] = draft
+        schedule = record.setdefault('schedule', {})
         try:
             self.list_scan_active = True
             self.scan_progress = {'ownerId': identity, 'username': owner['username'], 'direction': direction,
-                                  'step': 'profile', 'page': None, 'completedPages': 0, 'count': 0, 'expected': None}
+                                  'step': 'page' if continuing else 'profile', 'page': None,
+                                  'completedPages': draft['pages'], 'count': len(draft['members']), 'expected': draft['expected']}
+            draft['status'] = 'running'
+            schedule.update(after=0, error=None)
             self.save()
-            # Refresh the expected count once; stale profile counts must not be
-            # used to declare a changing list complete.
-            profile = self.read_profile(client, identity, avatar=False)
-            self.record_profile(profile, own=identity == self.data['account']['id'])
-            draft['expected'] = profile[direction]
-            self.scan_progress.update(username=profile['username'], expected=draft['expected'], step='page')
-            cursor, seen = '', set()
-            for page in range(MAX_PAGES):
+            if not continuing:
+                profile = self.read_profile(client, identity, avatar=False)
+                self.record_profile(profile, own=identity == self.data['account']['id'])
+                draft['expected'] = profile[direction]
+                self.scan_progress.update(username=profile['username'], expected=draft['expected'], step='page')
+            cursor = draft.get('nextCursor') or ''
+            for _ in range(1 if one_page else MAX_PAGES):
                 self.check_cancel()
-                self.scan_progress.update(page=page + 1)
+                if draft['pages'] >= MAX_PAGES:
+                    raise AppFailure('capacity', 'Tarama sayfa sınırına ulaştı; kısmi kayıt korundu.')
+                self.scan_progress.update(page=draft['pages'] + 1)
                 self.progress('list')
                 params = {'count': 50, 'rank_token': client.rank_token,
                           'search_surface': 'follow_list_page', 'query': '', 'enable_groups': 'true'}
                 if cursor:
                     params['max_id'] = cursor
-                response = client.private_request(f'friendships/{identity}/{direction}/', params=params)
-                parsed = parse_page(response)
-                members, cursor = parsed.members, parsed.cursor
+                parsed = parse_page(client.private_request(f'friendships/{identity}/{direction}/', params=params))
+                members, next_cursor = parsed.members, parsed.cursor
                 if len(set(draft['members']) | set(members)) > MAX_MEMBERS:
                     raise AppFailure('capacity', 'Tarama 20.000 hesap sınırına ulaştı; kısmi kayıt korundu.')
                 draft['members'].update(members)
-                draft['pages'] = page + 1
+                draft['pages'] += 1
                 draft['finishedAt'] = self.clock()
                 self.data['session'] = client.get_settings()
-                self.save()
                 self.scan_progress.update(completedPages=draft['pages'], count=len(draft['members']))
-                self.progress('list_received')
                 if parsed.coverage in ('limited', 'unknown'):
                     raise AppFailure('list_coverage', 'Instagram liste kapsamını kısıtlı veya belirsiz döndürdü. Görülen üyeler kısmi kayıt olarak korundu; fark hesabı yapılmadı.')
-                if not cursor:
-                    # End cursor alone can represent a server-limited subset.
+                digest = hashlib.sha256(next_cursor.encode()).hexdigest() if next_cursor else None
+                if next_cursor and (digest in draft['seenCursors'] or not members):
+                    raise AppFailure('pagination', 'Liste sayfalaması ilerlemiyor. Döngü durduruldu; kısmi kayıt korundu.')
+                draft['nextCursor'] = next_cursor
+                if digest:
+                    draft['seenCursors'].append(digest)
+                if not next_cursor:
                     if len(draft['members']) != draft['expected']:
                         raise AppFailure('list_count', 'Liste sayısı profil sayısıyla uyuşmadı. Kısmi kayıt korundu; fark hesabı yapılmadı.')
                     self.check_cancel()
                     draft.update(complete=True, status='complete')
-                    record['snapshots'].append(copy.deepcopy(draft))
+                    record['snapshots'].append(copy.deepcopy({k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}))
                     del record['snapshots'][:-6]
                     record.pop('draft', None)
+                    schedule.update(after=self.clock() + list_preparation.MIN_RESCAN, error=None)
                     diff = compare(record['snapshots'][-2], record['snapshots'][-1]) if len(record['snapshots']) > 1 else None
-                    self.event('list', f"@{profile['username']} · {direction} listesi kaydedildi", identity,
+                    self.event('list', f"@{owner['username']} · {direction} listesi kaydedildi", identity,
                                None, {'direction': direction, 'count': len(draft['members']),
-                                      'added': len(diff['added']) if diff else None,
-                                      'removed': len(diff['removed']) if diff else None})
+                                      'added': len(diff['added']) if diff else None, 'removed': len(diff['removed']) if diff else None})
                     if identity == self.data['account']['id'] and direction == 'followers':
                         access_checks.discover(self.data, record, self.clock())
                         self.data['accessPlan'] = {'status': 'idle'}
                     self.save()
+                    self.progress('list_received')
                     return
-                if cursor in seen or not members:
-                    raise AppFailure('pagination', 'Liste sayfalaması ilerlemiyor. Döngü durduruldu; kısmi kayıt korundu.')
-                seen.add(cursor)
-            raise AppFailure('capacity', 'Tarama sayfa sınırına ulaştı; kısmi kayıt korundu.')
-        except Exception:
+                draft['status'] = 'queued' if one_page else 'running'
+                self.save()
+                self.progress('list_received')
+                self.check_cancel()
+                cursor = next_cursor
+            if not one_page:
+                raise AppFailure('capacity', 'Tarama sayfa sınırına ulaştı; kısmi kayıt korundu.')
+        except Exception as exc:
+            code = failure(exc)['code']
+            if continuing and getattr(getattr(exc, 'response', None), 'status_code', None) in (400, 404):
+                draft['nextCursor'] = None
+                draft['seenCursors'] = []
             draft['status'] = 'cancelled' if self.cancel.is_set() else 'partial'
             draft['finishedAt'] = self.clock()
+            if code == 'cancelled' and identity == (self.data['account'] or {}).get('id'):
+                self.data['settings']['automaticLists'] = False
+            schedule.update(error=code, after=self.clock() + (0 if code in ('budget','cooldown','cancelled') else 1800))
             self.save()
             raise
         finally:
@@ -566,7 +598,7 @@ class Engine:
             if type(args['language']) is not str or args['language'] not in localization.LANGUAGES:
                 raise AppFailure('input', 'Dil değeri geçersiz.')
             self.data['settings']['language'] = args['language']
-        for key in ('compact', 'notifications', 'automatic', 'investigateMissing'):
+        for key in ('compact', 'notifications', 'automatic', 'automaticLists', 'investigateMissing'):
             if key in args:
                 if type(args[key]) is not bool:
                     raise AppFailure('input', 'Ayar değeri geçersiz.')
@@ -596,8 +628,7 @@ class Engine:
         profiles = sorted([(max(p.get('observedAt') or 0, d['automaticAttempts'].get(p['id'], 0)) + interval, p['id'])
                            for p in candidates])
         pending = [c for c in d['access'].values() if c['stage'] == 'pending' and c['id'] in d['people']] if d['settings']['investigateMissing'] else []
-        scan = d['settings']['investigateMissing'] and d['accessPlan']['status'] == 'pending'
-        investigation = ('followers_scan', None) if scan else ('access', min(pending, key=lambda c: c['detectedAt'])['id']) if pending else None
+        investigation = ('access', min(pending, key=lambda c: c['detectedAt'])['id']) if pending else None
         return profiles, pending, investigation
 
     def monitor_status(self):
@@ -605,11 +636,14 @@ class Engine:
         profiles, pending, investigation = self.automatic_plan()
         interval = d['settings']['interval'] * 60
         deadlines = [due for due, _ in profiles]
+        lists = list_preparation.next_job(d, self.clock())
+        if lists:
+            deadlines.append(lists['dueAt'])
         if investigation:
             deadlines.append(d['lastInvestigationAt'] + interval)
         reason = ('disabled' if not d['settings']['automatic'] else 'session' if not d['session'] else
                   'restricted' if d['gate'].get('manualOnly') else None)
-        return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason,
+        return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason, 'listPlanVersion': 1,
                 'profileCount': len(profiles), 'intervalSeconds': interval,
                 'estimatedCycleSeconds': max(interval, sum(REQUEST_SPACING) / 2 * len(profiles)),
                 'accessPending': len(pending), 'followerScanPending': bool(investigation and investigation[0] == 'followers_scan'),
@@ -623,6 +657,12 @@ class Engine:
             return
         profiles, _, investigation = self.automatic_plan()
         profile_due = profiles and profiles[0][0] <= now
+        lists = list_preparation.next_job(d, now)
+        if lists and lists['dueAt'] <= now and (not profile_due or d['lastAutomaticTask'] != 'lists'):
+            d['lastAutomatic'] = now
+            d['lastAutomaticTask'] = 'lists'
+            self.scan({'direction':lists['direction']}, one_page=True, resume=True)
+            return
         investigation_due = investigation and d['lastInvestigationAt'] + d['settings']['interval'] * 60 <= now
         d['lastAutomatic'] = now
         # Optional work may take a slot, but cannot monopolize due profiles.
@@ -630,11 +670,6 @@ class Engine:
             task, identity = investigation
             d['lastInvestigationAt'] = now
             d['lastAutomaticTask'] = task
-            if task == 'followers_scan':
-                d['accessPlan']['status'] = 'needs_manual_scan'
-                self.save()
-                self.scan({'direction': 'followers'})
-                return
             self.save()
             self.check_access({'id': identity})
             return
@@ -653,6 +688,10 @@ class Engine:
         own = (value['account'] or {}).get('id')
         value['gate']['accountRequestTimes'] = {key:times for key,times in value['gate'].get('accountRequestTimes', {}).items() if key == own}
         value['session'] = None
+        for record in value['lists'].values():
+            if record.get('draft'):
+                record['draft'].pop('nextCursor', None)
+                record['draft'].pop('seenCursors', None)
         value['settings']['automatic'] = False
         value['lastError'] = None
         raw = json.dumps({'format': 'InstagramTracker-observations', 'version': 1, 'data': value},
@@ -674,6 +713,7 @@ class Engine:
             localization.initialize(restored)
             restored['settings'].setdefault('theme', 'system')
             initialize_schedule(restored)
+            list_preparation.initialize(restored)
             wayback.initialize(restored)
             validate_archive(restored)
         except Exception as exc:
@@ -768,6 +808,7 @@ def initialize_schedule(d):
     # Existing observations already carry per-profile successful read times.
     # Preserve the old background timestamp only as the auxiliary job cadence.
     d.setdefault('automaticAttempts', {})
+    d.setdefault('lastAutomaticTask', 'profile')
     d.setdefault('lastInvestigationAt', d.get('lastAutomatic', 0))
 
 
@@ -780,6 +821,7 @@ def validate_archive(d):
             or not isinstance(d.get('settings'), dict)):
         raise ValueError('schema')
     request_budget.validate_gate(d['gate'])
+    list_preparation.validate(d)
     if d.get('session') is not None and (not isinstance(d['session'], dict) or d.get('account') is None):
         raise ValueError('session')
     def identity(value):
@@ -848,6 +890,8 @@ def validate_archive(d):
     for p in [d.get('account'), *d['people'].values()]:
         if p is not None and p.get('observedAt') is not None and not timestamp(p['observedAt']):
             raise ValueError('profile observation time')
+    if d.get('lastAutomaticTask') not in ('profile', 'access', 'followers_scan', 'lists'):
+        raise ValueError('automatic task')
     access_checks.validate(d)
     notification_log.validate(d)
     wayback.validate(d)

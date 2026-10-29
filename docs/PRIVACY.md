@@ -1,5 +1,11 @@
 # Veri ve ağ sınırları
 
+## Windows 0.2.17 / Android 0.1.37 başlangıç hazırlığı
+
+Yeni bağlantıdan sonra kendi listelerinin okunması otomatik sıraya alınır; ayrı bir takip/beğeni/DM yetkisi yoktur. İlk bağlantı açıklaması ve ana ekrandaki hazırlık kartı bunu belirtir, duraklatma sunar. Windows'ta devam imleci ve döngü kontrolü için hash'leri mevcut hesap kasasında DPAPI ile saklanır. Ham devam bilgisi renderer durumuna, gözlem yedeğine veya loga eklenmez; yeni oturum ve geri yüklemede kullanılmaz. Android mevcut Keystore ile şifreli liste arşivini kullanır. Yeni sunucu veya telemetri yoktur.
+
+İlk tarama yalnız başlangıçtır; geçmişteki takipten çıkışlar çıkarılamaz. Sonraki iki uygun kayıt arasındaki fark, kesin takipten çıkış veya kesin olay zamanı olarak sunulmaz. Bildirim izni kapalıyken yerel liste okuma devam edebilir; sistem bildirimi gönderilmez. [Kullanım ve sınırlar](AUTOMATIC-PREPARATION-TEST.md).
+
 ## Windows 0.2.15 / Android 0.1.35 hesap güvenliği
 
 Windows'taki `login-identity.vault`, başarısız girişlerde de korunabilen cihaz bağlamını DPAPI ile şifreler. Cihaz UUID'leri, model/istemci ayarları, yerel bölge ve USDID cihaz imzalama bağlamı bulunabilir. Hesap çerezi, hesap yetkilendirmesi, parola ve doğrulama kodu bu kaydın alanları değildir. Başarılı hesap oturumları mevcut bağımsız şifreli hesap kasalarında kalır. Cihaz bağlamı yeni sunucuya/telemetriye gönderilmez; normal Instagram kimlik doğrulamasında kullanılır.

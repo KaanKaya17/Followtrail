@@ -51,6 +51,7 @@ class MainActivity : LocalizedActivity() {
     private lateinit var avatars: AvatarImages
     private lateinit var queuedRead: ForegroundReadQueue
     private lateinit var quickWatch: QuickWatch
+    private lateinit var preparation: InitialListPreparation
     private lateinit var profileStatuses: ProfileStatusCards
     private lateinit var root: FrameLayout
     private var account: SavedAccount? = null
@@ -130,6 +131,10 @@ class MainActivity : LocalizedActivity() {
         })
         profileStatuses = ProfileStatusCards(this, vault, FollowListVault(this, if (preview) "previewlists" else "followlists"),
             gate, preview, { quickWatch.target.takeIf { quickWatch.active } to quickWatch.busy }, ::openTimeline, { openLists(it) })
+        preparation = InitialListPreparation(this, vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
+            { PreviewMode.followLists(gate, preview) }, { visible && !loading && web == null && !quickWatch.active && !queuedRead.pending && !WebLoginMode.enabled(this) }, {
+                try { account = vault.read(); syncMonitoring(); render() } catch (_: Exception) { needsConnection = true }
+            })
         if (BuildConfig.DEBUG && intent.getBooleanExtra("connection_lab_preview", false)) {
             intent.removeExtra("connection_lab_preview")
             startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", true))
@@ -294,6 +299,55 @@ class MainActivity : LocalizedActivity() {
             })
         }
         scroll.post { scroll.scrollTo(0, position) }; scheduleGateWake()
+        if (::preparation.isInitialized && visible && !loading && web == null) preparation.resume()
+    }
+
+    private fun renderPreparation(page: LinearLayout, saved: SavedAccount) {
+        val lists = FollowListVault(this, if (preview) "previewlists" else "followlists")
+        val target = try { lists.target(saved.session, saved.session.userId) } catch (_: Exception) { return }
+        val pending = InitialLists.pending(target)
+        val enabled = InitialLists.selected(saved)
+        val held = gate.manualOnly() || gate.requiresConnection() || gate.restrictionPending() || preparation.failure != null
+        val card = AppUi.card(this)
+        card.addView(AppUi.heading(this, getString(when {
+            !enabled -> R.string.preparation_paused
+            held -> R.string.preparation_waiting
+            pending.isEmpty() -> R.string.preparation_ready
+            else -> R.string.preparation_title
+        }), 20f)); card.gap(8)
+        card.addView(text(getString(if (pending.isEmpty()) R.string.preparation_ready_scope else R.string.preparation_scope), 12f, muted))
+        for (direction in FollowDirection.entries) {
+            val run = target?.snapshot?.run(direction)
+            val title = getString(if (direction == FollowDirection.FOLLOWERS) R.string.ui_followers else R.string.ui_following)
+            card.gap(8)
+            card.addView(AppUi.numeric(text("$title · " + when {
+                target?.scan(direction)?.failure != null -> getString(R.string.preparation_incomplete)
+                InitialLists.ready(target, direction) -> getString(R.string.preparation_baseline)
+                run != null -> getString(R.string.preparation_progress, run.pages.size, run.users.size)
+                else -> getString(R.string.preparation_queued)
+            }, 13f, ink, true)))
+        }
+        val status = text(getString(when {
+            held -> R.string.preparation_held
+            preparation.busy -> R.string.preparation_reading
+            pending.isEmpty() -> R.string.preparation_daily
+            else -> R.string.preparation_background
+        }), 12f, muted).apply { setPadding(0, dp(10), 0, dp(8)) }
+        preparation.failure?.let { status.text = ApiFailure(it).userMessage(this) }
+        card.addView(status); preparation.bind(status)
+        card.addView(AppUi.button(this, getString(if (enabled) R.string.preparation_pause else R.string.preparation_resume), false,
+            !loading && !preparation.busy) {
+            try {
+                preparation.pause()
+                account = vault.update(saved.session) { current ->
+                    val targets = if (enabled) current.automation.targets - current.session.userId else current.automation.targets + current.session.userId
+                    current.copy(automation = current.automation.copy(targets = targets, enabled = targets.isNotEmpty()))
+                }
+                syncMonitoring(); render()
+            } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this); render() }
+        })
+        card.gap(8); card.addView(button(getString(R.string.ui_view_lists), false) { openLists(saved.profile) })
+        page.addView(card)
     }
 
     private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
@@ -304,6 +358,7 @@ class MainActivity : LocalizedActivity() {
         identity.addView(text("@${saved.profile.username}", 15f, ink, true).apply { setPadding(dp(12), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
         page.addView(identity); page.gap(12)
         page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(18)
+        renderPreparation(page, saved); page.gap(18)
         val row = LinearLayout(this)
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
             val foreground = if (purple) UiPalette.onAccent else ink
@@ -1045,7 +1100,8 @@ class MainActivity : LocalizedActivity() {
     private fun renderWatchStatus(page: LinearLayout, person: TrackedPerson, saved: SavedAccount) {
         val now = System.currentTimeMillis()
         val conditions = WatchConditions(ChangeNotifications(this, preview).allowed(), AppUi.offline(this) == true,
-            gate.requiresConnection(), gate.automationHeld(), gate.blockedUntil(), gate.manualOnly(), gate.automaticNextAllowedAt())
+            gate.requiresConnection(), gate.automationHeld(), gate.blockedUntil(), gate.manualOnly(), gate.automaticNextAllowedAt(),
+            notificationsRequired = !saved.automation.enabled)
         val status = WatchStatusPolicy.status(person, saved.people, conditions, now)
         val card = AppUi.card(this)
         card.addView(AppUi.heading(this, getString(R.string.watch_status_title), 20f)); card.gap(10)
@@ -1503,6 +1559,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     override fun onDestroy() {
+        if (::preparation.isInitialized) preparation.close()
         if (::profileStatuses.isInitialized) profileStatuses.close()
         if (::quickWatch.isInitialized) quickWatch.close()
         if (::avatars.isInitialized) avatars.close()
@@ -1521,6 +1578,7 @@ class MainActivity : LocalizedActivity() {
     }
     override fun onPause() {
         visible = false
+        if (::preparation.isInitialized) preparation.pause()
         if (webComparison && web != null && (loginChecking || browserProof != null)) {
             message = getString(R.string.web_compare_cancelled); leaveLogin()
         }

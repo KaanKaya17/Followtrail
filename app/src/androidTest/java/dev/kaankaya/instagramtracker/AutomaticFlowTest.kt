@@ -220,7 +220,7 @@ class AutomaticFlowTest {
         lists.commit(session, page("200", FollowDirection.FOLLOWERS, null, listOf("1"), "stale", 1000))
         lists.commit(session, page("200", FollowDirection.FOLLOWING, null, listOf("2"), time = 2000))
         val before = lists.read(session, "200")
-        val transport = source { _, _, cursor -> assertEquals("stale", cursor); throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE) }
+        val transport = source { _, _, cursor -> assertNull(cursor); throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE) }
         assertEquals(ApiFailure.Kind.INVALID_RESPONSE, assertThrows(ApiFailure::class.java) { engine(transport).tick(now) }.kind)
         assertEquals(before, lists.read(session, "200")); assertFalse(lists.target(session, "200")!!.followers.continuing)
         lists.commit(session, page("200", FollowDirection.FOLLOWING, null, listOf("2"), time = now + ListAutomationPolicy.RESCAN_MS))
@@ -266,7 +266,7 @@ class AutomaticFlowTest {
         val linked = vault.link(session.copy(userAgent = "new-UA"), saved().profile.copy(observedAt = now))
         assertEquals(saved().automation, linked.automation); assertTrue(linked.people.single().favorite)
         val other = vault.link(Session("300", "ds_user_id=300; sessionid=synthetic", "test-UA"), saved().profile.copy(userId = "300"))
-        assertEquals(ListAutomation(), other.automation); assertTrue(other.people.isEmpty())
+        assertEquals(ListAutomation(enabled = true, targets = setOf(other.session.userId)), other.automation); assertTrue(other.people.isEmpty())
     }
     @Test fun clearingOnlyTheCapacityPauseCannotClearAnInstagramRestriction() {
         val gate = gate(); gate.pauseForListCapacity(); assertTrue(gate.manualOnly())

@@ -15,7 +15,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
     /** One shared reservation per bounded job, rather than a 15-minute gap between each due person. */
     fun cycle(now: Long = runtime.now(), cancelled: () -> Boolean = { false }) {
         val interrupted = { cancelled() || gate.quickWatchActive() }
-        if (!permitted(cancelled) || gate.quickWatchActive() || gate.automaticNextAllowedAt() > now) return
+        if (!permitted(cancelled) || gate.quickWatchActive() || gate.preparationActive() || gate.automaticNextAllowedAt() > now) return
         val saved = vault.read() ?: return
         if (AutomaticQueue.next(saved, lists.archive(saved.session), now) == null) return
         if (!gate.reserveAutomatic(now)) return

@@ -397,6 +397,27 @@
     if (entry.readAt == null && !busy)
       await command("read_notification", { id });
   }
+  function preparationCard() {
+    const state = data.listPreparation;
+    if (!data.account || !state) return "";
+    const paused = !data.connected || !state.enabled || !data.settings.automatic;
+    const blocked = data.gate.manualOnly || data.gate.blockedUntil > Date.now()/1000;
+    const working = state.directions.some(d => d.scanning);
+    const heading = paused ? t("Liste hazırlığı duraklatıldı") : blocked ? t("Liste hazırlığı bekliyor") :
+      state.ready ? t("Başlangıç listelerin hazır") : t("Hesabın bağlandı, listelerin hazırlanıyor");
+    const copy = state.ready ? t("İlk kayıt bir başlangıçtır. Sonraki otomatik taramalarda liste farklarını karşılaştırabilirsin.") :
+      t("Takipçilerin, ardından takip edilenlerin otomatik okunur. Uygulamayı kullanmaya başlamadan önceki takipten çıkışlar bilinmiyor.");
+    const rows = state.directions.map(d => `<li><strong>${d.direction === 'followers' ? t("Takipçiler") : t("Takip edilen")}</strong><span>${
+      d.error ? t("Tarama tamamlanmadı; kayıtlar korundu.") : d.ready && !d.scanning ? t("Başlangıç kaydı hazır") :
+      d.pages ? t("{0} sayfa · {1} hesap kaydedildi", num(d.pages), num(d.count)) : t("Okuma sırada")}</span></li>`).join('');
+    return `<section class="preparation-card card" aria-label="${t("Başlangıç listeleri")}"><div><span class="eyebrow">${t("LİSTE HAZIRLIĞI")}</span><h2>${heading}</h2><p>${copy}</p></div><ul>${rows}</ul>${
+      blocked ? `<p>${t("Instagram molası veya doğrulama sürüyor. Otomatik tekrar yapılmaz; İstek bilgilerini incele.")}</p>` :
+      data.requestBudget.nextAt > Date.now()/1000 ? `<p>${t("Bütçe için sonraki uygun zaman: {0}", esc(date(data.requestBudget.nextAt)))}</p>` :
+      !paused && (!state.ready || working) && data.gate.nextAt > Date.now()/1000 ? `<p>${t("Sonraki istek için en erken saat: {0}", esc(new Date(data.gate.nextAt*1000).toLocaleTimeString(i18n.locale(language))))}</p>` :
+      state.ready && !working ? `<p>${t("Sayı değişikliklerinde ve günlük kontrol hedefinde yeni tarama sıraya alınır. İstek bütçesine göre gecikebilir.")}</p>` : ''}<div class="drawer-actions">${
+      button(paused ? t("Hazırlığa devam et") : t("Liste taramalarını duraklat"), paused ? 'preparation-resume' : 'preparation-pause', paused ? 'refresh' : 'clock', 'secondary', busy ? 'disabled' : '')}${
+      button(t("Listeleri aç"), 'preparation-lists', 'list')}${blocked ? button(t("İstek bilgileri"),'requests','info') : ''}</div></section>`;
+  }
   function overview() {
     const own = data.account,
       history = data.history[own?.id] || [],
@@ -407,7 +428,7 @@
     return `${title(new Date().toLocaleDateString(i18n.locale(language), { dateStyle: "full" }), t("Çevrende neler oluyor?"), t("Hesabın, favori kişilerin ve son gözlemlerin bir arada."), button(data.connected ? t("Gözlemi yenile") : t("Hesabını bağla"), data.connected ? "refresh" : "account", "refresh", "primary", data.connected ? netDisabled() : ""))}
       ${!own ? `<section class="connect-banner card"><span class="dialog-symbol lavender">${icon("link")}</span><div><h2>${t("Önce hesabınla bağlantı kuralım.")}</h2><p>${t("Şifren kaydedilmez. Oturum ve gözlemler şifreli olarak bilgisayarında kalır.")}</p></div>${button(t("Hesabını bağla"), "account", "arrow", "primary")}</section>` : ""}
       <section class="stats-grid" aria-label="${t("Hesap özeti")}">${stat(t("Takipçiler"), "followers", "violet")}${stat(t("Takip edilen"), "following", "peach")}<button class="stat-card white" data-action="profile-events"><span class="stat-label">${t("Profil değişiklikleri {0}", icon("photo"))}</span><strong class="stat-value">${num(changes)}<span class="stat-unit">${t("kayıtlı fark")}</span></strong><span class="stat-bottom"><span class="muted">${t("Gözlemler arasındaki değişimler.")}</span>${icon("arrow")}</span></button></section>
-      <div class="overview-columns"><div class="main-column">${chart(own)}<section class="activity-section"><div class="section-heading"><h2>${t("Son gözlemler")}</h2><a class="text-button" href="#timeline">${t("Tümünü gör {0}", icon("arrow"))}</a></div><div class="activity-list">${data.events.slice(0, 5).map(eventRow).join("") || empty(t("İlk kontrolünden sonra kayıtlar burada görünür."))}</div></section></div><aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("clock")}</span><span>${t("SON PROFİL GÖZLEMİ")}</span></div><h2>${own ? "@" + esc(own.username) : t("Henüz bağlantı yok")}</h2><p>${esc(date(own?.observedAt))}</p><div class="snapshot-rule"></div><p>${t("Profil sayıları ve listeler ayrı ayrı kontrol edilir. Bir profil gözlemi, tam liste taraması değildir.")}</p>${button(t("İstek bilgileri"), "requests", "info")}</section><section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2><a href="#people" class="text-button">${t("Kişiler {0}", icon("arrow"))}</a></div>${data.people
+      ${preparationCard()}<div class="overview-columns"><div class="main-column">${chart(own)}<section class="activity-section"><div class="section-heading"><h2>${t("Son gözlemler")}</h2><a class="text-button" href="#timeline">${t("Tümünü gör {0}", icon("arrow"))}</a></div><div class="activity-list">${data.events.slice(0, 5).map(eventRow).join("") || empty(t("İlk kontrolünden sonra kayıtlar burada görünür."))}</div></section></div><aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("clock")}</span><span>${t("SON PROFİL GÖZLEMİ")}</span></div><h2>${own ? "@" + esc(own.username) : t("Henüz bağlantı yok")}</h2><p>${esc(date(own?.observedAt))}</p><div class="snapshot-rule"></div><p>${t("Profil sayıları ve listeler ayrı ayrı kontrol edilir. Bir profil gözlemi, tam liste taraması değildir.")}</p>${button(t("İstek bilgileri"), "requests", "info")}</section><section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2><a href="#people" class="text-button">${t("Kişiler {0}", icon("arrow"))}</a></div>${data.people
           .filter((p) => p.favorite)
           .slice(0, 5)
           .map(
@@ -747,7 +768,7 @@
     const own = adding ? null : data.account;
     const connected = !adding && data.connected;
     dialog(
-      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", own ? t("Kayıtlı hesap: @") + esc(own.username) + ". " : "")}</p>${connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(own?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${connected ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
+      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", own ? t("Kayıtlı hesap: @") + esc(own.username) + ". " : "")}</p>${connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<p class="dialog-note">${t("İlk bağlantıdan sonra başlangıç listelerin otomatik hazırlanır. Tarama ve sonraki kontrolleri ana ekrandan duraklatabilirsin.")}</p><form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(own?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${connected ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
     );
   }
   function requestsDialog() {
@@ -1079,6 +1100,17 @@
         break;
       case "export-backup":
         await file("export_backup");
+        break;
+      case "preparation-resume":
+        if (data.connected) await command('settings', {automatic:true, automaticLists:true});
+        else accountDialog();
+        break;
+      case "preparation-pause":
+        await command('settings', {automaticLists:false});
+        break;
+      case "preparation-lists":
+        ui.owner = data.account.id; ui.direction = 'followers';
+        navigate('lists');
         break;
       case "import-backup":
         await file("import_backup");
