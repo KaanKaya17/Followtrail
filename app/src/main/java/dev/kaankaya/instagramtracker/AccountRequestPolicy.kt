@@ -51,18 +51,29 @@ object LoginBrowserPolicy {
     private fun uri(url: String) = try { URI(url).takeIf { it.scheme == "https" && it.rawUserInfo == null && it.port in listOf(-1,443) && !it.rawPath.contains('%') && !it.rawPath.contains("..") } } catch (_: Exception) { null }
     private fun page(path: String) = path in setOf("/", "/accounts/login/", "/accounts/login/two_factor/", "/accounts/two_factor_authentication/", "/accounts/onetap/") || path.startsWith("/challenge/") || path.startsWith("/checkpoint/")
     fun navigation(url: String): Boolean = uri(url)?.let { it.host in setOf("www.instagram.com","instagram.com") && page(it.rawPath) } == true
-    fun resource(method: String, url: String): Boolean {
-        val u = uri(url) ?: return false
-        if (method == "GET") {
-            if (u.host in setOf("www.instagram.com","instagram.com")) return page(u.rawPath) ||
-                u.rawPath.startsWith("/static/") || u.rawPath.startsWith("/rsrc.php/") ||
-                u.rawPath in setOf("/data/shared_data/", "/api/v1/web/data/shared_data/") || AccountRequestPolicy.readAllowed(method,url)
-            return listOf("cdninstagram.com","fbcdn.net").any { u.host == it || u.host?.endsWith(".$it") == true }
+    enum class ResourceKind { PAGE, STATIC, BOOTSTRAP, PROFILE, CDN, AUTH, GRAPHQL, INSTAGRAM_OTHER, OTHER_HOST, INVALID }
+    data class ResourceDecision(val allowed: Boolean, val kind: ResourceKind)
+    fun resource(method: String, url: String): Boolean = resourceDecision(method, url).allowed
+    fun resourceDecision(method: String, url: String): ResourceDecision {
+        val u = uri(url) ?: return ResourceDecision(false, ResourceKind.INVALID)
+        val instagram = u.host in setOf("www.instagram.com", "instagram.com")
+        val kind = when {
+            instagram && u.rawPath in setOf("/api/graphql", "/api/graphql/", "/graphql/query/", "/graphql_www") -> ResourceKind.GRAPHQL
+            instagram && page(u.rawPath) -> ResourceKind.PAGE
+            instagram && (u.rawPath.startsWith("/static/") || u.rawPath.startsWith("/rsrc.php/")) -> ResourceKind.STATIC
+            instagram && u.rawPath in setOf("/data/shared_data/", "/api/v1/web/data/shared_data/") -> ResourceKind.BOOTSTRAP
+            instagram && AccountRequestPolicy.readAllowed("GET", url) -> ResourceKind.PROFILE
+            instagram -> ResourceKind.INSTAGRAM_OTHER
+            listOf("cdninstagram.com", "fbcdn.net").any { u.host == it || u.host?.endsWith(".$it") == true } -> ResourceKind.CDN
+            else -> ResourceKind.OTHER_HOST
         }
-        if (method != "POST" || u.host != "www.instagram.com") return false
-        return u.rawPath in setOf("/accounts/login/ajax/", "/accounts/login/ajax/two_factor/", "/accounts/two_factor_login/",
-            "/api/v1/web/accounts/login/ajax/", "/api/v1/web/accounts/login/ajax/two_factor/") ||
-            u.rawPath.startsWith("/challenge/") || u.rawPath.startsWith("/checkpoint/")
+        if (method == "GET") return ResourceDecision(kind in setOf(ResourceKind.PAGE, ResourceKind.STATIC,
+            ResourceKind.BOOTSTRAP, ResourceKind.PROFILE, ResourceKind.CDN), kind)
+        val auth = method == "POST" && u.host == "www.instagram.com" &&
+            (u.rawPath in setOf("/accounts/login/ajax/", "/accounts/login/ajax/two_factor/", "/accounts/two_factor_login/",
+                "/api/v1/web/accounts/login/ajax/", "/api/v1/web/accounts/login/ajax/two_factor/") ||
+                u.rawPath.startsWith("/challenge/") || u.rawPath.startsWith("/checkpoint/"))
+        return ResourceDecision(auth, if (auth) ResourceKind.AUTH else kind)
     }
     fun landing(url: String): Boolean = uri(url)?.let { it.host in setOf("www.instagram.com","instagram.com") && it.rawPath in setOf("/","/accounts/onetap/") } == true
 }

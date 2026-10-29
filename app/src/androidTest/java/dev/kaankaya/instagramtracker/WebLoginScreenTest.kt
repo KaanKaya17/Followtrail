@@ -75,6 +75,19 @@ class WebLoginScreenTest {
     private fun verify() = scenario!!.onActivity { a ->
         all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.web_connection_verify) }.performClick()
     }
+    @Test fun pageDiagnosticsExplainBlockedResourcesWithoutStoringRequestContentsOrSendingAProfileRead() {
+        open()
+        scenario!!.onActivity { a ->
+            all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(
+                "fetch('/api/graphql',{method:'POST',body:'synthetic-secret-body'}).catch(function(){})", null)
+        }
+        until(20000) { LoginPageTrace.read(context)?.let { org.json.JSONObject(it).optBoolean("formVisible", false) } == true }
+        scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.page_trace_open) }.performClick() }
+        val saved = LoginPageTrace.read(context)!!
+        assertTrue(saved, saved.contains("BLOCK:POST:GRAPHQL")); assertFalse(saved.contains("synthetic-secret-body"))
+        assertEquals(0L, RequestGate(context).attempts()); assertNull(SessionVault(context).read())
+        assertTrue(WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>().any { it.text.toString().contains("LP01") })
+    }
     @Test fun realCookieHandoffLinksEncryptedSessionAndReopensWithoutAnotherRequest() {
         open(); cookies(); verify()
         until { a -> all(a.window.decorView).filterIsInstance<TextView>().any { it.text == "@web.demo" } }

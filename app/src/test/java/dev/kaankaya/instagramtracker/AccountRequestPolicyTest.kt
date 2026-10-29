@@ -6,6 +6,21 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AccountRequestPolicyTest {
+    @Test fun browserDiagnosticsUseFixedCategoriesWithoutGrantingNewResourceAccess() {
+        val cases = listOf(
+            Triple("GET", "https://www.instagram.com/accounts/login/", true),
+            Triple("GET", "https://www.instagram.com/api/v1/web/data/shared_data/", true),
+            Triple("GET", "https://static.cdninstagram.com/rsrc.php/login.js", true),
+            Triple("POST", "https://www.instagram.com/api/v1/web/accounts/login/ajax/", true),
+            Triple("POST", "https://www.instagram.com/api/graphql", false),
+            Triple("GET", "https://www.instagram.com/api/v1/feed/timeline/", false),
+            Triple("GET", "https://www.instagram.com.evil.invalid/login.js", false),
+            Triple("POST", "https://www.instagram.com/api/v1/web/friendships/123/follow/", false)
+        )
+        for ((method, url, expected) in cases) assertEquals(url, expected, LoginBrowserPolicy.resourceDecision(method, url).allowed)
+        assertEquals(LoginBrowserPolicy.ResourceKind.GRAPHQL, LoginBrowserPolicy.resourceDecision("POST", "https://www.instagram.com/api/graphql").kind)
+        assertEquals(LoginBrowserPolicy.ResourceKind.AUTH, LoginBrowserPolicy.resourceDecision("POST", "https://www.instagram.com/api/v1/web/accounts/login/ajax/").kind)
+    }
     @Test fun readPathsAllowProfilesAndBothListsOnly() {
         for (path in listOf("users/123/info/","users/qa.person/usernameinfo/","friendships/123/followers/","friendships/123/following/")) {
             val url="https://i.instagram.com/api/v1/$path"
