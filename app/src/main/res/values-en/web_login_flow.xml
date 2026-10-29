@@ -8,6 +8,9 @@
     <string name="web_login_rejected">Instagram did not create a session for this single attempt. The form was closed; no additional credentials were sent. The response alone does not establish the underlying cause.</string>
     <string name="web_login_not_accepted">Instagram sign-in was not completed</string>
     <string name="web_login_not_sent">No new sign-in was sent from this screen. The previous attempt does not verify other accounts’ credentials. Wait until the time below before trying again.</string>
+    <string name="web_compare_direct_native">Try the app reader directly</string>
+    <string name="web_login_replace_warning">A different Instagram account signed in. Completing the connection replaces the active @%1$s record and its tracked people on this phone with the new account. Previous records are not restored automatically. Choose Cancel to keep the current record.</string>
+    <string name="web_login_replace_confirm">Switch to different account</string>
     <string name="web_login_show_challenge">Show Instagram verification</string>
     <string name="web_login_challenge_privacy">This opens Instagram’s security page. Meta’s CAPTCHA frame and Google reCAPTCHA may load and receive your IP address and browser information. The app does not forward your password or Instagram session to these domains. Complete verification yourself; cancelling leaves these resources blocked.</string>
     <string name="web_login_complete_challenge">Complete Instagram’s security step on this page. After success, your profile will be checked. If the page does not continue, finish verification and tap Verify account once.</string>

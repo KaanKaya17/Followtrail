@@ -16,7 +16,7 @@ internal object WebRequestContext {
 
 /** First-party web protocol. Credentials can only be sent to the fixed www.instagram.com origin. */
 class WebReadTransport(gate: RequestGate, sessions: WebSessions,
-    client: Call.Factory = PrivateReadTransport.client()) {
+    client: Call.Factory = WebRequestClients.create(gate.context)) {
     private val transport = PrivateReadTransport(gate, sessions, client, setOf("www.instagram.com"),
         { state: WebSession, headers, now -> state.updated(headers, now) })
     fun cancel() = transport.cancel()
@@ -60,7 +60,7 @@ object WebRequests {
 }
 
 class WebFollowListReader(gate: RequestGate, sessions: WebSessions,
-    client: Call.Factory = PrivateReadTransport.client()) : FollowListSource {
+    client: Call.Factory = WebRequestClients.create(gate.context)) : FollowListSource {
     private val transport = WebReadTransport(gate, sessions, client)
     override fun cancel() = transport.cancel()
     override fun read(session: Session, target: String, direction: FollowDirection, cursor: String?): FollowPage =

@@ -1,0 +1,5 @@
+<resources>
+    <string name="web_transport_selected">Web taşıyıcı seçimi: %1$s</string>
+    <string name="web_transport_android">Android HttpEngine / Chromium</string>
+    <string name="web_transport_standard">Standart HTTP/2 okuyucusu</string>
+</resources>

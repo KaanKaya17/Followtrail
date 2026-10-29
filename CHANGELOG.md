@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.49 — 2026-10-30 (Platform web taşıyıcısı test adayı)
+
+- Destekleyen cihazlarda web giriş ve okumaları Android HttpEngine kullanır. Seçim istekten önce yapılır; sunucu reddinden sonra otomatik eski taşıyıcıya dönüş yoktur. Ek SDK/izin/native kütüphane eklenmedi. Mobil sağlayıcı değişmedi.
+- Girişte onaylanan değişmez gövde taşıyıcıya kimliğiyle bağlanır; genel GraphQL açılmaz. Redirect, süre, iptal, gövde kapasitesi ve 429 sınırları korunur. HTTP başlıkları gövde hatasında da kaybolmaz.
+- Gelişmiş karşılaştırmada native okuyucu doğrudan denenebilir. Farklı bir hesabın mevcut etkin kaydı değiştirmesi için açık onay gerekir; iptal kaydı korur.
+- [Kanıt, sınırlar ve testler](docs/PLATFORM-WEB-TRANSPORT-TEST.md). Taşıyıcının gerçek telefon giriş reddini çözüp çözmediği canlı kontrol gerektirir.
+
 ## Android 0.1.48 — 2026-10-29 (Tek denemenin sonucunu açık gösterme)
 
 - Instagram oturum açılmadığını döndürdüğünde giriş formu kapatılır; native sonuç ve bir sonraki yerel deneme zamanı gösterilir. Yerel engelden sonraki denemeler sunucu reddi gibi algılanmaz. Mevcut 429, bütçe ve giriş aralığı değiştirilmedi.

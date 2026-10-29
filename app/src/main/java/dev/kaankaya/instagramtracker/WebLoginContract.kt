@@ -22,7 +22,7 @@ object WebLoginContract {
         "locale", "login_source", "lsd", "next", "prefill_contact_point", "prefill_source", "prefill_type", "skstamp", "timezone")
     private val cipher = Regex("#PWD_BROWSER:[1-9][0-9]{0,2}:[0-9]{10,13}:[A-Za-z0-9+/=]{64,20000}")
     private fun JSONObject.fieldNames() = keys().asSequence().toSet()
-    fun normalize(raw: String): FormBody {
+    internal fun authorize(raw: String): WebLoginAuthorization {
         require(raw.length <= MAX_BODY && raw.toByteArray(Charsets.UTF_8).size <= MAX_BODY)
         val pairs = linkedMapOf<String, String>()
         for (part in raw.split('&')) {
@@ -51,6 +51,6 @@ object WebLoginContract {
             require(input.isNull(key) || input.get(key) is String || input.get(key) is Boolean)
         // Canonicalize JSON once so duplicate JSON keys cannot be interpreted differently by the server.
         pairs["variables"] = variables.toString()
-        return FormBody.Builder().apply { pairs.forEach { (key, value) -> add(key, value) } }.build()
+        return WebLoginAuthorization(FormBody.Builder().apply { pairs.forEach { (key, value) -> add(key, value) } }.build())
     }
 }
