@@ -1,7 +1,7 @@
 <resources>
     <string name="web_connection_menu">Instagram ile bağlan · Önerilen</string>
     <string name="web_connection_instruction">Instagram sayfasında girişini ve varsa doğrulamanı tamamla. Ardından Hesabı doğrula’ya dokun.</string>
-    <string name="web_connection_privacy">Parolanı uygulama okumaz. Oturum bu cihazda şifrelenir; hesap verilerin yalnız Instagram ile paylaşılır.</string>
+    <string name="web_connection_privacy">Parolan ve doğrulama kodun kaydedilmez. Şifreli giriş isteğin yalnız Instagram’a gönderilir; oturumun bu cihazda şifrelenir.</string>
     <string name="web_connection_verify">Hesabı doğrula</string>
     <string name="web_connection_failed">Hesap doğrulanamadı</string>
     <string name="web_connection_failed_scope">Bu denemede hesap bağlantısı tamamlanmadı. Giriş ekranı kapatıldı; otomatik yeniden deneme yapılmayacak.</string>

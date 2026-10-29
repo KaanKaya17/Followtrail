@@ -1,0 +1,4 @@
+<resources>
+    <string name="web_relay_blocked">Bu giriş isteğinin biçimi desteklenmiyor; uygulama isteği göndermedi. Bu, parolanın yanlış olduğu anlamına gelmez. Yeni deneme yapmadan Sayfa tanısı bölümünü aç.</string>
+    <string name="web_relay_unavailable">Bu WebView sürümü güvenli giriş denetimini desteklemiyor. Android System WebView güncellemesini kontrol et; giriş isteği gönderilmedi.</string>
+</resources>

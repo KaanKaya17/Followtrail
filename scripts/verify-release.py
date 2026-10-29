@@ -54,7 +54,7 @@ def verify(apk: Path, sdk: Path) -> dict:
         if any(name.startswith('lib/') for name in archive.namelist()):
             raise ValueError('Unexpected native architecture dependency')
         for name in archive.namelist():
-            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection', b'DemoMonitorJobService', b'DemoFollowListSource', b'DemoAvatarFetcher', b'demo-page-2', b'tracker-fixture.invalid', b'tracker-web-login-fixture')):
+            if name.endswith('.dex') and any(marker in archive.read(name) for marker in (b'offline-demo', b'PreviewMode$DemoConnection', b'DemoMonitorJobService', b'DemoFollowListSource', b'DemoAvatarFetcher', b'demo-page-2', b'tracker-fixture.invalid', b'tracker-web-login-fixture', b'WebRelayFixtureActivity')):
                 raise ValueError('Debug preview transport must not be in the production APK')
     with apk.open('rb') as stream:
         digest = hashlib.file_digest(stream, 'sha256').hexdigest()

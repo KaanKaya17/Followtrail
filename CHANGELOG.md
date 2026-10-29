@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.42 — 2026-10-29 (Şifreli web giriş sözleşmesi adayı)
+
+- Yeni Instagram giriş formunun useCDSWebLoginMutation isteği, genel GraphQL engeli yüzünden gönderilmeden durabiliyordu. Instagram sayfasının gösterdiği yanlış giriş bilgileri mesajı bu durumda parola doğrulaması kanıtı değildi. Telefonda engelli GraphQL istekleri görüldü; hesapsız, sentetik giriş verisiyle işlemin adı/belge kimliği ve şifreli alan biçimi yakalandı; bu incelemede gerçek giriş gönderilmedi.
+- Kaynağı yalnız instagram.com ana giriş çerçevesi olan, sabit belge/işlem/yol sözleşmeli yerel geçiş eklendi. Düz parola, şifrelenmemiş sürüm 0, başka GraphQL belgeleri, ek query alanları ve sosyal işlemler reddedilir. Genel tarayıcı GraphQL izni açılmaz. İstek/yanıt gövdeleri ve giriş bilgileri kaydedilmez; yalnız Instagram’ın sabit HTTPS adresi kullanılır.
+- Tek giriş ekranından yalnız bir onaylı gönderim yapılır. Giriş için kalıcı 15 dakikalık yerel aralık ve ortak bütçe uygulanır; sonraki hesap doğrulaması kendi mevcut aralığını kullanır. 429, yönlendirme, iptal ve eski sayfadan gelen sonuçlar otomatik yeniden denenmez. Çerezler yalnız Instagram kapsamıyla kabul edilir.
+- Desteklenmeyen istek veya WebView yeteneği uygulama tarafından açıklanır; görünürlük tanısı bu açıklamanın üzerine genel giriş yönergesi yazmaz. TR/EN gizlilik açıklaması şifreli giriş isteğini ve saklanmayan parola/kodu açıklar. Canlı hesap doğrulaması ayrıca gereklidir; bu sürüm tüm giriş/doğrulama varyantlarının desteklendiği vaadi değildir.
+
 ## Android 0.1.41 — 2026-10-29 (Giriş sayfası uyumluluğu adayı)
 
 - Giriş WebView'ı masaüstü sayfa sunumunu ister; kurulu Chromium sürümü korunur, sayfayı yakınlaştırma desteklenir. Genel GraphQL izni açılmaz. Mobil giriş sayfasının engellenen GraphQL sorgusuna bağımlı kaldığı hesapsız tarayıcı karşılaştırmasında görüldü; bu değişiklik hesap bağlantısının tamamlandığı anlamına gelmez.

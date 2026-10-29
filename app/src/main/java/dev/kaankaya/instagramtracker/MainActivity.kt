@@ -73,6 +73,8 @@ class MainActivity : LocalizedActivity() {
     private var loginAttempted = false
     private var loginLoaded = false
     private var loginTrace: LoginPageTrace? = null
+    private var loginRelay: WebLoginRelay? = null
+    private var loginRelayIssue = false
     private var loginTraceFailed = false
     private var loginPageEpoch = 0L
     private val inspectPage = Runnable { inspectLoginPage() }
@@ -1355,7 +1357,7 @@ class MainActivity : LocalizedActivity() {
             if (web !== browser || loginPageEpoch != epoch) return@evaluateJavascript
             val form = when (raw) { "true" -> true; "false" -> false; else -> null }
             recordLoginPage(trace) { it.form(form) }
-            if (!loginChecking && !loginAttempted && browserProof == null) {
+            if (!loginChecking && !loginAttempted && browserProof == null && !loginRelayIssue) {
                 if (form == true) loginStatus?.setText(if (webComparison) R.string.web_compare_instruction else R.string.web_connection_instruction)
                 else if (form == false && try { java.net.URI(browser.url ?: "").rawPath == "/accounts/login/" } catch (_: Exception) { false })
                     loginStatus?.setText(R.string.page_trace_waiting)
@@ -1367,7 +1369,7 @@ class MainActivity : LocalizedActivity() {
     private fun startLogin(compare: Boolean = false) {
         if (preview) { message = getString(R.string.ui_real_account_connections_are_unavailable_in_demo); render(); return }
         if (loading || web != null) return
-        if (gate.nextPrototypeAt() > System.currentTimeMillis()) { message = getString(R.string.ui_next_connection_attempt, clock(gate.nextPrototypeAt())); render(); return }
+        if (gate.nextWebAuthenticationAt() > System.currentTimeMillis()) { message = getString(R.string.ui_next_connection_attempt, clock(gate.nextWebAuthenticationAt())); render(); return }
         try { gate.pauseAutomatic(); if(compare)WebConnectionJournal(this).reset(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         loading = false; loginChecking = false; loginAttempted = false; loginLoaded = false
@@ -1389,6 +1391,7 @@ class MainActivity : LocalizedActivity() {
         }
         web = browser
         loginTraceFailed = false
+        loginRelayIssue = false
         val pageTrace = LoginPageTrace(this)
         loginTrace = pageTrace
         recordLoginPage(pageTrace) { it.flush() }
@@ -1407,6 +1410,16 @@ class MainActivity : LocalizedActivity() {
             @Suppress("DEPRECATION") setSaveFormData(false)
         }
         CookieManager.getInstance().apply { setAcceptCookie(true); setAcceptThirdPartyCookies(browser, false) }
+        loginRelay = WebLoginRelay(this, browser, gate, worker, pageTrace, { problem, status ->
+            if (web === browser) {
+                loginRelayIssue = true
+                if (problem.kind == ApiFailure.Kind.LIMITED) webLoginFailed(problem, status)
+                else loginStatus?.text = if (problem.kind == ApiFailure.Kind.POLICY) getString(R.string.web_relay_blocked)
+                    else problem.userMessage(this)
+                completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
+                scheduleGateWake()
+            }
+        }).also { if (!it.install()) { loginRelayIssue = true; loginStatus?.setText(R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !LoginBrowserPolicy.navigation(request.url.toString()).also { allowed ->
                 if (!allowed) loginStatus?.setText(R.string.security_login_scope)
@@ -1426,6 +1439,7 @@ class MainActivity : LocalizedActivity() {
             }
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 if (web !== view) return
+                loginRelay?.cancel()
                 loginPageEpoch++
                 recordLoginPage(pageTrace) { it.started() }
                 main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000)
@@ -1582,6 +1596,7 @@ class MainActivity : LocalizedActivity() {
 
     private fun leaveLogin() {
         main.removeCallbacks(inspectPage)
+        loginRelay?.close(); loginRelay = null
         recordLoginPage { it.close() }; loginTrace = null
         try { browserProbe?.cancel() } catch (_: Exception) { message = getString(R.string.web_compare_journal_failed) }
         browserProbe = null; browserProof = null
@@ -1626,6 +1641,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     override fun onDestroy() {
+        loginRelay?.close(); loginRelay = null
         recordLoginPage { it.close() }; loginTrace = null
         if (::preparation.isInitialized) preparation.close()
         if (::profileStatuses.isInitialized) profileStatuses.close()
@@ -1646,6 +1662,7 @@ class MainActivity : LocalizedActivity() {
     }
     override fun onPause() {
         visible = false
+        loginRelay?.cancel()
         main.removeCallbacks(inspectPage)
         if (::preparation.isInitialized) preparation.pause()
         if (webComparison && web != null && (loginChecking || browserProof != null)) {

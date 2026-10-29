@@ -100,6 +100,14 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
         if (!preferences.edit().putBoolean("prototype_active", active).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun nextPrototypeAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("prototype_after", 0)) }
+    fun nextWebAuthenticationAt(): Long = synchronized(lock) { maxOf(nextPrototypeAt(), preferences.getLong("web_auth_after", 0)) }
+    fun beginWebAuthentication(now: Long = clock()) = synchronized(lock) {
+        if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
+        if (budgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
+        if (nextWebAuthenticationAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        begin(now)
+        if (!preferences.edit().putLong("web_auth_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
     fun beginPrototype(now: Long = clock()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
         if (budgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
