@@ -8,7 +8,7 @@ import sys
 import threading
 import uuid
 
-from engine import Engine
+from accounts import Accounts
 import localization
 from network import AppFailure, failure
 
@@ -31,7 +31,7 @@ def main():
     args = parser.parse_args()
     active = threading.Lock()
     try:
-        engine = Engine(args.data_dir, emit)
+        engine = Accounts(args.data_dir, emit)
         engine.offline = args.offline
     except Exception:
         emit({'type': 'fatal', 'code': 'storage', 'message': 'Şifreli depo açılamadı. Dosyalar korundu; otomatik sıfırlanmadı.'})
@@ -42,10 +42,12 @@ def main():
         group_id = uuid.uuid4().hex
         try:
             state = engine.run(request['operation'], request.get('args') or {}, group_id=group_id)
-            emit({'type': 'result', 'id': request['id'], 'ok': True, 'state': state, 'notificationGroupId': group_id})
+            emit({'type': 'result', 'id': request['id'], 'ok': True, 'state': state,
+                  'notifications': engine.notifications, 'notificationGroupId': group_id})
         except Exception as exc:
             emit({'type': 'result', 'id': request['id'], 'ok': False,
-                  'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': engine.snapshot(), 'notificationGroupId': group_id})
+                  'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': engine.snapshot(),
+                  'notifications': engine.notifications, 'notificationGroupId': group_id})
         finally:
             active.release()
 

@@ -3,6 +3,22 @@
   margin: 12vh auto;
   padding: 48px;
 }
+.account-switcher, .saved-account { display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:12px; border:1px solid var(--line); border-radius:var(--radius-control); background:var(--surface); color:var(--ink); }
+.account-switcher { margin-bottom:16px; padding:10px; gap:8px; }
+.account-switcher .avatar { width:32px; height:32px; min-width:32px; font-size:11px; }
+.account-switcher > .icon { width:16px; height:16px; flex:none; }
+.account-switcher strong { font-size:12px; }
+.account-switcher > span:nth-child(2), .saved-account > span:nth-child(2) { flex:1; min-width:0; }
+.account-switcher strong, .account-switcher small, .saved-account strong, .saved-account small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.account-switcher small, .saved-account small { color:var(--muted); margin-top:5px; font-size:12px; }
+.saved-accounts { display:grid; gap:10px; max-height:45vh; overflow-y:auto; margin:20px 0; }
+.saved-account.selected { border-color:var(--violet); background:var(--violet-soft); }
+.account-switcher:disabled { opacity:.6; }
+@media (max-height:800px) {
+  .sidebar .privacy-note { display:none; }
+  .sidebar .brand { margin-bottom:24px; }
+  .sidebar-bottom { padding-top:16px; }
+}
 .empty-guide {
   grid-column: 1 / -1;
   display: flex;

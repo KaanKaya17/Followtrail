@@ -11,11 +11,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const version = process.argv[2];
 if (!/^\d+\.\d+\.\d+$/.test(version || '')) throw Error('Pass packaged version');
 const large = process.argv.includes('--large');
-const out = path.join(root, `artifacts/desktop-${version}-qa/performance${large ? '-large' : ''}`);
+const accounts = process.argv.includes('--accounts');
+const out = path.join(root, `artifacts/desktop-${version}-qa/performance${large ? '-large' : ''}${accounts ? '-accounts' : ''}`);
 await mkdir(out, { recursive: true });
 const home = await mkdtemp(path.join(os.tmpdir(), 'TrackerQA-'));
 const python = process.env.TRACKER_BUILD_PYTHON || path.resolve(root, '../InstagramCounter/.venv/Scripts/python.exe');
-execFileSync(python, [path.join(root, 'interface/desktop/backend/seed_qa.py'), '--home', home, ...(large ? ['--performance'] : [])]);
+execFileSync(python, [path.join(root, 'interface/desktop/backend/seed_qa.py'), '--home', home, ...(large ? ['--performance'] : []), ...(accounts ? ['--accounts'] : [])]);
 const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
 const app = await electron.launch({ executablePath: path.join(root, `artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`), args: [`--tracker-test-home=${home}`], env });
 const page = await app.firstWindow();
@@ -60,7 +61,7 @@ try {
   assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isVisible()), false);
   await app.evaluate(({ app }) => app.emit('activate'));
   await page.waitForFunction(async () => (await window.TrackerDesktop.command('state')).state.people.find(p => p.id === '200').note === 'Synthetic update 39');
-  const result = { version, samples, changes, fixture: large ? '24 profiles including owner, 20 with 60 history entries; two 10000-member snapshots; 2000 events and 500 log groups; no session/network' : 'standard seed_qa (4 profiles including owner, lists and notification log); no session/network', warmupSeconds: 3, liveInstagram: false, limitations: 'Short warm samples, not an hours-long leak or weak-device benchmark. Hidden update burst is 40 local encrypted note saves through real IPC, not Instagram request timing.' };
+  const result = { version, samples, changes, savedAccounts:accounts?2:1, fixture: large ? '24 profiles including owner, 20 with 60 history entries; two 10000-member snapshots; 2000 events and 500 log groups; synthetic offline data' : 'standard seed_qa (4 profiles including owner, lists and notification log); synthetic offline data', warmupSeconds: 3, liveInstagram: false, limitations: 'Short warm samples, not an hours-long leak or weak-device benchmark. Hidden update burst is 40 local encrypted note saves through real IPC, not Instagram request timing. The optional second account has one saved target and remains inactive.' };
   await writeFile(path.join(out, 'summary.json'), JSON.stringify(result, null, 2));
 } finally {
   try { await app.close(); }

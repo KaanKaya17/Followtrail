@@ -2,7 +2,32 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { EventEmitter } = require("node:events");
 const { Backend } = require("./service.cjs");
-const { changeNotification, showNotification } = require("./notifications.cjs");
+const { changeNotification, showNotification, openAccountNotification } = require("./notifications.cjs");
+
+test('notification click switches to owning account before opening its log and never opens a foreign log while busy',async()=>{
+ const calls=[],entry={id:'qa-log',ownerId:'100'};
+ const backend={state:{activeAccountId:'400'},command:async(operation,args)=>{calls.push({operation,args});return {ok:true};}};
+ const options={entry,backend,showWindow:()=>calls.push('show'),send:event=>calls.push(event),onBusy:()=>calls.push('busy')};
+ await openAccountNotification(options);
+ assert.deepEqual(calls,['show',{operation:'switch_account',args:{id:'100'}},{type:'open_notification',id:'qa-log'}]);
+ calls.length=0;backend.command=async()=>({ok:false,error:{code:'busy'}});
+ await openAccountNotification(options);
+ assert.deepEqual(calls,['show','busy']);
+ calls.length=0;backend.state.activeAccountId='100';
+ await openAccountNotification(options);
+ assert.deepEqual(calls,['show',{type:'open_notification',id:'qa-log'}]);
+});
+
+test('worker-projected notification retains owning account while renderer state belongs to another account',()=>{
+ const service=new Backend({onEvent:()=>{}}),received=[];
+ service.onNotifications=entries=>received.push(...entries);
+ service.message({type:'ready',state:{activeAccountId:'400',notificationLog:[]}});
+ const entry={id:'qa-group',ownerId:'100',ownerUsername:'qa.owner',desktopEligible:true};
+ service.message({type:'result',state:{activeAccountId:'400',notificationLog:[]},notifications:[entry]});
+ assert.deepEqual(received,[entry]);
+ service.message({type:'result',state:{activeAccountId:'100',notificationLog:[entry]},notifications:[]});
+ assert.equal(received.length,1);
+});
 
 test("one observation log is delivered once with suspicion priority and a log-detail target", () => {
   const received = [];

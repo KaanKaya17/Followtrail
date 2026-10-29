@@ -87,7 +87,7 @@ class Backend {
       const seen = new Set(
         (this.state?.notificationLog || []).map((entry) => entry.id),
       );
-      const entries =
+      const entries = message.notifications ?? (
         message.type === "result" && this.state
           ? (message.state.notificationLog || []).filter(
               (entry) =>
@@ -95,7 +95,7 @@ class Backend {
                 !seen.has(entry.id) &&
                 entry.desktopEligible,
             )
-          : [];
+          : []);
       this.state = message.state;
       this.onNotifications?.(entries);
     }

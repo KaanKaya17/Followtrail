@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--anonymous',action='store_true')
     parser.add_argument('--keyboard',action='store_true')
     parser.add_argument('--hold',action='store_true')
+    parser.add_argument('--accounts',action='store_true')
     args=parser.parse_args()
     home=args.home.resolve()
     if home.parent!=Path(tempfile.gettempdir()).resolve() or not home.name.startswith('TrackerQA-'):
@@ -123,6 +124,17 @@ def main():
         if not args.keyboard: raise ValueError('Hold fixture requires keyboard records')
         e.data['gate'].update(blockedUntil=1800003600,manualOnly=True,status=429)
     e.save()
+    if args.accounts:
+        if args.empty: raise ValueError('Account fixture requires records')
+        from accounts import Accounts
+        accounts = Accounts(home, clock=lambda:now)
+        accounts.select_connection_account(profile('400','qa.shop',70,40))
+        accounts.record_profile(profile('400','qa.shop',70,40), own=True)
+        accounts.data['session'] = {'cookies':{'ds_user_id':'400','sessionid':'SYNTHETIC-SHOP'}}
+        accounts.record_profile(profile('200','qa.deniz',50,20))
+        accounts.data['people']['200']['note'] = 'SHOP-ONLY-NOTE'
+        accounts.save()
+        accounts.run('switch_account', {'id':'100'})
     print('Synthetic vault prepared; no session or network.')
 
 

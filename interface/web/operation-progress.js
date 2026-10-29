@@ -32,9 +32,10 @@
       }
       const messages={preparing:t("İşlem hazırlanıyor…"),login:t("Instagram hesabına bağlanılıyor…"),profile:t("Profil okunuyor…"),avatar:t("Profil fotoğrafı yükleniyor…"),access_health:t("Oturum sağlığı kontrol ediliyor…"),access_target:t("Kayıtlı hesap kimliğiyle erişim kontrol ediliyor…"),access_anonymous:t("Oturumsuz profil görünürlüğü karşılaştırılıyor…"),request:t("Instagram yanıtı bekleniyor…"),waiting:t("İstekler arasındaki yerel aralık bekleniyor…"),list:t("Liste sayfaları okunuyor…"),code:t("Doğrulama kodu bekleniyor…"),cancelling:t("İptal isteniyor…")};
       let title=messages[p.phase] || t("İşlem sürüyor…"), context='';
+      if(p.ownerUsername) context=`<p>${escape(t("Bağlı hesap: @{0}",p.ownerUsername))}</p>`;
       if(scan) {
         const direction=scan.direction==='followers'?t("Takipçiler"):t("Takip edilen");
-        context=`<p class="scan-owner">@${escape(scan.username)} · ${escape(direction)}</p>`;
+        context+=`<p class="scan-owner">@${escape(scan.username)} · ${escape(direction)}</p>`;
         if(scan.step==='profile') title=t("Liste için güncel profil sayısı okunuyor…");
         else {
           title=p.phase==='request'?t("Sayfa {0} için Instagram yanıtı bekleniyor…",number(scan.page)):p.phase==='list_received'?t("Sayfa {0} alındı",number(scan.page)):t("Sayfa {0} sırada",number(scan.page));
