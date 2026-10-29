@@ -6,8 +6,8 @@ android {
         applicationId = "dev.kaankaya.instagramtracker"
         minSdk = 24
         targetSdk = 36
-        versionCode = 42
-        versionName = "0.1.41"
+        versionCode = 43
+        versionName = "0.1.42"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { buildConfig = true }
@@ -19,6 +19,7 @@ android {
 dependencies {
     // 5.5+ requires compileSdk 37; keep this release on the project's SDK 36 toolchain.
     implementation("com.squareup.okhttp3:okhttp:5.4.0")
+    implementation("androidx.webkit:webkit:1.14.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20260814")
     testImplementation("com.squareup.okhttp3:mockwebserver3:5.4.0")

@@ -1,0 +1,4 @@
+<resources>
+    <string name="web_relay_blocked">This sign-in request format is unsupported; the app did not send it. This does not mean your password is incorrect. Open Page diagnostics before trying again.</string>
+    <string name="web_relay_unavailable">This WebView version does not support the required sign-in checks. Check for an Android System WebView update; no sign-in request was sent.</string>
+</resources>
