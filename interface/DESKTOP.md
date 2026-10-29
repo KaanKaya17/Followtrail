@@ -1,6 +1,10 @@
-# InstagramTracker Windows 0.2.14
+# InstagramTracker Windows 0.2.15
 
-`artifacts/InstagramTracker-Desktop-0.2.14/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.15/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Hesap güvenliği sınırları
+
+Okuyucu, yöntem ve kesin yol sözleşmesi dışındaki işlemleri gönderimden önce reddeder. Giriş/cihaz kaydı istisnaları yalnız giriş süresince açıktır; başarısız girişte cihaz bağlamı DPAPI ile korunur. Ortam proxy'leri kullanılmaz. Hesap başına 120/saat, 1200/24 saat; bütün hesaplarda 240/saat, 2400/24 saat kayan yerel bütçe uygulanır. Meta'nın güvenli kotası değildir. Yoğun kontrolde veya büyük listelerde hedef süre uzayabilir; İstek bilgileri sonraki bütçe zamanını gösterir. Yerel hesap silme, yeniden açılış ve hesap geçişi bütçeyi sıfırlamaz. Bağlantıyı kaldırmak sunucu oturumunu kapatmaz. [Testler ve sınırlar](../docs/ACCOUNT-SAFETY-TEST.md).
 
 ## Rastgele istek aralığı
 

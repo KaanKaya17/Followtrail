@@ -127,4 +127,10 @@
     <string name="connection_tls_error">"Could not verify the secure connection. Sign-in stopped."</string>
     <string name="connection_incomplete">"Sign-in is not complete. Finish the steps on Instagram’s screen."</string>
     <string name="connection_checking">"Verifying your connection and loading counts…"</string>
+    <string name="security_login_scope">This screen is for sign-in and verification only. Other account actions are blocked.</string>
+    <string name="security_request_blocked">The local read-only policy blocked this request. No account action was performed.</string>
+    <string name="security_budget_full">The local request budget is full. See Request information for the next available time. This is not an Instagram error.</string>
+    <string name="security_budget_info">Local device budget: %1$d counted requests per hour and %2$d per 24 hours. This is not a Meta quota; deletion or signing in again does not reset it.</string>
+    <string name="security_budget_next">Next available budget time: %1$s</string>
+    <string name="security_remove_local">The session copy on this device is removed; the session on Instagram’s server is not revoked. Review login activity in the official Instagram app if a login looks suspicious.</string>
 </resources>

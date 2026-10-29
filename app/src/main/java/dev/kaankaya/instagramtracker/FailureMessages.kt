@@ -1,6 +1,8 @@
 package dev.kaankaya.instagramtracker
 
 fun ApiFailure.userMessage(context: android.content.Context): String = context.getString(when (kind) {
+        ApiFailure.Kind.POLICY -> R.string.security_request_blocked
+        ApiFailure.Kind.BUDGET -> R.string.security_budget_full
         ApiFailure.Kind.MOBILE_REQUIRED -> R.string.ui_lists_require_a_mobile_connection_go_to
         ApiFailure.Kind.CAPACITY -> R.string.ui_the_device_storage_limit_for_this_read
         ApiFailure.Kind.SESSION_EXPIRED -> R.string.ui_your_connection_has_expired_reconnect_your_account

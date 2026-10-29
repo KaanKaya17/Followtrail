@@ -18,6 +18,7 @@ class ForegroundListScan(private val vault: SessionVault, private val lists: Fol
                 if (cancelled() || Thread.currentThread().isInterrupted) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 if (gate.automationHeld() || gate.requiresConnection()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 if (gate.blockedUntil() > runtime.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
+                if (gate.budgetNextAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
                 if (index > 0 && runtime.elapsed() - started >= 90_000) return result!!
                 val wait = gate.nextAllowedAt() - runtime.now()
                 if (wait <= 0) break

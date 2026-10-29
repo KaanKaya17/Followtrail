@@ -1,0 +1,28 @@
+# Hesap güvenliği doğrulaması — Windows 0.2.15 / Android 0.1.35
+
+29 Ekim 2026. Bu kayıt yeni güvenlik sınırlarının bilinen işlevlerle birlikte test edildiğini gösterir; canlı Instagram kabulü veya hesabın kısıtlanmayacağı garantisi değildir. İncelemedeki sentetik takip POST'u yalnız mock HTTP adaptörüne ulaşmıştı; kullanıcının hesabında takip/beğeni/DM işlemi yapıldığına dair bulgu yoktur.
+
+## Değişiklikler
+
+- Windows private/public/graphql oturumlarında ortak yöntem/yol/gövde kapısı; Android ortak native okuyucu ve telefon girişinde aynı ayrım. Bilinmeyen yollar ve sosyal işlemler gönderilmez. Giriş cihaz kaydı için gereken kesin GraphQL belgesi, generic GraphQL'den ayrıdır. Windows gerçek kütüphanesinin b.i alanındaki cihaz kaydı/attestation isteği açıkça kapsanır.
+- Windows cihaz bağlamı, hesap oturumundan ayrı DPAPI dosyasında kalır; başarısız parola denemesi yeni kurulum UUID'si üretmez. Var olan seçili veya kayıtlı hesabın cihaz ayarları yeniden bağlantıda tercih edilir. Bozuk kayıt korunarak hata verilir. Parola/kod/hesap çerezi bu dosyaya konmaz.
+- Kayan bütçeler: Windows hesap 120/saat ve 1200/24 saat, cihaz toplamı 240/2400; Android sayaçlı uygulama istekleri cihazda 120/1200. Bunlar yerel politika değerleridir. Mevcut 429 molası ayrı tutulur; başarılı okuma, hesap değişimi, yedek yükleme veya yeniden açılış bütçeyi sıfırlamaz. Saat geri giderse gelecekte görünen kayıtlar sayılmaya devam eder.
+- Android giriş WebView'ı giriş/doğrulama sayfalarıyla sınırlandırılır. Sosyal POST, genel GraphQL ve servis çalışanı ağı engellenir; giriş sonrası kök sayfada yerel boş karşılama kullanılır. Kullanıcı mevcut Hesabı doğrula düğmesiyle devam eder. POST gövdesi WebViewClient tarafından görünmeyen bilinmeyen giriş protokolüne otomatik izin verilmez.
+- TR/EN istek bütçesi açıklamaları ve yerel bağlantı kaldırma uyarısı. Sunucu logout'u veya sosyal mutasyon özelliği eklenmedi. Başlık sırasının ya da rastgele aralığın Instagram tespitini engellediği iddia edilmez; TLS/attestation güvenlik kontrollerini aşan bir değişiklik yapılmadı.
+
+## Çalıştırılan kontroller
+
+- `python -X utf8 -m unittest discover -s interface/desktop/backend -p test_*.py -q`: 156 test geçti. Yeni sekiz test gerçek instagrapi CAA girişini sentetik HTTP ile cihaz kaydı → AAC → attestation → parola anahtarı → giriş → ilk profil okumasına kadar çalıştırır; giriş hatasında kapsam kapanması, bozuk DPAPI kaydı, değişmeyen cihaz kimliği, bilinmeyen/sosyal işlemin gönderilmemesi ve kalıcı kayan bütçeyi de doğrular. Şifreleme ve kasa gerçek, HTTP ve zaman sentetiktir.
+- `npm run check`, `node --test desktop/*.test.cjs`: ortak tema, 860 TR/EN mesajı, JS kaynakları ve 28 Node testi geçti. Worker PyInstaller ile paketlendi.
+- Paketlenmiş gerçek EXE, ayrı `TrackerQA-*` kasaları ve `--offline` worker ile: 30 işlev, 10 çoklu hesap, 11 ilerleme/bütçe kontrolü geçti. Yerel IPC, DPAPI, yedek/CSV ve yeniden açılış gerçektir; Instagram'a istek gönderilmedi. İlk ağır eşzamanlı derleme sırasında işlev testinde yedek toast beklemesi zaman aşımına uğradı; ayrı test geçişinde 30 kontrol geçti. İlk hesap testi silme sonrası hesap sayısı beklemesinde 2/1 farkıyla durdu; ayrı tekrarında 10 kontrol geçti. Bu iki ilk test başarısızlığının kök nedeni doğrulanmadı; üretim hatasının çözüldüğüne dair kanıt olarak sunulmaz. İşlev testine hata anı ekran/metin kaydı eklendi.
+- Android `:app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:assembleDebug :app:assembleDebugAndroidTest`: 88 JVM testi ve release lint/derleme geçti.
+- Sahip olunan API 37 Small_Phone emülatöründe debug uygulaması: AccountSafetyBoundaryTest, PhoneLoginFlowTest, PhoneLoginScreenTest, ApiContractTest, WebComparisonBoundaryTest, WebComparisonScreenTest, WebConnectionTest, WebLoginScreenTest; toplam 50 test geçti. Gerçek Keystore, CookieManager, WebView ve UI kullanılır; tüm hedef yanıtlar sentetik ve ağdan yalıtılmıştır. Yeni WebView testi sosyal POST'a yerel 403, giriş dışı gezinme yasağı ve ardından başarılı oturum aktarımını birlikte sınar. Üretim hesabı kullanılmadı.
+- Türkçe/İngilizce Android kaynak/placeholder denetimi geçti. İmzalı APK üretim paketi, izinleri ve imzası dağıtım öncesi `scripts/verify-release.py` ile kontrol edilir.
+
+## Sınırlar ve kullanıcı testi
+
+Canlı hesap, yeni parola/2FA girişi, gerçek sunucu 429 etkisi, Android WebView'ın güncel Instagram JavaScript'iyle uyumu, fiziksel telefonda bu sürüm ve CPU/bellek farkı bu çalışmada ölçülmedi. WebView tüm ağ kanallarını kapsayan bir güvenlik duvarı değildir; native uygulama okuyucusunun kesin izin listesiyle aynı kapsamda sunulmaz. Yeni bir Instagram giriş akışı reddedilirse yol/gövde sözleşmesi incelenmeden genişletilmemelidir. Önceki Android giriş sorunu canlı doğrulanana kadar açık kalır.
+
+Windows'ta önce eski sürümü tepsiden tamamen kapat, ZIP'i çıkarıp yeni EXE'yi aç. Hesap/not/listeler görünmeli; hesap geçişi ve İstek bilgileri yerel çalışmalı. Yeni giriş yapmadan var olan oturumu koru. Kayıtlı mola yoksa kullanıcının seçtiği tek profil yenilemesiyle kontrol edilebilir. Bütçe dolarsa yeni istek gönderilmez, sonraki saat gösterilir; büyük Windows taraması kısmi saklanır ve sonraki manuel tarama baştan başlayabilir.
+
+Android APK mevcut imzayla güncellenir, kaldırıp kurmak gerekmez. Açılışta mevcut hesabın korunması, İstek bilgileri'ndeki son HTTP/mola/bütçe ve yerel ekranlar kontrol edilir. Giriş denemesi yalnız mevcut mola bittikten sonra bir kez yapılmalı; 429/doğrulama gelirse durulmalı. Parola, kod veya çerez paylaşılması gerekmez. Tarayıcı girişi sadece bağlantı içindir; DM, profil düzenleme veya sosyal işlem sayfası olarak kullanılmaz. Bağlantıyı kaldırmak sunucudaki Instagram oturumunu iptal etmez.

@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.15 / Android 0.1.35 — 2026-10-29 (Hesap güvenliği sınırları)
+
+- Ortak yerel API okuyucuları artık HTTPS alan adına ek olarak yöntem, gövde ve kesin yol sözleşmesini denetler. Takip, takipten çıkma, beğeni, DM ve bilinmeyen adresler gönderimden önce reddedilir. Giriş ve cihaz kaydı için gerekli POST'lar ayrı, dar kapsamlı istisnalardır; genel GraphQL yetkisi verilmez.
+- Windows'ta başarısız girişten sonra cihaz kimliğinin yeniden üretilmesi önlendi. Yalnız cihaz bağlamı DPAPI ile saklanır; parola, doğrulama kodu ve hesap oturumu bu kayda eklenmez. Gerçek istemci kütüphanesinin kullandığı cihaz kaydı/attestation alan adları sınırlı sözleşmeyle desteklenir. Üç HTTP oturumu aynı kapıdan geçer; ortam proxy'leri kullanılmaz.
+- Kalıcı, kayan saat/24 saat istek bütçesi eklendi. Windows: hesap başına 120/1200, ortak 240/2400; Android: cihazda 120/1200 sayaçlı uygulama isteği. Bunlar Meta'nın güvenli kotaları değildir. Bütçe, 429'dan ayrı gösterilir; yeniden açılış ve hesap geçişiyle sıfırlanmaz. Yoğun takip veya büyük liste taraması sonraki bütçe zamanını bekleyebilir.
+- Android giriş tarayıcısı giriş/doğrulama sayfaları ve bilinen kaynaklarla sınırlandı; sosyal işlem adresleri, genel GraphQL ve servis çalışanı ağ yüklemeleri engellenir. Giriş sonrası ana sayfa yerine yerel boş karşılama kullanılır. Bilinmeyen giriş protokolleri otomatik genişletilmez.
+- Bağlantıyı kaldırmanın Instagram sunucusundaki oturumu iptal etmediği TR/EN açıklanır. Veri aktaran yeni servis yoktur. 156 Python, 28 Node, 88 Android JVM ve 50 Android emülatör testi; paketlenmiş Windows'ta 30 işlev, 10 hesap ve 11 ilerleme kontrolü geçti. Canlı Instagram girişinin/önceki Android 429 sorununun çözüldüğü iddia edilmez. [Kapsam, testler ve kullanım](docs/ACCOUNT-SAFETY-TEST.md).
+
 ## Windows 0.2.14 — 2026-10-29 (12–18 saniyelik istek aralığı)
 
 - Sayaçlı API ve oturumsuz profil isteklerinin ortak kapısı, her giden istek için bir kez 12–18 saniyelik eşit olasılıklı süre seçer. Sonraki istek zamanı şifreli kaydedilir; hesap geçişi, yeniden açılış, iptal ve yerel düzenlemeler süreyi yeniden seçmez. Önceki daha uzun rezervasyonlar korunur.

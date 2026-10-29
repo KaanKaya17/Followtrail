@@ -35,6 +35,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
         !gate.automationHeld() && !gate.manualOnly() && !gate.requiresConnection()
     private fun waitForSlot(started: Long, cancelled: () -> Boolean): Boolean {
         while (permitted(cancelled) && runtime.elapsed() - started < ROUND_MS) {
+            if (gate.budgetNextAt() > runtime.now()) return false
             val wait = gate.nextAllowedAt() - runtime.now()
             if (wait <= 0) return true
             if (!runtime.pause(minOf(wait, 250L), cancelled)) return false
@@ -187,7 +188,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
             }
             return committed!!
         } catch (failure: ApiFailure) {
-            if (failure.kind !in setOf(ApiFailure.Kind.CANCELLED, ApiFailure.Kind.TOO_SOON)) vault.inspect { current ->
+            if (failure.kind !in setOf(ApiFailure.Kind.CANCELLED, ApiFailure.Kind.TOO_SOON, ApiFailure.Kind.BUDGET)) vault.inspect { current ->
                 if (!cancelled() && selected(current, session, task.target)) {
                     try { lists.failed(session, task, now, failure.kind) }
                     catch (error: ApiFailure) { if (error.kind == ApiFailure.Kind.CAPACITY) gate.pauseForListCapacity() else gate.pauseAutomatic() }

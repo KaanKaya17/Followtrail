@@ -12,6 +12,7 @@ from instagrapi import Client
 from instagrapi.exceptions import TwoFactorRequired
 from instagrapi.transports import create_curl_h2_adapter
 import requests
+import request_policy
 from PIL import Image
 
 
@@ -31,6 +32,7 @@ def deadline(header, now):
 
 
 class TrackerClient(Client):
+    _tracker_authenticating = False
     def login_flow(self):
         return True
 
@@ -41,16 +43,20 @@ class TrackerClient(Client):
         return self.challenge_code_handler(self.username, choice)
 
     def login(self, *args, **kwargs):
+        self._tracker_authenticating = True
         try:
-            return super().login(*args, **kwargs)
-        except TwoFactorRequired as exc:
-            context = vars(exc)
-            if not self._extract_two_step_verification_context(context):
-                context = self.last_json
-            if not self._extract_two_step_verification_context(context):
-                raise AppFailure('verification', 'Bu doğrulama biçimini resmî Instagram uygulamasında tamamla.') from exc
-            code = self.challenge_code_or_raised(None)
-            return self._login_with_bloks_two_factor(code, context, exc)
+            try:
+                return super().login(*args, **kwargs)
+            except TwoFactorRequired as exc:
+                context = vars(exc)
+                if not self._extract_two_step_verification_context(context):
+                    context = self.last_json
+                if not self._extract_two_step_verification_context(context):
+                    raise AppFailure('verification', 'Bu doğrulama biçimini resmî Instagram uygulamasında tamamla.') from exc
+                code = self.challenge_code_or_raised(None)
+                return self._login_with_bloks_two_factor(code, context, exc)
+        finally:
+            self._tracker_authenticating = False
 
     def private_request(self, endpoint, data=None, params=None, login=False,
                         with_signature=True, headers=None, extra_sig=None, domain=None):
@@ -83,16 +89,16 @@ def new_client(engine, settings=None):
                             request_timeout=0, private_transport='curl', public_transport='requests')
     client.read_timeout = 25
     client.challenge_code_handler = engine.request_code
-    for session in (client.private, client.public):
+    for session in (client.private, client.public, client.graphql):
         session.trust_env = False
         session.proxies.clear()
         original = session.send
 
         def send(request, _send=original, **kwargs):
-            url = urlsplit(request.url)
-            if (url.scheme != 'https' or url.hostname != 'i.instagram.com'
-                    or url.port not in (None, 443) or url.username or url.password):
+            if not request_policy.allowed(request, client._tracker_authenticating):
                 raise AppFailure('network_policy', 'İzin verilmeyen ağ hedefi durduruldu.')
+            if client._tracker_authenticating:
+                engine.persist_login_identity(client)
             engine.before_request()
             kwargs.update(timeout=25, allow_redirects=False, verify=True, proxies={})
             response = _send(request, **kwargs)

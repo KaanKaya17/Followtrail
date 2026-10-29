@@ -733,6 +733,8 @@ class MainActivity : LocalizedActivity() {
         val now = System.currentTimeMillis()
         val lines = mutableListOf(getString(R.string.ui_read_attempts_started, number(gate.attempts())),
             getString(R.string.web_compare_last_counted_http, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
+        lines += getString(R.string.security_budget_info, RequestBudgetPolicy.HOURLY, RequestBudgetPolicy.DAILY)
+        if (gate.budgetNextAt() > now) lines += getString(R.string.security_budget_next, date(gate.budgetNextAt()))
         if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))
         if (!preview) {
             try {
@@ -1239,7 +1241,7 @@ class MainActivity : LocalizedActivity() {
     private fun confirmRemove() {
         if (loading) return
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_confirm_remove_connection))
-            .setMessage(getString(R.string.ui_your_session_people_lists_history_and_notes))
+            .setMessage(getString(R.string.ui_your_session_people_lists_history_and_notes) + "\n\n" + getString(R.string.security_remove_local))
             .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_remove)) { _, _ ->
                 quickWatch.stop(false)
                 avatars.close()
@@ -1291,6 +1293,7 @@ class MainActivity : LocalizedActivity() {
         }
         web = browser
         WebView.setWebContentsDebuggingEnabled(false)
+        LoginBrowserResources.restrictWorkers()
         browser.setBackgroundColor(Color.WHITE)
         browser.settings.apply {
             javaScriptEnabled = true; domStorageEnabled = true
@@ -1302,10 +1305,13 @@ class MainActivity : LocalizedActivity() {
         }
         CookieManager.getInstance().apply { setAcceptCookie(true); setAcceptThirdPartyCookies(browser, false) }
         browser.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !NavigationPolicy.isInstagram(request.url.toString())
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !LoginBrowserPolicy.navigation(request.url.toString()).also { allowed ->
+                if (!allowed) loginStatus?.setText(R.string.security_login_scope)
+            }
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                if (NavigationPolicy.isLoginResource(request.url.toString())) WebLoginMode.intercept(request, webFixture, this@MainActivity)
-                else WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(byteArrayOf()))
+                if (!LoginBrowserPolicy.resource(request.method, request.url.toString())) LoginBrowserResources.blocked()
+                else WebLoginMode.intercept(request, webFixture, this@MainActivity)
+                    ?: if (request.method == "GET" && LoginBrowserPolicy.landing(request.url.toString())) LoginBrowserResources.landing() else null
             @Suppress("OVERRIDE_DEPRECATION")
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 handler.cancel()

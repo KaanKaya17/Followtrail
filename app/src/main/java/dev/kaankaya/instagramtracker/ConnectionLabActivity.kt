@@ -104,14 +104,16 @@ class ConnectionLabActivity : LocalizedActivity() {
             }
         }
         WebView.setWebContentsDebuggingEnabled(false)
+        LoginBrowserResources.restrictWorkers()
         CookieManager.getInstance().apply { setAcceptCookie(true); setAcceptThirdPartyCookies(browser, false) }
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = !allowedNavigation(request.url.toString())
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                if (!allowedResource(request.url.toString())) return WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(byteArrayOf()))
+                if (!allowedResource(request.url.toString()) || !preview && !LoginBrowserPolicy.resource(request.method, request.url.toString())) return LoginBrowserResources.blocked()
                 val profile = request.url.path == "/api/v1/users/web_profile_info/"
                 try { diagnostics.record(if (profile) ProbeDiagnostics.Event.PROFILE_RESOURCE else ProbeDiagnostics.Event.PAGE_RESOURCE) } catch (_: Exception) { }
                 return ConnectionLabMode.intercept(this@ConnectionLabActivity, request, preview)
+                    ?: if (!preview && request.method == "GET" && LoginBrowserPolicy.landing(request.url.toString())) LoginBrowserResources.landing() else null
             }
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 if (browserDisposed) return
@@ -182,7 +184,7 @@ class ConnectionLabActivity : LocalizedActivity() {
         updateControls()
     }
     private fun allowedNavigation(url: String) = if (preview) try { java.net.URI(url).let { it.scheme == "https" && it.host == java.net.URI(origin).host && it.rawUserInfo == null && it.port == -1 } } catch (_: Exception) { false }
-        else NavigationPolicy.isInstagram(url)
+        else LoginBrowserPolicy.navigation(url)
     private fun allowedResource(url: String) = if (preview) allowedNavigation(url) else NavigationPolicy.isLoginResource(url)
     private fun openBrowser() {
         if (opened || closing || gate.nextAllowedAt() > System.currentTimeMillis()) return

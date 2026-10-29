@@ -1,5 +1,13 @@
 # Veri ve ağ sınırları
 
+## Windows 0.2.15 / Android 0.1.35 hesap güvenliği
+
+Windows'taki `login-identity.vault`, başarısız girişlerde de korunabilen cihaz bağlamını DPAPI ile şifreler. Cihaz UUID'leri, model/istemci ayarları, yerel bölge ve USDID cihaz imzalama bağlamı bulunabilir. Hesap çerezi, hesap yetkilendirmesi, parola ve doğrulama kodu bu kaydın alanları değildir. Başarılı hesap oturumları mevcut bağımsız şifreli hesap kasalarında kalır. Cihaz bağlamı yeni sunucuya/telemetriye gönderilmez; normal Instagram kimlik doğrulamasında kullanılır.
+
+Kayan istek bütçesi Windows'ta mevcut şifreli ortak kapıda sayısal hesap kimliği ve istek zamanlarıyla; Android'de mevcut uygulamaya özel istek tercihlerinde yalnız zamanlarla tutulur. Android bütçe kaydı hesap kimliği veya oturum bilgisi içermez. Hesap silmek bütçeyi sıfırlamaz; eski zamanlar sonraki rezervasyonda 24 saat penceresine göre ayıklanır. Windows gözlem yedeği başka hesapların bütçe kimliklerini içermez.
+
+Bağlantıyı kaldırmak yerel işlemdir; sunucuda oturum iptali değildir. Instagram giriş hareketleri resmî uygulamadan yönetilir. Telefonla paylaşılmış bir oturumu bilgisayardan otomatik iptal edecek yeni bir logout isteği eklenmedi. [Doğrulama ve tarayıcı sınırları](ACCOUNT-SAFETY-TEST.md).
+
 ## Windows 0.2.8 oturumsuz erişim karşılaştırması
 
 Mevcut isteğe bağlı kaybolan takipçi incelemesinde veya elle erişim kontrolünde, sağlıklı bağlı oturumdan hedef kimliğe 404 dönerse son bilinen kullanıcı adı için `www.instagram.com/<username>/` adresine tek ayrı GET eklenir. Yeni oturumda hesap çerezi/Authorization yoktur; ortam proxy/netrc bilgisi kullanılmaz. Yönlendirme, otomatik tekrar, aracı servis ve başka hesaptan kontrol yoktur. Instagram hedef kullanıcı adını ve bağlantının IP adresini görebilir. Dönen çerezler ikinci istekte kullanılmaz; ham HTML ve başlıklar kaydedilmez. Yalnız yöntem, kullanıcı adı, varsa eşleşen kimlik, HTTP durumu ve zaman şifreli yerel kanıta girer.

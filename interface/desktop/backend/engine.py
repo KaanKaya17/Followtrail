@@ -15,6 +15,8 @@ import anonymous_visibility
 import notification_log
 import localization
 import wayback
+import request_budget
+from login_identity import LoginIdentity, device_settings
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
 from network import (AppFailure, new_client, close_client, parse_profile,
@@ -62,6 +64,7 @@ class Engine:
         self.emit = emit
         self.clock = clock
         self.request_delay = request_delay or (lambda: random.uniform(*REQUEST_SPACING))
+        self.login_identity = LoginIdentity(getattr(self, 'directory', directory))
         self.cancel = threading.Event()
         self.codes = queue.Queue(maxsize=1)
         self.waiting_code = False
@@ -115,6 +118,9 @@ class Engine:
                 'history': d['history'], 'lists': records, 'events': d['events'],
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
+                'requestBudget': {'sharedHourly':request_budget.SHARED[0], 'sharedDaily':request_budget.SHARED[1],
+                                  'accountHourly':request_budget.ACCOUNT[0], 'accountDaily':request_budget.ACCOUNT[1],
+                                  'nextAt':self.budget_available_at()},
                 'monitor': self.monitor_status(),
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
                 'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
@@ -122,7 +128,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.14'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.15'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -138,6 +144,8 @@ class Engine:
         now = self.clock()
         if gate.get('blockedUntil', 0) > now:
             raise AppFailure('cooldown', 'Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.')
+        if self.budget_available_at() > now:
+            raise AppFailure('budget', 'Yerel istek bütçesi doldu. Sonraki zaman İstek bilgileri bölümünde; otomatik tekrar gönderilmedi.')
         remaining = gate.get('nextAt', 0) - now
         if remaining > 0:
             self.progress('waiting', until=gate['nextAt'], waitStartedAt=now)
@@ -147,11 +155,29 @@ class Engine:
                 self.check_cancel()
         self.check_cancel()
         now = self.clock()
+        if self.budget_available_at() > now:
+            raise AppFailure('budget', 'Yerel istek bütçesi doldu. Sonraki zaman İstek bilgileri bölümünde; otomatik tekrar gönderilmedi.')
         # Draw once per outgoing request. Persist the absolute reservation so
         # polling, restart, cancellation and account switching cannot redraw it.
         gate.update(nextAt=now + self.request_delay(), attempts=gate.get('attempts', 0) + 1, lastAt=now, status=None)
+        request_budget.record(gate, self.budget_owner(), now)
         self.save()
         self.progress('request', attempts=gate['attempts'])
+
+    def budget_available_at(self):
+        return request_budget.next_at(self.data['gate'], self.budget_owner(), self.clock())
+
+    def budget_owner(self):
+        return (self.data['account'] or {}).get('id') if self.operation not in ('login', 'import_counter') else None
+
+    def login_device_settings(self, username):
+        current = self.data['account']
+        if current and current['username'].lower() == username.lower() and self.data['session']:
+            return device_settings(self.data['session'])
+        return self.login_identity.load()
+
+    def persist_login_identity(self, client):
+        self.login_identity.save(client)
 
     def limited(self, retry=None):
         now, gate = self.clock(), self.data['gate']
@@ -275,13 +301,15 @@ class Engine:
                 self.data['gate']['loginAfter'] = now + 900
                 self.save()
                 self.progress('login')
-                client = new_client(self)
+                client = new_client(self, self.login_device_settings(username))
                 try:
+                    self.persist_login_identity(client)
                     client.login(username, password)
                 finally:
                     client.password = None
                     args.pop('password', None)
                     password = None
+                    self.persist_login_identity(client)
             identity = str(client.user_id or '')
             if not identity:
                 raise AppFailure('identity', 'Giriş yanıtında hesap kimliği bulunamadı.')
@@ -585,7 +613,7 @@ class Engine:
                 'profileCount': len(profiles), 'intervalSeconds': interval,
                 'estimatedCycleSeconds': max(interval, sum(REQUEST_SPACING) / 2 * len(profiles)),
                 'accessPending': len(pending), 'followerScanPending': bool(investigation and investigation[0] == 'followers_scan'),
-                'nextAt': None if reason or not deadlines else max(min(deadlines),
+                'nextAt': None if reason or not deadlines else max(min(deadlines), self.budget_available_at(),
                                                    d['gate'].get('blockedUntil', 0), d['gate'].get('nextAt', 0))}
 
     def automatic(self):
@@ -622,6 +650,8 @@ class Engine:
 
     def export_backup(self, path):
         value = copy.deepcopy(self.data)
+        own = (value['account'] or {}).get('id')
+        value['gate']['accountRequestTimes'] = {key:times for key,times in value['gate'].get('accountRequestTimes', {}).items() if key == own}
         value['session'] = None
         value['settings']['automatic'] = False
         value['lastError'] = None
@@ -654,6 +684,8 @@ class Engine:
         for key in ('blockedUntil', 'nextAt', 'loginAfter', 'attempts', 'streak'):
             gate[key] = max(old_gate.get(key, 0), gate.get(key, 0))
         gate['manualOnly'] = True
+        gate['requestTimes'] = old_gate.get('requestTimes', [])
+        gate['accountRequestTimes'] = old_gate.get('accountRequestTimes', {})
         restored['session'] = None
         restored['settings']['automatic'] = False
         self.data = restored
@@ -747,6 +779,7 @@ def validate_archive(d):
             or len(d['events']) > 2000 or not isinstance(d.get('gate'), dict)
             or not isinstance(d.get('settings'), dict)):
         raise ValueError('schema')
+    request_budget.validate_gate(d['gate'])
     if d.get('session') is not None and (not isinstance(d['session'], dict) or d.get('account') is None):
         raise ValueError('session')
     def identity(value):
