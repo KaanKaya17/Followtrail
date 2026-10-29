@@ -30,6 +30,8 @@ Testler ayrı `TrackerQA-*` dizinlerinde sentetik verilerle çalışır. DPAPI, 
 
 Çalıştırılan kontroller: Python discovery **140 test** (20 yeni çoklu hesap testi), Node **28 test**, `npm run check`, paketlenmiş EXE için **10 çoklu hesap**, **30 işlev**, **10 kısayol/onboarding**, **9 ilerleme** kontrolü ve Windows/web için **8 tema senaryo grubu** geçti. Zaman tüneli ayrıntısının koordinatörden geçerken korunması ve sonraki durumlara tekrar eklenmemesi ayrıca doğrulandı. Android kaynakları değiştirilmedi; Android derleme/telefon testleri bu değişiklik için yeniden çalıştırılmadı.
 
+Son işlev testinin bir tekrarında, gizli/küçültülmüş pencerede `page.evaluate` üzerinden ayar komutu beklemesi tamamlanmadı (test script'i satır 105). Yaklaşık üç dakika sonra yalnız kimliği doğrulanmış offline QA süreçleri kapatıldı. Aynı paket yeniden başlatıldığında 30 kontrolün tamamı geçti ve QA süreçleri normal çıktı. Önceki tam koşular da geçmişti. Bu tek olayın kök nedeni belirlenmedi; test/işletim sistemi veya uygulama kaynaklı olduğu kesinleştirilmedi ve kalıcı donmanın düzeltildiği iddia edilmez.
+
 ## Kaynak kullanımı
 
 29 Ekim yerel ölçümünde önce paketlenmiş 0.2.11 (bir kayıtlı hesap), ardından 0.2.12 (aynı etkin veri, ek bir pasif sentetik hesap) çalıştırıldı. Her birinde 3 saniye ısınma ve görünür boşta/gizli boşta/gizliyken 40 yerel şifreli not kaydı için ayrı yaklaşık 20 saniye örneklem alındı. Ölçümler sıralı yapıldı; aynı anda başka QA uygulaması çalıştırılmadı. `profile-desktop.mjs 0.2.11` ve `profile-desktop.mjs 0.2.12 --accounts` kullanıldı.
