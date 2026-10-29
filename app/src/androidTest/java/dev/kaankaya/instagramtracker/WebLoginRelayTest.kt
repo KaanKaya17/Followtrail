@@ -40,10 +40,12 @@ class WebLoginRelayTest {
     private var response: (Request) -> Response = { request -> Response.Builder().request(request).protocol(Protocol.HTTP_2)
         .code(200).message("fixture").addHeader("Set-Cookie", "sessionid=synthetic-login; Path=/; Secure; HttpOnly")
         .addHeader("Set-Cookie", "foreign=never; Domain=evil.invalid; Path=/; Secure")
-        .body("{\"data\":{\"login\":true}}".toResponseBody()).build() }
+        .body("{\"data\":{\"caa_login_web\":{\"ig_authenticated\":true}}}".toResponseBody()).build() }
     private val factory = Call.Factory { request ->
         calls.incrementAndGet()
         check(request.url.toString() == WebLoginContract.URL && request.method == "POST")
+        check(request.header("Origin") == "https://www.instagram.com" && request.header("Sec-Fetch-Site") == "same-origin")
+        check(request.header("Sec-Fetch-Mode") == "cors" && request.header("Sec-Fetch-Dest") == "empty")
         object : Call by PrivateReadTransport.client().newCall(request) {
             override fun execute() = response(request)
         }
@@ -103,7 +105,7 @@ class WebLoginRelayTest {
     }
     @Test fun fetchUsesOneFixedLoginPostAndAppliesFirstPartyCookiesBeforeReply() {
         open()
-        js("fetch('/api/graphql',{method:'POST',body:${JSONObject.quote(validBody())}}).then(r=>r.json()).then(j=>window.result=j.data.login).catch(()=>window.result=false)")
+        js("fetch('/api/graphql',{method:'POST',body:${JSONObject.quote(validBody())}}).then(r=>r.json()).then(j=>window.result=j.data.caa_login_web.ig_authenticated).catch(()=>window.result=false)")
         until("window.result","true")
         assertEquals(1,calls.get());assertEquals(1L,gate.attempts())
         assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").contains("sessionid=synthetic-login"))
@@ -128,6 +130,17 @@ class WebLoginRelayTest {
         js("fetch('/api/graphql',{method:'POST',body:${JSONObject.quote(validBody("123"))}}).then(()=>window.result='unexpected').catch(()=>window.result='blocked')")
         until("window.result","\"blocked\"");assertEquals(0,calls.get());assertEquals(0L,gate.attempts())
         assertTrue(errors.contains(ApiFailure.Kind.POLICY))
+    }
+    @Test fun rootRequestErrorIsNotForwardedAsALoginVerdictAndCannotApplyCookies() {
+        response={r->Response.Builder().request(r).protocol(Protocol.HTTP_2).code(200).message("fixture")
+            .addHeader("Set-Cookie","sessionid=never; Path=/; Secure")
+            .body("{\"error\":1357054}".toResponseBody()).build()}
+        open();js("fetch('/api/graphql',{method:'POST',body:${JSONObject.quote(validBody())}}).then(()=>window.result='unexpected').catch(()=>window.result='rejected')")
+        until("window.result","\"rejected\"")
+        assertTrue(errors.contains(ApiFailure.Kind.INVALID_RESPONSE));assertEquals(1,calls.get())
+        assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").isNullOrBlank())
+        val facts=JSONObject(LoginPageTrace.read(context)!!).getJSONObject("authentication")
+        assertEquals(1357054,facts.getJSONArray("errorCodes").getInt(0));assertFalse(facts.getBoolean("cookiesApplied"))
     }
     @Test fun sameOriginSubframeCannotUseTheLoginListener() {
         open(frame=true)

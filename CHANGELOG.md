@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.44 — 2026-10-29 (Web istek bağlamı)
+
+- Aynı hesapsız giriş formu okuması tarayıcıda başarılı, dış taşıyıcıda HTTP 200 / 1357054 oldu; üç Fetch Metadata başlığı eklenince dış taşıyıcı da veri döndürdü. Giriş ve web profil/liste okuyucuları aynı sabit köken bağlamını kullanır. Başka kökenlere veya mobil oturumlara uygulanmaz; istek gövdesi/yol izinleri değişmez.
+- Normal giriş sonucunu içermeyen kök sunucu hatası parola kararı olarak iletilmez; uygulama açık bir giriş yanıtı hatası gösterir ve bu yanıttaki çerezleri uygulamaz. Aynı ekrandaki ikinci gönderim biçim hatası yerine yerel bekleme sayılır.
+- Canlı emülatörde authenticated=true ve iki oturum çerezinin uygulandığı doğrulandı. Ancak sonraki 15 saniyelik aralıkta doğrulama düğmesi yeniden etkinleşmedi; A/B henüz tamamlanmadı. Sonraki sürüm bu arayüz zamanlayıcısını ele alır. [Kanıt ve kapsam](docs/WEB-REQUEST-CONTEXT-TEST.md).
+
 ## Android 0.1.43 — 2026-10-29 (Giriş yanıtını ayıran tanı)
 
 - LP01 rapor biçimi 2, HTTP yanıtı ile kimlik doğrulama sonucunu ayırır. Yalnız JSON şekli, sayısal hata kodları ve bilinen giriş belgesinin authenticated/captcha/iki aşamalı işlem/redirect varlığı işaretleri saklanır. Mesaj metni, hesap kimliği, nonce, URL, çerez değeri ve ham yanıt saklanmaz. Bilinmeyen biçim ve ayrıştırılmayan kodlar açık kalır.

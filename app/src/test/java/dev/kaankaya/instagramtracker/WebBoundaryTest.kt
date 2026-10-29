@@ -5,6 +5,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WebBoundaryTest {
+    @Test fun webContextCannotBeAppliedToAnotherOrigin() {
+        for (url in listOf("https://evil.invalid/api/graphql", "http://www.instagram.com/api/graphql", "https://i.instagram.com/api/v1/users/123/info/"))
+            assertThrows(IllegalArgumentException::class.java) {
+                WebRequestContext.sameOrigin(okhttp3.Request.Builder().url(url).build())
+            }
+    }
     private fun state() = WebSessionCodec.fromHeader("sessionid=synthetic%3Asession; ds_user_id=123; csrftoken=csrf; ig_did=device; unknown=discard", "Synthetic WebView")
     @Test fun credentialsAreBoundedAllowlistedAndNeverCopiedIntoTheAccountReference() {
         val state = state()
@@ -27,6 +33,8 @@ class WebBoundaryTest {
             assertEquals("https", it.url.scheme); assertEquals("www.instagram.com", it.url.host); assertEquals(443, it.url.port)
             assertEquals("1217981644879628", it.header("X-IG-App-ID")); assertEquals("csrf", it.header("X-CSRFToken"))
             assertNull(it.header("Authorization")); assertNull(it.body); assertEquals("GET", it.method)
+            assertEquals("same-origin", it.header("Sec-Fetch-Site")); assertEquals("cors", it.header("Sec-Fetch-Mode"))
+            assertEquals("empty", it.header("Sec-Fetch-Dest"))
         }
         assertEquals("opaque+/=?&next=https://foreign.invalid", requests[2].url.queryParameter("max_id"))
         assertEquals("/api/v1/friendships/456/followers/", requests[2].url.encodedPath)

@@ -77,15 +77,17 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 if (key.lowercase() in setOf("accept", "accept-language", "x-fb-lsd", "x-csrftoken", "x-asbd-id", "x-ig-app-id", "x-fb-friendly-name", "x-root-field-name", "x-ig-max-touch-points"))
                     accepted[key.lowercase()] = value
             }
-            require(!submitted && active == null)
+            if (submitted || active != null) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
             val cookies = CookieManager.getInstance().getCookie("https://www.instagram.com/").orEmpty()
             require(cookies.length <= 16384 && cookies.all { it.code in 32..126 })
-            val request = Request.Builder().url(WebLoginContract.URL).post(body)
+            val request = WebRequestContext.sameOrigin(Request.Builder().url(WebLoginContract.URL).post(body)
                 .header("User-Agent", browser.settings.userAgentString).header("Origin", "https://www.instagram.com")
-                .header("Referer", "https://www.instagram.com/accounts/login/").apply {
+                .header("Referer", "https://www.instagram.com/accounts/login/")
+                // Derived only after the actual source origin/main frame has been verified above.
+                .header("Accept", "*/*").apply {
                     if (cookies.isNotEmpty()) header("Cookie", cookies)
                     accepted.forEach { (key, value) -> header(key, value) }
-                }.build()
+                }.build())
             val lease = gate.claim()
             try { gate.beginWebAuthentication() } catch (error: Exception) { lease.close(); throw error }
             submitted = true
@@ -136,6 +138,11 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 if (issue?.restriction != null) {
                     gate.limited(response.header("Retry-After"), reason = issue.restriction.label)
                     throw ApiFailure(ApiFailure.Kind.LIMITED)
+                }
+                if (issue != null) throw ApiFailure(issue.kind)
+                if (!facts.caaResultPresent) {
+                    record(facts.copy(cookiesApplied = false))
+                    throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 }
                 val cookies = cookieLines.filterIndexed { index, _ -> parsedCookies[index] != null }
                 val result = JSONObject().put("status", response.code).put("body", text)
