@@ -35,8 +35,8 @@ class ClarityFlowTest {
     private fun seed(people: List<TrackedPerson>) {
         vault.write(PreviewMode.seed(true)!!.copy(people = people, automation = ListAutomation()))
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).putExtra("offline_preview", true))
-        await { all -> all.filterIsInstance<TextView>().any { it.text == "Kişiler" } }
-        click("Kişiler")
+        await { all -> all.filterIsInstance<TextView>().any { it.text == "Kaydedilen Profiller" } }
+        click("Kaydedilen Profiller")
     }
     private fun await(predicate: (List<View>) -> Boolean) {
         val end = android.os.SystemClock.elapsedRealtime() + 7000
@@ -100,7 +100,7 @@ class ClarityFlowTest {
         seed(people)
         click("Özet")
         await { all -> all.filterIsInstance<TextView>().any { it.text.toString().contains("Şu anki durum") } }
-        capture("clarity-overview.png"); click("Kişiler")
+        capture("clarity-overview.png"); click("Kaydedilen Profiller")
         await { all -> all.count { it.tag?.toString()?.startsWith("profile-status:") == true } == 20 }
         scenario!!.onActivity { activity ->
             val tags = views(activity.window.decorView).mapNotNull { it.tag as? String }.filter { it.startsWith("profile-status:") }

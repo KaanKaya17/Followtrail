@@ -63,8 +63,28 @@ class PeopleScreenTest {
         val view = all(activity.window.decorView).single { it.contentDescription?.toString() == description && it.isClickable }
         assertTrue(view.isEnabled); view.performClick()
     }
+    @Test fun emptySavedProfilesExplainsTheScopeAndOpensOwnFollowersWithoutARead() {
+        val vault = SessionVault(context, "previewaccount")
+        val seed = PreviewMode.seed(true)!!
+        vault.write(seed.copy(people = emptyList(), automation = ListAutomation()))
+        launch(); click("Kaydedilen Profiller"); awaitLabel("Henüz profil kaydetmedin.")
+        val before = RequestGate(context, "preview_gate").attempts()
+        val monitor = instrumentation.addMonitor(FollowListActivity::class.java.name, null, false)
+        try {
+            click("Takipçi listemi aç")
+            val opened = instrumentation.waitForMonitorWithTimeout(monitor, 8000) as? FollowListActivity
+            assertNotNull("Own follower list did not open", opened)
+            instrumentation.runOnMainSync {
+                assertEquals(seed.session.userId, opened!!.intent.getStringExtra("target_id"))
+                assertEquals(FollowDirection.FOLLOWERS.name, opened.intent.getStringExtra("initial_direction"))
+                assertTrue(all(opened.window.decorView).filterIsInstance<TextView>().any { it.text == opened.getString(R.string.ui_lists) })
+                opened.finish()
+            }
+            assertEquals(before, RequestGate(context, "preview_gate").attempts())
+        } finally { instrumentation.removeMonitor(monitor) }
+    }
     @Test fun favoritesStayFirstAcrossRecreationAndRefreshWithoutExtraReads() {
-        launch(); click("Kişiler"); clickDescription("Favoriye ekle · @ada.demo")
+        launch(); click("Kaydedilen Profiller"); clickDescription("Favoriye ekle · @ada.demo")
         val vault = SessionVault(context, "previewaccount")
         fun orderedNames(): List<String> {
             var result = emptyList<String>()
@@ -75,19 +95,19 @@ class PeopleScreenTest {
         assertEquals(listOf("Analizi aç · @ada.demo", "Analizi aç · @deniz.demo"), orderedNames())
         assertTrue(vault.read()!!.people.single { it.latest.userId == "201" }.favorite)
         assertEquals(0L, RequestGate(context, "preview_gate").attempts())
-        scenario!!.recreate(); awaitLabel("Seçtiğin kişiler")
+        scenario!!.recreate(); awaitLabel("Kaydedilen Profiller")
         assertEquals("Analizi aç · @ada.demo", orderedNames().first())
         click("Analizi aç · @ada.demo"); click("Kişiyi yenile"); awaitLabel("Yeni gözlem bu cihazda kaydedildi.")
         val refreshed = vault.read()!!.people.single { it.latest.userId == "201" }
         assertTrue(refreshed.favorite); assertEquals(13, refreshed.history.size); assertEquals("İçerik üreticileri", refreshed.group)
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
-        clickDescription("Favorilerden çıkar · @ada.demo"); click("Tüm kişiler")
+        clickDescription("Favorilerden çıkar · @ada.demo"); click("Tüm kayıtlı profiller")
         assertEquals("Analizi aç · @deniz.demo", orderedNames().first())
         assertFalse(vault.read()!!.people.single { it.latest.userId == "201" }.favorite)
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
     }
     @Test fun homeFavoriteShortcutOpensTheSavedProfileWithoutAnotherRead() {
-        launch(); click("Kişiler"); clickDescription("Favoriye ekle · @ada.demo"); click("Özet")
+        launch(); click("Kaydedilen Profiller"); clickDescription("Favoriye ekle · @ada.demo"); click("Özet")
         clickDescription("Favoriyi aç · @ada.demo"); awaitLabel("@ada.demo")
         assertEquals(0L, RequestGate(context, "preview_gate").attempts())
         assertTrue(SessionVault(context, "previewaccount").read()!!.people.single { it.latest.userId == "201" }.favorite)
@@ -107,7 +127,7 @@ class PeopleScreenTest {
         assertNotNull(lists.current(saved.session)); assertNull(lists.current(saved.session.copy(userId = "999")))
     }
     @Test fun navigatingPeopleAndHistoryDoesNotReserveNetworkAndSurvivesRecreation() {
-        launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
+        launch(); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo")
         awaitLabel("@deniz.demo"); click("7 gün"); click("Takip edilen")
         scenario!!.onActivity { activity ->
             val labels = all(activity.window.decorView).filterIsInstance<TextView>().map { it.text.toString() }
@@ -121,7 +141,7 @@ class PeopleScreenTest {
         assertEquals(0L, RequestGate(context, "preview_gate").nextAllowedAt())
     }
     @Test fun explicitRefreshAddsExactlyOneObservationAndPreservesNote() {
-        launch(); click("Kişiler"); click("Analizi aç · @deniz.demo"); click("Kişiyi yenile")
+        launch(); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo"); click("Kişiyi yenile")
         awaitLabel("Yeni gözlem bu cihazda kaydedildi.")
         val person = SessionVault(context, "previewaccount").read()!!.people.single { it.latest.userId == "200" }
         assertEquals(13, person.history.size); assertEquals(1356L, person.latest.followers)
@@ -158,7 +178,7 @@ class PeopleScreenTest {
         vault.update(seed.session) { it.copy(profile = it.profile.copy(followers = 876, observedAt = System.currentTimeMillis())) }
         click("Yenile"); awaitLabel("876")
         assertEquals(0L, RequestGate(context, "preview_gate").attempts())
-        click("Kişiler"); click("Analizi aç · @deniz.demo")
+        click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo")
         vault.update(seed.session) { current ->
             val previous = current.people.first().latest
             current.copy(people = PeoplePolicy.record(current.people, previous.copy(followers = 1400, observedAt = System.currentTimeMillis())))
@@ -196,7 +216,7 @@ class PeopleScreenTest {
                 "pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
             instrumentation.waitForIdleSync()
         }
-        launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
+        launch(); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo")
         click("Değişiklikleri izle"); dialogClick("En az 6 saat arayla"); dialogClick("İzlemeyi aç")
         awaitLabel("6 saatte bir")
         val person = SessionVault(context, "previewaccount").read()!!.people.first()
@@ -221,7 +241,7 @@ class PeopleScreenTest {
         SessionVault(context, "previewaccount").write(seed.copy(people = seed.people.map {
             it.copy(history = it.history.dropLast(1) + it.latest.copy(observedAt = now))
         }))
-        launch(); click("Kişiler"); click("Analizi aç · @deniz.demo")
+        launch(); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo")
         click("Değişiklikleri izle"); dialogClick("En az 15 dakika arayla"); dialogClick("İzlemeyi aç")
         awaitLabel("15 dakikada bir")
         val vault = SessionVault(context, "previewaccount"); val gate = RequestGate(context, "preview_gate")
@@ -271,7 +291,7 @@ class PeopleScreenTest {
         val lists = FollowListVault(context, "previewlists")
         for (id in listOf("200", "201")) lists.commit(seed.session, FollowPageParser.parse(org.json.JSONObject(
             """{"status":"ok","users":[],"next_max_id":null}"""), id, FollowDirection.FOLLOWERS, null, System.currentTimeMillis()))
-        launch(); click("Kişiler"); val before = vault.read()!!
+        launch(); click("Kaydedilen Profiller"); val before = vault.read()!!
         clickDescription("Kişiyi sil · @deniz.demo"); dialogClick("Vazgeç"); assertEquals(before, vault.read())
         clickDescription("Kişiyi sil · @deniz.demo"); dialogClick("Kaldır")
         assertEquals(before.people.filter { it.latest.userId == "201" }, vault.read()!!.people)
@@ -280,7 +300,7 @@ class PeopleScreenTest {
         assertTrue(gate.manualOnly()); assertEquals(0L, gate.attempts())
     }
     @Test fun addEditAndRemoveUseTheRealDialogsAndEncryptedStorage() {
-        launch(); click("Kişiler"); click("Kişi ekle")
+        launch(); click("Kaydedilen Profiller"); click("Profil ekle")
         setText("@kullanıcıadı veya profil bağlantısı", "@efe.demo")
         dialogClick("Profili getir"); awaitLabel("@efe.demo")
         assertEquals(3, SessionVault(context, "previewaccount").read()!!.people.size)
@@ -290,7 +310,7 @@ class PeopleScreenTest {
         dialogClick("Kaydet"); awaitLabel("Test notu")
         scenario!!.recreate(); awaitLabel("Test notu")
         assertEquals("Test grubu", SessionVault(context, "previewaccount").read()!!.people.last().group)
-        click("Kişiyi kaldır"); dialogClick("Kaldır"); awaitLabel("Seçtiğin kişiler")
+        click("Kişiyi kaldır"); dialogClick("Kaldır"); awaitLabel("Kaydedilen Profiller")
         assertEquals(2, SessionVault(context, "previewaccount").read()!!.people.size)
     }
 }

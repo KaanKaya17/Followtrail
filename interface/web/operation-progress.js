@@ -44,7 +44,8 @@
       }
       if(p.phase==='cancelling') title=messages.cancelling;
       const wait=p.phase==='waiting'?`<p class="wait-countdown" data-wait-countdown aria-live="off"></p><small>${escape(t("Bu, uygulamanın istek aralığıdır. Sunucunun ek sınırlama uygulamayacağı garantisi değildir."))}</small>`:p.phase==='cancelling'?`<small>${escape(t("İptal isteği gönderildi. Devam eden ağ yanıtı zaman aşımı süresine kadar bekleyebilir."))}</small>`:`<small>${escape(t("İşlem bitene kadar diğer ağ işlemleri bekler."))}</small>`;
-      element.innerHTML=`<section class="operation-panel"><span class="working-dot"></span><div class="operation-copy"><strong>${escape(title)}</strong>${context}${wait}<progress aria-label="${escape(p.phase==='waiting'?t("İstek aralığı ilerlemesi"):t("İşlem ilerlemesi"))}"></progress></div>${p.phase==='code'?button(t("Kodu gir"),'enter-code','lock'):''}${button(t("İptal et"),'cancel','close','secondary',p.phase==='cancelling'?'disabled':'')}</section>`;
+      const navigation=scan ? `<small>${escape(t("Bu sırada diğer ekranları kullanabilirsin; yeni ağ işlemleri sıra bekler."))}</small>` : '';
+      element.innerHTML=`<section class="operation-panel"><span class="working-dot"></span><div class="operation-copy"><strong>${escape(title)}</strong>${context}${wait}${navigation}<progress aria-label="${escape(p.phase==='waiting'?t("İstek aralığı ilerlemesi"):t("İşlem ilerlemesi"))}"></progress></div>${p.phase==='code'?button(t("Kodu gir"),'enter-code','lock'):''}${button(t("İptal et"),'cancel','close','secondary',p.phase==='cancelling'?'disabled':'')}</section>`;
       if(p.phase==='waiting') { tick(); if(remaining()>0)timer=setInterval(tick,1000); }
     }
     document.addEventListener('visibilitychange',()=>document.hidden?stop():render());

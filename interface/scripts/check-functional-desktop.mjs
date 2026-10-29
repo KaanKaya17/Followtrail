@@ -204,7 +204,7 @@ try {
       assert.equal(await page.locator("#list-rows .list-row").count(), 3);
       assert.equal(
         await page
-          .getByRole("button", { name: "Listeyi tara", exact: true })
+          .getByRole("button", { name: "Listeyi yeniden kontrol et", exact: true })
           .isDisabled(),
         true,
       );

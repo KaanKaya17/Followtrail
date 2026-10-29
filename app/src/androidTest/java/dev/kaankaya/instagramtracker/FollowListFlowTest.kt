@@ -127,7 +127,7 @@ class FollowListFlowTest {
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
     }
     @Test fun oneUpdateActionCompletesTheListAndKeepsSearchUsable() {
-        launch(); click("Listeyi güncelle"); awaitText("Alınan hesap: 2 · Sayfa: 1")
+        launch(); click("Listeyi kontrol et"); awaitText("Alınan hesap: 2 · Sayfa: 1")
         scenario!!.onActivity { activity -> views(activity.window.decorView).filterIsInstance<android.widget.EditText>().single().setText("501") }
         val deadline = android.os.SystemClock.elapsedRealtime() + 22000
         var complete = false
@@ -179,7 +179,7 @@ class FollowListFlowTest {
         val saved = lists.read(vault.read()!!.session, "200")
         val gate = RequestGate(context, "preview_gate"); gate.limited("7200"); scenario!!.recreate()
         scenario!!.onActivity { activity ->
-            assertFalse(views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "Listeyi güncelle" }.isEnabled)
+            assertFalse(views(activity.window.decorView).filterIsInstance<Button>().single { it.text == "Listeyi okumaya devam et" }.isEnabled)
         }
         assertEquals(1L, gate.attempts()); assertEquals(saved, lists.read(vault.read()!!.session, "200"))
     }

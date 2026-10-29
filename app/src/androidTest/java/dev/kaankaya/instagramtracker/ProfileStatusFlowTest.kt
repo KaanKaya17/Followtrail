@@ -90,7 +90,7 @@ class ProfileStatusFlowTest {
     }
     @Test fun ownAndPeopleSummariesSeparateSuccessfulProfileTimeFromPendingListPages() {
         val before = vault.read(); val archive = lists.archive(before!!.session)
-        launch(); click("Kişiler")
+        launch(); click("Kaydedilen Profiller")
         val label = await("Profil ve alınan liste sayfaları · Kısmi", "200")
         assertEquals(3, label.text.lines().size); assertTrue(label.text.contains("Veri kapsamı")); assertTrue(label.text.contains("Şu anki durum")); assertTrue(label.text.contains("4 dakika önce")); assertTrue(label.text.contains("Otomatik kontrol planlandı"))
         await("Otomatik kontrol kapalı", "201")
@@ -107,13 +107,13 @@ class ProfileStatusFlowTest {
         val saved = vault.read()!!; val p = saved.people.first().latest
         vault.record(saved.session, CheckEvent(p.userId, p.username, CheckKind.PROFILE, p.observedAt,
             p.observedAt, p.observedAt, p.observedAt - 60_000, 0, 0))
-        launch(); click("Kişiler"); await("Son profil karşılaştırmasında fark yok", "200")
+        launch(); click("Kaydedilen Profiller"); await("Son profil karşılaştırmasında fark yok", "200")
         gate.limited(null); val pause = gate.blockedUntil()
         scenario!!.recreate(); await("Instagram molası", "200")
         assertEquals(pause, gate.blockedUntil()); assertEquals(0L, gate.attempts()); assertEquals(saved, vault.read())
     }
     @Test fun visibleLocalRefreshUpdatesTheSameLabelWithoutAnotherReadOrRebuildingTheScreen() {
-        launch(); click("Kişiler"); val label = await("4 dakika önce", "200")
+        launch(); click("Kaydedilen Profiller"); val label = await("4 dakika önce", "200")
         val saved = vault.read()!!
         vault.update(saved.session) { current -> current.copy(people = current.people.map { person ->
             if (person.latest.userId != "200") person else person.copy(history = person.history + person.latest.copy(observedAt = System.currentTimeMillis()))
@@ -126,7 +126,7 @@ class ProfileStatusFlowTest {
         vault.recordFailure(saved.session, "200", System.currentTimeMillis(), ApiFailure(ApiFailure.Kind.CONNECTION))
         instrumentation.runOnMainSync { AppLanguage.set(context, "en") }; instrumentation.waitForIdleSync()
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).putExtra("offline_preview", true))
-        await("Automatic checks off", "100"); PreviewMode.cancel(context); click("People")
+        await("Automatic checks off", "100"); PreviewMode.cancel(context); click("Saved Profiles")
         await("Last check did not finish", "200"); await("Profile and received list pages · Partial", "200")
         assertEquals(saved, vault.read()); assertEquals(0L, gate.attempts()); assertFalse(gate.manualOnly())
     }
@@ -136,7 +136,7 @@ class ProfileStatusFlowTest {
         for (direction in FollowDirection.entries) lists.commitCurrent(saved.session, FollowPage("200", direction, null,
             emptyList(), FollowField(true, null), FollowField(true, false), FollowField(true, false),
             FollowField(false, null), p.observedAt + 1000), null, ListBasis.of(p, direction))
-        launch(); click("Kişiler"); await("İki liste sonu da gözlendi", "200")
+        launch(); click("Kaydedilen Profiller"); await("İki liste sonu da gözlendi", "200")
         vault.update(saved.session) { current -> current.copy(people = current.people.map { person ->
             if (person.latest.userId != "200") person else person.copy(history = person.history +
                 person.latest.copy(observedAt = System.currentTimeMillis(), followers = p.followers + 1))
@@ -150,7 +150,7 @@ class ProfileStatusFlowTest {
     @Test fun unreadableListArchiveIsUnknownRatherThanAnEmptyOrInitialList() {
         val saved = vault.read()!!
         EncryptedRecord(context, "previewlists").write("{")
-        launch(); click("Kişiler"); await("Liste durumu okunamadı", "200")
+        launch(); click("Kaydedilen Profiller"); await("Liste durumu okunamadı", "200")
         scenario!!.onActivity { activity -> views(activity.window.decorView).single { it.tag == "profile-status:200" }.performClick() }
         val body = awaitDialog("Liste durumu okunamadı")
         assertFalse(body.contains("Takipçiler · Henüz kayıt yok"))

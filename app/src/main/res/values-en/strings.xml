@@ -91,7 +91,7 @@
     <string name="list_info_title">"Record coverage"</string>
     <string name="list_info_body">"This screen shows pages downloaded to your device. The count is not the current Instagram profile total. Reaching the list end does not guarantee all accounts were received. Search only covers downloaded records; it sends no new requests. No automatic read starts when the wait ends."</string>
     <string name="list_pause">"Local cooldown · %1$s"</string>
-    <string name="list_open">"View lists"</string>
+    <string name="list_open">Open follow lists</string>
     <string name="list_back">"Back"</string>
     <string name="list_demo">"DEMO · SAMPLE LISTS"</string>
     <string name="list_followers">"Followers"</string>
@@ -106,7 +106,7 @@
     <string name="list_observed">"Last read · %1$s"</string>
     <string name="list_first">"Read first page"</string>
     <string name="list_next">"Read next page"</string>
-    <string name="list_restart">"Start a new read"</string>
+    <string name="list_restart">Check list again</string>
     <string name="list_restart_message">"On success, this direction’s record is replaced with a new first page. The other list is preserved."</string>
     <string name="list_cancel">"Cancel"</string>
     <string name="list_cancelled">"Read cancelled. Previous pages are preserved."</string>

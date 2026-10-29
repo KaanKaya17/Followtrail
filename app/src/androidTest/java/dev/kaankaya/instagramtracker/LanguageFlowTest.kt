@@ -102,11 +102,11 @@ class LanguageFlowTest {
         gate.setOwnAutoRefresh(false)
         scenario!!.recreate(); awaitLabel("At a glance")
         scenario!!.close(); scenario = null; launch("At a glance")
-        click("People"); awaitLabel("People you choose")
+        click("Saved Profiles"); awaitLabel("Saved Profiles")
         click("Open analysis · @ada.demo"); awaitLabel("2,043")
         assertEquals(before, vault.read()); assertEquals(0L, gate.attempts())
         click("Options"); dialogClick("Language / Dil"); dialogClick("Türkçe")
-        awaitLabel("Tüm kişiler"); awaitLabel("2.043")
+        awaitLabel("Tüm kayıtlı profiller"); awaitLabel("2.043")
         assertEquals(before, vault.read()); assertEquals(0L, gate.attempts())
     }
 
@@ -120,7 +120,7 @@ class LanguageFlowTest {
         while (!found && SystemClock.elapsedRealtime() < deadline) {
             fun nodes(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo> = listOf(root) +
                 (0 until root.childCount).flatMap { root.getChild(it)?.let(::nodes).orEmpty() }
-            found = instrumentation.uiAutomation.windows.mapNotNull { it.root }.flatMap(::nodes).any { it.text?.toString() == "Lists" }
+            found = instrumentation.uiAutomation.windows.mapNotNull { it.root }.flatMap(::nodes).any { it.text?.toString() == "Follow Lists" }
             if (!found) Thread.sleep(30)
         }
         assertTrue("English list screen", found); assertEquals(pause, gate.blockedUntil()); assertEquals(0L, gate.attempts())

@@ -91,7 +91,7 @@
     <string name="list_info_title">Kaydın kapsamı</string>
     <string name="list_info_body">Bu ekranda cihazına alınmış sayfalar gösterilir. Sayı, Instagram profilinin güncel toplamı değildir. Liste sonu görülmesi bütün hesapların alındığını garanti etmez. Arama yalnız alınan kayıtlarda çalışır; yeni istek göndermez. Bekleme saati dolunca otomatik okuma yapılmaz.</string>
     <string name="list_pause">Yerel mola · %1$s</string>
-    <string name="list_open">Listeleri incele</string>
+    <string name="list_open">Takip listelerini aç</string>
     <string name="list_back">Geri</string>
     <string name="list_demo">DEMO · ÖRNEK LİSTELER</string>
     <string name="list_followers">Takipçiler</string>
@@ -106,7 +106,7 @@
     <string name="list_observed">Son okuma · %1$s</string>
     <string name="list_first">İlk sayfayı oku</string>
     <string name="list_next">Sonraki sayfayı oku</string>
-    <string name="list_restart">Yeni okuma başlat</string>
+    <string name="list_restart">Listeyi yeniden kontrol et</string>
     <string name="list_restart_message">Başarılı olursa bu yöndeki kayıt yeni ilk sayfayla değiştirilir. Diğer liste korunur.</string>
     <string name="list_cancel">İptal</string>
     <string name="list_cancelled">Okuma iptal edildi. Önceki sayfalar korundu.</string>

@@ -41,8 +41,8 @@
   };
   const pages = {
     overview: ["Özet", "home"],
-    people: ["Kişiler", "people"],
-    lists: ["Listeler", "list"],
+    people: ["Kaydedilen Profiller", "people"],
+    lists: ["Takip Listeleri", "list"],
     notifications: ["Bildirimler", "bell"],
     settings: ["Ayarlar", "settings"],
     timeline: ["Zaman çizelgesi", "clock"],
@@ -177,7 +177,7 @@
     if (!id) { toast(t("Yenilemek için bir profil aç veya Özet ekranına geç.")); return; }
     if (!data.connected) { toast(t("Profil yenilemek için önce hesabını bağla.")); return; }
     if (data.gate.blockedUntil > Date.now()/1000) { toast(t("Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.")); return; }
-    if (id !== data.account?.id && !data.people.some(p=>p.id===id)) { toast(t("Bu profili yenilemeden önce Kişiler bölümüne kaydet.")); return; }
+    if (id !== data.account?.id && !data.people.some(p=>p.id===id)) { toast(t("Bu profili yenilemeden önce Kaydedilen Profiller bölümüne ekle.")); return; }
     const target=person(id), reopen=!!modal;
     if (reopen) closeDialog();
     const result=await command('refresh',{id},t("Profil gözlemi kaydedildi."));
@@ -188,17 +188,18 @@
     return `<section class="empty-guide card"><span class="dialog-symbol lavender">${icon(symbol)}</span><div><h2>${esc(heading)}</h2><p>${esc(copy)}</p>${steps.length ? `<ol>${steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>` : ''}<div class="guide-actions">${actions}</div></div></section>`;
   }
   function peopleEmpty() {
-    if (!data.people.length) return guide(t("İlk kişini eklemeye hazır mısın?"),t("Bu ekrandaki arama kayıtlı kişileri filtreler. Yeni hesap için Kişi ekle düğmesini kullan."),
-      [t("Instagram kullanıcı adını yazarak bir profil kaydet."),t("Kişiyi aç; izleme ve bildirim tercihlerini seç. Takip etme isteği gönderilmez.")],
-      data.connected ? button(t("İlk kişini ekle"),'add-person','plus','primary',netDisabled()) : button(t("Hesabını bağla"),'account','link','primary'));
+    if (!data.people.length) return guide(t("Henüz profil kaydetmedin."),t("Değişikliklerini izlemek veya not eklemek istediğin bir profili buraya ekleyebilirsin. Takipçilerin bu bölüme otomatik eklenmez."),
+      [t("Instagram kullanıcı adını yazarak bir profil kaydet."),t("Profili aç; izleme ve bildirim tercihlerini seç. Profil kaydetmek Instagram’da takip isteği göndermez.")],
+      (data.connected ? button(t("Profil ekle"),'add-person','plus','primary',netDisabled()) : button(t("Hesabını bağla"),'account','link','primary')) +
+      button(t("Takipçi listemi aç"),'guide-own-lists','list','secondary',data.account ? '' : 'disabled'));
     const filtered = ui.query.trim() ? t("Aramana uygun kişi yok.") : ui.filter === 'favorites' ? t("Henüz favori profil yok.") : t("Henüz izlenen profil yok.");
     return guide(filtered,t("Farklı bir arama dene veya tüm kayıtlı kişilere dön. Favori ve izleme tercihlerini kişi ayrıntısından değiştirebilirsin."),[],button(t("Arama ve filtreleri temizle"),'reset-people','search'));
   }
   function notificationsEmpty() {
     if ((data.notificationLog || []).length) return guide(t("Okunmamış bildirim yok."),t("Diğer kayıtlar için Tümü filtresine dönebilirsin."),[],button(t("Tüm bildirimleri göster"),'notification-filter','bell','primary','data-value="all"'),'bell');
     return guide(t("Değişiklik kayıtların burada birikecek."),t("İlk gözlem bir başlangıçtır. Sonraki kontrollerde görülen değişiklikler aynı kontrolün tek kaydında toplanır."),
-      [t("Önce bir profil kaydet ve kontrol et."),t("Kişi ayrıntısında bildirim almak istediğin değişiklik türlerini seç."),t("Windows bildirimi isteğe bağlıdır; uygulama içindeki kayıtlar bildirim kapalıyken de tutulur.")],
-      button(t("Kişileri aç"),'guide-people','people','primary')+button(t("Bildirim ayarları"),'guide-settings','settings'),'bell');
+      [t("Önce bir profil kaydet ve kontrol et."),t("Profil ayrıntısında bildirim almak istediğin değişiklik türlerini seç."),t("Windows bildirimi isteğe bağlıdır; uygulama içindeki kayıtlar bildirim kapalıyken de tutulur.")],
+      button(t("Kaydedilen profilleri aç"),'guide-people','people','primary')+button(t("Bildirim ayarları"),'guide-settings','settings'),'bell');
   }
   function errorDialog(message) {
     dialog(
@@ -416,7 +417,7 @@
       !paused && (!state.ready || working) && data.gate.nextAt > Date.now()/1000 ? `<p>${t("Sonraki istek için en erken saat: {0}", esc(new Date(data.gate.nextAt*1000).toLocaleTimeString(i18n.locale(language))))}</p>` :
       state.ready && !working ? `<p>${t("Sayı değişikliklerinde ve günlük kontrol hedefinde yeni tarama sıraya alınır. İstek bütçesine göre gecikebilir.")}</p>` : ''}<div class="drawer-actions">${
       button(paused ? t("Hazırlığa devam et") : t("Liste taramalarını duraklat"), paused ? 'preparation-resume' : 'preparation-pause', paused ? 'refresh' : 'clock', 'secondary', busy ? 'disabled' : '')}${
-      button(t("Listeleri aç"), 'preparation-lists', 'list')}${blocked ? button(t("İstek bilgileri"),'requests','info') : ''}</div></section>`;
+      button(t("Takip listelerini aç"), 'preparation-lists', 'list')}${blocked ? button(t("İstek bilgileri"),'requests','info') : ''}</div></section>`;
   }
   function overview() {
     const own = data.account,
@@ -428,7 +429,7 @@
     return `${title(new Date().toLocaleDateString(i18n.locale(language), { dateStyle: "full" }), t("Çevrende neler oluyor?"), t("Hesabın, favori kişilerin ve son gözlemlerin bir arada."), button(data.connected ? t("Gözlemi yenile") : t("Hesabını bağla"), data.connected ? "refresh" : "account", "refresh", "primary", data.connected ? netDisabled() : ""))}
       ${!own ? `<section class="connect-banner card"><span class="dialog-symbol lavender">${icon("link")}</span><div><h2>${t("Önce hesabınla bağlantı kuralım.")}</h2><p>${t("Şifren kaydedilmez. Oturum ve gözlemler şifreli olarak bilgisayarında kalır.")}</p></div>${button(t("Hesabını bağla"), "account", "arrow", "primary")}</section>` : ""}
       <section class="stats-grid" aria-label="${t("Hesap özeti")}">${stat(t("Takipçiler"), "followers", "violet")}${stat(t("Takip edilen"), "following", "peach")}<button class="stat-card white" data-action="profile-events"><span class="stat-label">${t("Profil değişiklikleri {0}", icon("photo"))}</span><strong class="stat-value">${num(changes)}<span class="stat-unit">${t("kayıtlı fark")}</span></strong><span class="stat-bottom"><span class="muted">${t("Gözlemler arasındaki değişimler.")}</span>${icon("arrow")}</span></button></section>
-      ${preparationCard()}<div class="overview-columns"><div class="main-column">${chart(own)}<section class="activity-section"><div class="section-heading"><h2>${t("Son gözlemler")}</h2><a class="text-button" href="#timeline">${t("Tümünü gör {0}", icon("arrow"))}</a></div><div class="activity-list">${data.events.slice(0, 5).map(eventRow).join("") || empty(t("İlk kontrolünden sonra kayıtlar burada görünür."))}</div></section></div><aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("clock")}</span><span>${t("SON PROFİL GÖZLEMİ")}</span></div><h2>${own ? "@" + esc(own.username) : t("Henüz bağlantı yok")}</h2><p>${esc(date(own?.observedAt))}</p><div class="snapshot-rule"></div><p>${t("Profil sayıları ve listeler ayrı ayrı kontrol edilir. Bir profil gözlemi, tam liste taraması değildir.")}</p>${button(t("İstek bilgileri"), "requests", "info")}</section><section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2><a href="#people" class="text-button">${t("Kişiler {0}", icon("arrow"))}</a></div>${data.people
+      ${preparationCard()}<div class="overview-columns"><div class="main-column">${chart(own)}<section class="activity-section"><div class="section-heading"><h2>${t("Son gözlemler")}</h2><a class="text-button" href="#timeline">${t("Tümünü gör {0}", icon("arrow"))}</a></div><div class="activity-list">${data.events.slice(0, 5).map(eventRow).join("") || empty(t("İlk kontrolünden sonra kayıtlar burada görünür."))}</div></section></div><aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("clock")}</span><span>${t("SON PROFİL GÖZLEMİ")}</span></div><h2>${own ? "@" + esc(own.username) : t("Henüz bağlantı yok")}</h2><p>${esc(date(own?.observedAt))}</p><div class="snapshot-rule"></div><p>${t("Profil sayıları ve listeler ayrı ayrı kontrol edilir. Bir profil gözlemi, tam liste taraması değildir.")}</p>${button(t("İstek bilgileri"), "requests", "info")}</section><section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2><a href="#people" class="text-button">${t("Kaydedilen Profiller {0}", icon("arrow"))}</a></div>${data.people
           .filter((p) => p.favorite)
           .slice(0, 5)
           .map(
@@ -436,7 +437,7 @@
               `<button class="person-row" data-action="person" ${idattr(p.id)}>${avatar(p)}<span class="person-ident"><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span><span class="row-number">${num(p.followers)}</span>${icon("chevron")}</button>`,
           )
           .join("") ||
-        `<p>${t("Kişiler bölümünde yıldızladığın hesaplar burada görünür.")}</p>`}</section></aside></div>`;
+        `<p>${t("Kaydedilen Profiller bölümünde yıldızladığın hesaplar burada görünür.")}</p>`}</section></aside></div>`;
   }
   function filteredPeople() {
     const q = ui.query.trim().toLocaleLowerCase(i18n.locale(language));
@@ -455,7 +456,7 @@
     return `<article class="person-card card"><div class="person-card-top"><button class="avatar-button" data-action="person" ${idattr(p.id)} aria-label="${t("{0} kaydını aç", esc(p.name || p.username))}">${avatar(p, true)}</button><button class="icon-button star-button ${p.favorite ? "is-favorite" : ""}" data-action="star" ${idattr(p.id)} aria-label="${t("{0} favori durumunu değiştir", esc(p.username))}" aria-pressed="${!!p.favorite}" ${busy ? "disabled" : ""}>${icon("star")}</button></div><button class="person-title" data-action="person" ${idattr(p.id)}><h2>${esc(p.name || p.username)}</h2><p>@${esc(p.username)}</p></button><p class="person-bio">${esc(p.bio || t("Henüz biyografi gözlemi yok."))}</p><div class="person-stats"><span><strong>${num(p.followers)}</strong><small>${t("takipçi")}</small></span><span><strong>${num(p.following)}</strong><small>${t("takip edilen")}</small></span></div><div class="person-card-bottom"><span class="group-label">${esc(p.group || t("Grupsuz"))}</span><span class="watch-label ${p.watching ? "on" : ""}">${icon(p.watching ? "bell" : "clock")}${p.watching ? t("İzlenen") : t("Kayıtlı")}</span></div></article>`;
   }
   function people() {
-    return `${title(t("KİŞİLERİN"), t("Çevreni biraz daha yakından tanı."), t("Profilleri kaydet, favorilerini ve özel notlarını düzenle."), button(t("Kişi ekle"), "add-person", "plus", "primary", netDisabled()))}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Kişi filtresi")}">${[
+    return `${title(t("KAYDEDİLEN PROFİLLER"), t("Kaydettiğin profiller bir arada."), t("Özellikle kaydettiğin profiller burada yer alır. Takipçi ve takip edilen kayıtlarını Takip Listeleri bölümünden açabilirsin."), button(t("Profil ekle"), "add-person", "plus", "primary", netDisabled()))}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Profil filtresi")}">${[
       ["all", t("Tümü")],
       ["favorites", t("Favoriler")],
       ["watching", t("İzlenenler")],
@@ -466,7 +467,7 @@
       )
       .join(
         "",
-      )}</div><label class="search-input">${icon("search")}<input id="people-search" type="search" placeholder="${t("İsim, kullanıcı adı veya grup ara")}" aria-label="${t("Kişilerde ara")}" value="${esc(ui.query)}"></label></div><div class="results-line"><span id="people-result-count">${t("{0} kişi", filteredPeople().length)}</span><span>${t("Favoriler önce gösterilir")}</span></div><div class="people-grid" id="people-grid">${filteredPeople().map(personCard).join("") || peopleEmpty()}</div>`;
+      )}</div><label class="search-input">${icon("search")}<input id="people-search" type="search" placeholder="${t("İsim, kullanıcı adı veya grup ara")}" aria-label="${t("Kaydedilen profillerde ara")}" value="${esc(ui.query)}"></label></div><div class="results-line"><span id="people-result-count">${t("{0} kayıtlı profil", filteredPeople().length)}</span><span>${t("Favoriler önce gösterilir")}</span></div><div class="people-grid" id="people-grid">${filteredPeople().map(personCard).join("") || peopleEmpty()}</div>`;
   }
   function selectedRecord() {
     return (
@@ -572,7 +573,8 @@
             `<option value="${esc(s.id)}" ${s.id === selected?.id ? "selected" : ""}>${t("{0} · {1} hesap", esc(date(s.finishedAt)), num(Object.keys(s.members).length))}</option>`,
         )
         .join("");
-    return `${title(t("HESAP LİSTELERİ"), t("Kimler çevrende?"), t("Liste taramaları gözlemdir; kayıtlar arasındaki farklar kesin olay zamanını göstermez."), button(t("Listeyi tara"), "scan", "refresh", "primary", netDisabled()))}
+    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), t("Liste taramaları gözlemdir; kayıtlar arasındaki farklar kesin olay zamanını göstermez."), button(current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
+      <p class="field-hint">${t("Liste sayfa sayfa okunur. İstekler arasında molalar verilir; kaydedilen sayfa ve hesap sayısını ilerleme göstergesinden izleyebilirsin. Bu sırada diğer ekranları kullanabilirsin; yeni ağ işlemleri sıra bekler.")}</p>
       <section class="list-account card"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${[
         data.account,
         ...data.people,
@@ -682,7 +684,7 @@
       baseline_needed:
         t("Kişi belirlemek için önce tamamlanmış bir başlangıç takipçi listesi gerekiyor."),
       needs_manual_scan:
-        t("Önceki liste incelemesi tamamlanmadı. Listeyi tara ile yeniden başlatabilirsin."),
+        t("Önceki liste incelemesi tamamlanmadı. Listeyi yeniden kontrol et ile baştan başlatabilirsin."),
     }[plan.status];
     return `<section class="access-review card"><div class="section-heading"><div><h2>${t("Engellenme şüphesi / Erişim kontrolleri")}</h2><p>${t("Yalnız kayıtlara dayalı olasılık; kesin engelleme listesi değildir.")}</p></div>${button(t("Erişim geçmişi"), "access-history", "shield")}</div>${message ? `<div class="notice warning">${esc(stored(message))}</div>` : ""}<p>${t("Otomatik inceleme: {0}. Tam liste karşılaştırmasında eksilen kayıtlı kişiler, kendi oturumunun sağlığı doğrulandıktan sonra hesap kimliğiyle incelenir.", data.settings.investigateMissing ? t("Açık") : t("Kapalı · Ayarlar’dan açabilirsin"))}</p><div class="access-case-list">${cases.map((c) => `<div class="access-case"><div><strong>@${esc(c.username)}</strong><p>${esc(accessLabel(c))}</p><small>${esc(date(c.checks.at(-1)?.checkedAt || c.detectedAt))}</small></div>${button(t("Kanıtları gör"), "person", "info", "secondary", idattr(c.id))}${button(t("Erişimi kontrol et"), "check-access", "shield", "secondary", `${idattr(c.id)} ${netDisabled()}`)}</div>`).join("") || `<p class="field-hint">${t("Henüz inceleme kaydı yok. İlk liste kaydı başlangıçtır; tek başına takipçi sayısının azalması engellenme sayılmaz.")}</p>`}</div><p class="field-hint">${t("İnceleme önce bağlı oturumu, sonra hedefi kontrol eder. Hedef bulunamazsa ek bir oturumsuz sayfa isteği yapılır. İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.", ...requestSpacing())}</p></section>`;
   }
@@ -699,7 +701,7 @@
       ["all", t("Tümü")],
       ["profile", t("Profil farkları")],
       ["access", t("Erişim kontrolleri")],
-      ["list", "Listeler"],
+      ["list", "Takip Listeleri"],
       ["check", t("Kontroller")],
       ["error", t("Hatalar")],
     ]
@@ -784,7 +786,7 @@
     const own = p.id === data.account?.id,
       saved = data.people.find((x) => x.id === id) || p;
     dialog(
-      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${p.observedAt ? t("Profil gözlemi") : t("Liste üyesi · profil okunmadı")}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio ?? t("Biyografi henüz okunmadı."))}</p><div class="drawer-counts"><div><strong>${num(p.followers)}</strong><span>${t("takipçi")}</span></div><div><strong>${num(p.following)}</strong><span>${t("takip edilen")}</span></div></div><div class="drawer-actions">${button(t("Profili kontrol et"), "refresh-person", "refresh", "primary", `${idattr(id)} ${netDisabled()}`)}${button(t("Geçmiş"), "history", "clock", "secondary", idattr(id))}${button(t("Bildirim tercihleri"), "notification-rules", "bell", "secondary", idattr(id))}${!own ? button(t("Erişimi kontrol et"), "check-access", "shield", "secondary", `${idattr(id)} ${netDisabled()}`) : ""}</div>${!own ? accessPanel(id) : ""}<section class="drawer-section"><h3>${t("Son kontrol")}</h3><div class="detail-pair"><span>${t("Gözlem zamanı")}</span><strong>${esc(date(p.observedAt))}</strong></div><div class="detail-pair"><span>${t("Gizlilik")}</span><strong>${p.private === true ? t("Gizli") : p.private === false ? t("Açık") : t("Bilinmiyor")}</strong></div><div class="detail-pair"><span>${t("Gönderi")}</span><strong>${num(p.posts)}</strong></div><div class="detail-pair"><span>${t("Profil bağlantısı")}</span><span>${esc(p.url || t("Gözlem yok"))}</span></div></section>${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite ? t("Favoriden çıkar") : t("Favorilere ekle"), "drawer-star", "star", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${button(saved.watching ? t("İzlemeyi kapat") : t("İzlemeye al"), "watch", "bell", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}</div><p class="field-hint">${t("İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.")}</p><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(saved.group || "")}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(saved.note || "")}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"), "save-note", "check", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${data.people.some((x) => x.id === id) ? button(t("Kişilerden kaldır"), "remove-person", "close", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`) : ""}</section>` : ""}`,
+      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${p.observedAt ? t("Profil gözlemi") : t("Liste üyesi · profil okunmadı")}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio ?? t("Biyografi henüz okunmadı."))}</p><div class="drawer-counts"><div><strong>${num(p.followers)}</strong><span>${t("takipçi")}</span></div><div><strong>${num(p.following)}</strong><span>${t("takip edilen")}</span></div></div><div class="drawer-actions">${button(t("Profili kontrol et"), "refresh-person", "refresh", "primary", `${idattr(id)} ${netDisabled()}`)}${button(t("Geçmiş"), "history", "clock", "secondary", idattr(id))}${button(t("Bildirim tercihleri"), "notification-rules", "bell", "secondary", idattr(id))}${!own ? button(t("Erişimi kontrol et"), "check-access", "shield", "secondary", `${idattr(id)} ${netDisabled()}`) : ""}</div>${!own ? accessPanel(id) : ""}<section class="drawer-section"><h3>${t("Son kontrol")}</h3><div class="detail-pair"><span>${t("Gözlem zamanı")}</span><strong>${esc(date(p.observedAt))}</strong></div><div class="detail-pair"><span>${t("Gizlilik")}</span><strong>${p.private === true ? t("Gizli") : p.private === false ? t("Açık") : t("Bilinmiyor")}</strong></div><div class="detail-pair"><span>${t("Gönderi")}</span><strong>${num(p.posts)}</strong></div><div class="detail-pair"><span>${t("Profil bağlantısı")}</span><span>${esc(p.url || t("Gözlem yok"))}</span></div></section>${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite ? t("Favoriden çıkar") : t("Favorilere ekle"), "drawer-star", "star", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${button(saved.watching ? t("İzlemeyi kapat") : t("İzlemeye al"), "watch", "bell", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}</div><p class="field-hint">${t("İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.")}</p><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(saved.group || "")}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(saved.note || "")}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"), "save-note", "check", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${data.people.some((x) => x.id === id) ? button(t("Kayıtlı profillerden kaldır"), "remove-person", "close", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`) : ""}</section>` : ""}`,
       false,
       true,
     );
@@ -1108,8 +1110,11 @@
       case "preparation-pause":
         await command('settings', {automaticLists:false});
         break;
+      case "guide-own-lists":
       case "preparation-lists":
-        ui.owner = data.account.id; ui.direction = 'followers';
+        if (!data.account) { accountDialog(); break; }
+        Object.assign(ui, {owner:data.account.id, direction:'followers', current:null, previous:null,
+          comparison:false, listFilter:'all', listQuery:'', pageSize:100});
         navigate('lists');
         break;
       case "import-backup":
@@ -1198,7 +1203,7 @@
         filteredPeople().map(personCard).join("") ||
         peopleEmpty();
       document.getElementById("people-result-count").textContent =
-        t("{0} kişi", filteredPeople().length);
+        t("{0} kayıtlı profil", filteredPeople().length);
     }
     if (event.target.id === "list-search") {
       ui.listQuery = event.target.value;

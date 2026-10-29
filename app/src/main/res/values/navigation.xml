@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="navigation_own_followers">Takipçi listemi aç</string>
+    <string name="navigation_continue_list">Listeyi okumaya devam et</string>
+    <string name="navigation_list_pacing">Liste sayfa sayfa okunur. İstekler arasında molalar verilir; alınan sayfalar cihazında saklanır.</string>
+</resources>

@@ -20,8 +20,8 @@
   const number = (value) => i18n.formats(language).number.format(value);
   const pages = {
     overview: ["Özet", "home"],
-    people: ["Kişiler", "people"],
-    lists: ["Listeler", "list"],
+    people: ["Kaydedilen Profiller", "people"],
+    lists: ["Takip Listeleri", "list"],
     timeline: ["Zaman çizelgesi", "clock"],
     settings: ["Ayarlar", "settings"],
   };
@@ -338,7 +338,7 @@
               `<button class="person-row" data-action="person" data-id="${p.id}">${avatar(p)}<span class="person-ident"><strong>${esc(p.name)}</strong><small>@${p.username}</small></span><span class="row-number">${number(p.followers)}<small>${t("takipçi")}</small></span>${icon("chevron")}</button>`,
           )
           .join("")
-      : `<div class="empty-small">${icon("star")}<p>${t("Kişilerde yıldızladığın hesaplar burada görünür.")}</p></div>`;
+      : `<div class="empty-small">${icon("star")}<p>${t("Kaydettiğin profillerden yıldızladıkların burada görünür.")}</p></div>`;
   }
   function eventRow(e, compact = false) {
     return `<button class="event-row ${compact ? "compact-event" : ""}" data-action="event" data-id="${e.id}"><span class="event-icon ${e.tone}">${icon(e.icon)}</span><span class="event-copy"><strong>${t(e.title)}</strong><small>${t(e.text)}</small></span><time>${e.time}</time>${icon("chevron")}</button>`;
@@ -377,13 +377,14 @@
   }
   function peopleGrid() {
     const people = filteredPeople();
+    if (!state.people.length) return `<section class="empty-guide card"><span class="dialog-symbol lavender">${icon("people")}</span><div><h2>${t("Henüz profil kaydetmedin.")}</h2><p>${t("Değişikliklerini izlemek veya not eklemek istediğin bir profili buraya ekleyebilirsin. Takipçilerin bu bölüme otomatik eklenmez.")}</p><div class="guide-actions">${button(t("Örnek profil ekle"),'add-person','plus','primary')}${button(t("Takipçi listemi aç"),'guide-own-lists','list','secondary')}</div></div></section>`;
     return people.length
       ? people.map(personCard).join("")
       : empty(t("Farklı bir arama veya filtre deneyebilirsin."));
   }
   function people() {
-    return `${title(t("KİŞİLERİN"), t("Çevreni biraz daha yakından tanı."), t("Favorilerini bir arada tut, kayıtlı profillerde nelerin değiştiğini gör."), button(t("Örnek kişi ekle"), "add-person", "plus", "primary"))}
-      <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Kişi filtresi")}">${[
+    return `${title(t("KAYDEDİLEN PROFİLLER"), t("Kaydettiğin profiller bir arada."), t("Özellikle kaydettiğin örnek profiller burada yer alır. Örnek takipçi ve takip edilen kayıtları Takip Listeleri bölümündedir."), button(t("Örnek profil ekle"), "add-person", "plus", "primary"))}
+      <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Profil filtresi")}">${[
         ["all", t("Tümü"), state.people.length],
         [
           "favorites",
@@ -402,8 +403,8 @@
         )
         .join(
           "",
-        )}</div><label class="search-input">${icon("search")}<input id="people-search" type="search" placeholder="${t("İsim, kullanıcı adı veya grup ara")}" aria-label="${t("Kişilerde ara")}" value="${esc(state.peopleSearch)}"></label></div>
-      <div class="results-line"><span id="people-result-count">${t("{0} örnek kişi", filteredPeople().length)}</span><span>${t("Favoriler önce gösterilir")}</span></div><div class="people-grid" id="people-grid">${peopleGrid()}</div>`;
+        )}</div><label class="search-input">${icon("search")}<input id="people-search" type="search" placeholder="${t("İsim, kullanıcı adı veya grup ara")}" aria-label="${t("Kaydedilen profillerde ara")}" value="${esc(state.peopleSearch)}"></label></div>
+      <div class="results-line"><span id="people-result-count">${t("{0} örnek profil", filteredPeople().length)}</span><span>${t("Favoriler önce gösterilir")}</span></div><div class="people-grid" id="people-grid">${peopleGrid()}</div>`;
   }
   function listPeople() {
     const ids = listRecords[state.list].current;
@@ -435,7 +436,7 @@
     const removed = record.previous.filter(
       (id) => !record.current.includes(id),
     ).length;
-    return `${title(t("HESAP LİSTELERİ"), t("Kimler çevrende?"), t("Takipçi ve takip edilen kayıtlarını incele, iki gözlem arasındaki farklara bak."), button(state.comparing ? t("Listeye dön") : t("Gözlemleri karşılaştır"), "compare", "compare", state.comparing ? "primary" : "secondary"))}
+    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), t("Takipçi ve takip edilen kayıtlarını incele, iki gözlem arasındaki farklara bak."), button(state.comparing ? t("Listeye dön") : t("Gözlemleri karşılaştır"), "compare", "compare", state.comparing ? "primary" : "secondary"))}
       <section class="list-account card">${avatar(own)}<div><strong>${t("@benim.demo")}</strong><span>${t("Örnek hesap · Son kayıt bugün, 16:42")}</span></div><button class="text-button" data-action="scope">${t("Kaydın kapsamı {0}", icon("info"))}</button></section>
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Liste yönü")}">${[
         ["followers", t("Takipçiler"), "875"],
@@ -624,6 +625,10 @@
         state.peopleSearch = "";
         navigate("people");
         break;
+      case "guide-own-lists":
+        state.list = 'followers'; state.listSearch = ''; state.comparing = false;
+        navigate('lists');
+        break;
       case "list-tab":
         state.list = value;
         state.listSearch = "";
@@ -708,7 +713,7 @@
         break;
       case "add-person":
         dialog(
-          `<span class="dialog-symbol lavender">${icon("plus")}</span><h2 id="dialog-title">${t("Çevrene bir örnek kişi ekle.")}</h2><p>${t("Bu işlem Instagram’da arama yapmaz. Yalnız arayüzde bir örnek kart oluşturur.")}</p><form id="add-person-form"><label class="form-label" for="sample-name">${t("Görünen ad")}</label><input id="sample-name" name="name" required maxlength="60" placeholder="${t("Örn. İpek Kaya")}" autocomplete="off"><label class="form-label" for="sample-username">${t("Örnek kullanıcı adı")}</label><input id="sample-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" placeholder="${t("ipek.demo")}" autocomplete="off"><label class="form-label" for="sample-group">${t("Grup")}</label><select id="sample-group" name="group"><option>${t("Arkadaşlar")}</option><option>${t("İçerik üreticileri")}</option><option>${t("Diğer")}</option></select><button class="button primary full-width" type="submit">${t("{0}Örnek kartı ekle", icon("plus"))}</button></form>`,
+          `<span class="dialog-symbol lavender">${icon("plus")}</span><h2 id="dialog-title">${t("Örnek bir profil kaydet.")}</h2><p>${t("Bu işlem Instagram’da arama yapmaz. Yalnız arayüzde bir örnek kart oluşturur.")}</p><form id="add-person-form"><label class="form-label" for="sample-name">${t("Görünen ad")}</label><input id="sample-name" name="name" required maxlength="60" placeholder="${t("Örn. İpek Kaya")}" autocomplete="off"><label class="form-label" for="sample-username">${t("Örnek kullanıcı adı")}</label><input id="sample-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" placeholder="${t("ipek.demo")}" autocomplete="off"><label class="form-label" for="sample-group">${t("Grup")}</label><select id="sample-group" name="group"><option>${t("Arkadaşlar")}</option><option>${t("İçerik üreticileri")}</option><option>${t("Diğer")}</option></select><button class="button primary full-width" type="submit">${t("{0}Örnek kartı ekle", icon("plus"))}</button></form>`,
         );
         break;
       case "reset":
@@ -731,7 +736,7 @@
       state.peopleSearch = event.target.value;
       document.getElementById("people-grid").innerHTML = peopleGrid();
       document.getElementById("people-result-count").textContent =
-        t("{0} örnek kişi", filteredPeople().length);
+        t("{0} örnek profil", filteredPeople().length);
     }
     if (event.target.id === "list-search") {
       state.listSearch = event.target.value;

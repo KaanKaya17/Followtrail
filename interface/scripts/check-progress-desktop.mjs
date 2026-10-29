@@ -64,6 +64,7 @@ try {
  assert.equal(Number(await page.locator('#operation-root progress').getAttribute('max')),12);
  assert.match(text,/@qa.owner/);assert.match(text,/Sayfa 4 sırada/);assert.match(text,/3 sayfa alındı · 150 hesap kaydedildi/);
  assert.match(text,/Son profil sayısı: 250/);assert.match(text,/Toplam sayfa sayısı henüz bilinmiyor/);assert.doesNotMatch(text,/4\/12|%/);
+ assert.match(text,/Bu sırada diğer ekranları kullanabilirsin; yeni ağ işlemleri sıra bekler/);
  assert.equal(await timers(),1);
  const first=await page.locator('[data-wait-countdown]').innerText();
  await page.evaluate(()=>window.qaCancelNode=document.querySelector('#operation-root [data-action="cancel"]'));

@@ -1,8 +1,8 @@
 <resources>
     <string name="ui_refresh">"Yenile"</string>
     <string name="ui_refresh_person">"Kişiyi yenile"</string>
-    <string name="ui_add_person">"Kişi ekle"</string>
-    <string name="ui_view_lists">"Listeleri incele"</string>
+    <string name="ui_add_person">Profil ekle</string>
+    <string name="ui_view_lists">Takip listelerini aç</string>
     <string name="ui_your_social_circle_together">Kayıtlı gözlemler, bir arada.</string>
     <string name="ui_options">"Seçenekler"</string>
     <string name="ui_demo_sample_data">"DEMO · ÖRNEK VERİ"</string>
@@ -24,13 +24,13 @@
     <string name="ui_finish_the_pending_connection">"Yarım kalan bağlantıyı tamamla"</string>
     <string name="ui_your_data_is_encrypted_on_this_device">"Verilerin bu cihazda şifrelenir."</string>
     <string name="ui_overview">"Özet"</string>
-    <string name="ui_people">"Kişiler"</string>
+    <string name="ui_people">Kaydedilen Profiller</string>
     <string name="ui_at_a_glance">"Bir bakışta"</string>
     <string name="ui_open_list">"Listeyi aç"</string>
     <string name="ui_open_list_description">"%1$s: %2$s. Listeyi aç"</string>
     <string name="ui_followers">"Takipçi"</string>
     <string name="ui_following">"Takip edilen"</string>
-    <plurals name="ui_people_saved_profiles_open_people"><item quantity="other">"Kişiler. %1$d kayıtlı profil. Kişilere git"</item></plurals>
+    <plurals name="ui_people_saved_profiles_open_people"><item quantity="other">"Kaydedilen Profiller. %1$d kayıtlı profil. Kaydedilen Profilleri aç"</item></plurals>
     <string name="ui_explore_your_circle">"Çevrene göz at"</string>
     <string name="ui_add_your_first_person_and_take_a">"İlk kişini ekle, birlikte inceleyelim."</string>
     <plurals name="ui_saved_profiles"><item quantity="other">"%1$d kayıtlı profil"</item></plurals>
@@ -73,15 +73,15 @@
     <string name="ui_the_local_cooldown_has_ended">"Yerel mola doldu."</string>
     <string name="ui_this_time_does_not_guarantee_instagram_access">"Bu saat, Instagram erişiminin açılacağını garanti etmez. Süre dolunca otomatik deneme yapılmaz."</string>
     <string name="ui_the_counter_covers_profile_and_list_page">"Sayaç telefondan giriş adımlarını, profil ve liste sayfası okuma girişimlerini kapsar. Profil görselleri, web giriş sayfası ve Windows uygulamasının trafiği dahil değildir. Instagram’ın toplam sayacı veya sunucunun isteği aldığına dair kanıt değildir. Parola, çerez ve ham yanıt loga yazılmaz."</string>
-    <string name="ui_people_you_choose">"Seçtiğin kişiler"</string>
-    <string name="ui_a_space_for_the_profiles_you_care">"Merak ettiğin profiller, sana özel bir alan."</string>
-    <string name="ui_ready_to_add_your_first_person">"İlk kişini eklemeye hazırsın."</string>
-    <string name="ui_add_a_profile_to_view_its_lists">"Bir profil ekle; listelerine ve zaman içindeki değişimlerine buradan ulaş."</string>
+    <string name="ui_people_you_choose">Kaydedilen Profiller</string>
+    <string name="ui_a_space_for_the_profiles_you_care">Özellikle kaydettiğin profiller burada yer alır. Takipçi ve takip edilen kayıtlarını Takip Listeleri bölümünden açabilirsin.</string>
+    <string name="ui_ready_to_add_your_first_person">Henüz profil kaydetmedin.</string>
+    <string name="ui_add_a_profile_to_view_its_lists">Değişikliklerini izlemek veya not eklemek istediğin bir profili buraya ekleyebilirsin. Takipçilerin bu bölüme otomatik eklenmez.</string>
     <string name="ui_saved_profile">"Kayıtlı profil"</string>
     <string name="ui_followers_following">"%1$s takipçi · %2$s takip edilen"</string>
     <string name="ui_last_record">"Son kayıt · %1$s"</string>
     <string name="ui_open_analysis">"Analizi aç · @%1$s"</string>
-    <string name="ui_all_people">"Tüm kişiler"</string>
+    <string name="ui_all_people">Tüm kayıtlı profiller</string>
     <string name="ui_profile_analysis">"PROFİL ANALİZİ"</string>
     <string name="ui_compared_with_the_previous_record">"Son kayda göre"</string>
     <string name="ui_no_comparison_yet">"Henüz karşılaştırma yok."</string>
@@ -108,7 +108,7 @@
     <string name="ui_a_new_observation_was_saved_on_this">"Yeni gözlem bu cihazda kaydedildi."</string>
     <string name="ui_could_not_save_the_observation_previous_records">"Gözlem kaydedilemedi. Önceki kayıtlar korunuyor."</string>
     <string name="ui_the_response_did_not_match_the_requested">"Yanıt istenen profille eşleşmedi. Kayıt değiştirilmedi."</string>
-    <string name="ui_could_not_save_people_previous_records_are">"Kişiler kaydedilemedi. Önceki kayıtlar korunuyor."</string>
+    <string name="ui_could_not_save_people_previous_records_are">Kaydedilen profiller saklanamadı. Önceki kayıtlar korunuyor.</string>
     <string name="ui_group_optional">"Grup (isteğe bağlı)"</string>
     <string name="ui_your_note_stored_only_on_this_device">"Yalnız bu cihazda saklanan notun"</string>
     <string name="ui_note_and_group">"Not ve grup"</string>
@@ -150,7 +150,7 @@
     <string name="ui_view_their_lists">"Listelerini incele"</string>
     <string name="ui_open_in_instagram">"Instagram’da aç"</string>
     <string name="ui_could_not_save_the_profile_read_existing">"Profil okuması kaydedilemedi. Mevcut kayıtlar korundu."</string>
-    <string name="ui_added_to_your_people_automatic_monitoring_is">"Kişilerine eklendi. Otomatik izleme kapalıdır."</string>
+    <string name="ui_added_to_your_people_automatic_monitoring_is">Kaydedilen Profiller bölümüne eklendi. Otomatik izleme kapalıdır.</string>
     <string name="ui_allow_notifications_to_enable_monitoring">"İzleme için bildirim iznini açmalısın."</string>
     <string name="ui_monitoring_enabled_you_will_be_notified_about">"İzleme açıldı. Profil değişikliklerinde bildirim alacaksın."</string>
     <string name="ui_this_person_s_profile_is_being_checked">"Bu kişinin profil değişiklikleri kontrol ediliyor."</string>
@@ -163,13 +163,13 @@
     <string name="ui_explore_your_list">"Listeni keşfet"</string>
     <string name="ui_no_accounts_match_your_search">"Aramana uygun hesap yok"</string>
     <string name="ui_no_accounts_in_this_record">"Bu kayıtta hesap yok"</string>
-    <string name="ui_read_the_first_page_when_you_are">"Hazır olduğunda ilk sayfayı oku."</string>
+    <string name="ui_read_the_first_page_when_you_are">İlk başlangıç hazırlığını Özet ekranından izleyebilirsin. Başka bir profilin listesini okumak için Listeyi kontrol et seçeneğini kullan.</string>
     <string name="ui_try_another_name_search_does_not_fetch">"Farklı bir ad dene. Arama yeni veri çekmez."</string>
     <string name="ui_only_records_from_downloaded_pages_are_shown">"Yalnız alınan sayfanın kayıtları gösterilir."</string>
     <string name="ui_no_name_provided">"Ad bilgisi yok"</string>
     <string name="ui_search_downloaded_accounts">"Alınan hesaplarda ara"</string>
     <string name="ui_clear_search">"Aramayı temizle"</string>
-    <string name="ui_update_list">"Listeyi güncelle"</string>
+    <string name="ui_update_list">Listeyi kontrol et</string>
     <string name="ui_list_actions">"Liste işlemleri"</string>
     <string name="ui_accounts_downloaded">"Alınan hesap: %1$d · "</string>
     <string name="ui_reading_more">"devamı okunuyor"</string>
@@ -235,7 +235,7 @@
     <string name="ui_refresh_title">"Yenileme"</string>
     <string name="ui_your_favorites">"Favorilerin"</string>
     <string name="ui_profile">"Profil"</string>
-    <string name="ui_lists">"Listeler"</string>
+    <string name="ui_lists">Takip Listeleri</string>
     <string name="ui_none">"Yok"</string>
     <string name="ui_no_response_yet">"Henüz yanıt yok"</string>
     <string name="ui_not_specified">"Belirtilmedi"</string>

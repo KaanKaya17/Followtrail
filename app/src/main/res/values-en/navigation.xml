@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="navigation_own_followers">Open my follower list</string>
+    <string name="navigation_continue_list">Continue reading list</string>
+    <string name="navigation_list_pacing">The list is read page by page, with pauses between requests. Downloaded pages are saved on your device.</string>
+</resources>

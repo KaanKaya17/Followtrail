@@ -1,8 +1,8 @@
 <resources>
     <string name="ui_refresh">"Refresh"</string>
     <string name="ui_refresh_person">"Refresh person"</string>
-    <string name="ui_add_person">"Add person"</string>
-    <string name="ui_view_lists">"View lists"</string>
+    <string name="ui_add_person">Add profile</string>
+    <string name="ui_view_lists">Open follow lists</string>
     <string name="ui_your_social_circle_together">Saved observations, together.</string>
     <string name="ui_options">"Options"</string>
     <string name="ui_demo_sample_data">"DEMO · SAMPLE DATA"</string>
@@ -24,13 +24,13 @@
     <string name="ui_finish_the_pending_connection">"Finish the pending connection"</string>
     <string name="ui_your_data_is_encrypted_on_this_device">"Your data is encrypted on this device."</string>
     <string name="ui_overview">"Home"</string>
-    <string name="ui_people">"People"</string>
+    <string name="ui_people">Saved Profiles</string>
     <string name="ui_at_a_glance">"At a glance"</string>
     <string name="ui_open_list">"Open list"</string>
     <string name="ui_open_list_description">"%1$s: %2$s. Open list"</string>
     <string name="ui_followers">"Followers"</string>
     <string name="ui_following">"Following"</string>
-    <plurals name="ui_people_saved_profiles_open_people"><item quantity="one">"People. %1$d saved profile. Open people"</item><item quantity="other">"People. %1$d saved profiles. Open people"</item></plurals>
+    <plurals name="ui_people_saved_profiles_open_people"><item quantity="one">"Saved Profiles. %1$d saved profile. Open Saved Profiles"</item><item quantity="other">"Saved Profiles. %1$d saved profiles. Open Saved Profiles"</item></plurals>
     <string name="ui_explore_your_circle">"Explore your circle"</string>
     <string name="ui_add_your_first_person_and_take_a">"Add your first person and take a look."</string>
     <plurals name="ui_saved_profiles"><item quantity="one">"%1$d saved profile"</item><item quantity="other">"%1$d saved profiles"</item></plurals>
@@ -73,15 +73,15 @@
     <string name="ui_the_local_cooldown_has_ended">"The local cooldown has ended."</string>
     <string name="ui_this_time_does_not_guarantee_instagram_access">"This time does not guarantee Instagram access will resume. No automatic retry follows the cooldown."</string>
     <string name="ui_the_counter_covers_profile_and_list_page">"The counter covers phone sign-in steps and profile/list-page read attempts. It excludes profile images, web sign-in pages and Windows app traffic. It is not Instagram’s total counter or proof the server received a request. Passwords, cookies and raw responses are not logged."</string>
-    <string name="ui_people_you_choose">"People you choose"</string>
-    <string name="ui_a_space_for_the_profiles_you_care">"A space for the profiles you care about."</string>
-    <string name="ui_ready_to_add_your_first_person">"Ready to add your first person."</string>
-    <string name="ui_add_a_profile_to_view_its_lists">"Add a profile to view its lists and changes over time."</string>
+    <string name="ui_people_you_choose">Saved Profiles</string>
+    <string name="ui_a_space_for_the_profiles_you_care">Profiles you specifically save appear here. Open Follow Lists for follower and following records.</string>
+    <string name="ui_ready_to_add_your_first_person">You have not saved a profile yet.</string>
+    <string name="ui_add_a_profile_to_view_its_lists">Add a profile whose changes you want to monitor or add notes to. Your followers are not automatically added here.</string>
     <string name="ui_saved_profile">"Saved profile"</string>
     <string name="ui_followers_following">"%1$s followers · %2$s following"</string>
     <string name="ui_last_record">"Last record · %1$s"</string>
     <string name="ui_open_analysis">"Open analysis · @%1$s"</string>
-    <string name="ui_all_people">"All people"</string>
+    <string name="ui_all_people">All saved profiles</string>
     <string name="ui_profile_analysis">"PROFILE ANALYSIS"</string>
     <string name="ui_compared_with_the_previous_record">"Compared with the previous record"</string>
     <string name="ui_no_comparison_yet">"No comparison yet."</string>
@@ -108,7 +108,7 @@
     <string name="ui_a_new_observation_was_saved_on_this">"A new observation was saved on this device."</string>
     <string name="ui_could_not_save_the_observation_previous_records">"Could not save the observation. Previous records are preserved."</string>
     <string name="ui_the_response_did_not_match_the_requested">"The response did not match the requested profile. The record was not changed."</string>
-    <string name="ui_could_not_save_people_previous_records_are">"Could not save people. Previous records are preserved."</string>
+    <string name="ui_could_not_save_people_previous_records_are">Could not save profiles. Previous records are preserved.</string>
     <string name="ui_group_optional">"Group (optional)"</string>
     <string name="ui_your_note_stored_only_on_this_device">"Your note, stored only on this device"</string>
     <string name="ui_note_and_group">"Note and group"</string>
@@ -150,7 +150,7 @@
     <string name="ui_view_their_lists">"View their lists"</string>
     <string name="ui_open_in_instagram">"Open in Instagram"</string>
     <string name="ui_could_not_save_the_profile_read_existing">"Could not save the profile read. Existing records are preserved."</string>
-    <string name="ui_added_to_your_people_automatic_monitoring_is">"Added to your people. Automatic monitoring is off."</string>
+    <string name="ui_added_to_your_people_automatic_monitoring_is">Added to Saved Profiles. Automatic monitoring is off.</string>
     <string name="ui_allow_notifications_to_enable_monitoring">"Allow notifications to enable monitoring."</string>
     <string name="ui_monitoring_enabled_you_will_be_notified_about">"Monitoring enabled. You will be notified about profile changes."</string>
     <string name="ui_this_person_s_profile_is_being_checked">"This person’s profile is being checked for changes."</string>
@@ -163,13 +163,13 @@
     <string name="ui_explore_your_list">"Explore your list"</string>
     <string name="ui_no_accounts_match_your_search">"No accounts match your search"</string>
     <string name="ui_no_accounts_in_this_record">"No accounts in this record"</string>
-    <string name="ui_read_the_first_page_when_you_are">"Read the first page when you are ready."</string>
+    <string name="ui_read_the_first_page_when_you_are">You can view initial preparation on Overview. Use Check list to read another profile\'s list.</string>
     <string name="ui_try_another_name_search_does_not_fetch">"Try another name. Search does not fetch new data."</string>
     <string name="ui_only_records_from_downloaded_pages_are_shown">"Only records from downloaded pages are shown."</string>
     <string name="ui_no_name_provided">"No name provided"</string>
     <string name="ui_search_downloaded_accounts">"Search downloaded accounts"</string>
     <string name="ui_clear_search">"Clear search"</string>
-    <string name="ui_update_list">"Update list"</string>
+    <string name="ui_update_list">Check list</string>
     <string name="ui_list_actions">"List actions"</string>
     <string name="ui_accounts_downloaded">"Accounts downloaded: %1$d · "</string>
     <string name="ui_reading_more">"reading more"</string>
@@ -235,7 +235,7 @@
     <string name="ui_refresh_title">"Refresh"</string>
     <string name="ui_your_favorites">"Your favorites"</string>
     <string name="ui_profile">"Profile"</string>
-    <string name="ui_lists">"Lists"</string>
+    <string name="ui_lists">Follow Lists</string>
     <string name="ui_none">"None"</string>
     <string name="ui_no_response_yet">"No response yet"</string>
     <string name="ui_not_specified">"Not specified"</string>
