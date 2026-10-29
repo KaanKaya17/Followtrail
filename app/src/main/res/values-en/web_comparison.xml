@@ -1,0 +1,21 @@
+<resources>
+    <string name="web_compare_menu">Compare web connection</string>
+    <string name="web_compare_instruction">Complete Instagram sign-in. A reads your profile once inside this browser. If successful, start B separately. The first 429 or verification error stops the flow. Stay on this screen; do not share passwords or codes.</string>
+    <string name="web_compare_browser">A · Verify inside browser</string>
+    <string name="web_compare_native">B · Connect with app</string>
+    <string name="web_compare_reading">A · Reading the profile in the same browser session…</string>
+    <string name="web_compare_browser_success">A succeeded · %1$s followers · %2$s following. The account is not connected to the app yet. Press B once when the request interval of about 15 seconds ends.</string>
+    <string name="web_compare_native_ready">A succeeded. B is ready; no request was sent automatically. Press B once to continue.</string>
+    <string name="web_compare_cancelled">Connection comparison stopped after navigating or leaving the app. This does not establish a new connection. Review the result in Request information.</string>
+    <string name="web_compare_journal_failed">Could not read or write web connection diagnostics.</string>
+    <string name="web_compare_no_report">No web connection comparison recorded.</string>
+    <string name="web_compare_report">Latest web connection comparison · W01 browser / W02 app. Only step, time, result and HTTP are retained.</string>
+    <string name="web_compare_report_row">%1$s · %2$s · HTTP %3$s · %4$s</string>
+    <string name="web_compare_started">Started; no completed result</string>
+    <string name="web_compare_success">Succeeded</string>
+    <string name="web_compare_limited">Limited; stopped</string>
+    <string name="web_compare_auth">Sign-in or verification required</string>
+    <string name="web_compare_invalid">Response or identity not verified</string>
+    <string name="web_compare_connection">Connection did not complete</string>
+    <string name="web_compare_cancel">Cancelled; no completed result</string>
+</resources>

@@ -27,6 +27,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
       - run: ./gradlew :app:testDebugUnitTest :app:lintRelease :app:assembleRelease --console plain
       - run: node scripts/test-connection-probe.mjs
+      - run: node scripts/test-web-connection-probe.mjs
       - run: python3 scripts/check-locales.py
       - run: python3 -m pip install pycryptodomex==3.24.1
       - run: python3 scripts/test-desktop-link.py

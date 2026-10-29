@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.33 — 2026-10-29 (Web bağlantısı karşılaştırması)
+
+- ⋯ → Gelişmiş → **Web bağlantısını karşılaştır** eklendi. Kullanıcının tamamladığı Instagram girişinden sonra A adımı profili aynı WebView içinde okur; B ayrı açık kullanıcı eylemiyle uygulama okuyucusunu doğrular. İkisi mevcut üretim profil istek tanımını kullanır. A tek başına hesabı bağlamaz; doğru hesapla B başarısı mevcut şifreli bağlantı yolunu tamamlar.
+- Mevcut 15 saniyelik istek aralığı ve 15 dakikalık karşılaştırma turu rezervasyonu korunur. B yalnız başarılı A'nın süreli/tek kullanımlık devamıyla açılır; ikinci istek otomatik gönderilmez. İlk 429/doğrulama/iptalde durur. Arka plan veya gezinme devamı iptal eder; ana hesap ve kısmi olmayan mevcut kayıt korunur. Yeni sunucu, telemetri veya oturum paylaşımı eklenmedi.
+- İstek bilgileri'ne W01 tarayıcı / W02 uygulama tanısı eklendi. Yalnız sabit adım, başlama saati, sonuç ve HTTP saklanır; parola, çerez, kimlik, kullanıcı adı veya ham yanıt yoktur. Eksik/tamamlanmamış sonuç ve eski HTTP ayrı tutulur; Türkçe/İngilizce desteklenir. Web okuyucusu hesabın bağlantısı tamamlanmadan otomatik kontrolleri yeniden başlatmaz.
+- Bu, kontrollü doğrulama için Android önizleme sürümüdür; canlı Instagram sorununun çözüldüğü henüz doğrulanmadı. Windows 0.2.11 ve web önizlemesi değiştirilmedi. [Telefon test adımları ve doğrulama kapsamı](docs/WEB-CONNECTION-COMPARISON.md).
+
 ## Windows/web 0.2.11 ve Android 0.1.32 — 2026-10-28 (Koyu ve OLED tema)
 
 - Sistem / Açık / Koyu / OLED siyahı tema seçimi eklendi. Sistem varsayılandır ve açık/koyu değişimini izler; açık seçim sistemden bağımsız kalır. Windows'ta Ayarlar → Tema, Android'de ⋯ → Tema, örnek webde Ayarlar üzerinden seçilir. Tercih her cihazda yerel saklanır; Windows şifreli ayarları/yedekleri, Android özel görünüm tercihi ve web tarayıcı tercihi kullanılır. Hesap verisi paylaşılmaz; tema için ağ servisi veya periyodik kontrol yoktur.

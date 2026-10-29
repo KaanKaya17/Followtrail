@@ -14,14 +14,15 @@ class WebConnectionAttempt(context: Context, private val gate: RequestGate,
     private fun current() {
         if (cancelled || Thread.currentThread().isInterrupted) throw ApiFailure(ApiFailure.Kind.CANCELLED)
     }
-    fun connect(state: WebSession, expected: Session?): SavedAccount {
+    fun connect(state: WebSession, expected: Session?, proof: BrowserConnectionProof? = null): SavedAccount {
         var staged: Session? = null
         try {
             current()
+            proof?.consume(gate,state)
             sessions.discardPending()
             current(); val reference = sessions.stage(state); staged = reference
             current()
-            val profile = reader.read(reference, connectionTest = true,
+            val profile = reader.read(reference, connectionTest = proof == null, resumeAutomation = false,
                 request = { fresh, _ -> WebRequests.profile(fresh, reference.userId) }) { body, time ->
                 ProfileParser.fromBody(body, reference.userId, time)
             }
