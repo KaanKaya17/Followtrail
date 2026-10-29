@@ -9,7 +9,7 @@
     <string name="timeline_title">Timeline</string>
     <string name="timeline_menu">Check history</string>
     <string name="timeline_subtitle">What was read and compared, and when.</string>
-    <string name="timeline_empty">Checks made after this update will appear here. Earlier profile observations remain in the analysis screen.</string>
+    <string name="timeline_empty">New checks will appear here. Previous profile records remain on the analysis screen.</string>
     <string name="timeline_scope">The latest 120 records are encrypted on this device. Times refer to device reads and comparisons, not exact Instagram event times. Times missing from older records are shown as not recorded.</string>
     <string name="timeline_filter">Choose account</string>
     <string name="timeline_all">All accounts</string>
@@ -18,10 +18,10 @@
     <string name="timeline_received">Data received: %1$s</string>
     <string name="timeline_analyzed">Comparison saved: %1$s</string>
     <string name="timeline_failed_at">Action ended: %1$s</string>
-    <string name="timeline_previous">Previous observation: %1$s</string>
-    <string name="timeline_window">This difference was observed between the previous and new reads. The exact change time is unknown.</string>
+    <string name="timeline_previous">Previous check: %1$s</string>
+    <string name="timeline_window">This change was seen between two checks. Its exact time is unknown.</string>
     <string name="timeline_profile_initial">First profile record</string>
-    <string name="timeline_profile_unchanged">Profile checked · No comparable changes</string>
+    <string name="timeline_profile_unchanged">Profile checked · No changes</string>
     <string name="timeline_profile_changed">Profile change observed</string>
     <string name="timeline_counts">Follower change: %1$s · Following change: %2$s</string>
     <string name="timeline_list">%1$s · List read</string>
@@ -30,7 +30,7 @@
     <string name="timeline_failure">Check could not complete</string>
     <string name="timeline_observed">Observed · %1$s</string>
     <string name="timeline_saved">Processed · %1$s</string>
-    <string name="timeline_profile_last">Last profile observation · %1$s</string>
+    <string name="timeline_profile_last">Last profile check · %1$s</string>
     <string name="timeline_open_profile">Open profile</string>
     <string name="timeline_unavailable">Could not open check history. Profile and list records are stored separately.</string>
     <string name="timeline_write_failed">The last action could not be added to history; check profile and list records separately.</string>

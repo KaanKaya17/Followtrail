@@ -197,7 +197,7 @@ try {
         .waitFor();
       assert.equal(
         await page
-          .getByText("Kısmi kayıt · 1 hesap", { exact: true })
+          .getByText("Liste henüz tamamlanmadı · 1 hesap kaydedildi", { exact: true })
           .isVisible(),
         true,
       );
@@ -682,7 +682,7 @@ try {
       );
       assert.equal(
         await review
-          .getByText("Kullanıcı adı değişmiş; profil erişilebilir", {
+          .getByText("Kullanıcı adı değişmiş; profil açılıyor", {
             exact: true,
           })
           .isVisible(),
@@ -693,6 +693,8 @@ try {
         .first()
         .click();
       const evidence = page.getByRole("dialog").locator(".access-evidence");
+      assert.equal(await evidence.getByText("404", { exact: true }).isVisible(), false);
+      await evidence.getByText("Teknik ayrıntılar", { exact: true }).click();
       assert.equal(
         await evidence
           .getByRole("heading", { name: "Engellenme şüphesi", exact: true })
@@ -720,7 +722,7 @@ try {
       });
       await page.getByRole("button", { name: "Kapat", exact: true }).click();
       await review
-        .getByRole("button", { name: "Erişim geçmişi", exact: true })
+        .getByRole("button", { name: "Profil kontrol geçmişi", exact: true })
         .click();
       assert.equal(
         await page.locator(".timeline-events .event-row").count(),

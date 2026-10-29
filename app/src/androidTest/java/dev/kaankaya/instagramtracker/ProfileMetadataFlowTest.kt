@@ -133,7 +133,7 @@ class ProfileMetadataFlowTest {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).putExtra("offline_preview", true))
         awaitText("@benim.demo"); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo")
         awaitText("Kahve, kitaplar ve yeni yollar. ☀️"); click("Kişiyi yenile")
-        awaitText("Yeni gözlem bu cihazda kaydedildi."); awaitText("Yeni duraklar, yeni hikâyeler. ☀️\nİstanbul")
+        awaitText("Profil kontrol edildi ve kaydedildi."); awaitText("Yeni duraklar, yeni hikâyeler. ☀️\nİstanbul")
         val account = SessionVault(context, "previewaccount").read()!!
         scenario!!.recreate(); awaitText("Yeni duraklar, yeni hikâyeler. ☀️\nİstanbul")
         click("Özet"); awaitText("Biyografi değişti"); awaitText("Profil fotoğrafı bilgisi değişti")

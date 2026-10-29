@@ -97,7 +97,7 @@ class PeopleScreenTest {
         assertEquals(0L, RequestGate(context, "preview_gate").attempts())
         scenario!!.recreate(); awaitLabel("Kaydedilen Profiller")
         assertEquals("Analizi aç · @ada.demo", orderedNames().first())
-        click("Analizi aç · @ada.demo"); click("Kişiyi yenile"); awaitLabel("Yeni gözlem bu cihazda kaydedildi.")
+        click("Analizi aç · @ada.demo"); click("Kişiyi yenile"); awaitLabel("Profil kontrol edildi ve kaydedildi.")
         val refreshed = vault.read()!!.people.single { it.latest.userId == "201" }
         assertTrue(refreshed.favorite); assertEquals(13, refreshed.history.size); assertEquals("İçerik üreticileri", refreshed.group)
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
@@ -142,7 +142,7 @@ class PeopleScreenTest {
     }
     @Test fun explicitRefreshAddsExactlyOneObservationAndPreservesNote() {
         launch(); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo"); click("Kişiyi yenile")
-        awaitLabel("Yeni gözlem bu cihazda kaydedildi.")
+        awaitLabel("Profil kontrol edildi ve kaydedildi.")
         val person = SessionVault(context, "previewaccount").read()!!.people.single { it.latest.userId == "200" }
         assertEquals(13, person.history.size); assertEquals(1356L, person.latest.followers)
         assertEquals("Bu bir örnek not. Gerçek hesap verisi değildir.", person.note)

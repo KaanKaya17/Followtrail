@@ -13,8 +13,8 @@
     <string name="preparation_held">An Instagram restriction or verification is pending. No new request is sent; check Request information.</string>
     <string name="preparation_daily">Count changes and the daily check target queue another scan.</string>
     <string name="preparation_reading">Reading a list page…</string>
-    <string name="preparation_seconds">Next request in %1$d seconds.</string>
-    <string name="preparation_background">Preparation runs automatically. Android background restrictions and request budgets may cause delays.</string>
+    <string name="preparation_seconds">Short pause · continuing in %1$d seconds</string>
+    <string name="preparation_background">Preparation continues automatically. Your phone background settings and other checks may make it take longer.</string>
     <string name="preparation_pause">Pause list scans</string>
     <string name="preparation_resume">Resume preparation</string>
 </resources>

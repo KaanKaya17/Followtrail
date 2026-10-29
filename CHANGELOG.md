@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows/web 0.2.19 / Android 0.1.39 — 2026-10-29 (Sade kullanıcı dili)
+
+- Gözlem zamanı → Son kontrol; Kayıt kapsamı → Neler kontrol edildi?; Kısmi kayıt → Liste henüz tamamlanmadı. Sayaç, geçmiş, bildirim, liste ve profil durumlarındaki Türkçe/İngilizce açıklamalar günlük dile uyarlandı.
+- Normal istek arası Kısa mola olarak gösterilir. Instagram kısıtlaması açıkça ayrılır; bekleme süresi mevcut gerçek son tarihten gelir. Güvenlik, kesin bitiş veya kesin takipten çıkış vaadi eklenmez.
+- Windows sınırlama, liste eksikliği ve bağlantı hatalarında hata koduna göre sade açıklama gösterir. Özgün hata metni ve HTTP kodları İstek bilgileri/katlanır Teknik ayrıntılar altında korunur. Ana ekranın hata etkinliği sade başlık gösterirken geçmiş kaydının özgün tanısı açılabilir; arşivdeki kanıt ve tanılar değiştirilmez.
+- Liste değişimleri Yeni görülen takipçiler / Son kontrolde görünmeyenler olarak anlatılır. Geri takip filtreleri yönüne uygun adlandırılır ve kaydedilen listelere dayandığı açıklanır. Kontrol aralıkları, ağ istekleri, oturumlar, bütçeler ve 429 durdurmaları değişmez. [Test ve sınırlar](docs/PLAIN-LANGUAGE-TEST.md).
+
 ## Windows/web 0.2.18 / Android 0.1.38 — 2026-10-29 (Anlaşılır gezinme)
 
 - Kişiler bölümünün adı Kaydedilen Profiller, Listeler bölümünün adı Takip Listeleri oldu. Menüler, arama paleti, ekran açıklamaları ve ilgili erişilebilirlik metinleri Türkçe/İngilizce birlikte güncellendi. Kaydetmek ile Instagram’da takip etmek ayrımı korunur.

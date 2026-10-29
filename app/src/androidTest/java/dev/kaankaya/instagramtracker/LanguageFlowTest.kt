@@ -147,7 +147,7 @@ class LanguageFlowTest {
         assertFalse(notification.publicVersion.extras.toString().contains(profile.username))
         if (Build.VERSION.SDK_INT >= 26) assertEquals("Profile changes", context.getSystemService(NotificationManager::class.java)
             .getNotificationChannel(ChangeNotifications.CHANNEL).name.toString())
-        assertTrue(ApiFailure(ApiFailure.Kind.LIMITED).userMessage(AppLanguage.wrap(context)).startsWith("Instagram is currently"))
+        assertTrue(ApiFailure(ApiFailure.Kind.LIMITED).userMessage(AppLanguage.wrap(context)).startsWith("Instagram limited requests"))
         val resources = AppLanguage.wrap(context).resources
         assertEquals("Starting in 1 second", resources.getQuantityString(R.plurals.ui_starting_in_seconds, 1, 1))
         assertEquals("Starting in 2 seconds", resources.getQuantityString(R.plurals.ui_starting_in_seconds, 2, 2))

@@ -1,7 +1,7 @@
 <resources>
     <string name="visual_title">Profile time tunnel</string>
     <string name="visual_back">Back</string>
-    <string name="visual_scope">The archive starts with its first record. Dates are observation times, not exact change times. Only small photos downloaded during normal use enter the gallery.</string>
+    <string name="visual_scope">The archive starts with the first record. Dates show check times; the exact time of a change is unknown. Only small profile photos available during normal use are saved.</string>
     <string name="visual_enable">Enable archiving</string>
     <string name="visual_stop">Pause archiving</string>
     <string name="visual_clear">Clear archive</string>
@@ -12,7 +12,7 @@
     <string name="visual_avatars">Avatar gallery</string>
     <string name="visual_photo">Archived profile photo</string>
     <string name="visual_no_photos">No photo has been archived yet. Unavailable older photos cannot be reconstructed.</string>
-    <string name="visual_first_last">First observed: %1$s\nLast observed: %2$s</string>
+    <string name="visual_first_last">First checked: %1$s\nLast checked: %2$s</string>
     <string name="visual_size">%1$d images · %2$d KB</string>
     <string name="visual_bios">Biography time tunnel</string>
     <string name="visual_legend">+ Added · − Removed</string>

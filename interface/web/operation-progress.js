@@ -11,7 +11,7 @@
       const node=element.querySelector('[data-wait-countdown]');
       if(!node || state.visible===false || document.hidden || state.progress?.phase!=='waiting') { stop();return; }
       const seconds=remaining();
-      node.textContent=seconds===null ? t("Sonraki isteğin zamanı doğrulanamadı.") : seconds>0 ? t("Sonraki istek için {0} saniye",number(seconds)) : t("İstek sırası hazırlanıyor…");
+      node.textContent=seconds===null ? t("Sonraki isteğin zamanı doğrulanamadı.") : seconds>0 ? t("Kısa mola · {0} saniye sonra devam edecek",number(seconds)) : t("Kontrole devam etmek için hazırlanıyor…");
       const bar=element.querySelector('progress');
       const started=state.progress.waitStartedAt, until=state.progress.until;
       if(bar && Number.isFinite(started) && Number.isFinite(until) && until>started) {
@@ -27,10 +27,10 @@
       const paused=!state.busy && Number.isFinite(gate.blockedUntil) && gate.blockedUntil>0 && (gate.blockedUntil>Date.now()/1000 || gate.manualOnly && gate.status===429);
       if(!state.busy && !paused) { element.innerHTML='';return; }
       if(paused || p.phase==='limited') {
-        element.innerHTML=`<section class="operation-panel paused"><span class="progress-symbol">${icon('info')}</span><div><strong>${escape(t("İstekler duraklatıldı"))}</strong><p>${escape(t("Mola kaydı: en erken {0}. Yeni deneme otomatik başlatılmaz.",date(paused?gate.blockedUntil:p.until)))}</p><small>${escape(t("Bu saat erişim garantisi değildir. Moladan sonra elle kontrol gerekir; kayıtlarını incelemeye devam edebilirsin."))}</small></div>${button(t("İstek bilgileri"),'requests','info')}</section>`;
+        element.innerHTML=`<section class="operation-panel paused"><span class="progress-symbol">${icon('info')}</span><div><strong>${escape(gate.status === 429 || p.phase === "limited" ? t("Instagram istekleri sınırladı") : t("Kontroller duraklatıldı"))}</strong><p>${escape(t("En erken {0} yeniden deneyebilirsin. Yeni deneme kendiliğinden başlamayacak.",date(paused?gate.blockedUntil:p.until)))}</p><small>${escape(t("Instagram daha uzun beklemeni isteyebilir. Mola bitince kontrolü sen başlatabilirsin; kayıtlarını incelemeye devam edebilirsin."))}</small></div>${button(t("İstek bilgileri"),'requests','info')}</section>`;
         return;
       }
-      const messages={preparing:t("İşlem hazırlanıyor…"),login:t("Instagram hesabına bağlanılıyor…"),profile:t("Profil okunuyor…"),avatar:t("Profil fotoğrafı yükleniyor…"),access_health:t("Oturum sağlığı kontrol ediliyor…"),access_target:t("Kayıtlı hesap kimliğiyle erişim kontrol ediliyor…"),access_anonymous:t("Oturumsuz profil görünürlüğü karşılaştırılıyor…"),request:t("Instagram yanıtı bekleniyor…"),waiting:t("İstekler arasındaki yerel aralık bekleniyor…"),list:t("Liste sayfaları okunuyor…"),code:t("Doğrulama kodu bekleniyor…"),cancelling:t("İptal isteniyor…")};
+      const messages={preparing:t("İşlem hazırlanıyor…"),login:t("Instagram hesabına bağlanılıyor…"),profile:t("Profil okunuyor…"),avatar:t("Profil fotoğrafı yükleniyor…"),access_health:t("Hesap bağlantın kontrol ediliyor…"),access_target:t("Profilin açılıp açılmadığı kontrol ediliyor…"),access_anonymous:t("Profilin giriş yapmadan açılıp açılmadığı kontrol ediliyor…"),request:t("Instagram yanıtı bekleniyor…"),waiting:t("İstekler arasında kısa mola…"),list:t("Liste sayfaları okunuyor…"),code:t("Doğrulama kodu bekleniyor…"),cancelling:t("İptal isteniyor…")};
       let title=messages[p.phase] || t("İşlem sürüyor…"), context='';
       if(p.ownerUsername) context=`<p>${escape(t("Bağlı hesap: @{0}",p.ownerUsername))}</p>`;
       if(scan) {
@@ -43,7 +43,7 @@
         }
       }
       if(p.phase==='cancelling') title=messages.cancelling;
-      const wait=p.phase==='waiting'?`<p class="wait-countdown" data-wait-countdown aria-live="off"></p><small>${escape(t("Bu, uygulamanın istek aralığıdır. Sunucunun ek sınırlama uygulamayacağı garantisi değildir."))}</small>`:p.phase==='cancelling'?`<small>${escape(t("İptal isteği gönderildi. Devam eden ağ yanıtı zaman aşımı süresine kadar bekleyebilir."))}</small>`:`<small>${escape(t("İşlem bitene kadar diğer ağ işlemleri bekler."))}</small>`;
+      const wait=p.phase==='waiting'?`<p class="wait-countdown" data-wait-countdown aria-live="off"></p><small>${escape(t("Uygulama istekler arasında bekliyor. Instagram ayrıca daha uzun bir mola isteyebilir."))}</small>`:p.phase==='cancelling'?`<small>${escape(t("İptal isteği gönderildi. Devam eden ağ yanıtı zaman aşımı süresine kadar bekleyebilir."))}</small>`:`<small>${escape(t("İşlem bitene kadar diğer ağ işlemleri bekler."))}</small>`;
       const navigation=scan ? `<small>${escape(t("Bu sırada diğer ekranları kullanabilirsin; yeni ağ işlemleri sıra bekler."))}</small>` : '';
       element.innerHTML=`<section class="operation-panel"><span class="working-dot"></span><div class="operation-copy"><strong>${escape(title)}</strong>${context}${wait}${navigation}<progress aria-label="${escape(p.phase==='waiting'?t("İstek aralığı ilerlemesi"):t("İşlem ilerlemesi"))}"></progress></div>${p.phase==='code'?button(t("Kodu gir"),'enter-code','lock'):''}${button(t("İptal et"),'cancel','close','secondary',p.phase==='cancelling'?'disabled':'')}</section>`;
       if(p.phase==='waiting') { tick(); if(remaining()>0)timer=setInterval(tick,1000); }

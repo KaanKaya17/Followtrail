@@ -272,7 +272,7 @@
             `<a class="nav-item ${state.page === key ? "selected" : ""}" href="#${key}" ${state.page === key ? 'aria-current="page"' : ""}>${icon(symbol)}<span>${t(label)}</span>${key === "people" ? `<span class="nav-count">${state.people.length}</span>` : ""}</a>`,
         )
         .join("")}</nav>
-      <div class="sidebar-bottom"><div class="privacy-note">${icon("shield")}<strong>${t("Çevren sana özel.")}</strong><p>${t("Gözlemler, karşılaştırmalar ve sana ait notlar. Tek bir yerde.")}</p><button class="text-button" data-action="privacy">${t("Gizliliği incele {0}", icon("arrow"))}</button></div><div class="preview-label"><span class="status-dot"></span> ${t("Arayüz önizlemesi")} <span>01</span></div></div></aside>`;
+      <div class="sidebar-bottom"><div class="privacy-note">${icon("shield")}<strong>${t("Çevren sana özel.")}</strong><p>${t("Kontrollerin, değişiklikler ve sana ait notlar bir arada.")}</p><button class="text-button" data-action="privacy">${t("Gizliliği incele {0}", icon("arrow"))}</button></div><div class="preview-label"><span class="status-dot"></span> ${t("Arayüz önizlemesi")} <span>01</span></div></div></aside>`;
   }
   function topbar() {
     return `<header class="topbar"><a class="mobile-brand" href="#overview"><span class="brand-mark">${icon("chart")}</span>${t("Tracker")}</a><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[state.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${t("Örnek veriler")}</span>${iconButton("bell", t("Örnek bildirimler"), "notifications")}<button class="account-button" data-action="account" aria-label="${t("Örnek hesap bağlantısını incele")}">${avatar(own)}<span><strong>${t("@benim.demo")}</strong><small>${t("Örnek hesap")}</small></span>${icon("down")}</button></div></header>`;
@@ -326,7 +326,7 @@
       <path d="${path} L670 210 L50 210 Z" class="chart-area"/><path d="${path}" class="chart-line"/>
       ${points.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="5" class="chart-point ${i === points.length - 1 ? "last" : ""}" tabindex="0" data-point="${16 + start + i} Eki · ${values[i]} takipçi" aria-label="${t("{0} Ekim: {1} takipçi", 16 + start + i, values[i])}"><title>${t("{0} Eki · {1} takipçi", 16 + start + i, values[i])}</title></circle>`).join("")}
       ${[0, Math.floor((values.length - 1) / 3), Math.floor(((values.length - 1) * 2) / 3), values.length - 1].map((i) => `<text x="${points[i][0]}" y="241" text-anchor="middle" class="axis-label">${t("{0} Eki", 16 + start + i)}</text>`).join("")}</svg></div>
-      <div class="chart-caption"><span id="chart-caption">${t("{0} örnek gözlem · {1}–27 Ekim", values.length, 16 + start)}</span><button class="text-button" data-action="history">${t("Kayıtları gör {0}", icon("arrow"))}</button></div></div>`;
+      <div class="chart-caption"><span id="chart-caption">${t("{0} örnek kontrol · {1}–27 Ekim", values.length, 16 + start)}</span><button class="text-button" data-action="history">${t("Kayıtları gör {0}", icon("arrow"))}</button></div></div>`;
   }
   function favoriteRows() {
     const favorites = state.people.filter((p) => p.favorite);
@@ -344,15 +344,15 @@
     return `<button class="event-row ${compact ? "compact-event" : ""}" data-action="event" data-id="${e.id}"><span class="event-icon ${e.tone}">${icon(e.icon)}</span><span class="event-copy"><strong>${t(e.title)}</strong><small>${t(e.text)}</small></span><time>${e.time}</time>${icon("chevron")}</button>`;
   }
   function overview() {
-    return `${title(t("27 EKİM 2026 · SALI"), t("Çevrende neler oluyor?"), t("Hesabın, favori kişilerin ve son gözlemlerin bir arada."), button(t("Gözlemi yenile"), "refresh", "refresh", "primary"))}
-      <section class="stats-grid" aria-label="${t("Örnek hesap özeti")}"><button class="stat-card violet" data-action="open-list" data-value="followers"><span class="stat-label">${t("Takipçiler {0}", icon("people"))}</span><strong class="stat-value">875</strong><span class="stat-bottom"><span class="stat-change">${icon("chart")} +18 <span>${t("son gözlemde")}</span></span>${icon("arrow")}</span></button>
-      <button class="stat-card peach" data-action="open-list" data-value="following"><span class="stat-label">${t("Takip edilen {0}", icon("people"))}</span><strong class="stat-value">412</strong><span class="stat-bottom"><span class="stat-change">${icon("chart")} +4 <span>${t("son gözlemde")}</span></span>${icon("arrow")}</span></button>
-      <button class="stat-card white" data-action="profile-events"><span class="stat-label">${t("Profil değişiklikleri {0}", icon("photo"))}</span><strong class="stat-value">3<span class="stat-unit">${t("yeni gözlem")}</span></strong><span class="stat-bottom"><span class="muted">${t("Küçük değişiklikleri fark et.")}</span>${icon("arrow")}</span></button></section>
+    return `${title(t("27 EKİM 2026 · SALI"), t("Çevrende neler oluyor?"), t("Hesabın, favori profillerin ve son değişiklikler bir arada."), button(t("Şimdi kontrol et"), "refresh", "refresh", "primary"))}
+      <section class="stats-grid" aria-label="${t("Örnek hesap özeti")}"><button class="stat-card violet" data-action="open-list" data-value="followers"><span class="stat-label">${t("Takipçiler {0}", icon("people"))}</span><strong class="stat-value">875</strong><span class="stat-bottom"><span class="stat-change">${icon("chart")} +18 <span>${t("son kontrolde")}</span></span>${icon("arrow")}</span></button>
+      <button class="stat-card peach" data-action="open-list" data-value="following"><span class="stat-label">${t("Takip edilen {0}", icon("people"))}</span><strong class="stat-value">412</strong><span class="stat-bottom"><span class="stat-change">${icon("chart")} +4 <span>${t("son kontrolde")}</span></span>${icon("arrow")}</span></button>
+      <button class="stat-card white" data-action="profile-events"><span class="stat-label">${t("Profil değişiklikleri {0}", icon("photo"))}</span><strong class="stat-value">3<span class="stat-unit">${t("yeni kontrol")}</span></strong><span class="stat-bottom"><span class="muted">${t("Küçük değişiklikleri fark et.")}</span>${icon("arrow")}</span></button></section>
       <div class="overview-columns"><div class="main-column">${chart()}<section class="activity-section"><div class="section-heading"><div><h2>${t("Son değişiklikler")}</h2><p>${t("Son kayıtlarda dikkat çekenler.")}</p></div><a class="text-button" href="#timeline">${t("Tümünü gör {0}", icon("arrow"))}</a></div><div class="activity-list">${events
         .slice(0, 3)
         .map((e) => eventRow(e, true))
         .join("")}</div></section></div>
-      <aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("check")}</span><span>${t("SON ÖRNEK GÖZLEM")}</span></div><h2>${t("Her şey bir kayıttan başlar.")}</h2><p>${t("Bugün, 16:42")}</p><div class="snapshot-rule"></div><div class="snapshot-line"><span>${t("Profil bilgisi")}</span><span class="mini-check">${t("{0} Kayıtlı", icon("check"))}</span></div><div class="snapshot-line"><span>${t("Liste kapsamı")}</span><button class="text-button" data-action="scope">${t("Örneği incele {0}", icon("chevron"))}</button></div><p class="snapshot-footnote">${t("Gördüklerin kayıtlı gözlemlerdir; anlık Instagram verisi değildir.")}</p></section>
+      <aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("check")}</span><span>${t("SON ÖRNEK KONTROL")}</span></div><h2>${t("Her şey bir kayıttan başlar.")}</h2><p>${t("Bugün, 16:42")}</p><div class="snapshot-rule"></div><div class="snapshot-line"><span>${t("Profil bilgisi")}</span><span class="mini-check">${t("{0} Kayıtlı", icon("check"))}</span></div><div class="snapshot-line"><span>${t("Listenin ne kadarı okundu?")}</span><button class="text-button" data-action="scope">${t("Örneği incele {0}", icon("chevron"))}</button></div><p class="snapshot-footnote">${t("Gösterilenler önceki kontrollerden kaydedildi; Instagram’daki anlık durum farklı olabilir.")}</p></section>
       <section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2>${iconButton("plus", t("Favori kişileri seç"), "favorites")}</div>${favoriteRows()}<a class="all-people" href="#people">${t("Bütün kişileri keşfet {0}", icon("arrow"))}</a></section>
       <div class="little-note">${icon("lock")}<p>${t("Kontrol sende.")}<br><span>${t("Yalnızca anlamlı değişikliklere odaklan.")}</span></p></div></aside></div>`;
   }
@@ -436,8 +436,8 @@
     const removed = record.previous.filter(
       (id) => !record.current.includes(id),
     ).length;
-    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), t("Takipçi ve takip edilen kayıtlarını incele, iki gözlem arasındaki farklara bak."), button(state.comparing ? t("Listeye dön") : t("Gözlemleri karşılaştır"), "compare", "compare", state.comparing ? "primary" : "secondary"))}
-      <section class="list-account card">${avatar(own)}<div><strong>${t("@benim.demo")}</strong><span>${t("Örnek hesap · Son kayıt bugün, 16:42")}</span></div><button class="text-button" data-action="scope">${t("Kaydın kapsamı {0}", icon("info"))}</button></section>
+    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), t("Takipçi ve takip edilen listelerini incele, iki kontrol arasında nelerin değiştiğini gör."), button(state.comparing ? t("Listeye dön") : t("Kontrolleri karşılaştır"), "compare", "compare", state.comparing ? "primary" : "secondary"))}
+      <section class="list-account card">${avatar(own)}<div><strong>${t("@benim.demo")}</strong><span>${t("Örnek hesap · Son kayıt bugün, 16:42")}</span></div><button class="text-button" data-action="scope">${t("Neler kontrol edildi? {0}", icon("info"))}</button></section>
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Liste yönü")}">${[
         ["followers", t("Takipçiler"), "875"],
         ["following", t("Takip edilen"), "412"],
@@ -449,16 +449,16 @@
         .join(
           "",
         )}</div><label class="search-input">${icon("search")}<input id="list-search" type="search" placeholder="${t("Kayıtlı listede ara")}" aria-label="${t("Listede ara")}" value="${esc(state.listSearch)}"></label></div>
-      ${state.comparing ? `<section class="comparison-panel"><div><span class="eyebrow">${t("ÖNCEKİ → SON GÖZLEM")}</span><h2>${t("Listendeki küçük farklar")}</h2><p>${t("26 Ekim, 16:40 → 27 Ekim, 16:42")}</p></div><div class="comparison-stat"><strong>+${added}</strong><span>${t("Yeni görülen")}</span></div><div class="comparison-stat removed"><strong>${removed}</strong><span>${t("Son kayıtta görünmeyen")}</span></div><p class="comparison-note">${t("{0} Seçilen yöndeki örnek listeler karşılaştırılıyor. Görünmemek, kesin takipten çıkış anlamına gelmez.", icon("info"))}</p></section>` : ""}
-      <section class="list-card card"><div class="list-table-head"><span>${t("Hesap")}</span><span>${t("Profil kaydı")}</span><span>${t("Son gözlem")}</span><span></span><span></span></div><div id="list-rows">${listRows()}</div><div class="list-table-footer"><span id="list-result-count">${t("{0} örnek hesap gösteriliyor", listPeople().length)}</span><span>${t("Arama yeni istek göndermez")}</span></div></section>`;
+      ${state.comparing ? `<section class="comparison-panel"><div><span class="eyebrow">${t("ÖNCEKİ → YENİ KONTROL")}</span><h2>${t("Listendeki küçük farklar")}</h2><p>${t("26 Ekim, 16:40 → 27 Ekim, 16:42")}</p></div><div class="comparison-stat"><strong>+${added}</strong><span>${t("Yeni görülen hesaplar")}</span></div><div class="comparison-stat removed"><strong>${removed}</strong><span>${t("Son kontrolde görünmeyenler")}</span></div><p class="comparison-note">${t("{0} Seçilen yöndeki örnek listeler karşılaştırılıyor. Görünmemek, kesin takipten çıkış anlamına gelmez.", icon("info"))}</p></section>` : ""}
+      <section class="list-card card"><div class="list-table-head"><span>${t("Hesap")}</span><span>${t("Profil kaydı")}</span><span>${t("Son kontrol")}</span><span></span><span></span></div><div id="list-rows">${listRows()}</div><div class="list-table-footer"><span id="list-result-count">${t("{0} örnek hesap gösteriliyor", listPeople().length)}</span><span>${t("Arama yeni istek göndermez")}</span></div></section>`;
   }
   function timeline() {
     const filtered = events.filter(
       (e) => state.eventType === "all" || e.type === state.eventType,
     );
-    return `${title(t("GÖZLEM GEÇMİŞİ"), t("Değişimlerin izini sür."), t("Neyin ne zaman gözlendiğini, hangi kayıtların karşılaştırıldığını gör."), button(t("Kayıt kapsamı"), "scope", "calendar"))}
+    return `${title(t("KONTROL GEÇMİŞİ"), t("Değişimlerin izini sür."), t("Neyin ne zaman kontrol edildiğini ve nelerin değiştiğini gör."), button(t("Neler kontrol edildi?"), "scope", "calendar"))}
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Geçmiş filtresi")}">${[
-        ["all", t("Tüm gözlemler")],
+        ["all", t("Tüm kontroller")],
         ["profile", t("Profil değişiklikleri")],
         ["lists", t("Liste karşılaştırmaları")],
       ]
@@ -480,7 +480,7 @@
         })
         .join(
           "",
-        )}</section><aside class="timeline-explainer"><span class="outline-orbit">${icon("clock")}</span><h2>${t("Bir anı değil,")}<br>${t("bir gözlemi kaydediyoruz.")}</h2><p>${t("Buradaki zamanlar kayıtların alındığı anlardır. Değişikliğin Instagram’da gerçekleştiği kesin zamanı göstermez.")}</p><button class="text-button" data-action="scope">${t("Daha fazla bilgi {0}", icon("arrow"))}</button></aside></div>`;
+        )}</section><aside class="timeline-explainer"><span class="outline-orbit">${icon("clock")}</span><h2>${t("Bir anı değil,")}<br>${t("bir kontrol sonucunu kaydediyoruz.")}</h2><p>${t("Buradaki zamanlar kayıtların alındığı anlardır. Değişikliğin Instagram’da gerçekleştiği kesin zamanı göstermez.")}</p><button class="text-button" data-action="scope">${t("Daha fazla bilgi {0}", icon("arrow"))}</button></aside></div>`;
   }
   function settings() {
     return `${title(t("SANA GÖRE"), t("Küçük ayarlar, daha rahat bir deneyim."), t("Görünümü düzenle ve bu önizlemenin kapsamını incele."))}
@@ -526,7 +526,7 @@
     const p = person(id);
     if (!p) return;
     dialog(
-      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${t("Örnek profil kaydı")}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio)}</p><div class="drawer-counts"><div><strong>${number(p.followers)}</strong><span>${t("takipçi")}</span></div><div><strong>${number(p.following)}</strong><span>${t("takip edilen")}</span></div></div><div class="drawer-actions">${button(p.favorite ? t("Favorilerinde") : t("Favorilere ekle"), "drawer-star", "star", p.favorite ? "primary" : "secondary", `data-id="${p.id}"`)}${button(t("Gözlem kapsamı"), "scope", "info")}</div><section class="drawer-section"><h3>${t("Son kontrol durumu")}</h3><div class="detail-pair"><span>${t("Son profil gözlemi")}</span><strong>${t("Bugün, 16:42")}</strong></div><div class="detail-pair"><span>${t("Veri kapsamı")}</span><strong>${t("Örnek profil ve liste")}</strong></div><div class="detail-pair"><span>${t("Şu anki durum")}</span><span class="badge mint">${t("Örnek kayıt")}</span></div></section><section class="drawer-section"><div class="section-heading"><h3>${t("Sana özel not")}</h3>${icon("note")}</div><label class="visually-hidden" for="person-note">${t("{0} için örnek not", esc(p.name))}</label><textarea id="person-note" maxlength="500" rows="4" placeholder="${t("Bu örnek kişiyle ilgili bir not bırak…")}">${esc(p.note || "")}</textarea><p class="field-hint">${t("Yalnız bu önizleme oturumunda tutulur.")}</p>${button(t("Notu kaydet"), "save-note", "check", "secondary", `data-id="${p.id}"`)}</section>`,
+      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${t("Örnek profil kaydı")}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio)}</p><div class="drawer-counts"><div><strong>${number(p.followers)}</strong><span>${t("takipçi")}</span></div><div><strong>${number(p.following)}</strong><span>${t("takip edilen")}</span></div></div><div class="drawer-actions">${button(p.favorite ? t("Favorilerinde") : t("Favorilere ekle"), "drawer-star", "star", p.favorite ? "primary" : "secondary", `data-id="${p.id}"`)}${button(t("Neler kontrol edildi?"), "scope", "info")}</div><section class="drawer-section"><h3>${t("Son kontrol durumu")}</h3><div class="detail-pair"><span>${t("Son profil kontrolü")}</span><strong>${t("Bugün, 16:42")}</strong></div><div class="detail-pair"><span>${t("Kontrol edilenler")}</span><strong>${t("Örnek profil ve liste")}</strong></div><div class="detail-pair"><span>${t("Şu anki durum")}</span><span class="badge mint">${t("Örnek kayıt")}</span></div></section><section class="drawer-section"><div class="section-heading"><h3>${t("Sana özel not")}</h3>${icon("note")}</div><label class="visually-hidden" for="person-note">${t("{0} için örnek not", esc(p.name))}</label><textarea id="person-note" maxlength="500" rows="4" placeholder="${t("Bu örnek kişiyle ilgili bir not bırak…")}">${esc(p.note || "")}</textarea><p class="field-hint">${t("Yalnız bu önizleme oturumunda tutulur.")}</p>${button(t("Notu kaydet"), "save-note", "check", "secondary", `data-id="${p.id}"`)}</section>`,
       false,
       true,
     );
@@ -701,7 +701,7 @@
         break;
       case "history":
         dialog(
-          `<span class="dialog-symbol lavender">${icon("chart")}</span><h2 id="dialog-title">${t("Örnek gözlem kayıtları")}</h2><p>${t("Gerçek hesap verisi değildir. Grafikteki sayılar bu kayıtlardan oluşur.")}</p><div class="history-records">${history
+          `<span class="dialog-symbol lavender">${icon("chart")}</span><h2 id="dialog-title">${t("Örnek kontrol kayıtları")}</h2><p>${t("Gerçek hesap verisi değildir. Grafikteki sayılar bu kayıtlardan oluşur.")}</p><div class="history-records">${history
             .map(
               (count, index) =>
                 `<div><span>${t("{0} Ekim 2026", 16 + index)}</span><strong>${t("{0} takipçi", number(count))}</strong></div>`,

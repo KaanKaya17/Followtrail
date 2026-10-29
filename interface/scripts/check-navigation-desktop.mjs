@@ -101,7 +101,7 @@ try {
  checks.push('The connected first-person guide opens the existing add form without submitting a request');
  await app.close();app=null;
  await launch(['--keyboard','--hold']);await page.locator('#main').focus();await page.keyboard.press('Control+r');
- await page.getByText('Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.',{exact:true}).waitFor();assert.deepEqual(await refreshes(),[]);
+ await page.getByText('Kontroller için mola sürüyor. Yeniden deneme saatini İstek bilgileri bölümünden görebilirsin.',{exact:true}).waitFor();assert.deepEqual(await refreshes(),[]);
  assert.equal((await state()).state.gate.attempts,2);checks.push('An active cooldown blocks shortcut refresh before IPC');await app.close();app=null;
  await launch(['--empty']);await route('2','people');await page.getByRole('heading',{name:'Henüz profil kaydetmedin.',exact:true}).waitFor();
  assert.equal(await page.getByRole('button',{name:'Takipçi listemi aç',exact:true}).isDisabled(),true);
