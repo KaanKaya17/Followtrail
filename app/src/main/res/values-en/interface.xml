@@ -3,7 +3,7 @@
     <string name="ui_refresh_person">"Refresh person"</string>
     <string name="ui_add_person">Add profile</string>
     <string name="ui_view_lists">Open follow lists</string>
-    <string name="ui_your_social_circle_together">Saved observations, together.</string>
+    <string name="ui_your_social_circle_together">Your recent checks in one place.</string>
     <string name="ui_options">"Options"</string>
     <string name="ui_demo_sample_data">"DEMO · SAMPLE DATA"</string>
     <string name="ui_offline_demo_sample_data_no_instagram_requests">"Offline demo. Sample data; no Instagram requests."</string>
@@ -14,7 +14,7 @@
     <string name="ui_you_are_viewing_offline">"You are viewing offline"</string>
     <string name="ui_showing_records_on_this_device_an_internet">"Showing records on this device. An internet connection is needed for new data."</string>
     <string name="ui_your_account_nat_a_glance">"Your account,\nat a glance."</string>
-    <string name="ui_your_followers_and_following_in_one_place">Save profile and list observations, then compare changes over time.</string>
+    <string name="ui_your_followers_and_following_in_one_place">Check your profile and follow lists, and see changes over time.</string>
     <string name="ui_updating">"  Updating…"</string>
     <string name="ui_reconnect_account">"Reconnect account"</string>
     <string name="ui_complete_connection">"Complete connection"</string>
@@ -85,7 +85,7 @@
     <string name="ui_profile_analysis">"PROFILE ANALYSIS"</string>
     <string name="ui_compared_with_the_previous_record">"Compared with the previous record"</string>
     <string name="ui_no_comparison_yet">"No comparison yet."</string>
-    <string name="ui_observation_history">"Observation history"</string>
+    <string name="ui_observation_history">Check history</string>
     <string name="ui_7_days">"7 days"</string>
     <string name="ui_30_days">"30 days"</string>
     <string name="ui_all">"All"</string>
@@ -93,7 +93,7 @@
     <string name="ui_view_records">"View records"</string>
     <string name="ui_n_followers_following">"@%1$s · %2$s\n%3$s followers · %4$s following"</string>
     <string name="ui_recent_records">"Recent records"</string>
-    <string name="ui_no_records_in_this_date_range_choose">"No records in this date range. Choose All to view earlier observations."</string>
+    <string name="ui_no_records_in_this_date_range_choose">No checks in this date range. Choose All to see previous checks.</string>
     <string name="ui_your_private_note">"Your private note"</string>
     <string name="ui_edit_note_and_group">"Edit note and group"</string>
     <string name="ui_remove_person">"Remove person"</string>
@@ -105,8 +105,8 @@
     <string name="ui_load_profile">"Load profile"</string>
     <string name="ui_enter_a_valid_username_or_instagram_profile">"Enter a valid username or Instagram profile link."</string>
     <string name="ui_reconnect_your_account_first">"Reconnect your account first."</string>
-    <string name="ui_a_new_observation_was_saved_on_this">"A new observation was saved on this device."</string>
-    <string name="ui_could_not_save_the_observation_previous_records">"Could not save the observation. Previous records are preserved."</string>
+    <string name="ui_a_new_observation_was_saved_on_this">Profile checked and saved.</string>
+    <string name="ui_could_not_save_the_observation_previous_records">Could not save the check result. Previous records are preserved.</string>
     <string name="ui_the_response_did_not_match_the_requested">"The response did not match the requested profile. The record was not changed."</string>
     <string name="ui_could_not_save_people_previous_records_are">Could not save profiles. Previous records are preserved.</string>
     <string name="ui_group_optional">"Group (optional)"</string>
@@ -119,7 +119,7 @@
     <string name="ui_notification_permission_or_the_channel_is_off">"Notification permission or the channel is off. Allow notifications in system settings, then enable monitoring again."</string>
     <string name="ui_monitoring_enabled_android_scheduling_may_delay_checks">"Monitoring enabled. Android scheduling may delay checks."</string>
     <string name="ui_background_monitoring_disabled_for_this_person">"Background monitoring disabled for this person."</string>
-    <string name="ui_local_cooldown">"Local cooldown · %1$s"</string>
+    <string name="ui_local_cooldown">Checks paused · %1$s</string>
     <string name="ui_automatic_retries_are_off_refresh_when_you">"Automatic retries are off. Refresh when you are ready."</string>
     <string name="ui_privacy_in_plain_language">"Privacy, in plain language"</string>
     <string name="ui_web_sign_in_uses_instagram_s_own">"Phone sign-in processes your password in memory on this device; it is not written to files or logs. Verification codes are not saved. A successful session is encrypted on the device. This is not an official Instagram permission screen. Computer transfer and the previous web sign-in remain separate options.\n\n"</string>
@@ -176,7 +176,7 @@
     <string name="ui_more_available">"more available"</string>
     <string name="ui_list_end_observed">"list end observed"</string>
     <string name="ui_read_limited">"read limited"</string>
-    <string name="ui_record_coverage">"Record coverage"</string>
+    <string name="ui_record_coverage">What was checked?</string>
     <string name="ui_newly_seen_n">"Newly seen:\n"</string>
     <string name="ui_n_nmissing_from_this_read_n">"\n\nMissing from this read:\n"</string>
     <string name="ui_1_prepare">"1 · Prepare"</string>
@@ -206,13 +206,13 @@
     <string name="ui_ending_the_experiment_clearing_browser_data">"Ending the experiment; clearing browser data."</string>
     <string name="ui_the_app_went_into_the_background_the">"The app went into the background; the experiment was cancelled."</string>
     <string name="ui_profile_changes">"Profile changes"</string>
-    <string name="ui_profile_changes_and_observed_differences_between_previous">"Profile changes and observed differences between previous and current list reads."</string>
+    <string name="ui_profile_changes_and_observed_differences_between_previous">See changes in your profile and follow lists.</string>
     <string name="ui_notification_count_changes">"Followers %1$s · Following %2$s"</string>
     <string name="ui_demo_a_sample_profile_changed">"Demo: a sample profile changed."</string>
     <string name="ui_a_change_was_observed_in_a_profile">"A change was observed in a profile you watch."</string>
     <string name="ui_profile_change">"%1$s@%2$s · profile change"</string>
     <string name="ui_posts">"Posts · %1$d"</string>
-    <string name="ui_history_chart_horizontal_axis_observation_time_vertical">" history chart. Horizontal axis: observation time; vertical axis: account count. "</string>
+    <string name="ui_history_chart_horizontal_axis_observation_time_vertical"> history chart. The horizontal axis shows check times, and the vertical axis shows account counts. </string>
     <string name="ui_account_count">"Account count"</string>
     <string name="ui_the_queued_action_was_stopped_check_the">"The queued action was stopped. Check the current cooldown and connection status."</string>
     <plurals name="ui_starting_in_seconds"><item quantity="one">"Starting in %1$d second"</item><item quantity="other">"Starting in %1$d seconds"</item></plurals>
@@ -223,7 +223,7 @@
     <string name="ui_the_device_storage_limit_for_this_read">"The device storage limit for this read was reached. Previous records are preserved; the new read could not be saved."</string>
     <string name="ui_your_connection_has_expired_reconnect_your_account">"Your connection has expired. Reconnect your account."</string>
     <string name="ui_instagram_requires_additional_verification_reconnect_to_complete">"Instagram requires additional verification. Reconnect to complete it."</string>
-    <string name="ui_instagram_is_currently_limiting_refreshes_try_again">"Instagram is currently limiting refreshes. Try again later."</string>
+    <string name="ui_instagram_is_currently_limiting_refreshes_try_again">Instagram limited requests. Checks are temporarily paused. See Request information for when to try again.</string>
     <string name="ui_wait_a_few_seconds_before_another_request">"Wait a few seconds before another request. You do not need to sign in again."</string>
     <string name="ui_could_not_connect_check_your_internet_connection">"Could not connect. Check your internet connection and try again."</string>
     <string name="ui_the_action_was_cancelled_no_automatic_retry">"The action was cancelled. No automatic retry was made."</string>

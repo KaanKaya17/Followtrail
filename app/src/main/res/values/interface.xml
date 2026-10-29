@@ -3,7 +3,7 @@
     <string name="ui_refresh_person">"Kişiyi yenile"</string>
     <string name="ui_add_person">Profil ekle</string>
     <string name="ui_view_lists">Takip listelerini aç</string>
-    <string name="ui_your_social_circle_together">Kayıtlı gözlemler, bir arada.</string>
+    <string name="ui_your_social_circle_together">Son kontrollerin, bir arada.</string>
     <string name="ui_options">"Seçenekler"</string>
     <string name="ui_demo_sample_data">"DEMO · ÖRNEK VERİ"</string>
     <string name="ui_offline_demo_sample_data_no_instagram_requests">"Çevrimdışı demo. Veriler örnektir; Instagram isteği yok."</string>
@@ -14,7 +14,7 @@
     <string name="ui_you_are_viewing_offline">"Çevrimdışı görüntülüyorsun"</string>
     <string name="ui_showing_records_on_this_device_an_internet">"Cihazdaki kayıtlar gösteriliyor. Yeni veri almak için internet bağlantısı gerekir."</string>
     <string name="ui_your_account_nat_a_glance">"Hesabın,\nbir bakışta."</string>
-    <string name="ui_your_followers_and_following_in_one_place">Profil ve liste gözlemlerini kaydet, zaman içindeki farkları karşılaştır.</string>
+    <string name="ui_your_followers_and_following_in_one_place">Profilini ve takip listelerini kontrol et, zaman içindeki değişiklikleri gör.</string>
     <string name="ui_updating">"  Güncelleniyor…"</string>
     <string name="ui_reconnect_account">"Bağlantıyı yenile"</string>
     <string name="ui_complete_connection">"Bağlantıyı tamamla"</string>
@@ -85,7 +85,7 @@
     <string name="ui_profile_analysis">"PROFİL ANALİZİ"</string>
     <string name="ui_compared_with_the_previous_record">"Son kayda göre"</string>
     <string name="ui_no_comparison_yet">"Henüz karşılaştırma yok."</string>
-    <string name="ui_observation_history">"Gözlem geçmişi"</string>
+    <string name="ui_observation_history">Kontrol geçmişi</string>
     <string name="ui_7_days">"7 gün"</string>
     <string name="ui_30_days">"30 gün"</string>
     <string name="ui_all">"Tümü"</string>
@@ -93,7 +93,7 @@
     <string name="ui_view_records">"Kayıtları gör"</string>
     <string name="ui_n_followers_following">"@%1$s · %2$s\n%3$s takipçi · %4$s takip edilen"</string>
     <string name="ui_recent_records">"Son kayıtlar"</string>
-    <string name="ui_no_records_in_this_date_range_choose">"Bu tarih aralığında kayıt yok. Tümü ile önceki gözlemleri görebilirsin."</string>
+    <string name="ui_no_records_in_this_date_range_choose">Bu tarih aralığında kontrol yok. Önceki kontrolleri görmek için Tümü seçeneğini kullan.</string>
     <string name="ui_your_private_note">"Özel notun"</string>
     <string name="ui_edit_note_and_group">"Not ve grup düzenle"</string>
     <string name="ui_remove_person">"Kişiyi kaldır"</string>
@@ -105,8 +105,8 @@
     <string name="ui_load_profile">"Profili getir"</string>
     <string name="ui_enter_a_valid_username_or_instagram_profile">"Geçerli bir kullanıcı adı veya Instagram profil bağlantısı gir."</string>
     <string name="ui_reconnect_your_account_first">"Önce hesabını yeniden bağla."</string>
-    <string name="ui_a_new_observation_was_saved_on_this">"Yeni gözlem bu cihazda kaydedildi."</string>
-    <string name="ui_could_not_save_the_observation_previous_records">"Gözlem kaydedilemedi. Önceki kayıtlar korunuyor."</string>
+    <string name="ui_a_new_observation_was_saved_on_this">Profil kontrol edildi ve kaydedildi.</string>
+    <string name="ui_could_not_save_the_observation_previous_records">Kontrol sonucu kaydedilemedi. Önceki kayıtlar korunuyor.</string>
     <string name="ui_the_response_did_not_match_the_requested">"Yanıt istenen profille eşleşmedi. Kayıt değiştirilmedi."</string>
     <string name="ui_could_not_save_people_previous_records_are">Kaydedilen profiller saklanamadı. Önceki kayıtlar korunuyor.</string>
     <string name="ui_group_optional">"Grup (isteğe bağlı)"</string>
@@ -119,7 +119,7 @@
     <string name="ui_notification_permission_or_the_channel_is_off">"Bildirim izni veya kanalı kapalı. Sistem ayarlarından izin verip izlemeyi yeniden açabilirsin."</string>
     <string name="ui_monitoring_enabled_android_scheduling_may_delay_checks">"İzleme açıldı. Kontroller Android\'in planlamasına göre gecikebilir."</string>
     <string name="ui_background_monitoring_disabled_for_this_person">"Bu kişide arka plan izleme kapatıldı."</string>
-    <string name="ui_local_cooldown">"Yerel mola · %1$s"</string>
+    <string name="ui_local_cooldown">Kontroller için mola · %1$s</string>
     <string name="ui_automatic_retries_are_off_refresh_when_you">"Otomatik deneme kapalı. Hazır olduğunda yenileyebilirsin."</string>
     <string name="ui_privacy_in_plain_language">"Gizlilik, sade haliyle"</string>
     <string name="ui_web_sign_in_uses_instagram_s_own">"Telefondan bağlan seçeneğinde parolan giriş sırasında bu cihazın belleğinde işlenir; dosyaya veya loga yazılmaz. Doğrulama kodu kaydedilmez. Başarılı oturum cihazda şifrelenir. Bu resmî Instagram izin ekranı değildir. Bilgisayardan aktarım ve önceki web girişi ayrı seçeneklerdir.\n\n"</string>
@@ -176,7 +176,7 @@
     <string name="ui_more_available">"devamı var"</string>
     <string name="ui_list_end_observed">"liste sonu görüldü"</string>
     <string name="ui_read_limited">"okuma sınırlı"</string>
-    <string name="ui_record_coverage">"Kaydın kapsamı"</string>
+    <string name="ui_record_coverage">Neler kontrol edildi?</string>
     <string name="ui_newly_seen_n">"Yeni görülenler:\n"</string>
     <string name="ui_n_nmissing_from_this_read_n">"\n\nBu okumada görünmeyenler:\n"</string>
     <string name="ui_1_prepare">"1 · Hazırla"</string>
@@ -206,13 +206,13 @@
     <string name="ui_ending_the_experiment_clearing_browser_data">"Deneme bitiriliyor; tarayıcı verileri temizleniyor."</string>
     <string name="ui_the_app_went_into_the_background_the">"Uygulama arka plana geçti; deneme iptal edildi."</string>
     <string name="ui_profile_changes">"Profil değişiklikleri"</string>
-    <string name="ui_profile_changes_and_observed_differences_between_previous">"Profil değişiklikleri ve önceki/güncel liste okumaları arasındaki gözlemlenen farklar."</string>
+    <string name="ui_profile_changes_and_observed_differences_between_previous">Profilindeki ve takip listelerindeki değişiklikleri gör.</string>
     <string name="ui_notification_count_changes">"Takipçi %1$s · Takip edilen %2$s"</string>
     <string name="ui_demo_a_sample_profile_changed">"Demo: örnek profilde değişiklik."</string>
     <string name="ui_a_change_was_observed_in_a_profile">"İzlediğin bir profilde değişiklik gözlendi."</string>
     <string name="ui_profile_change">"%1$s@%2$s · profil değişikliği"</string>
     <string name="ui_posts">"Gönderi · %1$d"</string>
-    <string name="ui_history_chart_horizontal_axis_observation_time_vertical">" geçmiş grafiği. Yatay eksen gözlem zamanı, dikey eksen kişi sayısı. "</string>
+    <string name="ui_history_chart_horizontal_axis_observation_time_vertical"> geçmiş grafiği. Yatay eksen kontrol zamanı, dikey eksen hesap sayısı. </string>
     <string name="ui_account_count">"Kişi sayısı"</string>
     <string name="ui_the_queued_action_was_stopped_check_the">"Bekleyen işlem durduruldu. Mevcut mola ve bağlantı durumunu kontrol edebilirsin."</string>
     <plurals name="ui_starting_in_seconds"><item quantity="other">"%1$d saniye sonra başlayacak"</item></plurals>
@@ -223,7 +223,7 @@
     <string name="ui_the_device_storage_limit_for_this_read">"Bu okuma için cihaz kayıt sınırına ulaşıldı. Önceki kayıtlar korundu; yeni okuma kaydedilemedi."</string>
     <string name="ui_your_connection_has_expired_reconnect_your_account">"Bağlantının süresi dolmuş. Hesabını yeniden bağla."</string>
     <string name="ui_instagram_requires_additional_verification_reconnect_to_complete">"Instagram ek doğrulama istiyor. Bağlantıyı yenileyerek tamamlayabilirsin."</string>
-    <string name="ui_instagram_is_currently_limiting_refreshes_try_again">"Instagram şu anda yenilemeyi sınırlıyor. Biraz sonra tekrar dene."</string>
+    <string name="ui_instagram_is_currently_limiting_refreshes_try_again">Instagram istekleri sınırladı. Kontroller geçici olarak duraklatıldı. Yeniden deneme saatini İstek bilgileri bölümünden görebilirsin.</string>
     <string name="ui_wait_a_few_seconds_before_another_request">"Yeni bir istek için birkaç saniye bekle. Tekrar giriş yapmana gerek yok."</string>
     <string name="ui_could_not_connect_check_your_internet_connection">"Bağlantı kurulamadı. İnternetini kontrol edip yeniden dene."</string>
     <string name="ui_the_action_was_cancelled_no_automatic_retry">"İşlem iptal edildi. Otomatik tekrar yapılmadı."</string>

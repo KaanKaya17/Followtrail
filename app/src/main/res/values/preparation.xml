@@ -13,8 +13,8 @@
     <string name="preparation_held">Instagram molası veya doğrulama sürüyor. Yeni istek gönderilmez; İstek bilgilerini incele.</string>
     <string name="preparation_daily">Sayı değişikliklerinde ve günlük kontrol hedefinde yeni tarama sıraya alınır.</string>
     <string name="preparation_reading">Liste sayfası okunuyor…</string>
-    <string name="preparation_seconds">Sonraki istek %1$d saniye sonra.</string>
-    <string name="preparation_background">Hazırlık otomatik ilerler. Android arka plan kısıtları ve istek bütçesi gecikme yaratabilir.</string>
+    <string name="preparation_seconds">Kısa mola · %1$d saniye sonra devam edecek</string>
+    <string name="preparation_background">Hazırlık otomatik ilerler. Telefonunun arka plan ayarları ve diğer kontroller nedeniyle daha uzun sürebilir.</string>
     <string name="preparation_pause">Liste taramalarını duraklat</string>
     <string name="preparation_resume">Hazırlığa devam et</string>
 </resources>

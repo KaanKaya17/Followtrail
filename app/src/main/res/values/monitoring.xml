@@ -9,7 +9,7 @@
     <string name="timeline_title">Zaman çizelgesi</string>
     <string name="timeline_menu">İşlem geçmişi</string>
     <string name="timeline_subtitle">Neyin ne zaman okunduğu ve karşılaştırıldığı.</string>
-    <string name="timeline_empty">Bu sürümden sonra yapılan kontroller burada görünecek. Önceki profil gözlemleri analiz ekranında korunur.</string>
+    <string name="timeline_empty">Yeni kontrollerin burada görünecek. Önceki profil kayıtlarına analiz ekranından ulaşabilirsin.</string>
     <string name="timeline_scope">Son 120 kayıt bu cihazda şifrelenir. Saatler cihazın okuma ve karşılaştırma saatidir; Instagram’daki kesin olay saati değildir. Eski kayıtlarda tutulmayan saatler bilinmiyor olarak gösterilir.</string>
     <string name="timeline_filter">Hesap seç</string>
     <string name="timeline_all">Bütün hesaplar</string>
@@ -18,10 +18,10 @@
     <string name="timeline_received">Veri alındı: %1$s</string>
     <string name="timeline_analyzed">Karşılaştırma kaydedildi: %1$s</string>
     <string name="timeline_failed_at">İşlem sonlandı: %1$s</string>
-    <string name="timeline_previous">Önceki gözlem: %1$s</string>
-    <string name="timeline_window">Bu fark önceki ve yeni gözlem arasında görüldü. Kesin değişim saati bilinmiyor.</string>
+    <string name="timeline_previous">Önceki kontrol: %1$s</string>
+    <string name="timeline_window">Bu değişiklik iki kontrol arasında görüldü. Tam olarak ne zaman olduğu bilinmiyor.</string>
     <string name="timeline_profile_initial">İlk profil kaydı</string>
-    <string name="timeline_profile_unchanged">Profil kontrolü · Karşılaştırılabilir değişiklik yok</string>
+    <string name="timeline_profile_unchanged">Profil kontrol edildi · Değişiklik yok</string>
     <string name="timeline_profile_changed">Profil değişikliği görüldü</string>
     <string name="timeline_counts">Takipçi farkı: %1$s · Takip edilen farkı: %2$s</string>
     <string name="timeline_list">%1$s · Liste okundu</string>
@@ -30,7 +30,7 @@
     <string name="timeline_failure">Kontrol tamamlanamadı</string>
     <string name="timeline_observed">Görüldü · %1$s</string>
     <string name="timeline_saved">İşlendi · %1$s</string>
-    <string name="timeline_profile_last">Son profil gözlemi · %1$s</string>
+    <string name="timeline_profile_last">Son profil kontrolü · %1$s</string>
     <string name="timeline_open_profile">Profili aç</string>
     <string name="timeline_unavailable">İşlem geçmişi açılamadı. Profil ve liste kayıtları ayrı tutulur.</string>
     <string name="timeline_write_failed">Son işlem geçmişe yazılamadı; profil ve liste kayıtlarını ayrıca kontrol edebilirsin.</string>

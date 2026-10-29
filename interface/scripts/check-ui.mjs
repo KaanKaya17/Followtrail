@@ -59,7 +59,7 @@ try {
     ),
   );
   await page
-    .getByRole("button", { name: "Gözlemi yenile", exact: true })
+    .getByRole("button", { name: "Şimdi kontrol et", exact: true })
     .click();
   check(
     "refresh explicitly reports no live request",
@@ -127,7 +127,7 @@ try {
     (await page.locator(".list-row").count()) === 6,
   );
   await page
-    .getByRole("button", { name: "Gözlemleri karşılaştır", exact: true })
+    .getByRole("button", { name: "Kontrolleri karşılaştır", exact: true })
     .click();
   check(
     "comparison follows selected list direction",
@@ -165,7 +165,7 @@ try {
   );
   await page.getByRole("button", { name: "Anladım", exact: true }).click();
   await page
-    .getByRole("button", { name: "Tüm gözlemler", exact: true })
+    .getByRole("button", { name: "Tüm kontroller", exact: true })
     .click();
   await page.screenshot({
     path: path.join(output, "web-timeline-desktop.png"),

@@ -91,15 +91,15 @@ class ProfileStatusFlowTest {
     @Test fun ownAndPeopleSummariesSeparateSuccessfulProfileTimeFromPendingListPages() {
         val before = vault.read(); val archive = lists.archive(before!!.session)
         launch(); click("Kaydedilen Profiller")
-        val label = await("Profil ve alınan liste sayfaları · Kısmi", "200")
-        assertEquals(3, label.text.lines().size); assertTrue(label.text.contains("Veri kapsamı")); assertTrue(label.text.contains("Şu anki durum")); assertTrue(label.text.contains("4 dakika önce")); assertTrue(label.text.contains("Otomatik kontrol planlandı"))
+        val label = await("Profil kontrol edildi · Listeler henüz tamamlanmadı", "200")
+        assertEquals(3, label.text.lines().size); assertTrue(label.text.contains("Kontrol edilenler")); assertTrue(label.text.contains("Şu anki durum")); assertTrue(label.text.contains("4 dakika önce")); assertTrue(label.text.contains("Otomatik kontrol planlandı"))
         await("Otomatik kontrol kapalı", "201")
-        click("Analizi aç · @deniz.demo"); await("Profil ve alınan liste sayfaları · Kısmi", "200")
+        click("Analizi aç · @deniz.demo"); await("Profil kontrol edildi · Listeler henüz tamamlanmadı", "200")
         scenario!!.onActivity { activity -> views(activity.window.decorView).single { it.tag == "profile-status:200" }.performClick() }
         instrumentation.waitForIdleSync()
         val body = awaitDialog("Son başarılı profil okuması")
         assertTrue(body.take(1200), body.contains("Takip edilenler · Henüz kayıt yok"))
-        assertTrue(body.contains("Liste devamı bekliyor"))
+        assertTrue(body.contains("Listeler henüz tamamlanmadı"))
         assertTrue(body.contains("ek Instagram isteği göndermez"))
         assertEquals(0L, gate.attempts()); assertEquals(before, vault.read()); assertEquals(archive, lists.archive(before.session))
     }
@@ -107,9 +107,9 @@ class ProfileStatusFlowTest {
         val saved = vault.read()!!; val p = saved.people.first().latest
         vault.record(saved.session, CheckEvent(p.userId, p.username, CheckKind.PROFILE, p.observedAt,
             p.observedAt, p.observedAt, p.observedAt - 60_000, 0, 0))
-        launch(); click("Kaydedilen Profiller"); await("Son profil karşılaştırmasında fark yok", "200")
+        launch(); click("Kaydedilen Profiller"); await("Son kontrolde profil değişikliği yok", "200")
         gate.limited(null); val pause = gate.blockedUntil()
-        scenario!!.recreate(); await("Instagram molası", "200")
+        scenario!!.recreate(); await("Instagram istekleri sınırladı", "200")
         assertEquals(pause, gate.blockedUntil()); assertEquals(0L, gate.attempts()); assertEquals(saved, vault.read())
     }
     @Test fun visibleLocalRefreshUpdatesTheSameLabelWithoutAnotherReadOrRebuildingTheScreen() {
@@ -127,7 +127,7 @@ class ProfileStatusFlowTest {
         instrumentation.runOnMainSync { AppLanguage.set(context, "en") }; instrumentation.waitForIdleSync()
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).putExtra("offline_preview", true))
         await("Automatic checks off", "100"); PreviewMode.cancel(context); click("Saved Profiles")
-        await("Last check did not finish", "200"); await("Profile and received list pages · Partial", "200")
+        await("Last check did not finish", "200"); await("Profile checked · Lists not finished yet", "200")
         assertEquals(saved, vault.read()); assertEquals(0L, gate.attempts()); assertFalse(gate.manualOnly())
     }
     @Test fun aNewProfileCountQueuesItsCompletedListWithoutClaimingAReadIsRunning() {
@@ -136,12 +136,12 @@ class ProfileStatusFlowTest {
         for (direction in FollowDirection.entries) lists.commitCurrent(saved.session, FollowPage("200", direction, null,
             emptyList(), FollowField(true, null), FollowField(true, false), FollowField(true, false),
             FollowField(false, null), p.observedAt + 1000), null, ListBasis.of(p, direction))
-        launch(); click("Kaydedilen Profiller"); await("İki liste sonu da gözlendi", "200")
+        launch(); click("Kaydedilen Profiller"); await(AppLanguage.wrap(context).getString(R.string.scope_two_ends), "200")
         vault.update(saved.session) { current -> current.copy(people = current.people.map { person ->
             if (person.latest.userId != "200") person else person.copy(history = person.history +
                 person.latest.copy(observedAt = System.currentTimeMillis(), followers = p.followers + 1))
         }) }
-        scenario!!.recreate(); await("İki liste sonu da gözlendi", "200")
+        scenario!!.recreate(); await(AppLanguage.wrap(context).getString(R.string.scope_two_ends), "200")
         scenario!!.onActivity { activity -> views(activity.window.decorView).single { it.tag == "profile-status:200" }.performClick() }
         awaitDialog("Liste güncellemesi sırada")
         assertEquals(0L, gate.attempts())

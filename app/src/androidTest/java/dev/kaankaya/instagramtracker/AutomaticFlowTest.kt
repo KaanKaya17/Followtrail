@@ -94,7 +94,7 @@ class AutomaticFlowTest {
         await("List difference notifications were not delivered") { manager.activeNotifications.count { it.tag.startsWith("list:100:200:") } == 2 }
         val notification = manager.activeNotifications.single { it.tag == "list:100:200:followers" }.notification
         assertEquals(Notification.VISIBILITY_PRIVATE, notification.visibility)
-        assertTrue(notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("Yeni görülen: 2"))
+        assertTrue(notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("Yeni görülen hesaplar: 2"))
         assertFalse(notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("synthetic"))
         assertFalse(notification.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("friend"))
         assertTrue(vault.read()!!.people.single().favorite); assertEquals("note", vault.read()!!.people.single().note)

@@ -1,16 +1,16 @@
 <resources>
-    <string name="scope_line">Veri kapsamı · %1$s</string>
+    <string name="scope_line">Kontrol edilenler · %1$s</string>
     <string name="current_state_line">Şu anki durum · %1$s</string>
-    <string name="scope_profile_only">Profil kaydı var · Liste kaydı yok</string>
-    <string name="scope_two_ends">Profil · İki liste sonu da gözlendi</string>
-    <string name="scope_partial_lists">Profil ve alınan liste sayfaları · Kısmi</string>
+    <string name="scope_profile_only">Profil kontrol edildi · Listeler henüz okunmadı</string>
+    <string name="scope_two_ends">Profil ve iki listenin son sayfası kontrol edildi</string>
+    <string name="scope_partial_lists">Profil kontrol edildi · Listeler henüz tamamlanmadı</string>
     <string name="quick_visible_scope">60 saniye en erken kontrol hedefidir; her dakika sonuç garantisi değildir. Bu ana uygulama ekranı görünmezken hızlı kontrol duraklar. Geri dönünce kalan süreyle devam eder; 15 dakikalık oturum uzamaz.</string>
     <string name="quick_delayed">Kalan %1$s · Kontrol gecikti; ortak istek sırası bekleniyor</string>
     <string name="quick_due">Kalan %1$s · Kontrol hedefi geldi; başlatılması bekleniyor</string>
-    <string name="history_retention_scope">En fazla son %1$d başarılı gözlem saklanır; bu bir gün sayısı değildir. Sık kontrolde geçmiş daha kısa bir dönemi kapsar. Çizgi, kayıtlar arasındaki bütün hareketleri göstermez.</string>
+    <string name="history_retention_scope">Son %1$d başarılı kontrol saklanır. Kontrol sıklığına göre gösterilen dönem değişir. Kontroller arasındaki bütün hareketler bilinmez.</string>
     <string name="history_single_scope">Tek kayıt · %1$s\nHenüz karşılaştırılabilir zaman aralığı yok.</string>
     <string name="history_actual_scope">%1$d kayıt · Kayıtlı aralık: %2$d gün %3$d saat %4$d dakika\n%5$s → %6$s</string>
-    <string name="product_observation_scope">Kayıtlı profil ve liste gözlemlerini karşılaştır. Sonuçlar kesin takipten çıkış veya kesin olay zamanı değildir.</string>
+    <string name="product_observation_scope">Profil ve takip listelerindeki değişiklikleri gör. Kontroller, değişikliğin tam olarak ne zaman olduğunu veya kesin takipten çıkışı göstermez.</string>
     <string name="people_capacity_scope">En fazla %1$d kişi kaydedebilirsin. Profil geçmişi toplam 2 MiB ile sınırlıdır; dolarsa mevcut kayıt korunur. Daha çok kişi aynı anda daha çok istek göndermez; kontrol sırası uzayabilir.</string>
     <string name="people_more">Daha fazla kişi göster</string>
 </resources>

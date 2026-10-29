@@ -95,7 +95,7 @@ try {
  checks.push('Native minimize/restore also stops and resumes the single timer');
 
  await wait(1);const beforeZero=await counts();
- await page.locator('[data-wait-countdown]').getByText('İstek sırası hazırlanıyor…',{exact:true}).waitFor();
+ await page.locator('[data-wait-countdown]').getByText('Kontrole devam etmek için hazırlanıyor…',{exact:true}).waitFor();
  assert.equal(await timers(),0);assert.deepEqual(await counts(),beforeZero);
  await progress('request',{scan});
  await page.getByText('Sayfa 4 için Instagram yanıtı bekleniyor…',{exact:true}).waitFor();
@@ -122,9 +122,9 @@ try {
 
  const until=Date.now()/1000+3600;
  await progress('limited',{http:429,until,scan});
- await page.getByText('İstekler duraklatıldı',{exact:true}).waitFor();assert.equal(await timers(),0);
+ await page.getByText('Instagram istekleri sınırladı',{exact:true}).waitFor();assert.equal(await timers(),0);
  await result({blockedUntil:until,manualOnly:true,status:429});
- assert.match(await page.locator('#operation-root').innerText(),/Yeni deneme otomatik başlatılmaz/);
+ assert.match(await page.locator('#operation-root').innerText(),/Yeni deneme kendiliğinden başlamayacak/);
  assert.equal(await page.locator('#operation-root [data-action="cancel"]').count(),0);
  assert.equal(await page.locator('#operation-root progress').count(),0);
  await page.locator('#operation-root [data-action="requests"]').click();

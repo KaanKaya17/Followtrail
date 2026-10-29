@@ -61,7 +61,7 @@ class ScreenFlowTest {
         fun assertSaved() = scenario!!.onActivity { activity ->
             val labels = views(activity).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(labels.contains("@synthetic_only")); assertTrue(labels.contains("37")); assertTrue(labels.contains("12"))
-            assertTrue(labels.any { it.startsWith("Yerel mola ·") })
+            assertTrue(labels.any { it.startsWith("Kontroller için mola ·") })
             assertFalse(views(activity).filterIsInstance<Button>().single { it.text == "Yenile" }.isEnabled)
             assertTrue(views(activity).filterIsInstance<Button>().single { it.contentDescription == "Seçenekler" }.isEnabled)
             assertFalse(labels.contains("Bağlantıyı kaldır"))
