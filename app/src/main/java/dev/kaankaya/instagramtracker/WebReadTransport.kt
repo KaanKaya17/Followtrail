@@ -4,6 +4,16 @@ import okhttp3.Call
 import okhttp3.Request
 import org.json.JSONObject
 
+/** Metadata for this app's fixed-origin web protocol; never applied to mobile bindings or other hosts. */
+internal object WebRequestContext {
+    fun sameOrigin(request: Request): Request {
+        require(request.url.isHttps && request.url.host == "www.instagram.com" && request.url.port == 443 &&
+            request.url.username.isEmpty() && request.url.password.isEmpty())
+        return request.newBuilder().header("Sec-Fetch-Site", "same-origin")
+            .header("Sec-Fetch-Mode", "cors").header("Sec-Fetch-Dest", "empty").build()
+    }
+}
+
 /** First-party web protocol. Credentials can only be sent to the fixed www.instagram.com origin. */
 class WebReadTransport(gate: RequestGate, sessions: WebSessions,
     client: Call.Factory = PrivateReadTransport.client()) {
@@ -30,7 +40,7 @@ object WebRequests {
             .header("X-IG-App-ID", APP_ID).header("X-Requested-With", "XMLHttpRequest")
             .header("X-IG-WWW-Claim", state.claim).header("Referer", WebSessionCodec.origin.toString())
         state.cookies["csrftoken"]?.takeIf { it.isNotEmpty() }?.let { builder.header("X-CSRFToken", it) }
-        return builder.build()
+        return WebRequestContext.sameOrigin(builder.build())
     }
     fun profile(state: WebSession, id: String): Request {
         InstagramIdentity.id(id)

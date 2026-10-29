@@ -1414,8 +1414,11 @@ class MainActivity : LocalizedActivity() {
             if (web === browser) {
                 loginRelayIssue = true
                 if (problem.kind == ApiFailure.Kind.LIMITED) webLoginFailed(problem, status)
-                else loginStatus?.text = if (problem.kind == ApiFailure.Kind.POLICY) getString(R.string.web_relay_blocked)
-                    else problem.userMessage(this)
+                else loginStatus?.text = when (problem.kind) {
+                    ApiFailure.Kind.POLICY -> getString(R.string.web_relay_blocked)
+                    ApiFailure.Kind.INVALID_RESPONSE -> getString(R.string.web_relay_invalid_response)
+                    else -> problem.userMessage(this)
+                }
                 completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
                 scheduleGateWake()
             }
