@@ -2611,14 +2611,19 @@ body[data-density="compact"] .event-row {
   .mobile-nav a {
     display: flex;
     flex-direction: column;
+    flex: 1 1 0;
     align-items: center;
+    justify-content: center;
     gap: 5px;
-    padding: 7px 13px;
+    padding: 7px 1px;
     border-radius: 17px;
     color: var(--muted);
-    font-size: 8px;
-    min-width: 54px;
-    min-height: 48px;
+    font-size: 10.5px;
+    line-height: 1.25;
+    text-align: center;
+    overflow-wrap: normal;
+    min-width: 0;
+    min-height: 66px;
   }
   .mobile-nav .icon {
     height: 19px;
@@ -2989,4 +2994,23 @@ body[data-density="compact"] .event-row {
   padding: 10px 12px;
   font: inherit;
   font-size: 12px;
+}
+
+.empty-guide {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  padding: 30px;
+  max-width: 900px;
+}
+.empty-guide > .dialog-symbol { flex: none; margin: 0; }
+.empty-guide h2 { margin-bottom: 10px; font-size: 22px; }
+.empty-guide p, .empty-guide li { color: var(--muted); line-height: 1.7; }
+.empty-guide ol { margin: 14px 0; padding-left: 22px; }
+.guide-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+@media (max-width:600px) {
+  .empty-guide { flex-direction:column; gap:16px; padding:22px; }
+  .empty-guide > div { width:100%; min-width:0; }
 }

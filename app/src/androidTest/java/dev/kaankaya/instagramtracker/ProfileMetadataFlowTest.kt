@@ -131,7 +131,7 @@ class ProfileMetadataFlowTest {
     }
     @Test fun profilePanelAndFeedRestoreWithoutAnotherRead() {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).putExtra("offline_preview", true))
-        awaitText("@benim.demo"); click("Kişiler"); click("Analizi aç · @deniz.demo")
+        awaitText("@benim.demo"); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo")
         awaitText("Kahve, kitaplar ve yeni yollar. ☀️"); click("Kişiyi yenile")
         awaitText("Yeni gözlem bu cihazda kaydedildi."); awaitText("Yeni duraklar, yeni hikâyeler. ☀️\nİstanbul")
         val account = SessionVault(context, "previewaccount").read()!!

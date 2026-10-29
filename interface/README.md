@@ -1,6 +1,6 @@
 # Tracker — ortak web ve masaüstü arayüzü
 
-**Güncel Windows uygulaması 0.2.11:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.11/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
+**Güncel Windows uygulaması 0.2.18:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.18/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
 
 Ayarlar → Tema: Sistem / Açık tema / Koyu / OLED siyahı. Varsayılan Sistem canlı sistem değişimini izler; açık seçimler bu tarayıcıda saklanır. Aynı ortak palet Windows 0.2.11 ve Android 0.1.32’de de kullanılır.
 
@@ -14,7 +14,7 @@ Bu aşama, gerçek Instagram işlevlerinden önce hazırlanan **etkileşimli ara
 
 ## Tasarım ve kapsam
 
-Özet, Kişiler, Listeler, Zaman çizelgesi, Ayarlar ve profil/olay ayrıntıları hazırdır. Tarih aralığı, yerel arama, favoriler, örnek kişi ekleme, oturumluk örnek notlar, seçilen liste yönünün karşılaştırması, bildirim görünümü ve kompakt görünüm kullanılabilir. Örnek kişi/favori/notlar yeniden yüklemede sıfırlanır; kompakt görünüm ve dil tercihi localStorage'da kalır. Yenileme gerçek işlem taklidi yapmaz; bağlantının etkin olmadığını açıklar.
+Özet, Kaydedilen Profiller, Takip Listeleri, Zaman çizelgesi, Ayarlar ve profil/olay ayrıntıları hazırdır. Tarih aralığı, yerel arama, favoriler, örnek kişi ekleme, oturumluk örnek notlar, seçilen liste yönünün karşılaştırması, bildirim görünümü ve kompakt görünüm kullanılabilir. Örnek kişi/favori/notlar yeniden yüklemede sıfırlanır; kompakt görünüm ve dil tercihi localStorage'da kalır. Yenileme gerçek işlem taklidi yapmaz; bağlantının etkin olmadığını açıklar.
 
 `../design/theme.json` ortak renklerin ve temel köşe ölçülerinin sahibidir. `npm run theme`, Android `UiPalette.kt` ile web `theme.css` üretir. `npm run check` eşleşmeyi doğrular. Android ana ekranı aynı palet, düz mor vurgular, 24 dp kartlar ve 18 dp düğmelerle uyumludur; platformlara özgü gezinme korunur.
 

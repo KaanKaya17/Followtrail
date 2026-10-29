@@ -58,7 +58,7 @@ try {
  assert.match(await page.locator('.preparation-card').innerText(),/Sonraki otomatik taramalarda/);
  await page.screenshot({path:path.join(output,'ready-tr.png')});
  checks.push('First baseline explains that differences require a later scan');
- await page.getByRole('button',{name:'Listeleri aç',exact:true}).click();
+ await page.getByRole('button',{name:'Takip listelerini aç',exact:true}).click();
  await page.waitForFunction(()=>location.hash==='#lists');
  await page.locator('.sidebar nav a[href="#overview"]').click();
  checks.push('Preparation action opens the own-account followers list');

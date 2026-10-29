@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows/web 0.2.18 / Android 0.1.38 — 2026-10-29 (Anlaşılır gezinme)
+
+- Kişiler bölümünün adı Kaydedilen Profiller, Listeler bölümünün adı Takip Listeleri oldu. Menüler, arama paleti, ekran açıklamaları ve ilgili erişilebilirlik metinleri Türkçe/İngilizce birlikte güncellendi. Kaydetmek ile Instagram’da takip etmek ayrımı korunur.
+- Boş profil ekranı yalnız özellikle kaydedilen profilleri gösterdiğini açıklar; Profil ekle ve Takipçi listemi aç seçeneklerini sunar. Kendi liste kısayolu hesap/yön seçimini sıfırlar ve ağ isteği başlatmadan kayıtları açar. Bağlı hesap yoksa Windows kısayolu kapalıdır.
+- Windows liste düğmesi ilk okumada Listeyi kontrol et, mevcut kayıtta Listeyi yeniden kontrol et der. Android devam sayfası varsa Listeyi okumaya devam et gösterir. Sayfalama ve istek molası açıklamaları, sayfa/hesap sayacı ve mevcut geri sayımı tamamlar; güvenlik veya kesin bitiş süresi vaat edilmez.
+- Ortak boş ekran stili ve daha okunur, satıra bölünebilen mobil web menüsü eklendi. Web hâlâ örnek verili önizlemedir; hesap bağlantısı eklenmedi. Kontrol aralıkları, oturumlar, şifreli kayıtlar ve otomatik başlangıç davranışı korunur. [Test ve kapsam](docs/NAVIGATION-CLARITY-TEST.md).
+
 ## Windows 0.2.17 / Android 0.1.37 — 2026-10-29 (Otomatik başlangıç listeleri)
 
 - Yeni hesap bağlantısı başarıyla doğrulanınca kendi takipçi/takip edilen listeleri otomatik hazırlanır. Başlangıç, ilerleme, bekleme, duraklatma ve hazır durumları ana ekranda görünür. Geçmişteki takipten çıkışların bilinmediği ve ilk kaydın yalnız başlangıç olduğu açıklanır. Mevcut hesaba yeniden giriş, kayıtlı kapalı otomasyon tercihini açmaz; önceki başlangıç kayıtları yeniden giriş yüzünden taratılmaz.

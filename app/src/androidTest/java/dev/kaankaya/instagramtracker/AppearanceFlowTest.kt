@@ -82,7 +82,7 @@ class AppearanceFlowTest {
         for((mode,label) in listOf("dark" to "Koyu","oled" to "OLED siyahı","light" to "Açık")) {
             click("Seçenekler");dialogClick("Tema");dialogClick(label);await(mode)
             screenshot(mode)
-            click("Kişiler");screenshot("$mode-people");click("Özet");await(mode)
+            click("Kaydedilen Profiller");screenshot("$mode-people");click("Özet");await(mode)
             assertEquals(mode,AppAppearance.selected(context));assertEquals(before,vault.read());assertEquals(attempts,gate.attempts())
             scenario!!.onActivity { activity ->
                 val value=android.util.TypedValue();activity.theme.resolveAttribute(android.R.attr.windowLightStatusBar,value,true)

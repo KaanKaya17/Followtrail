@@ -139,6 +139,8 @@ class FollowListActivity : LocalizedActivity() {
         val status = column().apply { setPadding(dp(14), dp(12), dp(14), dp(12)); background = AppUi.shape(this@FollowListActivity, AppUi.surface, 18, AppUi.line) }
         status.addView(AppUi.text(this, getString(R.string.ui_saved_on_this_device), 11f, AppUi.muted, true)); status.gap(6)
         status.addView(AppUi.text(this, if (run == null) getString(R.string.list_not_read) else getString(R.string.list_count, run.users.size, run.pages.size), 13f, fg, true))
+        status.gap(6)
+        status.addView(AppUi.text(this, getString(R.string.navigation_list_pacing), 12f, AppUi.muted))
         if (run != null) {
             status.gap(5)
             status.addView(AppUi.text(this, coverageText(run.coverage()), 12f,
@@ -260,7 +262,7 @@ class FollowListActivity : LocalizedActivity() {
         })
         else {
             val row = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
-            row.addView(button(getString(R.string.ui_update_list), allowed, true) { requestUpdate() }, LinearLayout.LayoutParams(0, -2, 1f))
+            row.addView(button(getString(if (run == null) R.string.ui_update_list else if (run.coverage() == FollowCoverage.MORE) R.string.navigation_continue_list else R.string.list_restart), allowed, true) { requestUpdate() }, LinearLayout.LayoutParams(0, -2, 1f))
             row.addView(AppUi.iconButton(this, "more", getString(R.string.ui_list_actions)) { showActions() }, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginStart = dp(8) })
             actions.addView(row)
         }

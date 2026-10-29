@@ -290,6 +290,8 @@ class MainActivity : LocalizedActivity() {
                 setTextColor(if (selected) accent else muted); isSelected = selected; textSize = 13f
                 setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, icon, if (selected) accent else muted, 20), null, null, null)
                 compoundDrawablePadding = dp(8)
+                maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END
+                setPadding(dp(10), dp(8), dp(10), dp(8))
             }
             navigation.addView(tab(getString(R.string.ui_overview), "home", !peopleScreen) { peopleScreen = false; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
             navigation.addView(tab(getString(R.string.ui_people), "people", peopleScreen) { peopleScreen = true; selectedPersonId = null; message = null; render() }, LinearLayout.LayoutParams(0, -2, 1f))
@@ -847,7 +849,7 @@ class MainActivity : LocalizedActivity() {
             page.addView(text(getString(R.string.ui_a_space_for_the_profiles_you_care), 14f, muted)); page.gap(20)
             val actions = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
             actions.addView(text(getString(R.string.people_summary, saved.people.size, saved.people.count { it.favorite }), 13f, muted), LinearLayout.LayoutParams(0, -2, 1f))
-            actions.addView(button(getString(R.string.ui_add_person), networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-2, -2))
+            if (saved.people.isNotEmpty()) actions.addView(button(getString(R.string.ui_add_person), networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-2, -2))
             page.addView(actions); page.gap(12)
             page.addView(text(getString(R.string.people_capacity_scope, PeoplePolicy.MAX_PEOPLE), 12f, muted)); page.gap(20)
             if (saved.people.isEmpty()) {
@@ -855,6 +857,10 @@ class MainActivity : LocalizedActivity() {
                 empty.addView(AppUi.avatar(this, "+", 56, AppUi.mint, AppUi.teal)); empty.gap(18)
                 empty.addView(text(getString(R.string.ui_ready_to_add_your_first_person), 20f, ink, true)); empty.gap(8)
                 empty.addView(text(getString(R.string.ui_add_a_profile_to_view_its_lists), 14f, muted))
+                empty.gap(16)
+                empty.addView(button(getString(R.string.ui_add_person), networkAction = true) { addPerson() })
+                empty.gap(8)
+                empty.addView(button(getString(R.string.navigation_own_followers), false) { openLists(saved.profile) })
                 page.addView(empty)
             }
             for ((index, entry) in PeoplePolicy.favoritesFirst(saved.people).take(visiblePeople).withIndex()) {
