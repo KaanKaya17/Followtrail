@@ -12,7 +12,10 @@ object ProfileSummary {
                 orientation = LinearLayout.VERTICAL; background = AppUi.shape(context, tint, 18)
                 contentDescription = "$title · $count"
                 setPadding(AppUi.dp(context, 14), AppUi.dp(context, 16), AppUi.dp(context, 14), AppUi.dp(context, 16))
-                addView(AppUi.text(context, java.text.NumberFormat.getIntegerInstance(AppLanguage.locale(context)).format(count), 26f, AppUi.ink, true))
+                addView(AppUi.numeric(AppUi.text(context, java.text.NumberFormat.getIntegerInstance(AppLanguage.locale(context)).format(count), 26f, AppUi.ink, true)).apply {
+                    maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+                    if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(14, 26, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
+                })
                 addView(AppUi.text(context, title, 12f, AppUi.muted))
             }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = AppUi.dp(context, 6) })
         }

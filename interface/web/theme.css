@@ -33,6 +33,8 @@
   --added-text: #185a2c;
   --removed-bg: #ffe2df;
   --removed-text: #8f2727;
+  --surface-highlight: #ffffff;
+  --scroll-thumb: #918b9d;
   --radius-card: 24px;
   --radius-button: 18px;
   --radius-control: 12px;
@@ -72,6 +74,8 @@
   --added-text: #a3e9b5;
   --removed-bg: #42272c;
   --removed-text: #ffb1b1;
+  --surface-highlight: #414657;
+  --scroll-thumb: #74788f;
   }
 }
 :root[data-theme="dark"] { color-scheme: dark;
@@ -108,6 +112,8 @@
   --added-text: #a3e9b5;
   --removed-bg: #42272c;
   --removed-text: #ffb1b1;
+  --surface-highlight: #414657;
+  --scroll-thumb: #74788f;
 }
 :root[data-theme="oled"] { color-scheme: dark;
   --background: #000000;
@@ -143,4 +149,6 @@
   --added-text: #a3e9b5;
   --removed-bg: #42272c;
   --removed-text: #ffb1b1;
+  --surface-highlight: #292932;
+  --scroll-thumb: #717180;
 }

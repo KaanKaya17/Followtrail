@@ -67,6 +67,9 @@ class AppearanceFlowTest {
     }
     private fun screenshot(mode: String) {
         instrumentation.waitForIdleSync()
+        // Activity recreation can finish before the old picker window's exit
+        // animation is composited. Capture the settled screen, not that overlay.
+        SystemClock.sleep(350)
         instrumentation.uiAutomation.takeScreenshot()?.let { bitmap ->
             context.openFileOutput("appearance-$mode.png",0).use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) }
             bitmap.recycle()
@@ -79,6 +82,7 @@ class AppearanceFlowTest {
         for((mode,label) in listOf("dark" to "Koyu","oled" to "OLED siyahı","light" to "Açık")) {
             click("Seçenekler");dialogClick("Tema");dialogClick(label);await(mode)
             screenshot(mode)
+            click("Kişiler");screenshot("$mode-people");click("Özet");await(mode)
             assertEquals(mode,AppAppearance.selected(context));assertEquals(before,vault.read());assertEquals(attempts,gate.attempts())
             scenario!!.onActivity { activity ->
                 val value=android.util.TypedValue();activity.theme.resolveAttribute(android.R.attr.windowLightStatusBar,value,true)

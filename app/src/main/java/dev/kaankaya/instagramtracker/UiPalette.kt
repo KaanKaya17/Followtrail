@@ -2,7 +2,7 @@ package dev.kaankaya.instagramtracker
 
 // Generated from design/theme.json by interface/scripts/generate-theme.mjs.
 internal object UiPalette {
-    data class Colors(val background: Int, val surface: Int, val ink: Int, val muted: Int, val violet: Int, val violetSoft: Int, val coral: Int, val peach: Int, val teal: Int, val mint: Int, val line: Int, val accentFill: Int, val onAccent: Int, val accentHover: Int, val hoverSurface: Int, val accentBorder: Int, val chartFill: Int, val chartDot: Int, val subtleSurface: Int, val neutralTint: Int, val neutralText: Int, val placeholder: Int, val goldBg: Int, val goldText: Int, val roseBg: Int, val roseText: Int, val blueBg: Int, val blueText: Int, val track: Int, val addedBg: Int, val addedText: Int, val removedBg: Int, val removedText: Int)
+    data class Colors(val background: Int, val surface: Int, val ink: Int, val muted: Int, val violet: Int, val violetSoft: Int, val coral: Int, val peach: Int, val teal: Int, val mint: Int, val line: Int, val accentFill: Int, val onAccent: Int, val accentHover: Int, val hoverSurface: Int, val accentBorder: Int, val chartFill: Int, val chartDot: Int, val subtleSurface: Int, val neutralTint: Int, val neutralText: Int, val placeholder: Int, val goldBg: Int, val goldText: Int, val roseBg: Int, val roseText: Int, val blueBg: Int, val blueText: Int, val track: Int, val addedBg: Int, val addedText: Int, val removedBg: Int, val removedText: Int, val surfaceHighlight: Int, val scrollThumb: Int)
     private val light = Colors(
         background = 0xFFFAF9F6.toInt(),
         surface = 0xFFFFFFFF.toInt(),
@@ -36,7 +36,9 @@ internal object UiPalette {
         addedBg = 0xFFDAF4DF.toInt(),
         addedText = 0xFF185A2C.toInt(),
         removedBg = 0xFFFFE2DF.toInt(),
-        removedText = 0xFF8F2727.toInt()
+        removedText = 0xFF8F2727.toInt(),
+        surfaceHighlight = 0xFFFFFFFF.toInt(),
+        scrollThumb = 0xFF918B9D.toInt()
     )
     private val dark = Colors(
         background = 0xFF11131B.toInt(),
@@ -71,7 +73,9 @@ internal object UiPalette {
         addedBg = 0xFF1C382A.toInt(),
         addedText = 0xFFA3E9B5.toInt(),
         removedBg = 0xFF42272C.toInt(),
-        removedText = 0xFFFFB1B1.toInt()
+        removedText = 0xFFFFB1B1.toInt(),
+        surfaceHighlight = 0xFF414657.toInt(),
+        scrollThumb = 0xFF74788F.toInt()
     )
     private val oled = Colors(
         background = 0xFF000000.toInt(),
@@ -106,7 +110,9 @@ internal object UiPalette {
         addedBg = 0xFF1C382A.toInt(),
         addedText = 0xFFA3E9B5.toInt(),
         removedBg = 0xFF42272C.toInt(),
-        removedText = 0xFFFFB1B1.toInt()
+        removedText = 0xFFFFB1B1.toInt(),
+        surfaceHighlight = 0xFF292932.toInt(),
+        scrollThumb = 0xFF717180.toInt()
     )
     @Volatile private var current = light
     fun select(mode: String) { current = when (mode) { "dark" -> dark; "oled" -> oled; else -> light } }
@@ -143,6 +149,8 @@ internal object UiPalette {
     val addedText get() = current.addedText
     val removedBg get() = current.removedBg
     val removedText get() = current.removedText
+    val surfaceHighlight get() = current.surfaceHighlight
+    val scrollThumb get() = current.scrollThumb
     const val cardRadius = 24
     const val buttonRadius = 18
     const val controlRadius = 12

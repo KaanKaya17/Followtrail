@@ -4,10 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Canvas
+import android.graphics.LinearGradient
 import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
+import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
@@ -47,7 +49,8 @@ object AppUi {
             if (focus != null) addState(intArrayOf(android.R.attr.state_focused), focus)
             addState(intArrayOf(), drawable)
         }
-        return RippleDrawable(ColorStateList.valueOf(0x18674BD8), states, null)
+        val ripple = if ((drawable as? GradientDrawable)?.color?.defaultColor == UiPalette.accentFill) UiPalette.onAccent else violet
+        return RippleDrawable(ColorStateList.valueOf((ripple and 0x00FFFFFF) or 0x24000000), states, null)
     }
     fun text(context: Context, value: String, size: Float = 14f, color: Int = ink, strong: Boolean = false) = TextView(context).apply {
         text = value; textSize = size; setTextColor(color); includeFontPadding = false
@@ -57,13 +60,40 @@ object AppUi {
     fun heading(context: Context, value: String, size: Float = 22f) = text(context, value, size, ink, true).apply {
         if (android.os.Build.VERSION.SDK_INT >= 28) isAccessibilityHeading = true
     }
+    fun numeric(view: TextView) = view.apply { fontFeatureSettings = "'lnum', 'tnum'" }
+    /** Static top-edge light, shared with desktop cards. No elevation or animation. */
+    fun cardSurface(context: Context): Drawable = CardSurface(context)
+    private class CardSurface(context: Context) : GradientDrawable() {
+        private val pixel = context.resources.displayMetrics.density
+        private val radius = dp(context, UiPalette.cardRadius).toFloat()
+        private val highlight = UiPalette.surfaceHighlight
+        private val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = pixel }
+        init { setColor(surface); cornerRadius = radius; setStroke(dp(context, 1), line) }
+        override fun onBoundsChange(bounds: android.graphics.Rect) {
+            super.onBoundsChange(bounds)
+            edge.shader = LinearGradient(0f, bounds.top.toFloat(), 0f, bounds.top + 14 * pixel,
+                highlight, highlight and 0x00FFFFFF, Shader.TileMode.CLAMP)
+        }
+        override fun draw(canvas: Canvas) {
+            super.draw(canvas)
+            val inset = 1.5f * pixel
+            canvas.drawRoundRect(bounds.left + inset, bounds.top + inset, bounds.right - inset,
+                bounds.bottom - inset, (radius - inset).coerceAtLeast(0f), (radius - inset).coerceAtLeast(0f), edge)
+        }
+    }
+    fun scrollStyle(view: View) = view.apply {
+        isVerticalScrollBarEnabled = true
+        scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+        scrollBarSize = dp(context, 4)
+        if (android.os.Build.VERSION.SDK_INT >= 29) verticalScrollbarThumbDrawable = shape(context, UiPalette.scrollThumb, 8)
+    }
     fun pill(context: Context, value: String, foreground: Int = violet, tint: Int = violetSoft) = text(context, value, 10f, foreground, true).apply {
         letterSpacing = .04f; setPadding(dp(context, 10), dp(context, 7), dp(context, 10), dp(context, 7))
         background = shape(context, tint, 12)
         layoutParams = LinearLayout.LayoutParams(-2, -2)
     }
     fun card(context: Context) = LinearLayout(context).apply {
-        orientation = LinearLayout.VERTICAL; background = shape(context, surface, UiPalette.cardRadius, line)
+        orientation = LinearLayout.VERTICAL; background = cardSurface(context)
         setPadding(dp(context, 18), dp(context, 18), dp(context, 18), dp(context, 18))
     }
     fun notice(context: Context, title: String, detail: String, warning: Boolean = false) = LinearLayout(context).apply {

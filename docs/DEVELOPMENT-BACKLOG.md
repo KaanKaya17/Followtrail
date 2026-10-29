@@ -12,7 +12,7 @@ Kullanıcı ileride değerlendirmek üzere saklanmasını istedi; şu anda geli�
 
 ## Görsel incelik önerileri — 29 Ekim 2026
 
-Kullanıcının paylaştığı altı CSS önerisi mevcut kaynaklar ve kayıtlı açık/koyu ekran görüntüleriyle değerlendirildi. Arayüze uygulanmadı; performans kıyası veya önerilerin canlı karşılaştırması yapılmadı.
+Kullanıcının paylaştığı altı CSS önerisi mevcut kaynaklar ve kayıtlı açık/koyu ekran görüntüleriyle değerlendirildi. Kullanıcının uygulama yetkisinden sonra Windows/web 0.2.16 ve Android 0.1.36'da seçici sayısal hizalama, ölçülü geri bildirim, kart üst ışığı ve tema uyumlu kaydırma çubukları uygulandı. Blur ve sürekli nabız eklenmedi. [Görsel doğrulama](VISUAL-POLISH-TEST.md); CPU/bellek kıyası yapılmadı.
 
 - Öncelik: ana sayaçlar ve sayısal sütunlarda seçici `tabular-nums`; basma geri bildirimini mevcut 1px düğme hareketiyle tutarlı kullanmak; koyu/OLED kartlarda mevcut yüzey ayrımını koruyan hafif kenar/üst ışık; okunur tema uyumlu scrollbar.
 - Geri sayımda tabular rakamlar, düğme basma geçişi ve işlem sırasında nabız zaten var. Yeni davranış bunları çoğaltmamalı. Sabit rakam genişliği, basamak sayısı artışındaki genişlemeyi tek başına çözmez.

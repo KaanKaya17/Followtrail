@@ -32,7 +32,9 @@
     "addedBg": "#daf4df",
     "addedText": "#185a2c",
     "removedBg": "#ffe2df",
-    "removedText": "#8f2727"
+    "removedText": "#8f2727",
+    "surfaceHighlight": "#ffffff",
+    "scrollThumb": "#918b9d"
   },
   "radii": {
     "card": 24,
@@ -72,7 +74,9 @@
     "addedBg": "#1c382a",
     "addedText": "#a3e9b5",
     "removedBg": "#42272c",
-    "removedText": "#ffb1b1"
+    "removedText": "#ffb1b1",
+    "surfaceHighlight": "#414657",
+    "scrollThumb": "#74788f"
   },
   "oled": {
     "background": "#000000",
@@ -107,6 +111,8 @@
     "addedBg": "#1c382a",
     "addedText": "#a3e9b5",
     "removedBg": "#42272c",
-    "removedText": "#ffb1b1"
+    "removedText": "#ffb1b1",
+    "surfaceHighlight": "#292932",
+    "scrollThumb": "#717180"
   }
 }
