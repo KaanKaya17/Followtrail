@@ -27,6 +27,8 @@ Yeni turlar sabit format 2 işaretçisi kullanır. 0.1.33 kayıtları korunur; e
 
 Canlı hesaba yeni giriş/profil isteği başlatılmadı. Cihazdan yalnız açık uygulama tanısı okundu; root veya çerez/veri çıkarma kullanılmadı. Otomatik testler kullanıcının telefonu yerine sahip olunan emülatörde sentetik oturumlarla çalışır. İmzalı üretim APK'sı paket/izin/debug-fixture denetiminden geçirilir. Windows 0.2.11 ve web tasarım önizlemesi değiştirilmedi.
 
+Yayın kaynak notu: AGP'nin bu derlemedeki gömülü VCS alanı `NO_VALID_GIT_FOUND` döndürdü; yalnız ilgili çıkarma görevi tekrar çalıştırıldığında da değişmedi. Bu alan kaynak commit'i doğrulanmış sayılmadı ve elle değiştirilmedi. Yayın temiz Git kaydı, derleme çıktısı ve yerel kaynak dosyası hash'lerini/APK hash'ini eşleyen dış manifest ile ilişkilendirildi. Bu, gömülü VCS alanının doğrulandığı iddiası değildir.
+
 ## Sonraki telefon testi
 
 Mevcut mola sürerken yeni test yok. Süre dolduğunda erişim garanti değildir. Kullanıcı aynı **⋯ → Gelişmiş → Web bağlantısını karşılaştır** yolunu kullanır; A ve yalnız başarılıysa B düğmesini birer kez başlatır. İlk hatada durur. İstek bilgileri'ndeki W00/W01/W02, sonuç ve HTTP satırları yeterlidir; parola/kod/çerez veya kişisel profil içeriği paylaşılmaz. Bu tanı, sonraki düzeltmenin hangi üreticiye ait olduğunu belirlemeye yardımcı olur; giriş sorununun çözüldüğü kabulü değildir.
