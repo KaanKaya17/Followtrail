@@ -13,6 +13,8 @@ import uuid
 from engine import Engine, blank, validate_archive
 from network import AppFailure
 from storage import Vault, StorageFailure
+from login_identity import device_settings
+import request_budget
 
 DEVICE_SETTINGS = ('language', 'theme', 'compact')
 
@@ -175,6 +177,14 @@ class Accounts(Engine):
         # verification, rather than replacing the existing account.
         pass
 
+    def login_device_settings(self, username):
+        for identity, entry in self.catalog['accounts'].items():
+            if entry['username'].lower() == username.lower():
+                data = Vault(self.account_directory(identity)).load()
+                if data and data['session']:
+                    return device_settings(data['session'])
+        return super().login_device_settings(username)
+
     def select_connection_account(self, profile):
         identity = profile['id']
         if identity == self.active_id:
@@ -220,7 +230,9 @@ class Accounts(Engine):
 
     def background_status(self):
         monitors = [e['monitor'] for e in self.catalog['accounts'].values()]
-        due = [m['nextAt'] for m in monitors if m.get('enabled') and not m.get('held') and m.get('nextAt') is not None]
+        now = self.clock()
+        due = [max(e['monitor']['nextAt'], request_budget.next_at(self.catalog['gate'], identity, now))
+               for identity,e in self.catalog['accounts'].items() if e['monitor'].get('enabled') and not e['monitor'].get('held') and e['monitor'].get('nextAt') is not None]
         return {'enabled': any(m.get('enabled') for m in monitors),
                 'held': self.catalog['limitedHold'] or not due,
                 'nextAt': max(min(due), self.catalog['gate'].get('nextAt', 0),
@@ -250,7 +262,7 @@ class Accounts(Engine):
                     status = self.background_status()
                     if status['held'] or status['nextAt'] is None or status['nextAt'] > self.clock():
                         return self.snapshot()
-                    due = [(e['monitor']['nextAt'], identity) for identity, e in self.catalog['accounts'].items()
+                    due = [(max(e['monitor']['nextAt'], request_budget.next_at(self.catalog['gate'], identity, self.clock())), identity) for identity, e in self.catalog['accounts'].items()
                            if e['monitor'].get('enabled') and not e['monitor'].get('held') and
                            e['monitor'].get('nextAt') is not None]
                     self.activate(min(due)[1])

@@ -1,0 +1,50 @@
+"""Bounded rolling local budgets, not claimed Instagram quotas."""
+import math
+
+SHARED = (240, 2400)
+ACCOUNT = (120, 1200)
+
+
+def validate(times, maximum):
+    if (not isinstance(times, list) or len(times) > maximum or
+            any(type(t) not in (int, float) or not math.isfinite(t) or t < 0 for t in times) or
+            times != sorted(times)):
+        raise ValueError('request budget')
+
+
+def available_at(times, now, limits):
+    # Future timestamps remain counted after a clock rollback. No budget reset.
+    recent = [t for t in times if t > now - 86400]
+    hour = [t for t in recent if t > now - 3600]
+    return max(hour[-limits[0]] + 3600 if len(hour) >= limits[0] else 0,
+               recent[-limits[1]] + 86400 if len(recent) >= limits[1] else 0)
+
+
+def reserve(times, now):
+    return sorted([t for t in times if t > now - 86400] + [now])
+
+
+def next_at(gate, owner, now):
+    return max(available_at(gate.get('requestTimes', []), now, SHARED),
+               available_at(gate.get('accountRequestTimes', {}).get(owner, []), now, ACCOUNT) if owner else 0)
+
+
+def record(gate, owner, now):
+    gate['requestTimes'] = reserve(gate.get('requestTimes', []), now)
+    accounts = {key:[t for t in times if t > now - 86400]
+                for key,times in gate.get('accountRequestTimes', {}).items()}
+    accounts = {key:times for key,times in accounts.items() if times}
+    if owner:
+        accounts[owner] = reserve(accounts.get(owner, []), now)
+    gate['accountRequestTimes'] = accounts
+
+
+def validate_gate(gate):
+    validate(gate.get('requestTimes', []), SHARED[1])
+    accounts = gate.get('accountRequestTimes', {})
+    if not isinstance(accounts, dict):
+        raise ValueError('account budget')
+    for owner, times in accounts.items():
+        if not isinstance(owner, str) or not owner.isascii() or not owner.isdigit() or not 1 <= len(owner) <= 30:
+            raise ValueError('budget owner')
+        validate(times, ACCOUNT[1])

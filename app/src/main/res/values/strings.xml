@@ -127,4 +127,10 @@
     <string name="connection_tls_error">Güvenli bağlantı doğrulanamadı. Giriş durduruldu.</string>
     <string name="connection_incomplete">Giriş henüz tamamlanmadı. Instagram ekranındaki adımları tamamla.</string>
     <string name="connection_checking">Bağlantın doğrulanıyor ve sayılar alınıyor…</string>
+    <string name="security_login_scope">Bu ekran yalnız giriş ve doğrulama içindir. Diğer hesap işlemleri engellenir.</string>
+    <string name="security_request_blocked">Yerel salt okuma kuralı bu isteği engelledi. Hesap üzerinde işlem yapılmadı.</string>
+    <string name="security_budget_full">Yerel istek bütçesi doldu. Sonraki uygun zamanı İstek bilgileri bölümünde görebilirsin. Bu, Instagram hatası değildir.</string>
+    <string name="security_budget_info">Bu cihazın yerel bütçesi: saatte %1$d, 24 saatte %2$d sayaçlı istek. Meta kotası değildir; silme veya yeniden giriş sıfırlamaz.</string>
+    <string name="security_budget_next">Bütçe için sonraki uygun zaman: %1$s</string>
+    <string name="security_remove_local">Bu cihazdaki oturum kopyası kaldırılır; Instagram sunucusundaki oturum iptal edilmez. Şüpheli bir giriş varsa resmî Instagram uygulamasında giriş hareketlerini incele.</string>
 </resources>

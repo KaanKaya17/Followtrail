@@ -926,6 +926,14 @@ try {
   console.log(
     `${checks.length} packaged desktop checks passed; no Instagram requests.`,
   );
+} catch (error) {
+  if (page) {
+    await page.screenshot({path:path.join(output,"failure.png"),fullPage:true}).catch(()=>{});
+    await writeFile(path.join(output,"failure.json"),JSON.stringify({checks,errors,requests,
+      text:await page.locator("body").innerText().catch(()=>"Window unavailable"),
+      home,error:String(error)},null,2));
+  }
+  throw error;
 } finally {
   if (desktop) await desktop.close();
 }

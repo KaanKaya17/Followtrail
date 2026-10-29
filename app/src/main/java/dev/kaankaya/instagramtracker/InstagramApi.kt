@@ -53,6 +53,7 @@ class InstagramApi(
         }
     }
     private fun request(session: Session, address: String, connectionTest: Boolean = false, parse: (String) -> Profile): Profile {
+        if (!AccountRequestPolicy.readAllowed("GET", address)) throw ApiFailure(ApiFailure.Kind.POLICY)
         val ticket = synchronized(lock) { generation }
         fun ensureCurrent() {
             if (Thread.currentThread().isInterrupted || synchronized(lock) { ticket != generation }) {

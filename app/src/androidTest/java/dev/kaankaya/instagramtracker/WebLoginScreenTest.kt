@@ -94,6 +94,26 @@ class WebLoginScreenTest {
         assertNull(SessionVault(context).read()); assertFalse(WebSessions(context).exists()); assertEquals(0L, RequestGate(context).attempts())
         until { CookieManager.getInstance().getCookie("https://www.instagram.com/").isNullOrBlank() }
     }
+    @Test fun loginBrowserBlocksSocialPostsAndNonLoginNavigationWithoutAnAccountRequest() {
+        open(); cookies()
+        scenario!!.onActivity { a ->
+            val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
+            browser.evaluateJavascript("fetch('/api/v1/web/friendships/123/follow/',{method:'POST'}).then(r=>window.__policyStatus=r.status)",null)
+        }
+        val status=java.util.concurrent.atomic.AtomicReference<String>()
+        until { a ->
+            all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript("window.__policyStatus") { status.set(it) }
+            status.get()=="403"
+        }
+        scenario!!.onActivity { a ->
+            all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript("location.href='/direct/inbox/'",null)
+        }
+        until { a -> all(a.window.decorView).filterIsInstance<TextView>().any { it.text==a.getString(R.string.security_login_scope) } }
+        assertEquals(0L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+        verify()
+        until { a -> all(a.window.decorView).filterIsInstance<TextView>().any { it.text=="@web.demo" } }
+        assertEquals(1L,RequestGate(context).attempts())
+    }
     private fun failureDialog(expected: (MainActivity) -> String) {
         until { a -> all(a.window.decorView).none { it is WebView } &&
             WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>().any {

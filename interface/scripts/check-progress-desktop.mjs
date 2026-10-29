@@ -151,8 +151,21 @@ try {
  await page.locator('main [data-action="requests"]').first().click();
  assert.match(await page.locator('#overlay-root dialog').innerText(),/random 12–18 second spacing/);
  assert.match(await page.locator('#overlay-root dialog').innerText(),/at least 15 minutes/);
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/this account 120\/hour and 1,200\/24 hours; all accounts 240\/hour and 2,400\/24 hours/);
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/not Meta quotas/);
  await page.keyboard.press('Escape');
  checks.push('TR/EN request information shows backend-owned 12–18 second pacing; countdown bars accept both bounds and login spacing stays 15 minutes');
+ const beforeBudget=await counts();
+ await app.evaluate((_,nextAt)=>{
+   const b=globalThis.qaBackend;
+   b.message({type:'result',ok:true,state:{...b.state,requestBudget:{...b.state.requestBudget,nextAt}}});
+ },Date.now()/1000+3600);
+ await page.locator('main [data-action="requests"]').first().click();
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/Next available budget time:/);
+ assert.deepEqual(await counts(),beforeBudget);
+ assert.equal(await timers(),0);
+ await page.keyboard.press('Escape');
+ checks.push('Local budget limits and deadline render without a new request or countdown timer');
  assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
  await writeFile(path.join(output,'checks.json'),JSON.stringify({checks,errors,externalRequests:requests.length,synthetic:true,liveInstagram:false},null,2));
  console.log(`${checks.length} packaged progress checks passed; no external requests.`);

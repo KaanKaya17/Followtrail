@@ -411,7 +411,7 @@ class BackendTests(unittest.TestCase):
             try:
                 with self.assertRaises(AppFailure):client.private.get('https://example.invalid/')
                 send.assert_not_called()
-                with self.assertRaises(AppFailure):client.private.get('https://i.instagram.com/api/v1/test/')
+                with self.assertRaises(AppFailure):client.private.get('https://i.instagram.com/api/v1/users/100/info/')
                 self.assertEqual(send.call_count,1)
                 kwargs=send.call_args.kwargs
                 self.assertIs(kwargs['verify'],True);self.assertFalse(kwargs['allow_redirects'])
@@ -433,8 +433,8 @@ class BackendTests(unittest.TestCase):
         with patch('requests.Session.send',return_value=response) as send:
             client=new_client(e)
             try:
-                with self.assertRaises(AppFailure):client.private.get('https://i.instagram.com/api/v1/test/')
-                with self.assertRaises(AppFailure):client.private.get('https://i.instagram.com/api/v1/test/')
+                with self.assertRaises(AppFailure):client.private.get('https://i.instagram.com/api/v1/users/100/info/')
+                with self.assertRaises(AppFailure):client.private.get('https://i.instagram.com/api/v1/users/100/info/')
                 self.assertEqual(send.call_count,1)
                 self.assertEqual(e.data['gate']['status'],429)
                 self.assertEqual(e.data['gate']['blockedUntil'],1800004000)

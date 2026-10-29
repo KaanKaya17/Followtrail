@@ -54,11 +54,13 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
     private fun slot() {
         current()
         if (gate.blockedUntil() > runtime.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
+        if (gate.budgetNextAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
         if (first && gate.nextPrototypeAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
         var lastSecond = -1L
         while (gate.nextAllowedAt() > runtime.now()) {
             current()
             if (gate.blockedUntil() > runtime.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
+            if (gate.budgetNextAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
             val second = (gate.nextAllowedAt() - runtime.now() + 999) / 1000
             if (lastSecond != second) { progress(step, second); lastSecond = second }
             if (!runtime.pause(minOf(250, gate.nextAllowedAt() - runtime.now()), { cancelled })) throw ApiFailure(ApiFailure.Kind.CANCELLED)
@@ -67,7 +69,7 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
     }
     private class Reply(val body: JSONObject, val headers: Map<String, List<String>>)
     private fun exchange(request: Request, operation: PhoneLoginOperation): Reply {
-        require(request.url.isHttps && request.url.host in setOf("i.instagram.com", "b.i.instagram.com"))
+        if (!AccountRequestPolicy.loginAllowed(request, operation)) throw ApiFailure(ApiFailure.Kind.POLICY)
         slot(); gate.claim().use {
             current()
             if (calls >= 18) throw PhoneLoginFailure(PhoneLoginFailure.Reason.EXPIRED)

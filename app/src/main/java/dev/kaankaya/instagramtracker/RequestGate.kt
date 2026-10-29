@@ -39,7 +39,13 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     private val identity = "${context.packageName}:$name"
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
-    fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0)) }
+    private fun budgetTimes(): List<Long> = try {
+        val json = org.json.JSONArray(preferences.getString("budget_times", "[]"))
+        require(json.length() <= RequestBudgetPolicy.DAILY)
+        (0 until json.length()).map { json.get(it).let { value -> require(value is Long || value is Int); (value as Number).toLong() } }
+    } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    fun budgetNextAt(now: Long = clock()): Long = synchronized(lock) { try { RequestBudgetPolicy.nextAt(budgetTimes(), now) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) } }
+    fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0), budgetNextAt()) }
     fun automaticNextAllowedAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("auto_after", 0)) }
     fun quickWatchActive(): Boolean = synchronized(lock) { identity in quickOwners }
     fun claimQuickWatch(): AutoCloseable = synchronized(lock) {
@@ -90,6 +96,7 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     fun nextPrototypeAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("prototype_after", 0)) }
     fun beginPrototype(now: Long = clock()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
+        if (budgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
         if (nextPrototypeAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
         begin(now)
         if (!preferences.edit().putLong("prototype_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
@@ -112,9 +119,11 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     }
     fun begin(now: Long = clock()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
+        if (budgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
         if (nextAllowedAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
         val count = attempts()
         if (!preferences.edit().putLong("next_read_at", now + 15000)
+                .putString("budget_times", org.json.JSONArray(RequestBudgetPolicy.reserve(budgetTimes(), now)).toString())
                 .putLong("attempt_count", if (count == Long.MAX_VALUE) count else count + 1)
                 .putLong("last_attempt_at", now).remove("last_http_status").commit()) {
             throw ApiFailure(ApiFailure.Kind.STORAGE)

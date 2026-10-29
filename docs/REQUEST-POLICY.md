@@ -1,5 +1,15 @@
 # Profil okuma politikası — 0.1.7
 
+## Windows 0.2.15 / Android 0.1.35 ek sınırları
+
+Sayaçlı uygulama API okuyucuları yalnız bilinen profil ve liste GET sözleşmelerini kabul eder. Yöntem/yol/gövde denetimi gönderim ve sayaç rezervasyonundan önce yapılır. Giriş POST'ları bunun ayrı istisnasıdır: yalnız kimlik doğrulama, doğrulama kodu ve kesin cihaz kaydı sözleşmeleri. HTTP yönteminin tek başına GET olması sosyal yan etki taşımadığını kanıtlamaz; bu yüzden yol da sınırlandırılır. Yeni sosyal işlem yetkisi yoktur.
+
+Windows ortak bütçesi kayan saatte 240, 24 saatte 2400; hesap bütçesi 120/1200 istektir. Yeni hesap girişi kimlik henüz doğrulanmadan ortak bütçeye yazılır. Android cihaz bütçesi sayaçlı yerel giriş/okuyucu yollarında 120/1200 istektir. Başarısız gönderim ve ayrılmış deneme de sayılır; bütçe dolduğunda gönderim yapılmaz. Bu değerler uygulamanın yerel kaynak sınırıdır, Meta tarafından güvenli kabul edildiği doğrulanmamıştır. Windows 12–18 saniye, Android 15 saniye aralığı; 429/Retry-After, giriş aralığı ve mevcut daha uzun molalar korunur. Bütçe bunlara ek bir sınırdır.
+
+Çok sayıda profil veya büyük listede hedef kontrol aralığı uzayabilir. Windows'ta kısmi liste saklanır; sonraki manuel tarama otomatik kaldığı yerden devam etmez. Android mevcut liste devam kaydını korur. İstek bilgileri bütçe sınırını ve doluysa sonraki uygun zamanı gösterir. Bütçe dolması sunucudan 429 alınmış gibi kaydedilmez.
+
+Tarayıcı sayfasının kendi JavaScript/CDN trafiği bu sayaçlı uygulama bütçesinin ölçümü değildir. Android giriş tarayıcısı ayrıca sayfa/kaynak/yöntem izin listesi ve servis çalışanı ağı yasağıyla sınırlandırılır. WebView bütün tarayıcı kanalları için bir güvenlik duvarı değildir; genel GraphQL gövdeleri görülemediği için reddedilir. Yeni Instagram giriş akışı bu yola ihtiyaç duyarsa inceleme gerekir; canlı uyumluluk henüz doğrulanmadı. [Test kapsamı](ACCOUNT-SAFETY-TEST.md).
+
 ## 0.1.27 doğrudan web okuyucusu
 
 Yeni web bağlantıları ayrı şifreli WebSessions bankası ve sabit www.instagram.com origin'i kullanır. Session türü tek okuyucuyu istekten önce seçer; hata/429 sonrası mobil/web fallback veya farklı endpoint denemesi yoktur. Ortak PrivateReadTransport 15 saniye kapıyı, 15 dakika ilk bağlantı aralığını, tek etkin taşıma, HTTP/2 ve tek iletim/yönlendirmeme/1 MiB sınırını korur. Bağlantı sayfasındaki Instagram 429'u da aynı kalıcı molayı uygular ve tarayıcı kapanır.

@@ -46,6 +46,7 @@ class PrivateReadTransport<S>(private val gate: RequestGate, private val session
             val prepared = request(state, gate.now())
             require(prepared.url.isHttps && prepared.url.host in hosts && prepared.url.port == 443 &&
                 prepared.url.username.isEmpty() && prepared.url.password.isEmpty())
+            if (!AccountRequestPolicy.readAllowed(prepared.method, prepared.url.toString(), prepared.body != null)) throw ApiFailure(ApiFailure.Kind.POLICY)
             if (connectionTest) gate.beginPrototype() else gate.begin()
             call = client.newCall(prepared)
             synchronized(lock) { current(); active = call }
