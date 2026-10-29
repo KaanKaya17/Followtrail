@@ -61,7 +61,9 @@ class WebComparisonScreenTest {
     }
     private fun first() {
         click(R.string.web_compare_browser)
-        until {WebConnectionJournal(context).read().firstOrNull()?.outcome==WebConnectionJournal.Outcome.SUCCESS}
+        until {WebConnectionJournal(context).read().firstOrNull()?.outcome?.let {it!=WebConnectionJournal.Outcome.STARTED}==true ||
+            WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>().any {it.text==context.getString(R.string.web_connection_failed)}}
+        assertEquals(WebConnectionJournal(context).read().toString(),WebConnectionJournal.Outcome.SUCCESS,WebConnectionJournal(context).read().firstOrNull()?.outcome)
         assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read());assertFalse(WebSessions(context).exists())
         assertTrue(RequestGate(context).manualOnly());assertTrue(RequestGate(context).nextPrototypeAt()>System.currentTimeMillis()+10*60*1000)
     }
@@ -74,7 +76,14 @@ class WebComparisonScreenTest {
         }
     }
     @Test fun twoExplicitReadsUseSameProfileAndCommitOnlyAfterNativeSuccess() {
-        open();first()
+        open()
+        val finished=org.json.JSONObject(LoginPageTrace.read(context)!!).getInt("documentsFinished")
+        // Wait for the new document completion, not the old enabled button during navigation.
+        scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<WebView>().single().loadUrl("https://www.instagram.com/accounts/onetap/")}
+        until(25000) {a->org.json.JSONObject(LoginPageTrace.read(context)!!).getInt("documentsFinished")>finished &&
+            all(a.window.decorView).filterIsInstance<WebView>().single().url=="https://www.instagram.com/accounts/onetap/" &&
+            all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_compare_browser)&&it.isEnabled}}
+        first()
         screenshot("browser")
         Thread.sleep(400);assertEquals(1L,RequestGate(context).attempts())
         until(20000) {a->all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_compare_native)&&it.isEnabled}}

@@ -1240,10 +1240,9 @@ class MainActivity : LocalizedActivity() {
         if (!isDestroyed) {
             if (web == null) render()
             else {
-                completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
-                completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
+                updateLoginCompletion()
                 // No automatic retry when a pause expires.
-                if (!loginAttempted) loginStatus?.text = if(webComparison && browserProof != null && gate.nextAllowedAt() <= System.currentTimeMillis())
+                if (!loginAttempted && !loginRelayIssue) loginStatus?.text = if(webComparison && browserProof != null && gate.nextAllowedAt() <= System.currentTimeMillis())
                     getString(R.string.web_compare_native_ready) else pauseMessage() ?: getString(if(webComparison) R.string.web_compare_instruction else R.string.connection_ready)
             }
         }
@@ -1419,7 +1418,7 @@ class MainActivity : LocalizedActivity() {
                     ApiFailure.Kind.INVALID_RESPONSE -> getString(R.string.web_relay_invalid_response)
                     else -> problem.userMessage(this)
                 }
-                completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
+                updateLoginCompletion()
                 scheduleGateWake()
             }
         }).also { if (!it.install()) { loginRelayIssue = true; loginStatus?.setText(R.string.web_relay_unavailable) } }
@@ -1446,7 +1445,8 @@ class MainActivity : LocalizedActivity() {
                 loginPageEpoch++
                 recordLoginPage(pageTrace) { it.started() }
                 main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000)
-                loginLoaded = false; completionButton?.isEnabled = false
+                loginLoaded = false; updateLoginCompletion()
+                main.removeCallbacks(gateWake)
                 if (webComparison && (browserProbe?.running == true || browserProof != null)) {
                     message = getString(R.string.web_compare_cancelled); leaveLogin()
                 }
@@ -1480,8 +1480,8 @@ class MainActivity : LocalizedActivity() {
                 main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000)
                 if (NavigationPolicy.isInstagram(url)) {
                     loginLoaded = true
-                    completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
-                    completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
+                    updateLoginCompletion()
+                    scheduleGateWake()
                 }
             }
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -1492,7 +1492,7 @@ class MainActivity : LocalizedActivity() {
         }
         page.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
         completionButton = button(getString(if(compare) R.string.web_compare_browser else R.string.web_connection_verify), false, networkAction = true) { checkLogin() }
-        completionButton?.isEnabled = false
+        updateLoginCompletion()
         page.addView(completionButton, LinearLayout.LayoutParams(-1, dp(54)))
         root.removeAllViews(); root.addView(page)
         CookieManager.getInstance().removeAllCookies {
@@ -1501,6 +1501,13 @@ class MainActivity : LocalizedActivity() {
                 browser.loadUrl("https://www.instagram.com/accounts/login/")
             }
         }
+    }
+
+    private fun updateLoginCompletion() {
+        val enabled = web != null && loginLoaded && !loginAttempted && !loginChecking &&
+            loginNextAllowedAt() <= System.currentTimeMillis()
+        completionButton?.isEnabled = enabled
+        completionButton?.alpha = if (enabled) 1f else .5f
     }
 
     private fun loginNextAllowedAt(): Long = if (webComparison && browserProof != null) gate.nextAllowedAt() else gate.nextPrototypeAt()
@@ -1514,13 +1521,12 @@ class MainActivity : LocalizedActivity() {
                 browserProof = proof; loginAttempted = false
                 completionButton?.setText(R.string.web_compare_native)
                 loginStatus?.text = getString(R.string.web_compare_browser_success,number(profile.followers),number(profile.following))
-                completionButton?.isEnabled = gate.nextAllowedAt() <= System.currentTimeMillis()
-                completionButton?.alpha = if(completionButton?.isEnabled == true) 1f else .5f
+                updateLoginCompletion()
                 scheduleGateWake()
             }.onFailure { webLoginFailed(it as? ApiFailure ?: ApiFailure(ApiFailure.Kind.INVALID_RESPONSE),gate.lastHttpStatus()) }
         }
         browserProbe = probe;loginChecking = true;loginAttempted = true
-        completionButton?.isEnabled = false;loginStatus?.setText(R.string.web_compare_reading)
+        updateLoginCompletion();loginStatus?.setText(R.string.web_compare_reading)
         try { probe.start(state) }
         catch (error: Exception) { loginChecking = false;webLoginFailed(error as? ApiFailure ?: ApiFailure(ApiFailure.Kind.STORAGE),null) }
     }
@@ -1545,7 +1551,7 @@ class MainActivity : LocalizedActivity() {
             catch (_: Exception) { webLoginFailed(ApiFailure(ApiFailure.Kind.STORAGE),null); return }
         }
         loginChecking = true; loginAttempted = true
-        completionButton?.isEnabled = false; completionButton?.alpha = .5f
+        updateLoginCompletion()
         loginStatus?.setText(R.string.connection_checking)
         val ticket = ++generation
         val expected = account?.session
@@ -1578,8 +1584,7 @@ class MainActivity : LocalizedActivity() {
                     val status = gate.lastHttpStatus().takeIf { gate.attempts() > attemptsBefore }
                     webLoginFailed(it as ApiFailure, status)
                 }
-                completionButton?.isEnabled = !loginAttempted && !loginChecking && loginNextAllowedAt() <= System.currentTimeMillis()
-                completionButton?.alpha = if (completionButton?.isEnabled == true) 1f else .5f
+                updateLoginCompletion()
                 scheduleGateWake()
             }
         }

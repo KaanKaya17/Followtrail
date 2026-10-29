@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.46 — 2026-10-29 (Giriş sonrası doğrulama)
+
+- Doğrulama düğmesi giriş sonrası kısa okuma aralığında kendiliğinden yeniden etkinleşir. Düğme hazırlığı tek yerde hesaplanır; zamanlayıcı ağ isteği göndermez veya hata mesajını silmez.
+- Tarayıcı karşılaştırması, girişten sonraki yerel `/accounts/onetap/` karşılama sayfasını mevcut sayfa sözleşmesinden tanır. Giriş/doğrulama sayfaları ve genel ağ izinleri genişletilmez.
+- 0.1.46 canlı girişte başarılı; A artık gönderiliyor ancak Instagram profil okumasına HTTP 429 döndürdü. B ve yeni girişler durduruldu. Tam hesap bağlantısı henüz doğrulanmadı; bu sürüm test önizlemesidir. 99 JVM testi ve 38 emülatör testi geçti (1 opt-in atlandı). 0.1.45 ayrı yayınlanmadı. [Kontroller ve canlı doğrulama kapsamı](docs/LOGIN-LANDING-TEST.md).
+
 ## Android 0.1.44 — 2026-10-29 (Web istek bağlamı)
 
 - Aynı hesapsız giriş formu okuması tarayıcıda başarılı, dış taşıyıcıda HTTP 200 / 1357054 oldu; üç Fetch Metadata başlığı eklenince dış taşıyıcı da veri döndürdü. Giriş ve web profil/liste okuyucuları aynı sabit köken bağlamını kullanır. Başka kökenlere veya mobil oturumlara uygulanmaz; istek gövdesi/yol izinleri değişmez.

@@ -39,7 +39,8 @@ object ProbePolicy {
         val uri = URI(url ?: "")
         val expected = URI(origin)
         uri.scheme == "https" && uri.rawUserInfo == null && uri.host == expected.host && uri.port in listOf(-1, 443) &&
-            uri.path.trim('/').substringBefore('/') !in setOf("accounts", "challenge", "checkpoint")
+            (LoginBrowserPolicy.landing(url ?: "") ||
+                uri.path.trim('/').substringBefore('/') !in setOf("accounts", "challenge", "checkpoint"))
     } catch (_: Exception) { false }
     fun decode(raw: String): JSONObject {
         require(raw.length <= MAX_RESULT_CHARS)

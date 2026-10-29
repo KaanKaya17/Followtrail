@@ -7,7 +7,8 @@ import org.junit.Test
 class ProbePolicyTest {
     @Test fun exactHttpsOriginAndReadyPageAreRequired() {
         assertTrue(ProbePolicy.usablePage("https://www.instagram.com/"))
-        for (url in listOf("https://www.instagram.com/accounts/login/", "https://www.instagram.com/challenge", "https://www.instagram.com/checkpoint/",
+        assertTrue(ProbePolicy.usablePage("https://www.instagram.com/accounts/onetap/"))
+        for (url in listOf("https://www.instagram.com/accounts/login/", "https://www.instagram.com/accounts/onetap/other", "https://www.instagram.com/challenge", "https://www.instagram.com/checkpoint/",
             "https://www.instagram.com.evil.test/", "https://www.instagram.com@evil.test/", "http://www.instagram.com/", "https://www.instagram.com:444/")) assertFalse(url, ProbePolicy.usablePage(url))
     }
     @Test fun webViewJsonEnvelopeIsBoundedAndDoesNotDefaultInvalidResults() {
