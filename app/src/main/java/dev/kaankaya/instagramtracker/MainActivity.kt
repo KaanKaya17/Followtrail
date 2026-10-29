@@ -134,7 +134,7 @@ class MainActivity : LocalizedActivity() {
         preparation = InitialListPreparation(this, vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
             { PreviewMode.followLists(gate, preview) }, { visible && !loading && web == null && !quickWatch.active && !queuedRead.pending && !WebLoginMode.enabled(this) }, {
                 try { account = vault.read(); syncMonitoring(); render() } catch (_: Exception) { needsConnection = true }
-            })
+            }, { saved, difference -> ChangeNotifications(this, preview).postList(saved.session, saved.profile, difference) })
         if (BuildConfig.DEBUG && intent.getBooleanExtra("connection_lab_preview", false)) {
             intent.removeExtra("connection_lab_preview")
             startActivity(Intent(this, ConnectionLabActivity::class.java).putExtra("offline_lab", true))
