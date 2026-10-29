@@ -9,7 +9,7 @@
     <string name="web_compare_cancelled">Bağlantı karşılaştırması durdu. Başka sayfaya veya arka plana geçildi; yeni hesap bağlanmış sayılmaz. Sonucu İstek bilgileri bölümünden incele.</string>
     <string name="web_compare_journal_failed">Web bağlantısı tanı kaydı okunamadı veya yazılamadı.</string>
     <string name="web_compare_no_report">Web bağlantısı karşılaştırma kaydı yok.</string>
-    <string name="web_compare_report">Son web bağlantısı karşılaştırması · W01 tarayıcı / W02 uygulama. Yalnız adım, saat, sonuç ve HTTP saklanır.</string>
+    <string name="web_compare_report">Son web bağlantısı karşılaştırması · W00 sayfa kaynağı / W01 tarayıcı profili / W02 uygulama. Yalnız adım, saat, sonuç ve HTTP saklanır.</string>
     <string name="web_compare_report_row">%1$s · %2$s · HTTP %3$s · %4$s</string>
     <string name="web_compare_started">Başlatıldı; tamamlanmış sonuç yok</string>
     <string name="web_compare_success">Başarılı</string>
@@ -18,4 +18,7 @@
     <string name="web_compare_invalid">Yanıt ya da kimlik doğrulanamadı</string>
     <string name="web_compare_connection">Bağlantı tamamlanamadı</string>
     <string name="web_compare_cancel">İptal; tamamlanmış sonuç yok</string>
+    <string name="web_compare_legacy_attribution">Eski tanı kaydı: 429 yanıtının hangi WebView isteğinden geldiği bu sürümde ayrıştırılmamış olabilir. Bu W01 kaydını doğrulanmış profil HTTP kanıtı sayma.</string>
+    <string name="web_compare_last_counted_http">Son sayaçlı işlemin HTTP yanıtı: %1$s</string>
+    <string name="web_compare_page_limit_signal">HTTP 429 / Instagram sayfa kaynağı</string>
 </resources>

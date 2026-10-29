@@ -90,9 +90,20 @@ class WebComparisonBoundaryTest {
         assertEquals(listOf(200,429),restored.map {it.http})
         assertEquals(listOf(WebConnectionJournal.Outcome.SUCCESS,WebConnectionJournal.Outcome.LIMITED),restored.map {it.outcome})
         val prefs=context.getSharedPreferences("web_connection_diagnostic",0).all
-        assertEquals(setOf("BROWSER","BROWSERat","BROWSERhttp","NATIVE","NATIVEat","NATIVEhttp"),prefs.keys)
+        assertEquals(setOf("format","BROWSER","BROWSERat","BROWSERhttp","NATIVE","NATIVEat","NATIVEhttp"),prefs.keys)
         assertTrue(prefs.values.all {it is Number || it in WebConnectionJournal.Outcome.entries.map {entry->entry.name}})
         journal.begin(WebConnectionJournal.Step.BROWSER)
         assertEquals(1,journal.read().size);assertNull(journal.read().single().http)
+    }
+    @Test fun older429AttributionRemainsExplicitlyUnknownUntilANewRound() {
+        journal.begin(WebConnectionJournal.Step.BROWSER)
+        journal.end(WebConnectionJournal.Step.BROWSER,WebConnectionJournal.Outcome.LIMITED,429)
+        val prefs=context.getSharedPreferences("web_connection_diagnostic",0)
+        assertTrue(prefs.edit().remove("format").commit())
+        val original=prefs.all
+        assertTrue(WebConnectionJournal(context).legacyAttribution())
+        assertEquals(429,WebConnectionJournal(context).read().single().http)
+        assertEquals(original,prefs.all)
+        journal.reset();assertFalse(journal.legacyAttribution());assertTrue(journal.read().isEmpty())
     }
 }

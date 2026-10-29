@@ -113,7 +113,7 @@ class WebLoginScreenTest {
             info.performClick()
         }
         until { a -> WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>().any {
-            it.text.toString().contains(a.getString(R.string.ui_last_http_response, "429")) } }
+            it.text.toString().contains(a.getString(R.string.web_compare_last_counted_http, "429")) } }
         assertEquals(1L, RequestGate(context).attempts())
         scenario!!.recreate()
         until { a -> all(a.window.decorView).none { it is WebView } }

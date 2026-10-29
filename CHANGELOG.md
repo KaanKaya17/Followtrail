@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.34 — 2026-10-29 (429 kaynağını doğru gösterme)
+
+- WebView'deki farklı bir Instagram kaynağının 429 yanıtının, A sürerken W01 profil yanıtı gibi yazılması düzeltildi. Profil isteğinin sahibi artık etkin HTTPS origin/yolu eşleştirir; gerçek profil 429'u ortak sonuç yolundan W01 ve sayaçlı HTTP kaydına bir kez işlenir.
+- W00 sayfa kaynağı / W01 tarayıcı profili / W02 uygulama ayrımı eklendi. Başka kaynak 429 verirse W00 tutulur, bekleyen profil iptal edilir ve HTTP sonucu uydurulmaz. İlk sınırlamada durma, mevcut mola ve hesap korunur; otomatik tekrar veya alternatif ağ yolu eklenmedi.
+- Eski 0.1.33 tanıları korunur ve kaynak belirsizliği açıklanır. Türkçe/İngilizce etiketler güncellendi. Bu sürüm tanı düzeltmesidir; canlı Instagram girişinin düzeldiği henüz doğrulanmadı. Windows 0.2.11 ve web önizlemesi değişmedi. [Doğrulama ve sınırlar](docs/WEB-429-ORIGIN-TEST.md).
+
 ## Android 0.1.33 — 2026-10-29 (Web bağlantısı karşılaştırması)
 
 - ⋯ → Gelişmiş → **Web bağlantısını karşılaştır** eklendi. Kullanıcının tamamladığı Instagram girişinden sonra A adımı profili aynı WebView içinde okur; B ayrı açık kullanıcı eylemiyle uygulama okuyucusunu doğrular. İkisi mevcut üretim profil istek tanımını kullanır. A tek başına hesabı bağlamaz; doğru hesapla B başarısı mevcut şifreli bağlantı yolunu tamamlar.

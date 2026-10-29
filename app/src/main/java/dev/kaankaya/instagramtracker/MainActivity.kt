@@ -732,7 +732,7 @@ class MainActivity : LocalizedActivity() {
     private fun requestInfo() {
         val now = System.currentTimeMillis()
         val lines = mutableListOf(getString(R.string.ui_read_attempts_started, number(gate.attempts())),
-            getString(R.string.ui_last_http_response, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
+            getString(R.string.web_compare_last_counted_http, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
         if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))
         if (!preview) {
             try {
@@ -744,8 +744,9 @@ class MainActivity : LocalizedActivity() {
         }
         if (!preview) try {
             val report = WebConnectionJournal(this).read()
+            if(WebConnectionJournal(this).legacyAttribution()) lines += getString(R.string.web_compare_legacy_attribution)
             lines += if (report.isEmpty()) getString(R.string.web_compare_no_report) else getString(R.string.web_compare_report) + "\n" + report.joinToString("\n") {
-                getString(R.string.web_compare_report_row, if(it.step == WebConnectionJournal.Step.BROWSER) "W01" else "W02",
+                getString(R.string.web_compare_report_row, when(it.step) {WebConnectionJournal.Step.PAGE->"W00";WebConnectionJournal.Step.BROWSER->"W01";WebConnectionJournal.Step.NATIVE->"W02"},
                     getString(when(it.outcome) {
                         WebConnectionJournal.Outcome.STARTED -> R.string.web_compare_started
                         WebConnectionJournal.Outcome.SUCCESS -> R.string.web_compare_success
@@ -1270,7 +1271,7 @@ class MainActivity : LocalizedActivity() {
         if (preview) { message = getString(R.string.ui_real_account_connections_are_unavailable_in_demo); render(); return }
         if (loading || web != null) return
         if (gate.nextPrototypeAt() > System.currentTimeMillis()) { message = getString(R.string.ui_next_connection_attempt, clock(gate.nextPrototypeAt())); render(); return }
-        try { gate.pauseAutomatic(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return }
+        try { gate.pauseAutomatic(); if(compare)WebConnectionJournal(this).reset(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         loading = false; loginChecking = false; loginAttempted = false; loginLoaded = false
         webComparison = compare; browserProbe = null; browserProof = null; nativeComparisonStarted = false
@@ -1320,11 +1321,17 @@ class MainActivity : LocalizedActivity() {
             override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
                 if (response.statusCode != 429 || !NavigationPolicy.isInstagram(request.url.toString())) return
                 val retry = response.responseHeaders?.entries?.firstOrNull { it.key.equals("Retry-After", true) }?.value
+                val responseUrl = request.url.toString()
                 main.post {
                     if (web !== view) return@post
                     try {
-                        gate.limited(retry, reason = "HTTP 429 / Instagram giriş sayfası")
-                        if (webComparison) WebConnectionJournal(this@MainActivity).end(WebConnectionJournal.Step.BROWSER, WebConnectionJournal.Outcome.LIMITED,429)
+                        if(webComparison && browserProbe?.receivedHttpError(responseUrl,429,retry)==true)return@post
+                        gate.limited(retry, reason = "HTTP 429 / Instagram sayfa kaynağı")
+                        if (webComparison) {
+                            val journal=WebConnectionJournal(this@MainActivity)
+                            journal.begin(WebConnectionJournal.Step.PAGE)
+                            journal.end(WebConnectionJournal.Step.PAGE,WebConnectionJournal.Outcome.LIMITED,429)
+                        }
                         webLoginFailed(ApiFailure(ApiFailure.Kind.LIMITED), 429)
                     }
                     catch (_: Exception) { webLoginFailed(ApiFailure(ApiFailure.Kind.STORAGE), 429) }
