@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows/web 0.2.16 / Android 0.1.36 — 2026-10-29 (Görsel incelikler)
+
+- Ana sayaçlar, kişi sayıları ve sayısal ayrıntılarda eşit genişlikli rakamlar kullanılır. Kullanıcı metinlerinin harf aralığı değiştirilmez. Android profil özetindeki uzun sayılar tek satırda uyarlanır; tam değer metinde korunur.
+- Windows/web düğme, ikon, hesap seçici ve sayaç kartlarında kısa, bir piksellik basma geri bildirimi tutarlı hale getirildi. Kart hover hareketi hafifletildi. Azaltılmış hareket tercihinde hem geçiş hem hareket kapatılır. Android birincil düğmelerde açık, diğer yüzeylerde temaya uygun native ripple kullanır; yeni yaylanma animasyonu eklenmedi.
+- Koyu/OLED kartlarda ortak paletten ince iç üst ışık, açık temada hafif derinlik eklendi. Mevcut kenarlık ve OLED siyah zemin korunur. Native Android kartlarının üst ışığı statiktir; bulanıklık veya sürekli çalışan yeni zamanlayıcı yoktur.
+- Windows/web kaydırma çubukları temaya uyumlu ve 10 px tutma alanlıdır; yüksek kontrast modunda sistem görünümü kullanılır. Android ana ekran ve takip listelerinde temaya uygun, kaydırırken görünen native gösterge açıldı. 156 Python, 28 Node, 88 JVM testi; 16 Android emülatör testi; 51 Windows işlev/hesap/ilerleme kontrolü ve 8 Windows/web tema senaryo grubu geçti. [Doğrulama ve sınırlar](docs/VISUAL-POLISH-TEST.md).
+
 ## Windows 0.2.15 / Android 0.1.35 — 2026-10-29 (Hesap güvenliği sınırları)
 
 - Ortak yerel API okuyucuları artık HTTPS alan adına ek olarak yöntem, gövde ve kesin yol sözleşmesini denetler. Takip, takipten çıkma, beğeni, DM ve bilinmeyen adresler gönderimden önce reddedilir. Giriş ve cihaz kaydı için gerekli POST'lar ayrı, dar kapsamlı istisnalardır; genel GraphQL yetkisi verilmez.

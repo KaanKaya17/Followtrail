@@ -1,6 +1,10 @@
-# InstagramTracker Windows 0.2.15
+# InstagramTracker Windows 0.2.16
 
-`artifacts/InstagramTracker-Desktop-0.2.15/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.16/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Görsel incelikler
+
+Sayaçlar eşit genişlikli rakamlar kullanır. Düğme, ikon ve hesap seçicilerde kısa basma hissi; koyu/OLED kartlarda hafif üst ışık; temaya uygun kaydırma çubuğu vardır. Sistem koyu moduyla aynı ortak palet kullanılır; azaltılmış hareket ve yüksek kontrast tercihleri korunur. Blur, sürekli çalışan yeni animasyon veya ağ servisi eklenmedi. Android 0.1.36 aynı paleti native kart, sayı ve dokunma geri bildirimine uygular. [Doğrulama ve ekran kapsamı](../docs/VISUAL-POLISH-TEST.md).
 
 ## Hesap güvenliği sınırları
 

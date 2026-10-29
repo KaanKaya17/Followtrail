@@ -202,7 +202,7 @@ class MainActivity : LocalizedActivity() {
         if (::profileStatuses.isInitialized) profileStatuses.clear()
         root.removeAllViews()
         val saved = account
-        val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false; isVerticalScrollBarEnabled = false }
+        val scroll = ScrollView(this).apply { isFillViewport = true; clipToPadding = false; AppUi.scrollStyle(this) }
         visibleScroll = scroll
         val page = stack().apply { setPadding(dp(22), dp(16), dp(22), dp(28)) }
         val shell = stack()
@@ -319,7 +319,7 @@ class MainActivity : LocalizedActivity() {
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             })
             addView(title); gap(18)
-            addView(text(number(value), 38f, foreground, true).apply {
+            addView(AppUi.numeric(text(number(value), 38f, foreground, true)).apply {
                 maxLines = 1
                 if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 38, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
             }); gap(10)
@@ -804,7 +804,7 @@ class MainActivity : LocalizedActivity() {
             }
             for ((index, entry) in PeoplePolicy.favoritesFirst(saved.people).take(visiblePeople).withIndex()) {
                 val p = entry.latest
-                val card = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(18), dp(18), dp(18), dp(16)) }
+                val card = stack().apply { background = AppUi.cardSurface(this@MainActivity); setPadding(dp(18), dp(18), dp(18), dp(16)) }
                 val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
                 identity.addView(avatar(p, 46, if (index % 2 == 0) AppUi.violetSoft else AppUi.peach, if (index % 2 == 0) accent else AppUi.coral))
                 val name = stack().apply { setPadding(dp(12), 0, 0, 0) }
@@ -816,7 +816,7 @@ class MainActivity : LocalizedActivity() {
                     .apply { setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@MainActivity, "trash", AppUi.coral), null, null, null) },
                     LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(4) })
                 card.addView(identity); card.gap(18)
-                card.addView(text(getString(R.string.ui_followers_following, number(p.followers), number(p.following)), 14f, ink, true)); card.gap(8)
+                card.addView(AppUi.numeric(text(getString(R.string.ui_followers_following, number(p.followers), number(p.following)), 14f, ink, true))); card.gap(8)
                 card.addView(text(getString(R.string.ui_last_record, date(p.observedAt)), 11f, muted))
                 card.gap(10); card.addView(profileStatuses.view(saved.session, p.userId))
                 card.gap(16)

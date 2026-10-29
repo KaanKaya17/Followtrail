@@ -207,7 +207,7 @@ class FollowListActivity : LocalizedActivity() {
         val list = ListView(this).apply {
             divider = android.graphics.drawable.ColorDrawable(AppUi.line); dividerHeight = dp(1)
             background = AppUi.shape(this@FollowListActivity, AppUi.surface, 20); clipToOutline = true
-            isVerticalScrollBarEnabled = false
+            AppUi.scrollStyle(this)
         }
         visibleList = list
         if (run != null && run.users.isNotEmpty()) {
