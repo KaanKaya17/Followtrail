@@ -110,6 +110,8 @@ class WebLoginRelayTest {
         assertTrue(CookieManager.getInstance().getCookie("https://evil.invalid/").isNullOrBlank())
         val report=LoginPageTrace.read(context)!!
         assertTrue(report.contains("ALLOW:POST:AUTH"));assertFalse(report.contains("sensitive_string_value"));assertFalse(report.contains("synthetic.account"))
+        val facts=JSONObject(report).getJSONObject("authentication")
+        assertEquals(200,facts.getInt("status"));assertTrue(facts.getBoolean("sessionCookieReceived"));assertTrue(facts.getBoolean("cookiesApplied"))
         now+=15001
         assertTrue(gate.nextPrototypeAt()<=now);assertTrue(gate.nextWebAuthenticationAt()>now)
         assertEquals(ApiFailure.Kind.TOO_SOON,assertThrows(ApiFailure::class.java){gate.beginWebAuthentication()}.kind)
