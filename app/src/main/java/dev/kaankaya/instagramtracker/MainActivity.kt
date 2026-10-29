@@ -1423,6 +1423,7 @@ class MainActivity : LocalizedActivity() {
                 loginAuthenticating = false
                 loginRelayIssue = true
                 if (problem.kind == ApiFailure.Kind.LIMITED) webLoginFailed(problem, status)
+                else if (problem.kind == ApiFailure.Kind.TOO_SOON) endRejectedLogin(R.string.web_login_not_sent)
                 else loginStatus?.text = when (problem.kind) {
                     ApiFailure.Kind.POLICY -> getString(R.string.web_relay_blocked)
                     ApiFailure.Kind.INVALID_RESPONSE -> getString(R.string.web_relay_invalid_response)
@@ -1436,7 +1437,7 @@ class MainActivity : LocalizedActivity() {
                 loginAuthenticating = true; loginRelayIssue = true
                 loginStatus?.setText(R.string.web_login_sending); updateLoginCompletion()
             }
-        }, completed = { facts, challenge ->
+        }, completed = completion@{ facts, challenge ->
             if (web === browser) {
                 loginAuthenticating = false; loginRelayIssue = true
                 loginChallenge?.close(); loginChallenge = challenge
@@ -1449,7 +1450,10 @@ class MainActivity : LocalizedActivity() {
                         autoVerifyLogin = !webComparison
                         loginStatus?.setText(if (webComparison) R.string.web_login_comparison_ready else R.string.web_login_profile_pending)
                     }
-                    facts.authenticated == false -> loginStatus?.setText(R.string.web_login_rejected)
+                    facts.authenticated == false -> {
+                        endRejectedLogin(R.string.web_login_rejected)
+                        return@completion
+                    }
                     else -> loginStatus?.setText(R.string.web_relay_invalid_response)
                 }
                 updateLoginCompletion(); scheduleGateWake(); continueAuthenticatedLogin()
@@ -1562,6 +1566,15 @@ class MainActivity : LocalizedActivity() {
                     browser.loadUrl(challenge.page)
                 }
             }.show()
+    }
+
+    private fun endRejectedLogin(reason: Int) {
+        val details = getString(reason) + "\n\n" + getString(R.string.ui_next_connection_attempt, clock(gate.nextWebAuthenticationAt()))
+        message = details
+        leaveLogin()
+        AlertDialog.Builder(this).setTitle(R.string.web_login_not_accepted).setMessage(details)
+            .setNeutralButton(R.string.ui_request_information) { _, _ -> requestInfo() }
+            .setPositiveButton(R.string.ui_close, null).show()
     }
 
     private fun continueAuthenticatedLogin() {
