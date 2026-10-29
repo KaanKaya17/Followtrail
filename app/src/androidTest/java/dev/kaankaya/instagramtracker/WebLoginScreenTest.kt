@@ -48,9 +48,9 @@ class WebLoginScreenTest {
             .filterIsInstance<TextView>().joinToString(" | ") { it.text.toString() } }
         fail("Offline UI condition not reached: $visible")
     }
-    private fun open(status: Int = 200) {
+    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true) {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java)
-            .putExtra("offline_web_login", true).putExtra("web_login_status", status))
+            .putExtra("offline_web_login", offline).putExtra("web_login_status", status).putExtra("web_bootstrap_fixture", bootstrap))
         until { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text == a.getString(R.string.ui_connect_account) } }
         scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.ui_connect_account) }.performClick() }
         instrumentation.waitForIdleSync()
@@ -74,6 +74,40 @@ class WebLoginScreenTest {
     }
     private fun verify() = scenario!!.onActivity { a ->
         all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.web_connection_verify) }.performClick()
+    }
+    @Test fun desktopLoginLoadsExactBootstrapReadsAndDetectsModernFieldsWithoutVerifyingAnAccount() {
+        open(bootstrap = true)
+        until(20000) { LoginPageTrace.read(context)?.let { org.json.JSONObject(it).optBoolean("formVisible", false) } == true }
+        val saved = LoginPageTrace.read(context)!!
+        assertTrue(saved, saved.contains("ALLOW:GET:BOOTSTRAP")); assertTrue(saved, saved.contains("ALLOW:POST:BOOTSTRAP"))
+        assertFalse(saved.contains("synthetic-route-fields"))
+        scenario!!.onActivity { a ->
+            val settings = all(a.window.decorView).filterIsInstance<WebView>().single().settings
+            assertFalse(settings.userAgentString.contains("Android")); assertFalse(settings.userAgentString.contains("Mobile"))
+            assertTrue(settings.useWideViewPort); assertTrue(settings.loadWithOverviewMode)
+            assertTrue(settings.builtInZoomControls); assertFalse(settings.displayZoomControls)
+        }
+        assertEquals(0L, RequestGate(context).attempts()); assertNull(SessionVault(context).read())
+    }
+    /** Explicit opt-in, isolated debug package only. Never enters credentials or presses verification. */
+    @Test fun publicLoginFormSmokeRequiresExplicitOptIn() {
+        org.junit.Assume.assumeTrue(InstrumentationRegistry.getArguments().getString("live_login_page") == "true")
+        open(offline = false)
+        val state = java.util.concurrent.atomic.AtomicReference<String>()
+        // Public entry screen only. Never press the form's submit button or inspect field values.
+        val script = """(function(){
+            if(Array.from(document.querySelectorAll('input[name=username],input[name=email],input[type=password]')).some(n=>n.getClientRects().length))return 'form';
+            if(window.__trackerSmokeEntryClicked)return 'waiting';
+            var names=['Log in','Giriş yap'];
+            var nodes=Array.from(document.querySelectorAll('a,button,[role=button],span')).filter(n=>n.getClientRects().length&&names.includes(n.textContent.trim())&&!Array.from(n.children).some(c=>c.textContent.trim()===n.textContent.trim()));
+            if(nodes.length===1){window.__trackerSmokeEntryClicked=true;nodes[0].click();}
+            return 'waiting';
+        })()"""
+        until(25000) { a ->
+            all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(script) { state.set(it) }
+            state.get() == "\"form\""
+        }
+        assertEquals(0L, RequestGate(context).attempts()); assertNull(SessionVault(context).read())
     }
     @Test fun pageDiagnosticsExplainBlockedResourcesWithoutStoringRequestContentsOrSendingAProfileRead() {
         open()

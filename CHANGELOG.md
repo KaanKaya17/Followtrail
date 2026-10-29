@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.41 — 2026-10-29 (Giriş sayfası uyumluluğu adayı)
+
+- Giriş WebView'ı masaüstü sayfa sunumunu ister; kurulu Chromium sürümü korunur, sayfayı yakınlaştırma desteklenir. Genel GraphQL izni açılmaz. Mobil giriş sayfasının engellenen GraphQL sorgusuna bağımlı kaldığı hesapsız tarayıcı karşılaştırmasında görüldü; bu değişiklik hesap bağlantısının tamamlandığı anlamına gelmez.
+- Yalnız sayfa yükleyicisi GET /ajax/bootloader-endpoint/ ve rota tanımları POST /ajax/bulk-route-definitions/ için www.instagram.com üzerinde kesin yol/yöntem istisnası eklendi. Telemetri, Facebook adresleri ve sosyal işlemler engelli kalır; yerel hesap okuyucusunun sözleşmesi değişmez.
+- LP01 görünürlük tanısı yeni email/pass alanlarını da tanır; form değerlerini okumaz. Test ve canlı doğrulama kapsamı docs/LOGIN-PAGE-DIAGNOSTICS.md dosyasına eklenir.
+
 ## Android 0.1.40 — 2026-10-29 (Giriş sayfası tanısı)
 
 - Giriş formu gelmeden kalan WebView için Sayfa tanısı / LP01 eklendi: sabit kaynak kategorileri, izin/engel sayaçları, sayısal hata ve giriş alanı görünürlüğü. URL, parola, kod, çerez veya form içeriği tutulmaz; yeni ağ izni/isteği eklenmez.

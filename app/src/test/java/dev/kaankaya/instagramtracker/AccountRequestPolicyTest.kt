@@ -6,6 +6,23 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AccountRequestPolicyTest {
+    @Test fun bootstrapEndpointsHaveExactMethodsAndDoNotGrantGenericPostAccess() {
+        assertTrue(LoginBrowserPolicy.resource("GET", "https://www.instagram.com/ajax/bootloader-endpoint/?modules=login"))
+        assertTrue(LoginBrowserPolicy.resource("POST", "https://www.instagram.com/ajax/bulk-route-definitions/"))
+        for (method in listOf("GET", "PUT", "DELETE", "PATCH"))
+            assertFalse(LoginBrowserPolicy.resource(method, "https://www.instagram.com/ajax/bulk-route-definitions/"))
+        assertFalse(LoginBrowserPolicy.resource("POST", "https://www.instagram.com/ajax/bootloader-endpoint/"))
+        for (url in listOf("https://instagram.com/ajax/bulk-route-definitions/", "https://www.instagram.com/ajax/bulk-route-definitions/extra",
+            "https://www.instagram.com/ajax/%62ulk-route-definitions/", "https://www.instagram.com.evil.invalid/ajax/bulk-route-definitions/",
+            "https://www.instagram.com/api/graphql", "https://www.instagram.com/ajax/bz"))
+            assertFalse(url, LoginBrowserPolicy.resource("POST", url))
+        assertFalse(AccountRequestPolicy.readAllowed("POST", "https://www.instagram.com/ajax/bulk-route-definitions/", true))
+    }
+    @Test fun desktopPresentationKeepsInstalledChromeVersion() {
+        val ua = LoginBrowserResources.desktopUserAgent("Mozilla/5.0 (Linux; Android 13; device; wv) AppleWebKit/537.36 Version/4.0 Chrome/156.0.8078.47 Mobile Safari/537.36")
+        assertTrue(ua.contains("Chrome/156.0.8078.47")); assertFalse(ua.contains("Android")); assertFalse(ua.contains("Mobile"))
+        assertEquals("Unknown engine", LoginBrowserResources.desktopUserAgent("Unknown engine"))
+    }
     @Test fun browserDiagnosticsUseFixedCategoriesWithoutGrantingNewResourceAccess() {
         val cases = listOf(
             Triple("GET", "https://www.instagram.com/accounts/login/", true),
