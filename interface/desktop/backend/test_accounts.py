@@ -23,7 +23,7 @@ class AccountsTests(unittest.TestCase):
         old.data['people']['200'] = {'id':'200', 'username':'qa.person', 'note':'FIRST-NOTE'}
         old.save()
         self.original_bytes = old.vault.path.read_bytes()
-        self.e = Accounts(self.home.name, clock=lambda: self.now)
+        self.e = Accounts(self.home.name, clock=lambda: self.now, request_delay=lambda:15)
 
     def tearDown(self):
         self.home.cleanup()

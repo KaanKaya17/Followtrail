@@ -219,7 +219,6 @@
   "Henüz tamamlanmış liste yok": "No complete list yet",
   "Henüz yok": "Not yet",
   "Her gözlemin bir kapsamı var.": "Every observation has a scope.",
-  "Her profil kendi son kontrolünden yaklaşık {0} dakika sonra yeniden kontrol edilir. {1} profil izleniyor; profil sayısı seçilen aralıkla çarpılmaz. İstekler en az 15 saniye arayla sırayla gönderilir. Çok sayıda profil, uzun liste taraması, internet ve mola beklemesi süreyi uzatabilir.": "Each profile is checked again at an interval of about {0} min. Profiles watched: {1}; the interval is not multiplied by the profile count. Requests start at least 15 seconds apart. Many profiles, long list scans, connectivity, and cooldowns can extend the interval.",
   "Her şey bir kayıttan başlar.": "It starts with a snapshot.",
   "Hesaba göre bildirim türleri": "Notification types by account",
   "Hesabı bağla": "Connect account",
@@ -676,14 +675,12 @@
   "İlk kayıt bir başlangıçtır.": "The first snapshot is a starting point.",
   "İlk kontrolünden sonra kayıtlar burada görünür.": "Records will appear here after your first check.",
   "İncele": "Explore",
-  "İnceleme kendi oturumunu ve hedefi ayrı isteklerle kontrol eder; aralarında en az 15 saniye vardır. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.": "An investigation checks your session and the target in separate requests, at least 15 seconds apart. Automatic profile checks must also be enabled for automatic investigations.",
   "İnceleme sırasında": "Investigation in progress",
   "İptal et": "Cancel",
   "İptal istendi. Devam eden ağ isteği en fazla zaman aşımı süresi kadar bekleyebilir.": "Cancellation requested. An in-flight network request may wait up to its timeout.",
   "İsim, kullanıcı adı veya grup ara": "Search name, username, or group",
   "İstek bilgileri": "Request information",
   "İstek sayısı": "Request count",
-  "İstekler arasında en az 15 saniye, parola girişleri arasında en az 15 dakika beklenir. HTTP 429 sonrası yerel mola 1–24 saattir; sunucunun daha uzun bekleme süresi korunur. Mola bitişi erişim garantisi değildir.": "Requests start at least 15 seconds apart; password logins wait at least 15 minutes. After HTTP 429, the local cooldown is 1–24 hours; a longer server cooldown is preserved. The cooldown ending does not guarantee access.",
   "İstekler arasındaki yerel aralık bekleniyor…": "Waiting for the local request interval…",
   "İzin verilmeyen ağ hedefi durduruldu.": "An unauthorized network destination was blocked.",
   "İzleme örneği": "Sample watch setting",
@@ -807,7 +804,6 @@
   "Kullanıcı adı değişikliği ile engelleme aynı anda olduysa yeni adres bulunamayabilir. Bu özellik kesin engelleme, dondurma veya silinme tespiti değildir.": "If a username change and a block occurred together, the new address may not be found. This feature does not definitively detect blocking, deactivation or deletion.",
   "Oturumsuz profil görünürlüğü karşılaştırılıyor…": "Comparing logged-out profile visibility…",
   "Güçlü engellenme şüphesi · @{0}: Aynı hesap oturumsuz görünür, bağlı oturumdan erişilemiyor. Kesin engelleme kanıtı değildir.": "Strong suspicion of a block · @{0}: The same account is visible while logged out but unavailable to the connected account. This is not definitive proof of a block.",
-  "İnceleme önce bağlı oturumu, sonra hedefi kontrol eder. Hedef bulunamazsa ek bir oturumsuz sayfa isteği yapılır. Tüm istekler arasında en az 15 saniye vardır. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.": "The connected account is checked first, then the target. If the target is not found, one extra logged-out page request is made. All requests are spaced at least 15 seconds apart. Automatic profile checks must also be enabled for automatic investigation.",
   "Takipçi sayısı düşünce tamamlanmış başlangıç kaydı üzerinden liste taraması ve eksilen kayıtlı kişiler için erişim kontrolü sıraya alınır. Ek istekler ve bekleme gerektirir; sonuç yalnız engellenme şüphesidir. Hedef bulunamazsa son bilinen kullanıcı adına ek bir oturumsuz sayfa isteği yapılır.": "When your follower count drops, a full list scan and access checks for missing saved people are queued using a complete baseline. This requires extra requests and waiting; the result is only a suspected block. If the target is not found, one extra logged-out page request is made for its last known username.",
   "InstagramTracker · Güçlü engellenme şüphesi": "InstagramTracker · Strong suspicion of a block",
   "{0} hesap için engellenme şüphesi. Kontrol yöntemlerini ve kanıtları incele.": "Suspected blocks for {0} accounts. Review the check methods and evidence.",
@@ -901,7 +897,10 @@
   "Yedek başka bir hesaba ait. Önce ilgili hesabı seç.": "This backup belongs to another account. Select the relevant account first.",
   "Seçili hesabın otomatik kontrolü": "Automatic monitoring for the selected account",
   "Bağlı hesap: @{0}": "Connected account: @{0}",
-  "Dosya seçimi sırasında hesap değişti. İlgili hesabı seçip yeniden dene.": "The account changed during file selection. Select the relevant account and try again."
+  "Dosya seçimi sırasında hesap değişti. İlgili hesabı seçip yeniden dene.": "The account changed during file selection. Select the relevant account and try again.",
+  "İnceleme önce bağlı oturumu, sonra hedefi kontrol eder. Hedef bulunamazsa ek bir oturumsuz sayfa isteği yapılır. İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.": "The connected account is checked first, then the target. If the target is not found, one extra logged-out page request is made. A random {0}–{1} second spacing is reserved between requests; the actual wait may be longer. Automatic profile checks must also be enabled for automatic investigation.",
+  "Her profil kendi son kontrolünden yaklaşık {0} dakika sonra yeniden kontrol edilir. {1} profil izleniyor; profil sayısı seçilen aralıkla çarpılmaz. İstekler arasında {2}–{3} saniyelik rastgele aralık ayrılır. Çok sayıda profil, uzun liste taraması, internet ve mola beklemesi süreyi uzatabilir.": "Each profile is checked again at an interval of about {0} min. Profiles watched: {1}; the interval is not multiplied by the profile count. A random {2}–{3} second spacing is reserved between requests. Many profiles, long list scans, connectivity, and cooldowns can extend the interval.",
+  "İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Parola girişleri arasında en az 15 dakika beklenir. HTTP 429 sonrası yerel mola 1–24 saattir; sunucunun daha uzun bekleme süresi korunur. Mola bitişi erişim garantisi değildir.": "A random {0}–{1} second spacing is reserved between requests; the actual wait may be longer. Password logins wait at least 15 minutes. After HTTP 429, the local cooldown is 1–24 hours; a longer server cooldown is preserved. The cooldown ending does not guarantee access."
 };
   const locales = { tr: 'tr-TR', en: 'en-US' };
   const formatterCache = new Map();

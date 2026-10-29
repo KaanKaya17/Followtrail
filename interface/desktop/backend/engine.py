@@ -5,6 +5,7 @@ import math
 import os
 from pathlib import Path
 import queue
+import random
 import re
 import threading
 import time
@@ -23,6 +24,7 @@ from network import read_avatar
 MAX_MEMBERS = 20000
 MAX_PAGES = 400
 CONTROL_INTERVALS = (1, 5, 15, 30, 60, 180, 360)
+REQUEST_SPACING = (12, 18)
 PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'followers', 'following', 'posts', 'picture')
 
 
@@ -54,11 +56,12 @@ def public_person(value):
 
 
 class Engine:
-    def __init__(self, directory, emit=lambda event: None, clock=time.time):
+    def __init__(self, directory, emit=lambda event: None, clock=time.time, *, request_delay=None):
         self.vault = Vault(directory)
         self.data = self.load_vault()
         self.emit = emit
         self.clock = clock
+        self.request_delay = request_delay or (lambda: random.uniform(*REQUEST_SPACING))
         self.cancel = threading.Event()
         self.codes = queue.Queue(maxsize=1)
         self.waiting_code = False
@@ -111,6 +114,7 @@ class Engine:
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
                 'history': d['history'], 'lists': records, 'events': d['events'],
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
+                'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
                 'monitor': self.monitor_status(),
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
                 'notificationRules': d['notificationRules'], 'notificationLog': d['notificationLog'],
@@ -118,7 +122,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.13'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.14'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -143,7 +147,9 @@ class Engine:
                 self.check_cancel()
         self.check_cancel()
         now = self.clock()
-        gate.update(nextAt=now + 15, attempts=gate.get('attempts', 0) + 1, lastAt=now, status=None)
+        # Draw once per outgoing request. Persist the absolute reservation so
+        # polling, restart, cancellation and account switching cannot redraw it.
+        gate.update(nextAt=now + self.request_delay(), attempts=gate.get('attempts', 0) + 1, lastAt=now, status=None)
         self.save()
         self.progress('request', attempts=gate['attempts'])
 
@@ -577,7 +583,7 @@ class Engine:
                   'restricted' if d['gate'].get('manualOnly') else None)
         return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason,
                 'profileCount': len(profiles), 'intervalSeconds': interval,
-                'estimatedCycleSeconds': max(interval, 15 * len(profiles)),
+                'estimatedCycleSeconds': max(interval, sum(REQUEST_SPACING) / 2 * len(profiles)),
                 'accessPending': len(pending), 'followerScanPending': bool(investigation and investigation[0] == 'followers_scan'),
                 'nextAt': None if reason or not deadlines else max(min(deadlines),
                                                    d['gate'].get('blockedUntil', 0), d['gate'].get('nextAt', 0))}

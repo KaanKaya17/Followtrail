@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.14 — 2026-10-29 (12–18 saniyelik istek aralığı)
+
+- Sayaçlı API ve oturumsuz profil isteklerinin ortak kapısı, her giden istek için bir kez 12–18 saniyelik eşit olasılıklı süre seçer. Sonraki istek zamanı şifreli kaydedilir; hesap geçişi, yeniden açılış, iptal ve yerel düzenlemeler süreyi yeniden seçmez. Önceki daha uzun rezervasyonlar korunur.
+- Türkçe/İngilizce istek, erişim ve zamanlama açıklamaları sınırları doğrudan backend politikasından alır. Mevcut geri sayım seçilen mutlak zamana uyar; yeni periyodik zamanlayıcı eklenmez. Beş dakikalık profil aralığı, 429/Retry-After ve 15 dakikalık parola giriş aralığı değişmez.
+- Beklenen seçilmiş süre ortalaması 15 saniyedir; gerçek istek aralığı daha uzun olabilir. Bot tespitinden veya 429’dan korunma garantisi değildir. Android ve örnek web zamanlayıcısı değiştirilmedi. [Doğrulama ve sınırlar](docs/REQUEST-JITTER-TEST.md).
+
 ## Windows 0.2.13 — 2026-10-29 (Ortak molayı uzatmayan yerel ret)
 
 - 0.2.12’de hesap değişiminden sonra mola sürerken elle yenilemenin, yeni HTTP yanıtı olmadan yeni sınırlama gibi yorumlanıp süreyi uzatması düzeltildi. Yerel mola `cooldown`, yeni Instagram sınırlaması `limited` olarak ayrılır. Erişim ve anonim inceleme aynı ayrımı kullanır.

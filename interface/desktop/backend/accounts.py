@@ -18,7 +18,7 @@ DEVICE_SETTINGS = ('language', 'theme', 'compact')
 
 
 class Accounts(Engine):
-    def __init__(self, directory, emit=lambda event: None, clock=time.time):
+    def __init__(self, directory, emit=lambda event: None, clock=time.time, *, request_delay=None):
         self.directory = Path(directory)
         self.catalog_vault = Vault(directory, catalog=True)
         self.catalog = self.catalog_vault.load()
@@ -34,7 +34,7 @@ class Accounts(Engine):
                 raise StorageFailure('Hesap kasası bulunamadı. Kayıtlar otomatik sıfırlanmadı.')
         else:
             selected = directory
-        super().__init__(selected, emit, clock)
+        super().__init__(selected, emit, clock, request_delay=request_delay)
         self.initializing = False
         if self.catalog is not None and self.data.get('removedAccountId') == self.active_id and self.active_id:
             self.finish_removal()

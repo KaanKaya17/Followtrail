@@ -13,7 +13,7 @@ class ScheduleTests(unittest.TestCase):
     def setUp(self):
         self.home = tempfile.TemporaryDirectory(prefix='TrackerQA-')
         self.now = 1800000000
-        self.e = Engine(self.home.name, clock=lambda: self.now)
+        self.e = Engine(self.home.name, clock=lambda: self.now, request_delay=lambda:15)
         self.e.record_profile(parse_profile(profile()), own=True)
         for identity in ('200', '300'):
             self.e.record_profile(parse_profile(profile(identity)))
@@ -56,7 +56,7 @@ class ScheduleTests(unittest.TestCase):
         self.now += 300
         with patch.object(self.e, 'refresh', side_effect=AppFailure('connection', 'Synthetic')):
             with self.assertRaises(AppFailure): self.e.run('automatic', {})
-        self.e = Engine(self.home.name, clock=lambda: self.now)
+        self.e = Engine(self.home.name, clock=lambda: self.now, request_delay=lambda:15)
         self.tick(315, '200')
         self.tick(330, '300')
         self.assertEqual(self.e.monitor_status()['nextAt'], 1800000600)
