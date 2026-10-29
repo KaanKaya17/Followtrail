@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.43 — 2026-10-29 (Giriş yanıtını ayıran tanı)
+
+- LP01 rapor biçimi 2, HTTP yanıtı ile kimlik doğrulama sonucunu ayırır. Yalnız JSON şekli, sayısal hata kodları ve bilinen giriş belgesinin authenticated/captcha/iki aşamalı işlem/redirect varlığı işaretleri saklanır. Mesaj metni, hesap kimliği, nonce, URL, çerez değeri ve ham yanıt saklanmaz. Bilinmeyen biçim ve ayrıştırılmayan kodlar açık kalır.
+- Set-Cookie tek kez ayrıştırılır; aynı olgular çerez kabulünde ve tanıda kullanılır. Oturum çerezi alınması ile çerez callback’inin tamamlanması ayrı gösterilir. Kamuya açık giriş belgesinin caa_login_web alanları temel alınır; HTTP 200 tek başına başarılı giriş sayılmaz.
+- Tarayıcının gerçek giriş isteğinde görülen x-ig-max-touch-points başlığı dar aktarım listesine eklendi. Yalnız Instagram hedefi, şifreli gövde sözleşmesi, bütçe, 15 dakikalık giriş aralığı ve 429 durdurması korunur. Bu adayın giriş başarısı ayrıca canlı doğrulanmalıdır.
+
 ## Android 0.1.42 — 2026-10-29 (Şifreli web giriş sözleşmesi adayı)
 
 - Yeni Instagram giriş formunun useCDSWebLoginMutation isteği, genel GraphQL engeli yüzünden gönderilmeden durabiliyordu. Instagram sayfasının gösterdiği yanlış giriş bilgileri mesajı bu durumda parola doğrulaması kanıtı değildi. Telefonda engelli GraphQL istekleri görüldü; hesapsız, sentetik giriş verisiyle işlemin adı/belge kimliği ve şifreli alan biçimi yakalandı; bu incelemede gerçek giriş gönderilmedi.

@@ -52,6 +52,9 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
         try { proxy.postMessage(value.put("id", id).toString()) } catch (_: Exception) { /* Closed renderer. */ }
     }
+    private fun record(facts: WebLoginResponseFacts) {
+        try { trace.authentication(facts) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    }
     private fun receive(message: WebMessageCompat, origin: Uri, mainFrame: Boolean, proxy: JavaScriptReplyProxy) {
         var id = "0"
         try {
@@ -71,7 +74,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
             val accepted = linkedMapOf<String, String>()
             for (key in headers.keys()) {
                 val value = headers.get(key); require(value is String && value.length <= 2048 && value.all { it.code in 32..126 })
-                if (key.lowercase() in setOf("accept", "accept-language", "x-fb-lsd", "x-csrftoken", "x-asbd-id", "x-ig-app-id", "x-fb-friendly-name", "x-root-field-name"))
+                if (key.lowercase() in setOf("accept", "accept-language", "x-fb-lsd", "x-csrftoken", "x-asbd-id", "x-ig-app-id", "x-fb-friendly-name", "x-root-field-name", "x-ig-max-touch-points"))
                     accepted[key.lowercase()] = value
             }
             require(!submitted && active == null)
@@ -120,22 +123,31 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 if (source.buffer.size > 131072) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val text = source.readUtf8()
                 // Only a JSON response is returned to the same document; no body is logged or persisted.
-                val json = JSONObject(text.removePrefix("for (;;);"))
+                val json = try { JSONObject(text.removePrefix("for (;;);")) } catch (_: Exception) { null }
+                val origin = WebLoginContract.URL.toHttpUrl()
+                val cookieLines = response.headers("Set-Cookie")
+                val parsedCookies = cookieLines.map { value ->
+                    if (value.length <= 16384) Cookie.parse(origin, value)?.takeIf { it.matches(origin) } else null
+                }
+                val facts = WebLoginResponseFacts.inspect(response.code, json, parsedCookies.filterNotNull(), parsedCookies.all { it != null }, gate.now())
+                record(facts)
+                if (json == null) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val issue = InstagramResponsePolicy.issue(response.code, json)
                 if (issue?.restriction != null) {
                     gate.limited(response.header("Retry-After"), reason = issue.restriction.label)
                     throw ApiFailure(ApiFailure.Kind.LIMITED)
                 }
-                val origin = WebLoginContract.URL.toHttpUrl()
-                val cookies = response.headers("Set-Cookie").filter { value ->
-                    value.length <= 16384 && Cookie.parse(origin, value)?.matches(origin) == true
-                }
+                val cookies = cookieLines.filterIndexed { index, _ -> parsedCookies[index] != null }
                 val result = JSONObject().put("status", response.code).put("body", text)
                     .put("headers", JSONObject().put("content-type", response.header("Content-Type") ?: "application/json"))
                 main.post {
                     if (closed || active !== pending) return@post
                     fun finish() {
                         if (closed || active !== pending) return
+                        try { record(facts.copy(cookiesApplied = cookies.isNotEmpty())) }
+                        catch (problem: ApiFailure) {
+                            active = null; reply(pending.reply, pending.id, JSONObject().put("error", true)); failure(problem, null); return
+                        }
                         active = null; reply(pending.reply, pending.id, result)
                     }
                     if (cookies.isEmpty()) finish() else {
@@ -146,6 +158,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                             remaining--
                             if (remaining == 0) {
                                 if (!rejected) finish() else if (!closed && active === pending) {
+                                    try { record(facts.copy(cookiesApplied = false)) } catch (_: ApiFailure) { }
                                     active = null; reply(pending.reply, pending.id, JSONObject().put("error", true))
                                     failure(ApiFailure(ApiFailure.Kind.STORAGE), null)
                                 }
