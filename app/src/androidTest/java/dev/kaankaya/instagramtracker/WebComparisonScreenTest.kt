@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
+import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
 import org.junit.Before
@@ -19,6 +20,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /** Actual two-click MainActivity, real browser fetch and staging; debug fixtures cannot reach Instagram. */
+@SdkSuppress(minSdkVersion=29)
 class WebComparisonScreenTest {
     private val instrumentation=InstrumentationRegistry.getInstrumentation()
     private val context=instrumentation.targetContext
