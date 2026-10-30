@@ -116,7 +116,8 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
     private val main = Handler(Looper.getMainLooper())
     private val executor = ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(20))
     private val cache = AvatarCache(context, slot)
-    private val archiveVault = SessionVault(context, if (slot.startsWith("preview")) "previewaccount" else "account")
+    private val archiveContext=context.applicationContext
+    private val previewArchive=slot.startsWith("preview")
     private val memory = object : LruCache<String, Bitmap>(2 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.byteCount
     }
@@ -156,6 +157,7 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
                     // Only an already-selected public thumbnail of the current observation.
                     // No extra request and no archive record for an untracked list member.
                     try {
+                        val archiveVault=SessionVault(archiveContext,if(previewArchive)"previewaccount" else "account",if(previewArchive)null else source.owner)
                         val saved = if (archiveVault.visual.exists()) archiveVault.read()?.takeIf { it.session.userId == source.owner } else null
                         val profile = saved?.let { if (it.profile.userId == source.target) it.profile else it.people.firstOrNull { p -> p.latest.userId == source.target }?.latest }
                         if (profile?.details?.pictureUrl?.value == source.url && profile.details.pictureId.value == source.revision)

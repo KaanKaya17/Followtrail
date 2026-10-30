@@ -27,7 +27,8 @@ object RetryPolicy {
     }
 }
 
-class RequestGate(context: Context, name: String = "request_gate", private val clock: () -> Long = System::currentTimeMillis) {
+class RequestGate(context: Context, private val name: String = "request_gate", private val clock: () -> Long = System::currentTimeMillis) {
+    private var owner: String?=null
     fun now(): Long = clock()
     internal val context: Context = context.applicationContext
     // Activity recreation can create multiple owners of the same preferences.
@@ -38,6 +39,21 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     }
     private val identity = "${context.packageName}:$name"
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+    init {
+        if(name=="request_gate") {
+            val catalog=AccountCatalog(this.context);catalog.initialize()
+            catalog.entries().firstOrNull {it.slot=="account"}?.let {entry->
+                val flags=this.context.getSharedPreferences("account_flags_"+AccountCatalog.slot(entry.id),Context.MODE_PRIVATE)
+                if(!flags.contains("migrated"))check(flags.edit().putBoolean("migrated",true)
+                    .putBoolean("requires_connection",preferences.getBoolean("requires_connection",false))
+                    .putBoolean("own_auto_refresh",preferences.getBoolean("own_auto_refresh",false))
+                    .putBoolean("list_capacity_pause",preferences.getBoolean("list_capacity_pause",false)).commit())
+            }
+        }
+    }
+    private fun settings() = if(name!="request_gate")preferences else this.context.getSharedPreferences(
+        "account_flags_"+((owner ?: AccountCatalog.selected(this.context))?.let(AccountCatalog::slot) ?: "empty"),Context.MODE_PRIVATE)
+    fun forAccount(id: String)=RequestGate(context,name,clock).also {it.owner=InstagramIdentity.id(id)}
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
     private fun budgetTimes(): List<Long> = try {
         val json = org.json.JSONArray(preferences.getString("budget_times", "[]"))
@@ -60,18 +76,18 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
         AutoCloseable { synchronized(lock) { if (quickOwners[identity] === owner) quickOwners.remove(identity); Unit } }
     }
     fun manualOnly(): Boolean = synchronized(lock) { preferences.getBoolean("manual_only", false) || blockedUntil() > 0 || listCapacityPaused() }
-    fun listCapacityPaused(): Boolean = synchronized(lock) { preferences.getBoolean("list_capacity_pause", false) }
+    fun listCapacityPaused(): Boolean = synchronized(lock) { settings().getBoolean("list_capacity_pause", false) }
     fun pauseForListCapacity() = synchronized(lock) {
-        if (!preferences.edit().putBoolean("list_capacity_pause", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if (!settings().edit().putBoolean("list_capacity_pause", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun clearListCapacityPause() = synchronized(lock) {
-        if (!preferences.edit().remove("list_capacity_pause").commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if (!settings().edit().remove("list_capacity_pause").commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun restrictionPending(): Boolean = blockedUntil() > 0
     fun serverRetryAt(): Long? = synchronized(lock) { preferences.getLong("server_retry_at", 0).takeIf { it > 0 } }
-    fun ownAutoRefresh(): Boolean = synchronized(lock) { preferences.getBoolean("own_auto_refresh", false) }
+    fun ownAutoRefresh(): Boolean = synchronized(lock) { settings().getBoolean("own_auto_refresh", false) }
     fun setOwnAutoRefresh(enabled: Boolean) = synchronized(lock) {
-        if (!preferences.edit().putBoolean("own_auto_refresh", enabled).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if (!settings().edit().putBoolean("own_auto_refresh", enabled).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun attempts(): Long = synchronized(lock) { preferences.getLong("attempt_count", 0) }
     fun lastAttemptAt(): Long = synchronized(lock) { preferences.getLong("last_attempt_at", 0) }
@@ -82,7 +98,7 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     }
     fun lastLimitedAt(): Long = synchronized(lock) { preferences.getLong("limited_at", 0) }
     fun limitReason(): String = synchronized(lock) { preferences.getString("limit_reason", null) ?: "Önceki sürümde kaydedilen sınırlama" }
-    fun requiresConnection(): Boolean = synchronized(lock) { preferences.getBoolean("requires_connection", false) }
+    fun requiresConnection(): Boolean = synchronized(lock) { settings().getBoolean("requires_connection", false) }
     fun prototypeActive(): Boolean = synchronized(lock) { preferences.getBoolean("prototype_active", false) }
     fun mobileLinkActive(): Boolean = synchronized(lock) { preferences.getBoolean("mobile_link_active", false) }
     fun phoneLoginActive(): Boolean = synchronized(lock) { preferences.getBoolean("phone_login_active", false) }
@@ -116,7 +132,7 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
         if (!preferences.edit().putLong("prototype_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun pauseForConnection() = synchronized(lock) {
-        if (!preferences.edit().putBoolean("requires_connection", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if (!settings().edit().putBoolean("requires_connection", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun claim(): AutoCloseable = synchronized(lock) {
         if (!active.add(identity)) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
@@ -157,7 +173,7 @@ class RequestGate(context: Context, name: String = "request_gate", private val c
     fun succeeded() = synchronized(lock) {
         // A successful manual read resumes normal cached own-account refreshes.
         if (!preferences.edit().putBoolean("manual_only", false).putLong("blocked_until", 0).remove("server_retry_at")
-                .putBoolean("requires_connection", false)
                 .putInt("limit_streak", 0).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if(!settings().edit().putBoolean("requires_connection",false).commit())throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
 }

@@ -27,6 +27,9 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
     }
     @Suppress("DEPRECATION")
     private fun builder(context: Context): Notification.Builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, CHANNEL) else Notification.Builder(context)
+    private fun accountLabel(owner: String): String? = if(preview)"DEMO" else try {
+        AccountCatalog(sourceContext).entries().firstOrNull {it.id==owner}?.let {"@${it.username}"}
+    }catch (_: Exception) {null}
     fun post(change: ObservedProfileChange) {
         val context = AppLanguage.wrap(sourceContext)
         ensureChannel()
@@ -53,6 +56,7 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
         val notification = builder(context).setSmallIcon(R.drawable.ic_notification)
             .setWhen(change.profile.observedAt).setShowWhen(true)
             .setContentTitle(context.getString(R.string.ui_profile_change, if (preview) "DEMO · " else "", change.profile.username))
+            .setSubText(accountLabel(change.ownerId))
             .setContentText(details.joinToString(" · "))
             .setStyle(Notification.BigTextStyle().bigText(details.joinToString("\n")))
             .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(public).setContentIntent(pending)
@@ -75,6 +79,7 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
             .setContentText(context.getString(R.string.auto_notification_public)).build()
         val notification = builder(context).setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("${if (preview) "DEMO · " else ""}@${profile.username} · $direction")
+            .setSubText(accountLabel(session.userId))
             .setWhen(difference.observedAt).setShowWhen(true)
             .setContentText(details).setStyle(Notification.BigTextStyle().bigText(details + "\n\n" +
                 context.getString(R.string.timeline_observed, ObservationTimes.format(context, difference.observedAt)) + "\n" +
@@ -89,5 +94,9 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
     }
     fun cancel(owner: String, person: String) { manager.cancel(tag(owner, person), 0); cancelLists(owner, person) }
     fun clear() { manager.cancelAll() }
+    fun clearOwner(owner: String) {
+        manager.activeNotifications.filter {it.tag?.startsWith("profile:$owner:")==true || it.tag?.startsWith("list:$owner:")==true}
+            .forEach {manager.cancel(it.tag,it.id)}
+    }
     private fun tag(owner: String, person: String) = "profile:$owner:$person"
 }

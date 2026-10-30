@@ -1,0 +1,9 @@
+<resources>
+    <string name="accounts_title">My accounts</string>
+    <string name="accounts_add">Add account</string>
+    <string name="accounts_none">No account connected</string>
+    <string name="accounts_current">%1$s · My accounts</string>
+    <string name="accounts_privacy">Each account’s session, watched profiles, lists and history are encrypted separately on this device. Switching accounts sends no Instagram request. Safety pauses and request limits are shared across accounts.</string>
+    <string name="accounts_added">Switch accounts without signing in again. Your other accounts’ records are preserved.</string>
+    <string name="accounts_remove_warning">Only the selected account’s session, watched profiles, lists and history on this device will be deleted. Your other accounts’ records are preserved.</string>
+</resources>

@@ -44,7 +44,7 @@ class PhoneLoginFlowTest {
         clients.forEach { it.cancel() }; transports.forEach { it.close() }; clean()
     }
     private fun clean() {
-        sessions.clear(); vault.clear(); PhoneIdentity.clear(context); PhoneLoginJournal(context).clear()
+        sessions.clear(); AccountCatalog(context).entries().forEach {SessionVault(context,owner=it.id).clear()}; PhoneIdentity.clear(context); PhoneLoginJournal(context).clear()
         context.getSharedPreferences("request_gate", 0).edit().clear().commit()
     }
     private fun program(app: String, token: String) = JSONObject().put("layout", JSONObject().put("bloks_payload", JSONObject()

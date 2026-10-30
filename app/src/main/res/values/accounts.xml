@@ -1,0 +1,9 @@
+<resources>
+    <string name="accounts_title">Hesaplarım</string>
+    <string name="accounts_add">Hesap ekle</string>
+    <string name="accounts_none">Hesap bağlı değil</string>
+    <string name="accounts_current">%1$s · Hesaplarım</string>
+    <string name="accounts_privacy">Her hesabın oturumu, izlenen profilleri, listeleri ve geçmişi cihazında ayrı şifreli tutulur. Hesap değiştirmek Instagram isteği göndermez. Güvenlik molası ve istek sınırları bütün hesaplar için ortaktır.</string>
+    <string name="accounts_added">Hesaplar arasında yeniden giriş yapmadan geçiş yapabilirsin. Diğer hesaplarının kayıtları korunur.</string>
+    <string name="accounts_remove_warning">Yalnız şu an seçili hesabın bu cihazdaki oturumu, izlenen profilleri, listeleri ve geçmişi silinir. Diğer hesaplarının kayıtları korunur.</string>
+</resources>

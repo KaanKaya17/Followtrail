@@ -33,6 +33,7 @@ class PrivateReadTransport<S>(private val gate: RequestGate, private val session
     fun cancel() { synchronized(lock) { generation++; active?.cancel(); active = null } }
     fun <T> read(reference: Session, connectionTest: Boolean = false, resumeAutomation: Boolean = true,
         request: (S, Long) -> Request, parse: (JSONObject, Long) -> T): T {
+        val gate=this.gate.forAccount(reference.userId)
         val ticket = synchronized(lock) { generation }
         fun current() {
             if (Thread.currentThread().isInterrupted || synchronized(lock) { generation != ticket })

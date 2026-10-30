@@ -59,6 +59,9 @@ class FollowListActivity : LocalizedActivity() {
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         gate = RequestGate(this, if (preview) "preview_gate" else "request_gate")
         queuedRead = ForegroundReadQueue(this, gate) { reason -> message = reason; render() }
+        if(!preview)intent.getStringExtra("notification_owner")?.let {owner->
+            try {if(AccountCatalog(this).entries().any {it.id==owner})AccountCatalog(this).select(owner)}catch (_: Exception) { }
+        }
         accountVault = SessionVault(this, if (preview) "previewaccount" else "account")
         lists = FollowListVault(this, if (preview) "previewlists" else "followlists")
         source = PreviewMode.followLists(gate, preview)

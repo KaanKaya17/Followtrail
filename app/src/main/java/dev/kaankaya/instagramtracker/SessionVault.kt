@@ -64,11 +64,14 @@ class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int 
     }
 }
 
-class SessionVault(context: Context, slot: String = "account") {
-    companion object { private val lock = Any(); const val ACCOUNT_BYTES = 2 * 1024 * 1024 }
-    private val record = EncryptedRecord(context, slot, ACCOUNT_BYTES)
-    val visual = VisualHistoryStore(context, slot)
-    val journal = CheckJournal(context, "${slot}checks")
+class SessionVault(private val context: Context, private val slot: String = "account", private val owner: String? = null) {
+    companion object { private val lock=AccountCatalog.lock; const val ACCOUNT_BYTES = 2 * 1024 * 1024 }
+    private val catalog get()=if(slot=="account")AccountCatalog(context) else null
+    private fun currentOwner()=owner ?: catalog?.active()
+    private fun storage()=catalog?.let {c->currentOwner()?.let(c::storage)} ?: slot
+    private val record get()=EncryptedRecord(context,storage(),ACCOUNT_BYTES)
+    val visual get()=VisualHistoryStore(context,storage())
+    val journal get()=CheckJournal(context,"${storage()}checks")
     fun record(session: Session, event: CheckEvent) = synchronized(lock) {
         val current = try { read() } catch (_: Exception) { null }
         if (current?.session == session && (event.target == current.profile.userId || current.people.any { it.latest.userId == event.target }))
@@ -81,19 +84,27 @@ class SessionVault(context: Context, slot: String = "account") {
         val profile = if (target == current.profile.userId) current.profile else current.people.firstOrNull { it.latest.userId == target }?.latest ?: return@synchronized
         record(session, CheckEvent(target, profile.username, CheckKind.FAILURE, startedAt, null, endedAt, failure = failure.kind))
     }
-    fun exists(): Boolean = synchronized(lock) { record.exists() }
+    fun exists(): Boolean = synchronized(lock) { if(catalog!=null && currentOwner()==null)false else record.exists() }
     fun write(account: SavedAccount): Unit = synchronized(lock) {
-        record.write(AccountCodec.encode(account))
-        visual.observe(account)
+        require(owner==null || owner==account.session.userId)
+        val destination=catalog?.storage(account.session.userId) ?: slot
+        EncryptedRecord(context,destination,ACCOUNT_BYTES).write(AccountCodec.encode(account))
+        catalog?.remember(account,owner==null)
+        VisualHistoryStore(context,destination).observe(account)
     }
-    fun read(): SavedAccount? = synchronized(lock) { record.read()?.let(AccountCodec::decode) }
+    fun read(): SavedAccount? = synchronized(lock) {
+        val c=catalog
+        if(c!=null && (currentOwner()==null || !c.stored(currentOwner()!!)))return@synchronized null
+        record.read()?.let(AccountCodec::decode)?.also {require(c==null || it.session.userId==currentOwner())}
+            ?: if(c!=null)throw ApiFailure(ApiFailure.Kind.STORAGE) else null
+    }
     /** Serialize foreground/background read-modify-write operations across vault instances. */
     fun update(expected: Session, transform: (SavedAccount) -> SavedAccount): SavedAccount = synchronized(lock) {
         val current = read()?.takeIf { it.session == expected } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
         transform(current).also { require(it.session == expected); write(it) }
     }
     fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
-        val previous = read()
+        val previous = if(catalog!=null)SessionVault(context,owner=session.userId).read() else read()
         val sameOwner = previous?.takeIf { it.session.userId == session.userId }
         SavedAccount(session, profile, sameOwner?.people.orEmpty(), sameOwner?.automation ?: ListAutomation(enabled = true, targets = setOf(session.userId)))
             .also { write(it) }
@@ -105,8 +116,17 @@ class SessionVault(context: Context, slot: String = "account") {
     }
     fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }
     fun clear(): Unit = synchronized(lock) {
+        val id=currentOwner()
+        if(catalog!=null && id==null)return@synchronized
+        if(catalog!=null) {
+            catalog!!.removing(id!!)
+            MobileSessions(context).clearOwner(id);WebSessions(context).clearOwner(id)
+            FollowListVault(context,owner=id).clear()
+            check(context.getSharedPreferences("account_flags_"+AccountCatalog.slot(id),Context.MODE_PRIVATE).edit().clear().commit())
+        }
         record.clear()
         journal.clear()
         visual.clearAll()
+        id?.let {catalog?.forget(it)}
     }
 }
