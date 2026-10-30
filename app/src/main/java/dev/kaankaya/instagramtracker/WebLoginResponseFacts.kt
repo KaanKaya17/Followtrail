@@ -10,7 +10,8 @@ data class WebLoginResponseFacts(val status: Int, val jsonParsed: Boolean, val d
     val cookiesApplied: Boolean? = null, val caaResultPresent: Boolean = false,
     val authenticated: Boolean? = null, val captchaNeeded: Boolean? = null,
     val twoFactorPayloadPresent: Boolean? = null, val redirectPresent: Boolean? = null,
-    val messageClass: MessageClass = MessageClass.UNKNOWN) {
+    val messageClass: MessageClass = MessageClass.UNKNOWN,
+    val challengeStatus: WebLoginChallenge.Companion.Status? = null) {
     enum class Shape { MISSING, NULL, OBJECT, ARRAY, OTHER, UNKNOWN }
     enum class MessageClass { NONE, BAD_LOGIN_INFORMATION, OTHER, UNKNOWN }
     fun json() = JSONObject().put("status", status).put("jsonParsed", jsonParsed).put("dataShape", dataShape.name)
@@ -21,6 +22,7 @@ data class WebLoginResponseFacts(val status: Int, val jsonParsed: Boolean, val d
         .put("caaResultPresent", caaResultPresent).put("authenticated", authenticated ?: JSONObject.NULL)
         .put("captchaNeeded", captchaNeeded ?: JSONObject.NULL).put("twoFactorPayloadPresent", twoFactorPayloadPresent ?: JSONObject.NULL)
         .put("redirectPresent", redirectPresent ?: JSONObject.NULL).put("messageClass", messageClass.name)
+        .put("challengeStatus", challengeStatus?.name ?: JSONObject.NULL)
     companion object {
         fun inspect(status: Int, body: JSONObject?, cookies: List<Cookie>, allCookiesParsed: Boolean, now: Long): WebLoginResponseFacts {
             require(status in 100..599)

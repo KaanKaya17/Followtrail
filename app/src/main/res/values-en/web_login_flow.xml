@@ -1,10 +1,18 @@
 <resources>
+    <string name="web_login_step_loading">Opening Instagram sign-in</string>
+    <string name="web_login_step_credentials">Your turn · Sign in to Instagram</string>
+    <string name="web_login_step_waiting">Waiting for Instagram’s response</string>
+    <string name="web_login_step_code">Your turn · Enter the verification code</string>
+    <string name="web_login_step_captcha">Your turn · Complete the security check</string>
+    <string name="web_login_step_profile">Final step · Connecting your account</string>
+    <string name="web_login_step_attention">Your connection needs attention</string>
+    <string name="web_login_page_timeout">Instagram’s sign-in page could not load. Sign-in is not complete. Check your connection or look for security alerts in Instagram. Do not keep submitting your password.</string>
     <string name="web_login_sending">Instagram is checking your sign-in. A result should appear within about 35 seconds; do not submit again.</string>
     <string name="web_login_profile_pending">Signed in. After the short request interval, your profile will be checked once to complete the connection.</string>
     <string name="web_login_comparison_ready">Signed in. Use A to check the browser reader, then B to compare the app reader.</string>
     <string name="web_login_captcha">Instagram requires an extra security check; sign-in is not complete. Open verification below instead of sending your password again.</string>
-    <string name="web_login_captcha_unavailable">Instagram requires an extra security check; sign-in is not complete. This version cannot open the returned verification link. Check security alerts in the official Instagram app; avoid repeated sign-in attempts.</string>
-    <string name="web_login_two_factor">Instagram requires additional verification. Complete the code or approval step on its page; you do not need to share the code with this app.</string>
+    <string name="web_login_captcha_unavailable">Instagram requires a CAPTCHA / security check. This version could not open the verification step in the response, so sign-in is not complete and the form was closed. This does not establish that your password is wrong. Tap Check in Instagram and complete any security check shown there yourself. That does not automatically connect Tracker. Try once again after the time below.</string>
+    <string name="web_login_two_factor">Instagram requires additional verification. Enter the requested SMS or authenticator code in the Instagram page below, or approve the sign-in in Instagram if asked. Do not send the code in chat. If no code field or approval step appears, do not resubmit your password; cancel and check security alerts in Instagram.</string>
     <string name="web_login_rejected">Instagram did not create a session for this single attempt. The form was closed; no additional credentials were sent. The response alone does not establish the underlying cause.</string>
     <string name="web_login_not_accepted">Instagram sign-in was not completed</string>
     <string name="web_login_not_sent">No new sign-in was sent from this screen. The previous attempt does not verify other accounts’ credentials. Wait until the time below before trying again.</string>

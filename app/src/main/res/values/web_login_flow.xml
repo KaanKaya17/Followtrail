@@ -1,10 +1,18 @@
 <resources>
+    <string name="web_login_step_loading">Instagram giriş sayfası açılıyor</string>
+    <string name="web_login_step_credentials">Sıra sende · Instagram’a giriş yap</string>
+    <string name="web_login_step_waiting">Instagram’ın yanıtı bekleniyor</string>
+    <string name="web_login_step_code">Sıra sende · Doğrulama kodunu gir</string>
+    <string name="web_login_step_captcha">Sıra sende · Güvenlik doğrulamasını tamamla</string>
+    <string name="web_login_step_profile">Son adım · Hesabın bağlanıyor</string>
+    <string name="web_login_step_attention">Bağlantı için bir adım gerekiyor</string>
+    <string name="web_login_page_timeout">Instagram giriş sayfası yüklenemedi. Giriş tamamlanmış sayılmadı. İnternet bağlantını kontrol et veya Instagram’da bekleyen bir güvenlik uyarısı olup olmadığına bak. Parolanı tekrar tekrar göndermene gerek yok.</string>
     <string name="web_login_sending">Instagram girişini kontrol ediyor. Yanıt en geç yaklaşık 35 saniye içinde gösterilir; tekrar girişe basmana gerek yok.</string>
     <string name="web_login_profile_pending">Giriş tamamlandı. Kısa istek aralığı dolunca profilin bir kez kontrol edilip bağlantı tamamlanacak.</string>
     <string name="web_login_comparison_ready">Giriş tamamlandı. A ile tarayıcı okumasını, ardından B ile uygulama okumasını karşılaştırabilirsin.</string>
     <string name="web_login_captcha">Instagram ek güvenlik doğrulaması istiyor; giriş henüz tamamlanmadı. Parolanı tekrar göndermek yerine aşağıdan doğrulamayı aç.</string>
-    <string name="web_login_captcha_unavailable">Instagram ek güvenlik doğrulaması istiyor; giriş henüz tamamlanmadı. Dönen doğrulama bağlantısı bu sürümde açılamadı. Instagram’ın kendi uygulamasında hesabının güvenlik uyarılarını kontrol et; peş peşe giriş deneme.</string>
-    <string name="web_login_two_factor">Instagram ek doğrulama istiyor. Sayfada görünen kod veya onay adımını tamamla; kodunu uygulamayla paylaşmana gerek yok.</string>
+    <string name="web_login_captcha_unavailable">Instagram CAPTCHA / güvenlik doğrulaması istiyor. Bu sürüm, yanıttaki doğrulama adımını açamadığı için giriş tamamlanmadı ve giriş formu kapatıldı. Bu sonuç parolanın yanlış olduğunu göstermez. Instagram’da kontrol et düğmesiyle hesabının güvenlik uyarılarına bak; orada doğrulama çıkarsa kendin tamamla. Bu işlem Tracker bağlantısını kendiliğinden tamamlamaz. Aşağıdaki zamandan sonra bir kez yeniden deneyebilirsin.</string>
+    <string name="web_login_two_factor">Instagram ek doğrulama istiyor. SMS veya doğrulama uygulaması kodun isteniyorsa aşağıdaki Instagram sayfasındaki kod alanına gir; onay bildirimi isteniyorsa Instagram’da onayla. Kodu sohbetten gönderme. Kod alanı ya da onay adımı görünmüyorsa parolanı yeniden gönderme; Vazgeç ile çıkıp Instagram’daki güvenlik uyarılarını kontrol et.</string>
     <string name="web_login_rejected">Instagram bu tek giriş denemesinde oturum açmadı. Giriş formu kapatıldı; yeni bir hesap veya parola denemesi gönderilmedi. Bu yanıt nedenini tek başına doğrulamaz.</string>
     <string name="web_login_not_accepted">Instagram girişi tamamlanmadı</string>
     <string name="web_login_not_sent">Bu ekrandan yeni bir giriş gönderilmedi. Önceki tek denemenin yanıtı başka hesapların bilgilerini doğrulamaz. Yeni deneme için aşağıdaki zamanı bekle.</string>

@@ -49,10 +49,11 @@ class WebLoginScreenTest {
             .filterIsInstance<TextView>().joinToString(" | ") { it.text.toString() } }
         fail("Offline UI condition not reached: $visible")
     }
-    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false, rejected: Boolean = false) {
+    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false, rejected: Boolean = false, unsupportedCaptcha: Boolean = false, code: Boolean = false) {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java)
             .putExtra("offline_web_login", offline).putExtra("web_login_status", status).putExtra("web_bootstrap_fixture", bootstrap)
-            .putExtra("web_auth_fixture", auth).putExtra("web_captcha_fixture", captcha).putExtra("web_rejected_fixture", rejected))
+            .putExtra("web_auth_fixture", auth).putExtra("web_captcha_fixture", captcha).putExtra("web_rejected_fixture", rejected)
+            .putExtra("web_unsupported_captcha_fixture",unsupportedCaptcha).putExtra("web_code_fixture",code))
         until { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text == a.getString(R.string.ui_connect_account) } }
         scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.ui_connect_account) }.performClick() }
         instrumentation.waitForIdleSync()
@@ -93,7 +94,11 @@ class WebLoginScreenTest {
     @Test fun captchaIsShownAsUserActionAndExternalResourcesStayBlockedUntilConsent() {
         open(auth=true,captcha=true);submitSyntheticLogin()
         until {a->all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_login_show_challenge)&&it.visibility==View.VISIBLE}}
-        scenario!!.onActivity {a->assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_captcha)})}
+        scenario!!.onActivity {a->
+            assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_captcha)})
+            assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_step_captcha)})
+            assertFalse(all(a.window.decorView).filterIsInstance<android.widget.ProgressBar>().any {it.visibility==View.VISIBLE})
+        }
         assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
         fun resource(method: String,url: String): Int {
             var status=0
@@ -117,6 +122,42 @@ class WebLoginScreenTest {
         assertEquals(200,resource("GET",frame))
         assertEquals(403,resource("POST","https://www.instagram.com/api/v1/web/friendships/123/follow/"))
         assertNull(SessionVault(context).read());assertEquals(1L,RequestGate(context).attempts())
+    }
+    @Test fun unsupportedCaptchaClosesTheFormWithoutCallingItAWrongPasswordOrRetrying() {
+        open(auth=true,captcha=true,unsupportedCaptcha=true);submitSyntheticLogin()
+        until {a->all(a.window.decorView).none {it is WebView} && WindowInspector.getGlobalWindowViews().flatMap(::all)
+            .filterIsInstance<TextView>().any {it.text.toString().startsWith(a.getString(R.string.web_login_captcha_unavailable))}}
+        assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+        val saved=LoginPageTrace.read(context)!!
+        assertEquals("UNSUPPORTED_PATH",org.json.JSONObject(saved).getJSONObject("authentication").getString("challengeStatus"))
+        assertFalse(saved.contains("synthetic-secret"));assertFalse(saved.contains("unsupported-verification"))
+        assertTrue(RequestGate(context).nextWebAuthenticationAt()>System.currentTimeMillis())
+    }
+    @Test fun twoFactorExplainsTheNextStepWithoutAWorkingSpinnerOrPrematureProfileButton() {
+        open(auth=true,code=true);submitSyntheticLogin()
+        until {a->all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_step_code)}}
+        scenario!!.onActivity {a->
+            assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_two_factor)})
+            assertFalse(all(a.window.decorView).filterIsInstance<android.widget.ProgressBar>().any {it.visibility==View.VISIBLE})
+            assertTrue(all(a.window.decorView).filterIsInstance<Button>().single {it.text==a.getString(R.string.web_connection_verify)}.visibility==View.GONE)
+        }
+        assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+    }
+    @Test fun visibleCodeFieldGuidesTheUserWithoutReadingItsValue() {
+        open()
+        scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(
+            "document.body.innerHTML='<input autocomplete=one-time-code value=synthetic-private-code>';",null)}
+        until(16000) {a->all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_step_code)}}
+        assertFalse(LoginPageTrace.read(context)!!.contains("synthetic-private-code"))
+        assertEquals(0L,RequestGate(context).attempts())
+    }
+    @Test fun stalledInitialPageStopsWaitingAndDoesNotInventARetryTime() {
+        open()
+        scenario!!.onActivity {a->val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
+            browser.webViewClient.onPageStarted(browser,"https://www.instagram.com/accounts/login/",null)}
+        until(48000) {a->all(a.window.decorView).none {it is WebView} && WindowInspector.getGlobalWindowViews().flatMap(::all)
+            .filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_page_timeout)}}
+        assertEquals(0L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
     }
     @Test fun automaticConnectionWaitsWhileTheLoginScreenIsInBackground() {
         open(auth=true);submitSyntheticLogin()
@@ -211,7 +252,10 @@ class WebLoginScreenTest {
             all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(
                 "fetch('/api/graphql',{method:'POST',body:'synthetic-secret-body'}).catch(function(){})", null)
         }
-        until(20000) { LoginPageTrace.read(context)?.let { org.json.JSONObject(it).optBoolean("formVisible", false) } == true }
+        until(20000) { LoginPageTrace.read(context)?.let { saved ->
+            val trace=org.json.JSONObject(saved)
+            trace.optBoolean("formVisible",false) && trace.optJSONObject("resources")?.optInt("BLOCK:POST:GRAPHQL",0)?.let {it>0}==true
+        } == true }
         scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.page_trace_open) }.performClick() }
         val saved = LoginPageTrace.read(context)!!
         assertTrue(saved, saved.contains("BLOCK:POST:GRAPHQL")); assertFalse(saved.contains("synthetic-secret-body"))
