@@ -34,3 +34,11 @@ CAPTCHA tamamlanmış veya giriş başarılı denmedi. Desteklenen bir linkte gi
 - 0.1.52 yalnız emülatöre kuruldu; fiziksel telefon bu turda bağlı değildi. Telefonun son kurulan sürümü 0.1.51.
 
 Sonuç: Gerçek giriş akışı CAPTCHA aşamasında durdu; tam kullanıcı yolculuğu tamamlandı denemez. Açık iş, desteklenmeyen güvenlik adımını güvenli biçimde kullanıcıya tamamlatıp oturum/profil kontrolüne döndürmektir.
+
+## 0.1.53 · ayrı test hesabı, gerçek emülatör denemesi
+
+30 Ekim yaklaşık 13.04, kullanıcı tarafından yeni verilen ayrı test hesabıyla önerilen Instagram web akışında bir giriş gönderildi. Üretim APK 0.1.53 / code 54; emülatörün kayıtlı bekleme süresi dolmuştu, mola veya veri sıfırlanmadı. Kimlik bilgileri ADB shell stdin üzerinden yalnız emülatöre girildi; host komut satırına veya dosyaya yazılmadı.
+
+Giriş yanıtı HTTP 200, `errorCodes=[1348009]`, `authenticated=false`, `captchaNeeded=true`, `twoFactorPayloadPresent=false`, `redirectPresent=true`, `challengeStatus=UNSUPPORTED_PATH`. Oturum ve sahip çerezleri gelmedi, `cookiesApplied=false`. Bu, desteklenen challenge yoluyla eşleşmeyen bir doğrulama bağlantısı demektir; gerçek yol/token kaydedilmediği için hangi yeni akışın gerektiği henüz bilinmiyor. Yanıtta yanlış giriş bilgisi mesaj sınıfı da var; CAPTCHA işaretiyle birlikte bu sonuç parolanın doğruluğunu tek başına kanıtlamaz.
+
+Native arayüzde formun kapandığı, CAPTCHA / güvenlik adımının açılamadığı açıklamasının ve **Instagram’da kontrol et**, **Kapat**, **İstek bilgileri** düğmelerinin gösterildiği doğrulandı. İstek bilgileri ağ isteği göndermeden açıldı. Bu girişte yeni 429 görülmedi; ekrandaki W01 / HTTP 429 satırı 29 Ekim 22.26 tarihli eski kayıttır. İkinci giriş veya profil/liste isteği gönderilmedi. CAPTCHA ve hesap bağlantısı tamamlanmadı.
