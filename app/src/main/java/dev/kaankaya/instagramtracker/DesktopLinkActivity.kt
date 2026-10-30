@@ -21,7 +21,7 @@ class DesktopLinkActivity : LocalizedActivity() {
     private var staged: Session? = null
     private var busy = false
     private var attempted = false
-    private var generation = 0
+    @Volatile private var generation = 0
     private var pending: Future<*>? = null
     private var status = ""
     private var prepared = false
@@ -92,8 +92,13 @@ class DesktopLinkActivity : LocalizedActivity() {
             staged != null -> action(R.string.desktop_link_read, !attempted && remaining <= 0) {
                 val reference = staged ?: return@action
                 attempted = true
-                execute({ api.testMobileConnection(reference) }) { profile ->
-                    SessionVault(this).link(reference, profile); gate.succeeded()
+                execute({
+                    val ticket=generation
+                    val saved=SessionVault(this).linkAfterReading(reference,
+                        {ticket!=generation || Thread.currentThread().isInterrupted}) {api.testMobileConnection(reference)}
+                    gate.forAccount(reference.userId).succeeded()
+                    saved
+                }) {
                     android.widget.Toast.makeText(this, R.string.desktop_link_success, android.widget.Toast.LENGTH_SHORT).show()
                     close(); ""
                 }

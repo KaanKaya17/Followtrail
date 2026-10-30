@@ -35,6 +35,20 @@ class AccountCatalog(context: Context) {
         }
         val active=if(body.isNull("active"))null else body.getString("active")
         require(active==null || active in ids)
+        // Migration belongs to this validated catalog, not to constructing a request scheduler.
+        for(index in 0 until rows.length()) {
+            val row=rows.getJSONObject(index)
+            if(row.getString("slot")=="account" && !row.optBoolean("removing",false)) {
+                val flags=context.getSharedPreferences("account_flags_"+slot(row.getString("id")),Context.MODE_PRIVATE)
+                if(!flags.contains("migrated")) {
+                    val old=context.getSharedPreferences("request_gate",Context.MODE_PRIVATE)
+                    check(flags.edit().putBoolean("migrated",true)
+                        .putBoolean("requires_connection",old.getBoolean("requires_connection",false))
+                        .putBoolean("own_auto_refresh",old.getBoolean("own_auto_refresh",false))
+                        .putBoolean("list_capacity_pause",old.getBoolean("list_capacity_pause",false)).commit())
+                }
+            }
+        }
         selected[context.packageName]=active.orEmpty()
         return body
     }

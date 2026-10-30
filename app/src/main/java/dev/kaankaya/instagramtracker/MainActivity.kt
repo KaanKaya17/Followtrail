@@ -768,11 +768,13 @@ class MainActivity : LocalizedActivity() {
             when (options[index]) {
                 R.string.accounts_title -> accountPicker()
                 R.string.ui_manage_connection -> {
-                    val exists = account != null || vault.exists() || (!preview && MobileSessions(this).exists())
-                    val actions = if (exists) arrayOf(getString(R.string.ui_connect_another_account), getString(R.string.ui_remove_connection)) else arrayOf(getString(R.string.ui_connect_account))
-                    AlertDialog.Builder(this).setTitle(R.string.ui_connection).setItems(actions) { _, item ->
-                        if (item == 0) connectionOptions(replacePending = true) else confirmRemove()
-                    }.setNegativeButton(R.string.ui_close, null).show()
+                    try {
+                        val exists = account != null || vault.exists() || (!preview && MobileSessions(this).exists())
+                        val actions = if (exists) arrayOf(getString(R.string.ui_connect_another_account), getString(R.string.ui_remove_connection)) else arrayOf(getString(R.string.ui_connect_account))
+                        AlertDialog.Builder(this).setTitle(R.string.ui_connection).setItems(actions) { _, item ->
+                            if (item == 0) connectionOptions(replacePending = true) else confirmRemove()
+                        }.setNegativeButton(R.string.ui_close, null).show()
+                    }catch (_: Exception) {showFailure(ApiFailure(ApiFailure.Kind.STORAGE))}
                 }
                 R.string.ui_refresh_settings -> AlertDialog.Builder(this).setTitle(R.string.ui_refresh_settings)
                     .setMultiChoiceItems(arrayOf(getString(R.string.ui_refresh_automatically_on_launch)), booleanArrayOf(gate.ownAutoRefresh())) { _, _, enabled ->
@@ -1150,7 +1152,7 @@ class MainActivity : LocalizedActivity() {
     private fun syncMonitoring() {
         try {
             if (preview) PreviewMode.sync(this, account, gate) else MonitorScheduler.sync(this, account, gate)
-        } catch (_: Exception) { message = getString(R.string.ui_could_not_schedule_the_background_task_check) }
+        } catch (_: Exception) { if(message==null)message = getString(R.string.ui_could_not_schedule_the_background_task_check) }
     }
     private fun notifyCurrent(session: Session, change: ObservedProfileChange) {
         val notices = ChangeNotifications(this, preview)

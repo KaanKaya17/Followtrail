@@ -39,18 +39,6 @@ class RequestGate(context: Context, private val name: String = "request_gate", p
     }
     private val identity = "${context.packageName}:$name"
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
-    init {
-        if(name=="request_gate") {
-            val catalog=AccountCatalog(this.context);catalog.initialize()
-            catalog.entries().firstOrNull {it.slot=="account"}?.let {entry->
-                val flags=this.context.getSharedPreferences("account_flags_"+AccountCatalog.slot(entry.id),Context.MODE_PRIVATE)
-                if(!flags.contains("migrated"))check(flags.edit().putBoolean("migrated",true)
-                    .putBoolean("requires_connection",preferences.getBoolean("requires_connection",false))
-                    .putBoolean("own_auto_refresh",preferences.getBoolean("own_auto_refresh",false))
-                    .putBoolean("list_capacity_pause",preferences.getBoolean("list_capacity_pause",false)).commit())
-            }
-        }
-    }
     private fun settings() = if(name!="request_gate")preferences else this.context.getSharedPreferences(
         "account_flags_"+((owner ?: AccountCatalog.selected(this.context))?.let(AccountCatalog::slot) ?: "empty"),Context.MODE_PRIVATE)
     fun forAccount(id: String)=RequestGate(context,name,clock).also {it.owner=InstagramIdentity.id(id)}

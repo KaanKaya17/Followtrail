@@ -7,6 +7,7 @@ import android.view.inspector.WindowInspector
 import android.widget.ListView
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
+import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
 import org.junit.Before
@@ -179,6 +180,7 @@ class MultiAccountTest {
         while(android.os.SystemClock.elapsedRealtime()<end) {var done=false;scenario!!.onActivity {done=test(it)};if(done)return;Thread.sleep(40)}
         fail("Account UI did not reach the expected state")
     }
+    @SdkSuppress(minSdkVersion=29)
     @Test fun realAccountPickerChangesOnlyLocalSelectionAndNotificationOpensItsOwnAccount() {
         val vault=SessionVault(context);vault.write(saved("100"));vault.write(saved("200"))
         RequestGate(context).setOwnAutoRefresh(true)
@@ -203,6 +205,26 @@ class MultiAccountTest {
         until {catalog.active()=="200"}
         assertEquals(0L,RequestGate(context).attempts());assertEquals("200",vault.read()!!.session.userId)
     }
+    @Test fun importedConnectionCannotSelectItsLateResultAfterAnotherAccountWasSelected() {
+        val vault=SessionVault(context);val a=saved("100");val b=saved("200");vault.write(a);vault.write(b);catalog.select("100")
+        val pending=saved("300")
+        assertEquals(ApiFailure.Kind.CANCELLED,assertThrows(ApiFailure::class.java) {
+            vault.linkAfterReading(pending.session,{false}) {catalog.select("200");pending.profile}
+        }.kind)
+        assertEquals(b,vault.read());assertEquals(setOf("100","200"),catalog.entries().map {it.id}.toSet())
+        assertEquals(a,SessionVault(context,owner="100").read())
+    }
+    @Test fun importedConnectionCancellationAndSuccessUseTheSameCommitBoundary() {
+        val vault=SessionVault(context);val a=saved("100");vault.write(a);val pending=saved("200")
+        var cancelled=true;var reads=0
+        assertThrows(ApiFailure::class.java) {vault.linkAfterReading(pending.session,{cancelled}) {reads++;pending.profile}}
+        assertEquals(0,reads);cancelled=false
+        assertThrows(ApiFailure::class.java) {vault.linkAfterReading(pending.session,{cancelled}) {cancelled=true;reads++;pending.profile}}
+        assertEquals(a,vault.read());assertEquals(listOf("100"),catalog.entries().map {it.id})
+        cancelled=false
+        vault.linkAfterReading(pending.session,{cancelled}) {reads++;pending.profile}
+        assertEquals("200",catalog.active());assertEquals(a,SessionVault(context,owner="100").read());assertEquals(2,reads)
+    }
     @Test fun sharedBackgroundRoundVisitsBothAccountsWithoutChangingVisibleSelection() {
         var now=System.currentTimeMillis();val called=mutableListOf<String>()
         val runtime=object:ReadRuntime {override fun now()=now;override fun elapsed()=now
@@ -223,5 +245,22 @@ class MultiAccountTest {
         assertEquals(listOf("100","200","100","200"),called)
         assertEquals("200",catalog.active());assertEquals(4L,gate.attempts())
         listOf("100","200").forEach {id->assertEquals(id,FollowListVault(context,owner=id).archive(SessionVault(context,owner=id).read()!!.session).owner)}
+    }
+    @Test fun staleVisualHistoryButtonCannotOverwriteTheNewlySelectedAccountsArchive() {
+        val vault=SessionVault(context);val a=saved("100");val b=saved("200")
+        vault.write(a);vault.visual.configure(a,"100",true)
+        vault.write(b);vault.visual.configure(b,"200",true)
+        val before=SessionVault(context,owner="200").visual.read("200").toString()
+        catalog.select("100")
+        ActivityScenario.launch<VisualHistoryActivity>(Intent(context,VisualHistoryActivity::class.java)
+            .putExtra("viewer_id","100").putExtra("target_id","100")).use {activity->
+            activity.onActivity {screen->
+                val oldButton=all(screen.window.decorView).filterIsInstance<TextView>().single {it.text==screen.getString(R.string.visual_stop)}
+                // Change selection between rendering and the old click callback, as a notification can.
+                catalog.select("200");oldButton.performClick()
+            }
+            assertEquals(before,SessionVault(context,owner="200").visual.read("200").toString())
+            assertEquals("200",catalog.active())
+        }
     }
 }

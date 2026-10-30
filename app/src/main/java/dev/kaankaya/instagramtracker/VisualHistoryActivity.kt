@@ -51,7 +51,16 @@ class VisualHistoryActivity : LocalizedActivity() {
         }
         return text
     }
-    private fun change(action: () -> Unit) { try { action(); error=false } catch (_: Exception) { error=true }; render() }
+    private fun change(action: () -> Unit) {
+        try {
+            vault.inspect {current->
+                if(current==null || current.session!=reference)throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                action()
+            }
+            error=false
+        }catch (_: Exception) {error=true}
+        render()
+    }
     private fun render() {
         val saved=try { vault.read() } catch (_: Exception) { null }
         if (saved==null || saved.session!=reference) { finish(); return }
@@ -119,5 +128,6 @@ class VisualHistoryActivity : LocalizedActivity() {
         if (edits.isEmpty()) page.addView(AppUi.text(this,getString(R.string.visual_empty),13f,AppUi.muted))
         page.addView(AppUi.text(this,getString(R.string.visual_limits,VisualHistory.MAX_ENTRIES,VisualHistory.MAX_IMAGES),12f,AppUi.muted))
     }
+    override fun onResume() {super.onResume();if(reference!=null)render()}
     override fun onDestroy() { loader.close(); super.onDestroy() }
 }

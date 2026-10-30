@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Android 0.1.51 — 2026-10-30 (Genel kontrol düzeltmeleri)
+
+- Hesap değişiminden sonra açık kalan eski görsel arşiv ekranı diğer hesabın arşivini değiştiremez; yazım hesap sahibi kontrolü altında yapılır ve eski ekran kapanır.
+- Bozuk şifreli katalog/kasada açılış hatası yakalanır; kayıtlar otomatik sıfırlanmaz. Hesap geçişinin hazırlığı istek zamanlayıcısı kurucusundan kayıt sahibine taşındı.
+- Bilgisayardan aktarılan mobil bağlantıda profil okuması ile yerel kayıt arasına hesap seçimi/iptal kontrolü eklendi. Bu sırada seçilen başka hesabın yerine geç gelen bağlantı seçilmez. Şifreli yazım arayüz iş parçacığından bağlantı işçisine alındı.
+- API 29 WindowInspector kullanan ekran testleri uygun Android sürümünde çalışır; çoklu hesabın diğer veri koruma testleri eski API'lerde de seçilebilir. Kullanım metni güncel bağlantı durumu ve çoklu hesap davranışına uyarlandı.
+- [Genel kontrol, testler ve kalan eksikler](docs/CHECKUP-2026-10-30.md). Instagram'ın profil HTTP 429 sınırı bu sürümle çözülmüş olarak bildirilmez; telefonun güvenlik molası değiştirilmez.
+
 ## Android 0.1.50 — 2026-10-30 (Çoklu hesap)
 
 - Hesaplarım menüsünden yeni hesap eklenebilir ve kayıtlı hesaplar arasında yeniden giriş yapmadan geçilebilir. Yeni hesap, önceki hesabın kaydını değiştirmez. Aynı numeric ID yeniden bağlandığında izlenen kişiler ve tarihli geçmiş korunur.

@@ -91,7 +91,9 @@ class ScreenFlowTest {
         assertEquals(0L, RequestGate(context).attempts())
     }
     @Test fun malformedVaultShowsRecoveryWithoutFabricatingProfile() {
-        java.io.File(context.noBackupFilesDir, "account.enc").writeBytes(byteArrayOf(1, 2, 3))
+        val session=Session("123","ds_user_id=123; sessionid=synthetic","Synthetic UA")
+        SessionVault(context).write(SavedAccount(session,Profile("123","synthetic",1,1,1000)))
+        java.io.File(context.noBackupFilesDir, AccountCatalog(context).storage("123")+".enc").writeBytes(byteArrayOf(1, 2, 3))
         launchUntilReady()
         scenario!!.onActivity { activity ->
             val labels = views(activity).filterIsInstance<TextView>().map { it.text.toString() }
@@ -99,5 +101,19 @@ class ScreenFlowTest {
             assertTrue(views(activity).filterIsInstance<Button>().any { it.contentDescription == "Seçenekler" && it.isEnabled })
             assertFalse(labels.any { it.startsWith("@") })
         }
+    }
+    @Test fun malformedCatalogReachesRecoveryWithoutReplacingEncryptedRecords() {
+        val session=Session("123","ds_user_id=123; sessionid=synthetic","Synthetic UA")
+        SessionVault(context).write(SavedAccount(session,Profile("123","synthetic",1,1,1000)))
+        val file=java.io.File(context.noBackupFilesDir,"accounts.enc");val before=file.readBytes()
+        try {
+            file.writeBytes(byteArrayOf(1,2,3));launchUntilReady()
+            scenario!!.onActivity {activity->
+                val labels=views(activity).filterIsInstance<TextView>().map {it.text.toString()}
+                assertTrue(labels.any {it.contains("güvenli kayıt açılamadı")})
+                assertFalse(labels.any {it.startsWith("@")})
+            }
+            assertArrayEquals(byteArrayOf(1,2,3),file.readBytes())
+        }finally {file.writeBytes(before)}
     }
 }

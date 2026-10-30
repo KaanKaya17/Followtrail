@@ -94,6 +94,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     }
     fun read(): SavedAccount? = synchronized(lock) {
         val c=catalog
+        c?.initialize()
         if(c!=null && (currentOwner()==null || !c.stored(currentOwner()!!)))return@synchronized null
         record.read()?.let(AccountCodec::decode)?.also {require(c==null || it.session.userId==currentOwner())}
             ?: if(c!=null)throw ApiFailure(ApiFailure.Kind.STORAGE) else null
@@ -113,6 +114,15 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     fun linkIfUnchanged(expected: Session?, session: Session, profile: Profile, cancelled: () -> Boolean): SavedAccount = synchronized(lock) {
         if (cancelled() || read()?.session != expected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
         link(session, profile)
+    }
+    /** Imported connections take their selection snapshot before I/O and commit against that snapshot. */
+    fun linkAfterReading(session: Session, cancelled: () -> Boolean, readProfile: () -> Profile): SavedAccount {
+        val expected=synchronized(lock) {
+            if(cancelled())throw ApiFailure(ApiFailure.Kind.CANCELLED)
+            read()?.session
+        }
+        val profile=readProfile()
+        return linkIfUnchanged(expected,session,profile,cancelled)
     }
     fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }
     fun clear(): Unit = synchronized(lock) {

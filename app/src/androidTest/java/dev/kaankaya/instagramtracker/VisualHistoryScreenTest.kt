@@ -29,7 +29,7 @@ class VisualHistoryScreenTest {
             vault.visual.avatar("900",p,red)
             val next=p.copy(observedAt=p.observedAt+1000,details=p.details.copy(biography=ProfileText.known("Ankara travel"),pictureId=ProfileText.known("two")))
             vault.write(SavedAccount(session,next));val blue=Bitmap.createBitmap(16,16,Bitmap.Config.ARGB_8888).apply { eraseColor(Color.BLUE) };vault.visual.avatar("900",next,blue)
-            val encrypted=File(c.noBackupFilesDir,"accountvisual.enc").readBytes();assertFalse(String(encrypted,Charsets.ISO_8859_1).contains("Istanbul"))
+            val encrypted=File(c.noBackupFilesDir,AccountCatalog(c).storage("900")+"visual.enc").readBytes();assertFalse(String(encrypted,Charsets.ISO_8859_1).contains("Istanbul"))
             val before=RequestGate(c).attempts()
             ActivityScenario.launch<VisualHistoryActivity>(Intent(c,VisualHistoryActivity::class.java).putExtra("viewer_id","900").putExtra("target_id","900")).use { scenario ->
                 scenario.onActivity { a ->

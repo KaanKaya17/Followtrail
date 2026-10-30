@@ -48,11 +48,15 @@ open class MonitorJobService : JobService() {
     }
     private var active: Run? = null
     override fun onStartJob(params: JobParameters): Boolean {
+        if(!preview && vaultSlot=="account")try {AccountCatalog(this).initialize()}
+        catch (_: Exception) {MonitorScheduler.cancel(this,jobId);return false}
         val notices = ChangeNotifications(this, preview)
         val gate = RequestGate(this, gateName)
         val listWork = try { SessionVault(this, vaultSlot).read()?.automation?.enabled == true } catch (_: Exception) { false }
         val multiple=!preview && vaultSlot=="account" && gateName=="request_gate"
-        if (multiple && !AccountMonitor(this,gate).hasWork(notices.allowed()) ||
+        val available=try {!multiple || AccountMonitor(this,gate).hasWork(notices.allowed())}
+            catch (_: Exception) {MonitorScheduler.cancel(this,jobId);return false}
+        if (!available ||
             !multiple && (!notices.allowed() && !listWork || gate.manualOnly() || gate.requiresConnection()) || gate.quickWatchActive() || gate.automationHeld() || gate.restrictionPending()) { MonitorScheduler.cancel(this, jobId); return false }
         // Foreground owns the current request; retain the periodic job so a
         // later Android activation can resume after the activity leaves.
@@ -73,7 +77,8 @@ open class MonitorJobService : JobService() {
                     if (active === run) {
                         active = null
                         val account = try { vault.read() } catch (_: Exception) { null }
-                        MonitorScheduler.sync(this, account, gate, jobId, javaClass)
+                        try {MonitorScheduler.sync(this, account, gate, jobId, javaClass)}
+                        catch (_: Exception) {MonitorScheduler.cancel(this,jobId)}
                         jobFinished(params, false)
                     }
                 }
