@@ -50,14 +50,27 @@ object FollowListCodec {
     }
 }
 
-class FollowListVault(context: Context, slot: String = "followlists") {
-    companion object { private val lock = Any() }
-    private val record = EncryptedRecord(context, slot)
+class FollowListVault(private val context: Context, private val slot: String = "followlists", private val owner: String? = null) {
+    companion object { private val lock = AccountCatalog.lock }
+    private fun record(id: String?)=EncryptedRecord(context,if(slot=="followlists") {
+        val catalog=AccountCatalog(context)
+        if(id==null || catalog.storage(id)=="account")slot else catalog.storage(id)+"lists"
+    } else slot)
     fun archive(session: Session): ListArchive = synchronized(lock) {
-        record.read()?.let(FollowArchiveCodec::decode)?.takeIf { it.matches(session) }
-            ?: ListArchive(session.userId, session.connectionBinding)
+        val saved=record(session.userId).read()?.let(FollowArchiveCodec::decode)
+        if(saved?.matches(session)==true)return@synchronized saved
+        // Only the currently committed session of this numeric owner proves a reconnect. Preserve
+        // dated history even if a previous write stopped between the account and list records.
+        if(slot=="followlists" && saved?.owner==session.userId && SessionVault(context,owner=session.userId).read()?.session==session)
+            return@synchronized reconnected(saved,session)
+        ListArchive(session.userId, session.connectionBinding)
     }
-    private fun write(archive: ListArchive) = record.write(FollowArchiveCodec.encode(archive))
+    private fun reconnected(old: ListArchive,next: Session): ListArchive {
+        fun rebind(snapshot: FollowSnapshot?)=snapshot?.copy(binding=next.connectionBinding)
+        return old.copy(binding=next.connectionBinding,targets=old.targets.map {target->target.copy(
+            snapshot=rebind(target.snapshot),previous=rebind(target.previous),followers=ListScan(),following=ListScan())})
+    }
+    private fun write(archive: ListArchive) = record(archive.owner).write(FollowArchiveCodec.encode(archive))
     fun current(session: Session): FollowSnapshot? = synchronized(lock) {
         archive(session).targets.mapNotNull { it.snapshot }.maxByOrNull { snapshot ->
             FollowDirection.entries.mapNotNull { snapshot.run(it)?.latest?.observedAt }.maxOrNull() ?: 0
@@ -126,5 +139,5 @@ class FollowListVault(context: Context, slot: String = "followlists") {
         val archive = archive(session)
         if (archive.targets.any { it.target == target }) write(archive.copy(targets = archive.targets.filterNot { it.target == target }))
     }
-    fun clear() = synchronized(lock) { record.clear() }
+    fun clear() = synchronized(lock) { record(owner ?: if(slot=="followlists")AccountCatalog(context).active() else null).clear() }
 }

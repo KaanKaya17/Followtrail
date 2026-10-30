@@ -80,7 +80,7 @@ class MainActivity : LocalizedActivity() {
     @Volatile private var loginChallenge: WebLoginChallenge? = null
     private var challengeButton: Button? = null
     private var directNativeButton: Button? = null
-    private var replacementConfirmedFor: String? = null
+    private var localAccountView = false
     private var loginTraceFailed = false
     private var loginPageEpoch = 0L
     private val inspectPage = Runnable { inspectLoginPage() }
@@ -119,9 +119,14 @@ class MainActivity : LocalizedActivity() {
             }
         }
         preview = PreviewMode.enabled(this)
+        localAccountView=intent.getBooleanExtra("local_account_switch",false)
+        if(!preview)intent.getStringExtra("notification_owner")?.let {owner->
+            try {if(AccountCatalog(this).entries().any {it.id==owner})AccountCatalog(this).select(owner)}catch (_: Exception) { }
+        }
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         peopleScreen = savedInstanceState?.getBoolean("people") ?: false
         selectedPersonId = savedInstanceState?.getString("person")
+        if(localAccountView) {peopleScreen=false;selectedPersonId=null}
         visiblePeople = (savedInstanceState?.getInt("visiblePeople", 20) ?: 20).coerceIn(20, PeoplePolicy.MAX_PEOPLE)
         rangeDays = savedInstanceState?.getInt("range") ?: 0
         pendingWatchId = savedInstanceState?.getString("pendingWatch")
@@ -165,7 +170,7 @@ class MainActivity : LocalizedActivity() {
                 if (saved != null) { quickWatch.restore(savedInstanceState, saved); if (visible) quickWatch.resume() }
                 openNotification(saved); syncMonitoring(); render()
                 // An outstanding pause is restored without issuing a network request.
-                if (!quickWatch.active && !interfaceChangedOnRecreation && saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
+                if (!localAccountView && !quickWatch.active && !interfaceChangedOnRecreation && saved != null && !peopleScreen && gate.autoAllowed(saved.profile)) refresh(automatic = true)
             }
         }
     }
@@ -178,11 +183,13 @@ class MainActivity : LocalizedActivity() {
         if (::profileStatuses.isInitialized) profileStatuses.resume()
         if (recreatingForInterface) return
         if (!::gate.isInitialized || web != null || loading) return
+        val previousOwner=account?.session?.userId
         try { account = vault.read(); pendingMobile = !preview && MobileSessions(this).pending() != null; needsConnection = gate.requiresConnection() }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity); needsConnection = true }
+        if(!preview && previousOwner!=null && previousOwner!=account?.session?.userId) {intent.putExtra("local_account_switch",true);recreate();return}
         if (::quickWatch.isInitialized) quickWatch.resume()
         syncMonitoring()
-        if (!quickWatch.active && account != null && !peopleScreen && !needsConnection && gate.autoAllowed(account!!.profile)) refresh(automatic = true)
+        if (!localAccountView && !quickWatch.active && account != null && !peopleScreen && !needsConnection && gate.autoAllowed(account!!.profile)) refresh(automatic = true)
         else render()
     }
 
@@ -241,6 +248,10 @@ class MainActivity : LocalizedActivity() {
         header.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(AppUi.iconButton(this, "more", getString(R.string.ui_options)) { options() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(header); page.gap(24)
+        if(!preview) {
+            page.addView(button(getString(R.string.accounts_current,saved?.profile?.username ?: getString(R.string.accounts_none)),false) {accountPicker()})
+            page.gap(12)
+        }
         if (preview) { page.addView(badge(getString(R.string.ui_demo_sample_data)).apply { contentDescription = getString(R.string.ui_offline_demo_sample_data_no_instagram_requests) }); page.gap(16) }
         if (::quickWatch.isInitialized && quickWatch.active && saved != null) renderQuickWatch(page, saved)
         if (::queuedRead.isInitialized && queuedRead.pending) { page.addView(queuedRead.view(this)); page.gap(16) }
@@ -316,7 +327,7 @@ class MainActivity : LocalizedActivity() {
             })
         }
         scroll.post { scroll.scrollTo(0, position) }; scheduleGateWake()
-        if (::preparation.isInitialized && visible && !loading && web == null) preparation.resume()
+        if (!localAccountView && ::preparation.isInitialized && visible && !loading && web == null) preparation.resume()
     }
 
     private fun renderPreparation(page: LinearLayout, saved: SavedAccount) {
@@ -749,11 +760,13 @@ class MainActivity : LocalizedActivity() {
     }
     private fun options() {
         val options = mutableListOf(R.string.ui_manage_connection, R.string.ui_refresh_settings, R.string.ui_request_information, R.string.language_menu, R.string.appearance_title, R.string.ui_privacy, R.string.ui_advanced)
+        if(!preview)options.add(0,R.string.accounts_title)
         if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
         if (BuildConfig.DEBUG && !preview) options.add(R.string.ui_open_offline_demo)
         AlertDialog.Builder(this).setTitle(R.string.ui_options).setItems(options.map { getString(it) }.toTypedArray()) { _, index ->
             when (options[index]) {
+                R.string.accounts_title -> accountPicker()
                 R.string.ui_manage_connection -> {
                     val exists = account != null || vault.exists() || (!preview && MobileSessions(this).exists())
                     val actions = if (exists) arrayOf(getString(R.string.ui_connect_another_account), getString(R.string.ui_remove_connection)) else arrayOf(getString(R.string.ui_connect_account))
@@ -776,6 +789,31 @@ class MainActivity : LocalizedActivity() {
                 R.string.ui_open_offline_demo -> startActivity(Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
             }
         }.setNegativeButton(R.string.ui_close, null).show()
+    }
+    private fun accountPicker() {
+        if(loading || web!=null)return
+        try {
+            val catalog=AccountCatalog(this);val entries=catalog.entries();val active=catalog.active()
+            AlertDialog.Builder(this).setTitle(R.string.accounts_title)
+                .setSingleChoiceItems(entries.map {"@${it.username}"}.toTypedArray(),entries.indexOfFirst {it.id==active}) {dialog,index->
+                    dialog.dismiss();if(entries[index].id!=active)switchAccount(entries[index].id)
+                }.setNeutralButton(R.string.accounts_add) {_,_->connectionOptions(replacePending=true)}
+                .setPositiveButton(R.string.ui_close,null).show()
+        }catch (_: Exception) {showFailure(ApiFailure(ApiFailure.Kind.STORAGE))}
+    }
+    private fun switchAccount(owner: String) {
+        if(loading || web!=null)return
+        queuedRead.cancel(false);quickWatch.stop(false);preparation.pause();api.cancel();avatars.cancelAll()
+        generation++;loading=true;render()
+        worker.execute {
+            val failure=try {AccountCatalog(this).select(owner);null}catch (_: Exception) {ApiFailure(ApiFailure.Kind.STORAGE)}
+            main.post {
+                if(isDestroyed)return@post
+                loading=false
+                if(failure!=null) {showFailure(failure);render()}
+                else {intent.putExtra("local_account_switch",true);recreate()}
+            }
+        }
     }
     private fun languagePicker() {
         val choices = arrayOf(getString(R.string.language_turkish), getString(R.string.language_english))
@@ -1235,6 +1273,9 @@ class MainActivity : LocalizedActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent); setIntent(intent)
         if (!::vault.isInitialized || loading || web != null) return
+        if(!preview)intent.getStringExtra("notification_owner")?.takeIf {it!=account?.session?.userId}?.let {owner->
+            try {if(AccountCatalog(this).entries().any {it.id==owner}) {switchAccount(owner);return}}catch (_: Exception) {showFailure(ApiFailure(ApiFailure.Kind.STORAGE));return}
+        }
         try { account = vault.read(); openNotification(account); render() }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity); render() }
     }
@@ -1266,6 +1307,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun refresh(automatic: Boolean = false) {
+        if(!automatic) {localAccountView=false;intent.removeExtra("local_account_switch")}
         val saved = account ?: return
         if (loading) return
         if (!PeoplePolicy.needsRefresh(saved.profile, System.currentTimeMillis())) return
@@ -1318,32 +1360,37 @@ class MainActivity : LocalizedActivity() {
                 getString(R.string.ui_your_session_chosen_people_history_and_notes) +
                 getString(R.string.ui_requests_go_to_instagram_we_have_no) +
                 getString(R.string.ui_visible_profile_photos_may_load_from_the) +
-                getString(R.string.ui_this_is_an_independent_app_instagram_may) + "\n\n" + getString(R.string.journal_privacy))
+                getString(R.string.ui_this_is_an_independent_app_instagram_may) + "\n\n" + getString(R.string.journal_privacy) + "\n\n" + getString(R.string.accounts_privacy))
             .setPositiveButton(getString(R.string.ui_got_it), null).show()
     }
 
     private fun confirmRemove() {
         if (loading) return
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_confirm_remove_connection))
-            .setMessage(getString(R.string.ui_your_session_people_lists_history_and_notes) + "\n\n" + getString(R.string.security_remove_local))
+            .setMessage(getString(if(preview)R.string.ui_your_session_people_lists_history_and_notes else R.string.accounts_remove_warning) + "\n\n" + getString(R.string.security_remove_local))
             .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_remove)) { _, _ ->
+                val removedOwner=account?.session?.userId
                 quickWatch.stop(false)
                 avatars.close()
                 loading = true; render()
                 worker.execute {
                     val ok = try {
                         ViewedProfiles.clear()
-                        avatars.remove()
+                        avatars.remove(if(preview)null else removedOwner)
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
-                        if (!preview) { MobileSessions(this).clear(); WebSessions(this).clear(); DesktopLink(this).clear(); PhoneIdentity.clear(this); PhoneLoginJournal(this).clear(); WebConnectionJournal(this).clear(); gate.setPhoneLoginActive(false) }
-                        FollowListVault(this, if (preview) "previewlists" else "followlists").clear()
-                        gate.clearListCapacityPause()
-                        vault.clear(); ChangeNotifications(this, preview).clear(); true
+                        if (!preview) { DesktopLink(this).clear(); if(AccountCatalog(this).entries().size<=1)PhoneIdentity.clear(this); gate.setPhoneLoginActive(false) }
+                        if(preview) {
+                            FollowListVault(this,"previewlists").clear();gate.clearListCapacityPause();vault.clear();ChangeNotifications(this,true).clear()
+                        } else removedOwner?.let {owner->
+                            SessionVault(this,owner=owner).clear();ChangeNotifications(this).clearOwner(owner)
+                        }
+                        true
                     } catch (_: Exception) { false }
                     main.post {
                         if (isDestroyed) return@post
                         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
                         loading = false
+                        if(ok && !preview) {intent.putExtra("local_account_switch",true);recreate();return@post}
                         if (ok) { account = null; peopleScreen = false; selectedPersonId = null; needsConnection = false; message = getString(R.string.ui_the_connection_on_this_device_was_removed) }
                         else message = getString(R.string.ui_could_not_remove_the_connection_please_try)
                         render()
@@ -1401,7 +1448,7 @@ class MainActivity : LocalizedActivity() {
         loginTraceFailed = false
         loginRelayIssue = false
         loginAuthenticating = false; autoVerifyLogin = false; loginChallenge = null
-        replacementConfirmedFor = null; directNativeButton = null
+        directNativeButton = null
         val pageTrace = LoginPageTrace(this)
         loginTrace = pageTrace
         recordLoginPage(pageTrace) { it.flush() }
@@ -1633,18 +1680,6 @@ class MainActivity : LocalizedActivity() {
             return
         }
         if (webComparison && browserProof == null && compareBrowser) { startBrowserComparison(browser,state); return }
-        val previous=account
-        if(previous!=null && previous.session.userId!=state.owner && replacementConfirmedFor!=state.owner) {
-            AlertDialog.Builder(this).setTitle(R.string.ui_connect_another_account)
-                .setMessage(getString(R.string.web_login_replace_warning,previous.profile.username))
-                .setNegativeButton(R.string.ui_cancel) { _, _ -> if(web===browser)leaveLogin() }
-                .setPositiveButton(R.string.web_login_replace_confirm) { _, _ ->
-                    if(web===browser && account?.session==previous.session) {
-                        replacementConfirmedFor=state.owner;checkLogin(compareBrowser)
-                    }
-                }.show()
-            return
-        }
         val proof = browserProof
         if (webComparison) {
             try { WebConnectionJournal(this).begin(WebConnectionJournal.Step.NATIVE); nativeComparisonStarted = true }
@@ -1677,7 +1712,8 @@ class MainActivity : LocalizedActivity() {
                     // The attempt owns the commit; this ticket only publishes its result to the current screen.
                     try {
                         account = it
-                        message = null
+                        localAccountView=false;intent.removeExtra("local_account_switch")
+                        message = getString(R.string.accounts_added)
                         needsConnection = false; syncMonitoring(); leaveLogin()
                     } catch (_: Exception) { loginStatus?.text = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity) }
                 }.onFailure {
@@ -1706,7 +1742,7 @@ class MainActivity : LocalizedActivity() {
         main.removeCallbacks(inspectPage)
         main.removeCallbacks(gateWake)
         loginChallenge?.close(); loginChallenge = null; challengeButton = null
-        directNativeButton=null;replacementConfirmedFor=null
+        directNativeButton=null
         autoVerifyLogin = false; loginAuthenticating = false
         loginRelay?.close(); loginRelay = null
         recordLoginPage { it.close() }; loginTrace = null

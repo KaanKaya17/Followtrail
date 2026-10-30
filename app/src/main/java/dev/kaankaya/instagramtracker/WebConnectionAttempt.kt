@@ -30,7 +30,7 @@ class WebConnectionAttempt(context: Context, private val gate: RequestGate,
                 current()
                 if (gate.blockedUntil() > gate.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
                 val linked = vault.linkIfUnchanged(expected, reference, profile) { cancelled || Thread.currentThread().isInterrupted }
-                gate.succeeded()
+                gate.forAccount(state.owner).succeeded()
                 return linked
             }
         } catch (failure: ApiFailure) { throw failure }

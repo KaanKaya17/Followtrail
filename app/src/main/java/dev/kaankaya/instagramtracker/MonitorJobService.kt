@@ -18,8 +18,12 @@ object MonitorScheduler {
     fun sync(context: Context, account: SavedAccount?, gate: RequestGate, jobId: Int = JOB_ID,
         service: Class<out JobService> = MonitorJobService::class.java): Boolean {
         val scheduler = context.getSystemService(JobScheduler::class.java)
-        if ((account?.people?.any { it.watching } != true && account?.automation?.enabled != true) ||
-            account?.automation?.enabled != true && !ChangeNotifications(context).allowed() || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) {
+        val multiple=jobId==JOB_ID && service==MonitorJobService::class.java
+        val available=if(multiple)AccountMonitor(context,gate).hasWork(ChangeNotifications(context).allowed()) else
+            (account?.people?.any {it.watching}==true || account?.automation?.enabled==true)
+        if (!available ||
+            !multiple && account?.automation?.enabled != true && !ChangeNotifications(context).allowed() || gate.quickWatchActive() || gate.automationHeld() || gate.restrictionPending() ||
+            !multiple && (gate.manualOnly() || gate.requiresConnection())) {
             scheduler.cancel(jobId); return false
         }
         if (scheduler.getPendingJob(jobId) != null) return true
@@ -37,7 +41,7 @@ open class MonitorJobService : JobService() {
     protected open fun createListSource(gate: RequestGate): FollowListSource = AccountFollowListReader(gate)
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
-    private class Run(val parameters: JobParameters, val api: InstagramApi, val lists: FollowListSource) {
+    private class Run(val parameters: JobParameters, @Volatile var api: InstagramApi, @Volatile var lists: FollowListSource) {
         val cancelled = AtomicBoolean(false)
         var future: Future<*>? = null
         fun cancel() { cancelled.set(true); api.cancel(); lists.cancel(); future?.cancel(true) }
@@ -47,7 +51,9 @@ open class MonitorJobService : JobService() {
         val notices = ChangeNotifications(this, preview)
         val gate = RequestGate(this, gateName)
         val listWork = try { SessionVault(this, vaultSlot).read()?.automation?.enabled == true } catch (_: Exception) { false }
-        if (!notices.allowed() && !listWork || gate.quickWatchActive() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection()) { MonitorScheduler.cancel(this, jobId); return false }
+        val multiple=!preview && vaultSlot=="account" && gateName=="request_gate"
+        if (multiple && !AccountMonitor(this,gate).hasWork(notices.allowed()) ||
+            !multiple && (!notices.allowed() && !listWork || gate.manualOnly() || gate.requiresConnection()) || gate.quickWatchActive() || gate.automationHeld() || gate.restrictionPending()) { MonitorScheduler.cancel(this, jobId); return false }
         // Foreground owns the current request; retain the periodic job so a
         // later Android activation can resume after the activity leaves.
         if (gate.preparationActive()) return false
@@ -55,8 +61,11 @@ open class MonitorJobService : JobService() {
         val run = Run(params, createApi(gate), createListSource(gate)); active = run
         run.future = worker.submit {
             val vault = SessionVault(this, vaultSlot)
-            try { AutomaticEngine(vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
-                run.api, run.lists, { listWork || notices.allowed() }, notices::post, notices::postList).cycle(cancelled = run.cancelled::get) }
+            try {
+                if(multiple)AccountMonitor(this,gate).cycle(run.cancelled::get) {api,lists->run.api=api;run.lists=lists;if(run.cancelled.get()){api.cancel();lists.cancel()}}
+                else AutomaticEngine(vault, FollowListVault(this, if (preview) "previewlists" else "followlists"), gate,
+                    run.api, run.lists, { listWork || notices.allowed() }, notices::post, notices::postList).cycle(cancelled = run.cancelled::get)
+            }
             catch (_: ApiFailure) { /* The gate preserves restrictions and auth pauses; no immediate retries. */ }
             catch (_: Exception) { gate.pauseForConnection() }
             finally {

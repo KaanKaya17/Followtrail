@@ -30,7 +30,8 @@ class WebLoginScreenTest {
     @Before fun setup() { check(context.packageName.endsWith(".debug")); cleanup() }
     @After fun cleanup() {
         scenario?.close(); scenario = null
-        SessionVault(context).clear(); WebSessions(context).clear(); MobileSessions(context).clear()
+        AccountCatalog(context).entries().forEach {SessionVault(context,owner=it.id).clear()}; WebSessions(context).clear(); MobileSessions(context).clear()
+        context.getSharedPreferences("account_flags_"+AccountCatalog.slot("123"),0).edit().clear().commit()
         context.getSharedPreferences("request_gate", 0).edit().clear().commit()
         val cleared = CountDownLatch(1)
         instrumentation.runOnMainSync { CookieManager.getInstance().removeAllCookies { cleared.countDown() } }
@@ -267,7 +268,8 @@ class WebLoginScreenTest {
         RequestGate(context).limited(null, System.currentTimeMillis() - 8 * 60 * 60 * 1000L)
         verify()
         failureDialog { ApiFailure(ApiFailure.Kind.VERIFICATION).userMessage(it) }
-        assertTrue(RequestGate(context).requiresConnection())
+        assertTrue(RequestGate(context).forAccount("123").requiresConnection())
+        assertFalse(RequestGate(context).requiresConnection()) // The failed new account cannot pause a different selection.
         assertNull(SessionVault(context).read()); assertNull(WebSessions(context).pending())
         assertEquals(1L, RequestGate(context).attempts())
         until { CookieManager.getInstance().getCookie("https://www.instagram.com/").isNullOrBlank() }

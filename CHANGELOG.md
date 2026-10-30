@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.50 — 2026-10-30 (Çoklu hesap)
+
+- Hesaplarım menüsünden yeni hesap eklenebilir ve kayıtlı hesaplar arasında yeniden giriş yapmadan geçilebilir. Yeni hesap, önceki hesabın kaydını değiştirmez. Aynı numeric ID yeniden bağlandığında izlenen kişiler ve tarihli geçmiş korunur.
+- Hesaplar, oturum bankaları, takip listeleri, görsel geçmiş ve günlükler ayrı Keystore kasalarında tutulur. Mevcut tek hesap ek katalogla taşınır; eski ana kayıt yeniden yazılmaz. Hesap silme yalnız seçili hesaba uygulanır; yarıda kalan silme sonraki açılışta tamamlanır.
+- Bildirimler ait olduğu hesabı açar. Arka plan işleri tek sırada hesaplara dönüşümlü hizmet verir. İstek bütçesi, aralık ve 429 molası ortak kalır; hesap değiştirmek mola sıfırlamaz ve profil/liste isteği başlatmaz.
+- [Doğrulama ve sınırlamalar](docs/ANDROID-MULTI-ACCOUNT-TEST.md). 0.1.49 ile gerçek telefon girişi başarılıydı; profil isteği HTTP 429 aldı. Bu özellik Instagram erişiminin açıldığını iddia etmez.
+
 ## Android 0.1.49 — 2026-10-30 (Platform web taşıyıcısı test adayı)
 
 - Destekleyen cihazlarda web giriş ve okumaları Android HttpEngine kullanır. Seçim istekten önce yapılır; sunucu reddinden sonra otomatik eski taşıyıcıya dönüş yoktur. Ek SDK/izin/native kütüphane eklenmedi. Mobil sağlayıcı değişmedi.

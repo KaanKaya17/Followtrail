@@ -12,6 +12,10 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
     fun tick(now: Long = runtime.now(), cancelled: () -> Boolean = { false }) {
         dispatch(now, cancelled, false, MAX_PAGES, runtime.elapsed())
     }
+    /** One account's turn inside the shared, already-reserved multi-account job. */
+    internal fun reservedTurn(started: Long, cancelled: () -> Boolean) {
+        dispatch(runtime.now(),cancelled,true,1,started,preferProfile=true)
+    }
     /** One shared reservation per bounded job, rather than a 15-minute gap between each due person. */
     fun cycle(now: Long = runtime.now(), cancelled: () -> Boolean = { false }) {
         val interrupted = { cancelled() || gate.quickWatchActive() }

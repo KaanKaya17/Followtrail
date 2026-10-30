@@ -29,8 +29,14 @@ class DevicePrivacyTest {
     @Test fun productionManifestHasNoBackupOrExtraPermissions() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         @Suppress("DEPRECATION") val info = context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.GET_PERMISSIONS)
-        assertEquals(setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE",
-            "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.POST_NOTIFICATIONS"), info.requestedPermissions.orEmpty().toSet())
+        val declared=setOf("android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE",
+            "android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.POST_NOTIFICATIONS")
+        // Android 17 expands INTERNET for apps targeting <=36. The APK's declared set is checked
+        // independently by scripts/verify-release.py; this checks the installed platform view.
+        // https://developer.android.com/privacy-and-security/local-network-permission
+        val compatibility=if(android.os.Build.VERSION.SDK_INT>=37 && info.applicationInfo!!.targetSdkVersion<=36)
+            setOf("android.permission.ACCESS_LOCAL_NETWORK") else emptySet()
+        assertEquals(declared+compatibility,info.requestedPermissions.orEmpty().toSet())
         assertEquals(0, info.applicationInfo!!.flags and android.content.pm.ApplicationInfo.FLAG_ALLOW_BACKUP)
         val service = context.packageManager.getServiceInfo(android.content.ComponentName(context, MonitorJobService::class.java), 0)
         assertEquals("android.permission.BIND_JOB_SERVICE", service.permission)
