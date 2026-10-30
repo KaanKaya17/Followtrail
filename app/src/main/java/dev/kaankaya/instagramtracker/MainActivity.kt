@@ -1549,6 +1549,15 @@ class MainActivity : LocalizedActivity() {
             if(web===browser) loginFeedback(R.string.web_login_step_attention,R.string.web_login_security_unsupported_request)
         }).also { if (!it.install()) { loginRelayIssue = true; loginFeedback(R.string.web_login_step_attention, R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
+            @android.annotation.TargetApi(26)
+            override fun onRenderProcessGone(view: WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
+                if(web===view) {
+                    recordLoginPage(pageTrace) {it.error(if(detail.didCrash()) -1001 else -1002,true)}
+                    message=getString(R.string.web_login_renderer_stopped)
+                    leaveLogin(rendererGone = true)
+                }
+                return true
+            }
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url=request.url.toString()
                 val allowed=loginSecurityReset && request.isForMainFrame && url=="about:blank" || LoginBrowserPolicy.navigation(url) ||
@@ -1823,7 +1832,7 @@ class MainActivity : LocalizedActivity() {
             .setPositiveButton(R.string.ui_close, null).show()
     }
 
-    private fun leaveLogin() {
+    private fun leaveLogin(rendererGone: Boolean = false) {
         main.removeCallbacks(loginLoadTimeout)
         main.removeCallbacks(inspectPage)
         main.removeCallbacks(gateWake)
@@ -1831,9 +1840,10 @@ class MainActivity : LocalizedActivity() {
         loginSecurityReset=false
         directNativeButton=null
         autoVerifyLogin = false; loginAuthenticating = false
-        loginRelay?.close(); loginRelay = null
+        if(rendererGone) loginRelay?.rendererGone() else loginRelay?.close()
+        loginRelay = null
         recordLoginPage { it.close() }; loginTrace = null
-        try { browserProbe?.cancel() } catch (_: Exception) { message = getString(R.string.web_compare_journal_failed) }
+        try { browserProbe?.cancel(pageAvailable = !rendererGone) } catch (_: Exception) { message = getString(R.string.web_compare_journal_failed) }
         browserProbe = null; browserProof = null
         if (nativeComparisonStarted) {
             try { WebConnectionJournal(this).end(WebConnectionJournal.Step.NATIVE,WebConnectionJournal.Outcome.CANCELLED,null) } catch (_: Exception) { }
@@ -1844,7 +1854,7 @@ class MainActivity : LocalizedActivity() {
         val browser = web
         web = null; loginStatus = null; loginHeading = null; loginProgress = null; completionButton = null; loginChecking = false
         browser?.apply {
-            stopLoading(); loadUrl("about:blank"); clearHistory(); clearCache(true)
+            if(!rendererGone) {stopLoading(); loadUrl("about:blank"); clearHistory(); clearCache(true)}
             (parent as? ViewGroup)?.removeView(this); removeAllViews(); destroy()
         }
         CookieManager.getInstance().removeAllCookies { CookieManager.getInstance().flush() }

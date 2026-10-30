@@ -1,4 +1,5 @@
 <resources>
+    <string name="web_login_renderer_stopped">Instagram’s page renderer stopped; this can also happen when device memory is low. The open sign-in was cancelled and your saved accounts were preserved. No new request was sent. Close other apps and try again when ready; existing waiting periods still apply.</string>
     <string name="web_login_security_unsupported_request">Instagram’s security page opened, but this version does not support its next verification step. Your account is not connected. Do not resubmit your password; Page diagnostics identifies the technical operation without retaining your password or code.</string>
     <string name="web_login_security_returned_login">Instagram’s security page returned to sign-in. Verification and the Tracker connection are not complete. Do not submit your password again; Page diagnostics can show which step returned.</string>
     <string name="web_login_step_loading">Opening Instagram sign-in</string>

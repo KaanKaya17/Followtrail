@@ -205,18 +205,21 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
         } finally { pending.lease.close() }
     }
     /** Navigation/background cancellation owns both queued work and the active HTTP exchange. */
-    fun cancel() {
+    fun cancel() = cancel(replyToPage = true)
+    private fun cancel(replyToPage: Boolean) {
         val pending = active ?: return
         active = null; pending.call?.cancel(); pending.future?.cancel(true); pending.lease.close()
-        reply(pending.reply, pending.id, JSONObject().put("error", true))
+        if(replyToPage) reply(pending.reply, pending.id, JSONObject().put("error", true))
         if (!closed) failure(ApiFailure(ApiFailure.Kind.CANCELLED), null)
     }
-    override fun close() {
+    override fun close() = dispose(browserAvailable = true)
+    fun rendererGone() = dispose(browserAvailable = false)
+    private fun dispose(browserAvailable: Boolean) {
         if (closed) return
-        closed = true; cancel()
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) script?.remove()
+        closed = true; cancel(replyToPage = browserAvailable)
+        if (browserAvailable && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) script?.remove()
         script = null
-        if (installed && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER))
+        if (browserAvailable && installed && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER))
             WebViewCompat.removeWebMessageListener(browser, "trackerLoginRelay")
         installed = false
     }

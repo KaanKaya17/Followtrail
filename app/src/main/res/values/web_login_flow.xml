@@ -1,4 +1,5 @@
 <resources>
+    <string name="web_login_renderer_stopped">Instagram sayfasının görüntüleyicisi kapandı; bu, cihazda bellek azaldığında da olabilir. Açık giriş iptal edildi, mevcut hesapların korundu. Yeni istek gönderilmedi. Diğer uygulamaları kapatıp uygun olduğunda yeniden deneyebilirsin; kayıtlı bekleme süreleri devam eder.</string>
     <string name="web_login_security_unsupported_request">Instagram güvenlik sayfası açıldı ancak bu sürüm doğrulamanın sonraki adımını desteklemiyor. Hesap henüz bağlanmadı. Parolanı tekrar gönderme; Sayfa tanısı teknik işlem türünü gösterir, parola veya kod içermez.</string>
     <string name="web_login_security_returned_login">Instagram güvenlik sayfası yeniden giriş ekranına döndü. Güvenlik doğrulaması ve Tracker bağlantısı tamamlanmadı. Parolanı yeniden gönderme; Sayfa tanısı kaydından hangi adımın geri döndüğünü kontrol edebiliriz.</string>
     <string name="web_login_step_loading">Instagram giriş sayfası açılıyor</string>
