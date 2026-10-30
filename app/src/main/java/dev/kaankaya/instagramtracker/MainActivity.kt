@@ -61,6 +61,12 @@ class MainActivity : LocalizedActivity() {
     private var needsConnection = false
     private var web: WebView? = null
     private var loginStatus: TextView? = null
+    private var loginHeading: TextView? = null
+    private var loginProgress: ProgressBar? = null
+    private val loginLoadTimeout = Runnable {
+        if (web != null && !loginLoaded && !loginRelayIssue && !loginChecking)
+            endLoginVerificationUnavailable(R.string.web_login_page_timeout)
+    }
     private var completionButton: Button? = null
     @Volatile private var generation = 0
     private var webAttempt: WebConnectionAttempt? = null
@@ -1404,18 +1410,27 @@ class MainActivity : LocalizedActivity() {
     private fun recordLoginPage(trace: LoginPageTrace? = loginTrace, action: (LoginPageTrace) -> Unit) {
         try { trace?.let(action) } catch (_: Exception) { if (loginTrace === trace) loginTraceFailed = true }
     }
+    private fun loginFeedback(heading: Int, detail: Int, busy: Boolean = false) {
+        loginHeading?.setText(heading)
+        loginStatus?.setText(detail)
+        loginProgress?.visibility = if (busy) View.VISIBLE else View.GONE
+    }
     private fun inspectLoginPage() {
         val browser = web ?: return
         if (!visible || loginChecking || loginAttempted || browserProof != null) return
         val epoch = loginPageEpoch
         val trace = loginTrace
         // Presence/visibility only: never read input values, page text, cookies or URLs into diagnostics.
-        browser.evaluateJavascript("(function(){return Array.prototype.some.call(document.querySelectorAll('input[name=username],input[name=password],input[name=email],input[type=email],input[type=password]'),function(n){return n.getClientRects().length>0})})()") { raw ->
+        browser.evaluateJavascript("(function(){function visible(s){return Array.prototype.some.call(document.querySelectorAll(s),function(n){return n.getClientRects().length>0})}return visible('input[autocomplete=one-time-code],input[name=verificationCode],input[name=security_code],input[name=verification_code]')?'code':visible('input[name=username],input[name=password],input[name=email],input[type=email],input[type=password]')?'form':'other'})()") { raw ->
             if (web !== browser || loginPageEpoch != epoch) return@evaluateJavascript
-            val form = when (raw) { "true" -> true; "false" -> false; else -> null }
+            val form = when (raw) { "\"form\"" -> true; "\"code\"", "\"other\"" -> false; else -> null }
             recordLoginPage(trace) { it.form(form) }
+            if (raw == "\"code\"" && !loginAuthenticating && !loginChecking) {
+                loginFeedback(R.string.web_login_step_code, R.string.web_login_two_factor)
+                return@evaluateJavascript
+            }
             if (!loginChecking && !loginAttempted && browserProof == null && !loginRelayIssue) {
-                if (form == true) loginStatus?.setText(if (webComparison) R.string.web_compare_instruction else R.string.web_connection_instruction)
+                if (form == true) loginFeedback(R.string.web_login_step_credentials, if (webComparison) R.string.web_compare_instruction else R.string.web_connection_instruction)
                 else if (form == false && try { java.net.URI(browser.url ?: "").rawPath == "/accounts/login/" } catch (_: Exception) { false })
                     loginStatus?.setText(R.string.page_trace_waiting)
             }
@@ -1438,6 +1453,10 @@ class MainActivity : LocalizedActivity() {
         header.addView(text("  instagram.com", 16f, accent, true), LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(button(getString(R.string.page_trace_open), false) { requestInfo() }, LinearLayout.LayoutParams(-2, dp(48)))
         page.addView(header)
+        loginHeading = text(getString(R.string.web_login_step_loading), 17f, ink, true).apply { setPadding(dp(18), dp(4), dp(18), 0) }
+        page.addView(loginHeading)
+        loginProgress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { isIndeterminate = true }
+        page.addView(loginProgress, LinearLayout.LayoutParams(-1, dp(3)))
         loginStatus = text(getString(if(compare) R.string.web_compare_instruction else R.string.web_connection_instruction), 13f, muted).apply { setPadding(dp(18), dp(8), dp(18), dp(8)) }
         page.addView(loginStatus)
         page.addView(text(getString(R.string.web_connection_privacy), 12f, muted).apply { setPadding(dp(18), 0, dp(18), dp(8)) })
@@ -1479,6 +1498,8 @@ class MainActivity : LocalizedActivity() {
             if (web === browser) {
                 loginAuthenticating = false
                 loginRelayIssue = true
+                loginProgress?.visibility = View.GONE
+                loginHeading?.setText(R.string.web_login_step_attention)
                 if (problem.kind == ApiFailure.Kind.LIMITED) webLoginFailed(problem, status)
                 else if (problem.kind == ApiFailure.Kind.TOO_SOON) endRejectedLogin(R.string.web_login_not_sent)
                 else loginStatus?.text = when (problem.kind) {
@@ -1492,20 +1513,28 @@ class MainActivity : LocalizedActivity() {
         }, client = WebLoginMode.relayClient(this, webFixture), started = {
             if (web === browser) {
                 loginAuthenticating = true; loginRelayIssue = true
-                loginStatus?.setText(R.string.web_login_sending); updateLoginCompletion()
+                loginFeedback(R.string.web_login_step_waiting, R.string.web_login_sending, true); updateLoginCompletion()
             }
         }, completed = completion@{ facts, challenge ->
             if (web === browser) {
                 loginAuthenticating = false; loginRelayIssue = true
+                loginProgress?.visibility = View.GONE
                 loginChallenge?.close(); loginChallenge = challenge
                 challengeButton?.visibility = if (challenge != null) View.VISIBLE else View.GONE
-                completionButton?.visibility = if (facts.captchaNeeded == true) View.GONE else View.VISIBLE
+                completionButton?.visibility = if (facts.captchaNeeded == true || facts.twoFactorPayloadPresent == true) View.GONE else View.VISIBLE
                 when {
-                    facts.captchaNeeded == true -> loginStatus?.setText(if (challenge != null) R.string.web_login_captcha else R.string.web_login_captcha_unavailable)
-                    facts.twoFactorPayloadPresent == true -> loginStatus?.setText(R.string.web_login_two_factor)
+                    facts.captchaNeeded == true && challenge == null -> {
+                        endLoginVerificationUnavailable(R.string.web_login_captcha_unavailable)
+                        return@completion
+                    }
+                    facts.captchaNeeded == true -> loginFeedback(R.string.web_login_step_captcha, R.string.web_login_captcha)
+                    facts.twoFactorPayloadPresent == true -> {
+                        autoVerifyLogin = !webComparison
+                        loginFeedback(R.string.web_login_step_code, R.string.web_login_two_factor)
+                    }
                     facts.authenticated == true && facts.sessionCookieReceived && facts.ownerCookieReceived && facts.cookiesApplied == true -> {
                         autoVerifyLogin = !webComparison
-                        loginStatus?.setText(if (webComparison) R.string.web_login_comparison_ready else R.string.web_login_profile_pending)
+                        loginFeedback(R.string.web_login_step_profile, if (webComparison) R.string.web_login_comparison_ready else R.string.web_login_profile_pending, !webComparison)
                     }
                     facts.authenticated == false -> {
                         endRejectedLogin(R.string.web_login_rejected)
@@ -1515,7 +1544,7 @@ class MainActivity : LocalizedActivity() {
                 }
                 updateLoginCompletion(); scheduleGateWake(); continueAuthenticatedLogin()
             } else challenge?.close()
-        }).also { if (!it.install()) { loginRelayIssue = true; loginStatus?.setText(R.string.web_relay_unavailable) } }
+        }).also { if (!it.install()) { loginRelayIssue = true; loginFeedback(R.string.web_login_step_attention, R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !(LoginBrowserPolicy.navigation(request.url.toString()) ||
                 !request.isForMainFrame && loginChallenge?.subframe(request.url.toString()) == true).also { allowed ->
@@ -1543,6 +1572,8 @@ class MainActivity : LocalizedActivity() {
                 recordLoginPage(pageTrace) { it.started() }
                 main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000)
                 loginLoaded = false; updateLoginCompletion()
+                main.removeCallbacks(loginLoadTimeout)
+                main.postDelayed(loginLoadTimeout, 45000)
                 main.removeCallbacks(gateWake)
                 if (webComparison && (browserProbe?.running == true || browserProof != null)) {
                     message = getString(R.string.web_compare_cancelled); leaveLogin()
@@ -1574,18 +1605,27 @@ class MainActivity : LocalizedActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 if (web !== view) return
                 recordLoginPage(pageTrace) { it.finished() }
+                main.removeCallbacks(loginLoadTimeout)
+                if (!loginAuthenticating && !loginChecking && !autoVerifyLogin) loginProgress?.visibility = View.GONE
                 main.removeCallbacks(inspectPage); main.postDelayed(inspectPage, 12000)
                 if (NavigationPolicy.isInstagram(url)) {
                     loginLoaded = true
                     updateLoginCompletion()
                     scheduleGateWake()
                     continueAuthenticatedLogin()
+                    inspectLoginPage()
                 }
             }
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (web !== view) return
                 recordLoginPage(pageTrace) { it.error(error.errorCode, request.isForMainFrame) }
-                if (request.isForMainFrame) main.post { if (web === view) loginStatus?.setText(R.string.page_trace_waiting) }
+                if (request.isForMainFrame) main.post {
+                    if (web === view) {
+                        main.removeCallbacks(loginLoadTimeout)
+                        if (!loginRelayIssue) loginFeedback(R.string.web_login_step_attention, R.string.web_login_page_timeout)
+                        else { loginProgress?.visibility = View.GONE }
+                    }
+                }
             }
         }
         page.addView(browser, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -1623,9 +1663,24 @@ class MainActivity : LocalizedActivity() {
                     challenge.authorize(); challengeButton?.visibility = View.GONE
                     completionButton?.visibility = View.VISIBLE
                     autoVerifyLogin = !webComparison
-                    loginStatus?.setText(R.string.web_login_complete_challenge)
+                    loginFeedback(R.string.web_login_step_captcha, R.string.web_login_complete_challenge)
                     browser.loadUrl(challenge.page)
                 }
+            }.show()
+    }
+
+    private fun endLoginVerificationUnavailable(reason: Int) {
+        val retryAt = gate.nextWebAuthenticationAt()
+        val details = getString(reason) + if (retryAt > System.currentTimeMillis())
+            "\n\n" + getString(R.string.ui_next_connection_attempt, clock(retryAt)) else ""
+        message = details
+        leaveLogin()
+        AlertDialog.Builder(this).setTitle(R.string.web_login_step_attention).setMessage(details)
+            .setNeutralButton(R.string.ui_request_information) { _, _ -> requestInfo() }
+            .setNegativeButton(R.string.ui_close, null)
+            .setPositiveButton(R.string.phone_open_instagram) { _, _ ->
+                try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.instagram.com/"))) }
+                catch (_: android.content.ActivityNotFoundException) { message = getString(reason); render() }
             }.show()
     }
 
@@ -1656,6 +1711,7 @@ class MainActivity : LocalizedActivity() {
             loginChecking = false
             result.onSuccess { profile ->
                 browserProof = proof; loginAttempted = false
+                loginProgress?.visibility = View.GONE
                 completionButton?.setText(R.string.web_compare_native)
                 loginStatus?.text = getString(R.string.web_compare_browser_success,number(profile.followers),number(profile.following))
                 updateLoginCompletion()
@@ -1663,7 +1719,7 @@ class MainActivity : LocalizedActivity() {
             }.onFailure { webLoginFailed(it as? ApiFailure ?: ApiFailure(ApiFailure.Kind.INVALID_RESPONSE),gate.lastHttpStatus()) }
         }
         browserProbe = probe;loginChecking = true;loginAttempted = true
-        updateLoginCompletion();loginStatus?.setText(R.string.web_compare_reading)
+        updateLoginCompletion();loginFeedback(R.string.web_login_step_profile,R.string.web_compare_reading,true)
         try { probe.start(state) }
         catch (error: Exception) { loginChecking = false;webLoginFailed(error as? ApiFailure ?: ApiFailure(ApiFailure.Kind.STORAGE),null) }
     }
@@ -1689,7 +1745,7 @@ class MainActivity : LocalizedActivity() {
         }
         loginChecking = true; loginAttempted = true
         updateLoginCompletion()
-        loginStatus?.setText(R.string.connection_checking)
+        loginFeedback(R.string.web_login_step_profile,R.string.connection_checking,true)
         val ticket = ++generation
         val expected = account?.session
         val attemptsBefore = gate.attempts()
@@ -1717,7 +1773,10 @@ class MainActivity : LocalizedActivity() {
                         localAccountView=false;intent.removeExtra("local_account_switch")
                         message = getString(R.string.accounts_added)
                         needsConnection = false; syncMonitoring(); leaveLogin()
-                    } catch (_: Exception) { loginStatus?.text = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity) }
+                    } catch (_: Exception) {
+                        loginProgress?.visibility = View.GONE; loginHeading?.setText(R.string.web_login_step_attention)
+                        loginStatus?.text = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity)
+                    }
                 }.onFailure {
                     val status = gate.lastHttpStatus().takeIf { gate.attempts() > attemptsBefore }
                     webLoginFailed(it as ApiFailure, status)
@@ -1741,6 +1800,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun leaveLogin() {
+        main.removeCallbacks(loginLoadTimeout)
         main.removeCallbacks(inspectPage)
         main.removeCallbacks(gateWake)
         loginChallenge?.close(); loginChallenge = null; challengeButton = null
@@ -1757,7 +1817,7 @@ class MainActivity : LocalizedActivity() {
         webAttempt?.cancel(); webAttempt = null
         ++generation; api.cancel()
         val browser = web
-        web = null; loginStatus = null; completionButton = null; loginChecking = false
+        web = null; loginStatus = null; loginHeading = null; loginProgress = null; completionButton = null; loginChecking = false
         browser?.apply {
             stopLoading(); loadUrl("about:blank"); clearHistory(); clearCache(true)
             (parent as? ViewGroup)?.removeView(this); removeAllViews(); destroy()

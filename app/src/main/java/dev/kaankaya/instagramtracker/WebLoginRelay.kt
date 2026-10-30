@@ -134,7 +134,9 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 val parsedCookies = cookieLines.map { value ->
                     if (value.length <= 16384) Cookie.parse(origin, value)?.takeIf { it.matches(origin) } else null
                 }
-                val facts = WebLoginResponseFacts.inspect(response.code, json, parsedCookies.filterNotNull(), parsedCookies.all { it != null }, gate.now())
+                val inspected = WebLoginResponseFacts.inspect(response.code, json, parsedCookies.filterNotNull(), parsedCookies.all { it != null }, gate.now())
+                val assessment = json?.let { WebLoginChallenge.assess(it, inspected) }
+                val facts = inspected.copy(challengeStatus = assessment?.status)
                 record(facts)
                 if (json == null) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val issue = InstagramResponsePolicy.issue(response.code, json)
@@ -160,7 +162,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                             active = null; reply(pending.reply, pending.id, JSONObject().put("error", true)); failure(problem, null); return
                         }
                         active = null; reply(pending.reply, pending.id, result)
-                        completed(finalFacts, WebLoginChallenge.fromResponse(json, finalFacts))
+                        completed(finalFacts, assessment?.challenge)
                     }
                     if (cookies.isEmpty()) finish() else {
                         var remaining = cookies.size

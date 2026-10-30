@@ -5,6 +5,26 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WebLoginChallengeTest {
+    @Test fun unavailableReasonsPreserveShapeWithoutRetainingTheLinkOrToken() {
+        val cases = listOf(
+            JSONObject.NULL to WebLoginChallenge.Companion.Status.MISSING_LINK,
+            JSONObject().put("private-token",true) to WebLoginChallenge.Companion.Status.INVALID_TYPE,
+            "" to WebLoginChallenge.Companion.Status.EMPTY_LINK,
+            "https://other.invalid/private-token" to WebLoginChallenge.Companion.Status.OTHER_HOST,
+            "/unrecognized/private-token/" to WebLoginChallenge.Companion.Status.UNSUPPORTED_PATH,
+            "/challenge/" to WebLoginChallenge.Companion.Status.INVALID_TOKEN,
+            "/challenge/a%2fb/" to WebLoginChallenge.Companion.Status.INVALID_URL,
+            "/challenge/private-token/" to WebLoginChallenge.Companion.Status.SUPPORTED)
+        for ((link,status) in cases) {
+            val body=JSONObject().put("data",JSONObject().put("caa_login_web",JSONObject().put("recaptcha_needed",true).put("ig_authenticated",false).put("redirect_uri",link)))
+            val facts=WebLoginResponseFacts.inspect(200,body,emptyList(),true,1)
+            val assessment=WebLoginChallenge.assess(body,facts)
+            assertEquals(status,assessment.status)
+            assertFalse(assessment.toString().contains("private-token"))
+            val diagnostic=facts.copy(challengeStatus=assessment.status).json().toString()
+            assertFalse(diagnostic.contains("private-token"));assertFalse(diagnostic.contains("other.invalid"))
+        }
+    }
     private fun challenge(link: String, captcha: Boolean = true, authenticated: Boolean = false): WebLoginChallenge? {
         val body=JSONObject().put("data",JSONObject().put("caa_login_web",JSONObject()
             .put("redirect_uri",link).put("recaptcha_needed",captcha).put("ig_authenticated",authenticated)))

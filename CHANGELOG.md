@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.53 — 2026-10-30 (Giriş adımlarını açıklama)
+
+- Instagram girişi, yanıt bekleme, kod, CAPTCHA ve profil bağlantısı ayrı başlıklarla gösterilir. Kullanıcıdan işlem beklenirken ilerleme çubuğu durur; kod alanının değeri okunmaz.
+- Açılamayan CAPTCHA adımında form kapatılır, girişin tamamlanmadığı ve yanlış parola sonucunun çıkarılamayacağı anlatılır. Instagram’da kontrol et ve İstek bilgileri seçenekleri sunulur. Sayfa yüklemesine süre sınırı eklendi.
+- Tanıda doğrulama bağlantısı yerine yalnız sabit neden kodu tutulur; ağ izinleri genişletilmez. [Test kapsamı ve kullanıcı adımları](docs/LOGIN-GUIDANCE-TEST.md). Gerçek CAPTCHA ve iki faktörlü girişin uçtan uca tamamlanması henüz doğrulanmadı.
+
 ## Android 0.1.52 — 2026-10-30 (Giriş sonucunu koruma)
 
 - Instagram'ın giriş/CAPTCHA sonucu, sonradan yerel olarak engellenen bir gezinmenin genel uyarısıyla değiştirilmez. Ağ engeli ve doğrulama bağlantısının mevcut izin sınırı korunur; desteklenmeyen bir güvenlik bağlantısının açıldığı iddia edilmez.
