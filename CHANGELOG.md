@@ -1,5 +1,16 @@
 # Değişiklikler
 
+## Android 0.1.55 — 2026-10-30 (Instagram güvenlik sayfası · test sürümü)
+
+- Gerçek 0.1.54 yanıtında ayrı `/auth_platform/` akışı görüldü; klasik Instagram CAPTCHA işareti kapalıydı. Kullanıcı onayı sonrasında aynı giriş WebView’inde yalnız sunucunun döndürdüğü tam güvenlik sayfası GET’i açılabilir.
+- Yol ve query yalnız bu açık girişin belleğinde bağlanır. Başka güvenlik bağlantısı, POST, genel GraphQL veya sosyal işlem yetkisi verilmez; iptal bu izni kaldırır. CAPTCHA veya hesap bağlantısının tamamlandığı henüz iddia edilmez.
+- [Kaynak incelemesi ve canlı test kapsamı](docs/CAPTCHA-FLOW-INVESTIGATION.md).
+
+## Android 0.1.54 — 2026-10-30 (CAPTCHA akışını ayırma · test sürümü)
+
+- Giriş tanısına Instagram’ın `is_ig_login_recaptcha` işareti, CAPTCHA bağlamının bulunup bulunmadığı ve yönlendirmenin sabit ekran sınıfı eklendi. Eksik veya yanlış türde alan bilinmiyor olarak korunur; bağlantı, query, token ve CAPTCHA bağlamı kaydedilmez.
+- Bu sınıflandırma yeni ağ izni vermez. Ayrı challenge bağlantısıyla sayfa içi doğrulamayı ayırmak içindir; gerçek CAPTCHA’nın tamamlandığını veya giriş sorununun çözüldüğünü iddia etmez.
+
 ## Android 0.1.53 — 2026-10-30 (Giriş adımlarını açıklama)
 
 - Instagram girişi, yanıt bekleme, kod, CAPTCHA ve profil bağlantısı ayrı başlıklarla gösterilir. Kullanıcıdan işlem beklenirken ilerleme çubuğu durur; kod alanının değeri okunmaz.

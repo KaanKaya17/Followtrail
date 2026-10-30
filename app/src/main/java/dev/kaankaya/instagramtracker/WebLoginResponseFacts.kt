@@ -11,7 +11,9 @@ data class WebLoginResponseFacts(val status: Int, val jsonParsed: Boolean, val d
     val authenticated: Boolean? = null, val captchaNeeded: Boolean? = null,
     val twoFactorPayloadPresent: Boolean? = null, val redirectPresent: Boolean? = null,
     val messageClass: MessageClass = MessageClass.UNKNOWN,
-    val challengeStatus: WebLoginChallenge.Companion.Status? = null) {
+    val challengeStatus: WebLoginChallenge.Companion.Status? = null,
+    val challengeRoute: WebLoginChallenge.Companion.Route? = null,
+    val igLoginRecaptcha: Boolean? = null, val captchaDataPresent: Boolean? = null) {
     enum class Shape { MISSING, NULL, OBJECT, ARRAY, OTHER, UNKNOWN }
     enum class MessageClass { NONE, BAD_LOGIN_INFORMATION, OTHER, UNKNOWN }
     fun json() = JSONObject().put("status", status).put("jsonParsed", jsonParsed).put("dataShape", dataShape.name)
@@ -23,6 +25,8 @@ data class WebLoginResponseFacts(val status: Int, val jsonParsed: Boolean, val d
         .put("captchaNeeded", captchaNeeded ?: JSONObject.NULL).put("twoFactorPayloadPresent", twoFactorPayloadPresent ?: JSONObject.NULL)
         .put("redirectPresent", redirectPresent ?: JSONObject.NULL).put("messageClass", messageClass.name)
         .put("challengeStatus", challengeStatus?.name ?: JSONObject.NULL)
+        .put("challengeRoute", challengeRoute?.name ?: JSONObject.NULL)
+        .put("igLoginRecaptcha", igLoginRecaptcha ?: JSONObject.NULL).put("captchaDataPresent", captchaDataPresent ?: JSONObject.NULL)
     companion object {
         fun inspect(status: Int, body: JSONObject?, cookies: List<Cookie>, allCookiesParsed: Boolean, now: Long): WebLoginResponseFacts {
             require(status in 100..599)
@@ -72,7 +76,9 @@ data class WebLoginResponseFacts(val status: Int, val jsonParsed: Boolean, val d
                 usable.any { it.name == "sessionid" }, usable.any { it.name == "ds_user_id" }, allCookiesParsed,
                 caaResultPresent = caa != null, authenticated = caa?.opt("ig_authenticated") as? Boolean,
                 captchaNeeded = caa?.opt("recaptcha_needed") as? Boolean, twoFactorPayloadPresent = present("two_factor_result"),
-                redirectPresent = present("redirect_uri"), messageClass = messageClass)
+                redirectPresent = present("redirect_uri"), messageClass = messageClass,
+                igLoginRecaptcha = caa?.opt("is_ig_login_recaptcha") as? Boolean,
+                captchaDataPresent = present("captcha_persist_data"))
         }
     }
 }
