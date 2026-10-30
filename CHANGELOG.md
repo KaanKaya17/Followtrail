@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Android 0.1.58 — 2026-10-30 (Giriş görüntüleyicisi kapanışı)
+
+- Instagram giriş WebView’i sonlandığında etkin giriş/okuma işi iptal edilir ve kullanıcıya açıklama gösterilir. Kapanan görüntüleyiciye yeniden sayfa veya JavaScript gönderilmez; mevcut hesaplar ve bekleme kaydı korunur.
+- 0.1.57 emülatör denemesinde 2 GB yapılandırmada test süreci, 3 GB yapılandırmada WebView süreçleri Android tarafından bellek baskısında kapatıldı. Üç kritik çevrimdışı senaryo geçti; test grubunun tamamı geçmedi ve gerçek Instagram girişi gönderilmedi. Bu düzeltme işletim sisteminin tüm uygulamayı bellek nedeniyle öldürmesini engellediği iddiasında bulunmaz.
+
 ## Android 0.1.57 — 2026-10-30 (Desteklenmeyen güvenlik adımını tanılama · test sürümü)
 
 - Yetkilendirilmiş Instagram güvenlik sayfasının engellenen GraphQL istekleri yalnız teknik belge numarası ve işlem adıyla sınırlı, en fazla dört kayıt olarak tanılanır. Değişkenler, başlıklar, kodlar, oturum veya CAPTCHA içeriği kaydedilmez; istekler gönderilmez.

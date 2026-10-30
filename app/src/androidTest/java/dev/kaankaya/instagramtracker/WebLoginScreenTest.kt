@@ -22,6 +22,21 @@ import java.util.concurrent.TimeUnit
 /** Real MainActivity + WebView cookie capture; all page/API responses are debug-only fixtures. */
 @SdkSuppress(minSdkVersion = 29)
 class WebLoginScreenTest {
+    @Test fun realRendererTerminationEndsTheLoginWithoutRetryingOrLosingThePause() {
+        open()
+        val gate=RequestGate(context)
+        gate.limited(null);val pause=gate.blockedUntil()
+        scenario!!.onActivity {a->
+            val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
+            assertTrue(requireNotNull(browser.webViewRenderProcess).terminate())
+        }
+        until {a->all(a.window.decorView).none {it is WebView} && all(a.window.decorView).filterIsInstance<TextView>()
+            .any {it.text==a.getString(R.string.web_login_renderer_stopped)}}
+        assertEquals(0L,gate.attempts());assertEquals(pause,gate.blockedUntil());assertTrue(gate.manualOnly())
+        assertNull(SessionVault(context).read())
+        val errors=org.json.JSONObject(LoginPageTrace.read(context)!!).getJSONObject("errors")
+        assertTrue(errors.optInt("PAGE:-1001",0)+errors.optInt("PAGE:-1002",0)>0)
+    }
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private var scenario: ActivityScenario<MainActivity>? = null

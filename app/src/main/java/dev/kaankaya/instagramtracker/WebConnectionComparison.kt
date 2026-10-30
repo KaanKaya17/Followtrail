@@ -152,14 +152,14 @@ class BrowserProfileProbe(private val context: Context, private val browser: Web
         val proof=if(value.isSuccess)BrowserConnectionProof(gate,state.owner,state.userAgent,gate.nextPrototypeAt())else null
         stop();complete(value,proof)
     }
-    private fun stop() {
+    private fun stop(pageAvailable: Boolean = true) {
         handler.removeCallbacks(poll)
         val key=slot;slot=null;session=null
-        try {if(key!=null)browser.evaluateJavascript("(()=>{const s=window[${JSONObject.quote(key)}];if(s&&s.cancel)s.cancel();delete window[${JSONObject.quote(key)}];})()",null)}
+        try {if(pageAvailable && key!=null)browser.evaluateJavascript("(()=>{const s=window[${JSONObject.quote(key)}];if(s&&s.cancel)s.cancel();delete window[${JSONObject.quote(key)}];})()",null)}
         finally {lease?.close();lease=null}
     }
-    fun cancel() {
+    fun cancel(pageAvailable: Boolean = true) {
         if(!running)return
-        try {journal.end(WebConnectionJournal.Step.BROWSER,WebConnectionJournal.Outcome.CANCELLED,null)}finally {stop()}
+        try {journal.end(WebConnectionJournal.Step.BROWSER,WebConnectionJournal.Outcome.CANCELLED,null)}finally {stop(pageAvailable)}
     }
 }
