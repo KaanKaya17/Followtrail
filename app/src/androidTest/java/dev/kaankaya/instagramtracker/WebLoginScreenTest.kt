@@ -178,13 +178,18 @@ class WebLoginScreenTest {
             "window.__trackerOldLoginDocument===undefined && document.querySelector('input[autocomplete=one-time-code]')!==null") {document.set(it)}
             document.get()=="true"}
         assertTrue(org.json.JSONObject(LoginPageTrace.read(context)!!).getJSONObject("navigation").getInt("FINISHED:BLANK")>0)
+        scenario!!.onActivity {a->val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
+            browser.evaluateJavascript("window.require=()=>({params:{id:'34414353874878894',name:'AuthPlatformCodeEntryViewQuery',operationKind:'query'},operation:{argumentDefinitions:[{name:'context'}],selections:[{kind:'LinkedField',name:'security_view'}]}});"+
+                "fetch('/graphql/query/',{method:'POST',body:'doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables='+encodeURIComponent(JSON.stringify({context:'synthetic-private-value'}))}).catch(()=>{});",null)}
+        until {org.json.JSONObject(LoginPageTrace.read(context)!!).optJSONObject("securitySchema")?.optBoolean("available")==true}
         assertFalse(blocked("GET",url));assertTrue(blocked("POST",url))
         assertTrue(blocked("GET",url+"-other"))
         assertTrue(blocked("POST","https://www.instagram.com/api/v1/web/friendships/123/follow/"))
         val saved=LoginPageTrace.read(context)!!
         val facts=org.json.JSONObject(saved).getJSONObject("authentication")
         assertEquals("SUPPORTED",facts.getString("challengeStatus"));assertEquals("AUTH_PLATFORM",facts.getString("challengeRoute"))
-        assertFalse(saved.contains("synthetic-token"));assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+        assertFalse(saved.contains("synthetic-token"));assertFalse(saved.contains("synthetic-private-value"))
+        assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
     }
     @Test fun twoFactorExplainsTheNextStepWithoutAWorkingSpinnerOrPrematureProfileButton() {
         open(auth=true,code=true);submitSyntheticLogin()

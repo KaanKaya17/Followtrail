@@ -33,6 +33,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private var installed = false
     private var closed = false
     private var submitted = false
+    private var schemaInspected=false
     @Volatile private var active: Pending? = null
     private class Pending(val id: String, val reply: JavaScriptReplyProxy, val lease: AutoCloseable) {
         @Volatile var call: Call? = null
@@ -82,6 +83,14 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 // Observe technical document identity, then deny. This is never authorization.
                 trace.blockedDocument(WebDocumentFacts.inspect(envelope.getString("body")))
                 trace.resource("POST",LoginBrowserPolicy.ResourceDecision(false,LoginBrowserPolicy.ResourceKind.GRAPHQL));trace.flush()
+                if(!schemaInspected) {
+                    schemaInspected=true
+                    val script=context.assets.open("web_security_schema.js").bufferedReader().use {it.readText()}
+                        .replace("__DOCUMENT__",AuthPlatformCodeEntry.DOCUMENT).replace("__OPERATION__",AuthPlatformCodeEntry.OPERATION)
+                    browser.evaluateJavascript(script) {raw->
+                        if(!closed && browser.url==page) try{trace.securitySchema(raw ?: "null")}catch(_: Exception){}
+                    }
+                }
                 reply(proxy,id,JSONObject().put("error",true));securityBlocked();return
             }
             require(path=="/api/graphql")

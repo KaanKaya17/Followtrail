@@ -5,6 +5,24 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const source=await readFile(new URL('../app/src/main/assets/web_login_relay.js',import.meta.url),'utf8');
+const schemaSource=(await readFile(new URL('../app/src/main/assets/web_security_schema.js',import.meta.url),'utf8'))
+  .replaceAll('__DOCUMENT__','34414353874878894').replaceAll('__OPERATION__','AuthPlatformCodeEntryViewQuery');
+test('security schema reads static names and never argument values',()=>{
+  const argument={name:'context',get defaultValue(){throw Error('Private value was inspected');}};
+  const doc={params:{id:'34414353874878894',name:'AuthPlatformCodeEntryViewQuery',operationKind:'query'},
+    operation:{argumentDefinitions:[argument],selections:[{kind:'LinkedField',name:'security_view'}]}};
+  const result=JSON.parse(JSON.stringify(vm.runInNewContext(schemaSource,{require:()=>doc})));
+  assert.deepEqual(result.arguments,['context']);assert.deepEqual(result.rootFields,['security_view']);assert.equal(result.incomplete,false);
+});
+test('unknown module or mutation cannot be reported as a known query schema',()=>{
+  for(const requireFn of [()=>{throw Error('unknown module');},()=>({params:{id:'34414353874878894',name:'AuthPlatformCodeEntryViewQuery',operationKind:'mutation'}})])
+    assert.equal(vm.runInNewContext(schemaSource,{require:requireFn}).available,false);
+});
+test('partial schema coverage stays explicit and bounded',()=>{
+  const doc={params:{id:'34414353874878894',name:'AuthPlatformCodeEntryViewQuery',operationKind:'query'},
+    operation:{argumentDefinitions:Array.from({length:12},(_,i)=>({name:'argument'+i})),selections:[{kind:'Condition',name:'condition'}]}};
+  const result=vm.runInNewContext(schemaSource,{require:()=>doc});assert.equal(result.arguments.length,8);assert.equal(result.rootFields.length,0);assert.equal(result.incomplete,true);
+});
 function browser(path='/accounts/login/') {
   const messages=[],fallback=[];
   class XHR extends EventTarget {
