@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Android 0.1.52 — 2026-10-30 (Giriş sonucunu koruma)
+
+- Instagram'ın giriş/CAPTCHA sonucu, sonradan yerel olarak engellenen bir gezinmenin genel uyarısıyla değiştirilmez. Ağ engeli ve doğrulama bağlantısının mevcut izin sınırı korunur; desteklenmeyen bir güvenlik bağlantısının açıldığı iddia edilmez.
+- Gerçek emülatör denemesinde eski parola ile CAPTCHA istendi; kullanıcı sonra parolayı düzeltti. Bu ilk deneme geçerli giriş bilgileriyle yapılmış test veya başarılı bağlantı sayılmaz. Yeni giriş mevcut aralığa tabidir.
+
 ## Android 0.1.51 — 2026-10-30 (Genel kontrol düzeltmeleri)
 
 - Hesap değişiminden sonra açık kalan eski görsel arşiv ekranı diğer hesabın arşivini değiştiremez; yazım hesap sahibi kontrolü altında yapılır ve eski ekran kapanır.

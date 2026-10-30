@@ -128,6 +128,25 @@ class WebLoginScreenTest {
         until {SessionVault(context).read()!=null}
         assertEquals(2L,RequestGate(context).attempts())
     }
+    @Test fun blockedNavigationCannotReplaceTheActualCaptchaResult() {
+        open(auth=true,captcha=true);submitSyntheticLogin()
+        until {a->all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_captcha)}}
+        scenario!!.onActivity {a->
+            val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
+            val request=object: android.webkit.WebResourceRequest {
+                override fun getUrl()=android.net.Uri.parse("https://www.instagram.com/unsupported-navigation/")
+                override fun isForMainFrame()=true
+                override fun isRedirect()=true
+                override fun hasGesture()=false
+                override fun getMethod()="GET"
+                override fun getRequestHeaders()=emptyMap<String,String>()
+            }
+            assertTrue(browser.webViewClient.shouldOverrideUrlLoading(browser,request))
+            assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any {it.text==a.getString(R.string.web_login_captcha)})
+            assertTrue(all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_login_show_challenge)&&it.visibility==View.VISIBLE})
+        }
+        assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+    }
     @Test fun rejectedLoginClosesTheFormAndShowsOneVerdictWithoutAllowingMisleadingRetries() {
         open(auth=true,rejected=true);submitSyntheticLogin()
         until { a -> all(a.window.decorView).none {it is WebView} &&
