@@ -2,7 +2,9 @@
 
 Yerel Android uygulaması: kayıtlı profil ve liste gözlemlerini karşılaştırır. İki okumada yeni görülen/görünmeyen hesapları ve sayısal/profil farklarını gösterir; kesin takipten çıkış tespiti veya kesin olay saati vaat etmez.
 
-**Güncel önizlemeler: Android 0.1.60, Windows 0.2.19.**
+**Güncel önizlemeler: Android 0.1.61, Windows 0.2.19.**
+
+Android 0.1.61, İstek bilgilerini ayrı ve seçilebilir bölümler halinde gösterir; bazı telefonlarda tek uzun tanı iletisinin erişilebilirlikte boş görünmesini gidermeyi amaçlar. Giriş protokolünü değiştirmez; kod sonrası gerçek hesap bağlantısı henüz doğrulanmadı.
 
 Android’de **Hesaplarım → Hesap ekle** ile hesaplar ayrı şifreli kasalarda tutulur; hesap değiştirme ve seçili hesabı kaldırma diğer hesapların kayıtlarını silmez. İstek bütçesi ve güvenlik molası ortaktır. 30 Ekim fiziksel telefon testinde 0.1.49 ile Instagram girişi başarılı, uygulama profil okuması HTTP 429 idi; tam telefon bağlantısı henüz doğrulanmadı. 0.1.50 çoklu hesap sürümü telefona kuruldu. 0.1.51, eski görsel arşiv ekranının başka hesaba yazmasını ve bilgisayardan aktarılan bağlantının geç sonucunu hesap değişimi/iptal durumunda durdurur. [Çoklu hesap doğrulaması](docs/ANDROID-MULTI-ACCOUNT-TEST.md) · [Genel kontrol](docs/CHECKUP-2026-10-30.md). 0.1.52 emülatörde gerçek hesap denemesinde CAPTCHA sonucunun başka uyarıyla kaybolmasını düzeltir; desteklenmeyen doğrulama bağlantısı ve uçtan uca giriş hâlâ açık iştir. [Gerçek emülatör turu](docs/EMULATOR-USER-JOURNEY-2026-10-30.md).
 
