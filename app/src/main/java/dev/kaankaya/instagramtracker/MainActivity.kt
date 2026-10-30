@@ -884,7 +884,21 @@ class MainActivity : LocalizedActivity() {
         if (!preview) try {
             val report = if (loginTraceFailed) null else LoginPageTrace.read(this)
             if (loginTraceFailed) lines += getString(R.string.page_trace_unavailable)
-            else if (report != null) lines += getString(R.string.page_trace_report, report)
+            else if (report != null) {
+                // Keep semantic sections separate: some devices expose the long AlertDialog message as empty.
+                lines += getString(R.string.page_trace_report, "")
+                val fields = org.json.JSONObject(report)
+                fields.keys().forEach { key ->
+                    val value = fields.get(key)
+                    val formatted = when (value) {
+                        is org.json.JSONObject -> value.toString(2)
+                        is org.json.JSONArray -> value.toString(2)
+                        is String -> org.json.JSONObject.quote(value)
+                        else -> value.toString()
+                    }
+                    lines += "LP01 · $key\n$formatted"
+                }
+            }
         } catch (_: Exception) { lines += getString(R.string.page_trace_unavailable) }
         if (gate.restrictionPending()) {
             lines += getString(R.string.ui_signal, gate.limitReasonMessage(this))
@@ -894,7 +908,17 @@ class MainActivity : LocalizedActivity() {
             lines += getString(R.string.ui_this_time_does_not_guarantee_instagram_access)
         }
         lines += getString(R.string.ui_the_counter_covers_profile_and_list_page)
-        AlertDialog.Builder(this).setTitle(getString(R.string.ui_request_information)).setMessage(lines.joinToString("\n\n")).setPositiveButton(getString(R.string.ui_ok), null).show()
+        val details = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(24), dp(12), dp(24), dp(8))
+            lines.forEach { line ->
+                addView(text(line, 14f).apply { setTextIsSelectable(true) },
+                    LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(16) })
+            }
+        }
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_request_information))
+            .setView(ScrollView(this).apply { addView(details); AppUi.scrollStyle(this) })
+            .setPositiveButton(getString(R.string.ui_ok), null).show()
     }
     private fun openLab() {
         try {

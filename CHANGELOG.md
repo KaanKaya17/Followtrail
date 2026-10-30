@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Android 0.1.61 — 2026-10-30 (Okunabilir istek tanısı)
+
+- İstek bilgileri tek uzun ileti yerine ayrı, seçilebilir metin bölümleriyle gösterilir. Giriş tanısının her alanı ayrı biçimlendirilir; mevcut tanı ve bekleme kayıtları korunur. Bu değişiklik yeni ağ isteği veya giriş yetkisi oluşturmaz.
+- İkinci fiziksel telefonda 0.1.60 tanı penceresi açıkken Android erişilebilirliği uzun ileti metnini boş döndürdü. Kullanıcının mail kodu sonrası bekleme bildiriminin gerçek istek sonucu bu aşamada henüz okunamadı; başarılı bağlantı iddiası yoktur.
+
 ## Android 0.1.60 — 2026-10-30 (Güvenlik kodu ekranını okuma · test sürümü)
 
 - Canlı güvenlik sayfasında doğrulanan tek `AuthPlatformCodeEntryViewQuery` sorgusu desteklenir. Sorgu, onaylanmış açık sayfanın bağlamıyla eşleşmeli; yalnız gözlenen `apc` ve boş `device_id` değişkenlerini taşımalıdır. Başka belge, kod gönderimi veya sosyal işlem yetkisi verilmez.
