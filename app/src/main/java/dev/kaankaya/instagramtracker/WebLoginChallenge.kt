@@ -6,8 +6,11 @@ import org.json.JSONObject
 /** An in-memory verification link from this login response. No link/token is persisted. */
 class WebLoginChallenge private constructor(val page: String, private val readPath: String?, private val securityEntry: URI? = null) {
     @Volatile private var enabled = false
+    @Volatile private var redirectedEntry: URI? = null
+    val securityPage get() = securityEntry != null
+    val authorizedSecurityPage get() = enabled && securityPage
     fun authorize() { enabled = true }
-    fun close() { enabled = false }
+    fun close() { enabled = false; redirectedEntry = null }
     override fun toString() = "WebLoginChallenge(redacted)"
 
     fun resource(method: String, url: String): Boolean {
@@ -15,7 +18,7 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
         val u = secure(url) ?: return false
         return when (u.host) {
             "www.instagram.com" -> if (securityEntry != null) method == "GET" &&
-                u.rawPath == securityEntry.rawPath && u.rawQuery == securityEntry.rawQuery
+                (matches(u,securityEntry) || redirectedEntry?.let {matches(u,it)} == true)
                 else method == "GET" && u.rawPath == readPath || method == "POST" && u.rawPath == "/api/v1/challenge/web/action/"
             "www.fbsbx.com" -> method == "GET" && u.rawPath == "/captcha/recaptcha/iframe/"
             "www.google.com", "recaptcha.google.com" -> method in setOf("GET", "POST") && u.rawPath.startsWith("/recaptcha/")
@@ -26,10 +29,18 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
     fun subframe(url: String): Boolean = resource("GET", url) && secure(url)?.host != "www.instagram.com"
     fun navigation(method: String, url: String): Boolean = securityEntry != null && method == "GET" &&
         secure(url)?.host == "www.instagram.com" && resource(method,url)
+    /** Authority comes from WebView's HTTP-redirect fact, not a page-supplied target. */
+    fun followRedirect(method: String, url: String, mainFrame: Boolean, redirect: Boolean): Boolean {
+        if (!authorizedSecurityPage || !mainFrame || !redirect || method != "GET") return false
+        val u=secure(url) ?: return false
+        if (u.host!="www.instagram.com" || !u.rawPath.startsWith("/auth_platform/")) return false
+        redirectedEntry=u
+        return true
+    }
 
     companion object {
         enum class Status { NOT_REQUIRED, MISSING_LINK, INVALID_TYPE, EMPTY_LINK, INVALID_URL, OTHER_HOST, UNSUPPORTED_PATH, INVALID_TOKEN, SUPPORTED }
-        enum class Route { ROOT, LOGIN, TWO_FACTOR, AUTH_PLATFORM, CHALLENGE, CHECKPOINT, OTHER }
+        enum class Route { BLANK, ROOT, LOGIN, TWO_FACTOR, AUTH_PLATFORM, CHALLENGE, CHECKPOINT, OTHER }
         class Assessment(val status: Status, val challenge: WebLoginChallenge? = null, val route: Route? = null) {
             override fun toString() = "ChallengeAssessment($status, $route)"
         }
@@ -38,6 +49,18 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
                 it.rawFragment == null && it.rawPath != null && !it.rawPath.contains('%') &&
                 !it.rawPath.contains("..") && url.length <= 8192 }
         } catch (_: Exception) { null }
+        private fun matches(a: URI,b: URI)=a.rawPath==b.rawPath && a.rawQuery==b.rawQuery
+        fun pageRoute(url: String): Route? = if(url=="about:blank") Route.BLANK else
+            secure(url)?.takeIf {it.host=="www.instagram.com"}?.let(::route)
+        private fun route(u: URI): Route = when {
+            u.rawPath == "/" -> Route.ROOT
+            u.rawPath in setOf("/accounts/login/two_factor/", "/accounts/two_factor_authentication/") -> Route.TWO_FACTOR
+            u.rawPath == "/accounts/login/" -> Route.LOGIN
+            u.rawPath.startsWith("/auth_platform/") -> Route.AUTH_PLATFORM
+            u.rawPath.startsWith("/challenge/") -> Route.CHALLENGE
+            u.rawPath.startsWith("/checkpoint/") -> Route.CHECKPOINT
+            else -> Route.OTHER
+        }
 
         fun fromResponse(body: JSONObject, facts: WebLoginResponseFacts): WebLoginChallenge? {
             return assess(body, facts).challenge
@@ -53,15 +76,7 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
             val url = try { URI("https://www.instagram.com/").resolve(raw).toString() } catch (_: Exception) { return Assessment(Status.INVALID_URL) }
             val u = secure(url) ?: return Assessment(Status.INVALID_URL)
             if (u.host != "www.instagram.com") return Assessment(Status.OTHER_HOST)
-            val route = when {
-                u.rawPath == "/" -> Route.ROOT
-                u.rawPath in setOf("/accounts/login/two_factor/", "/accounts/two_factor_authentication/") -> Route.TWO_FACTOR
-                u.rawPath == "/accounts/login/" -> Route.LOGIN
-                u.rawPath.startsWith("/auth_platform/") -> Route.AUTH_PLATFORM
-                u.rawPath.startsWith("/challenge/") -> Route.CHALLENGE
-                u.rawPath.startsWith("/checkpoint/") -> Route.CHECKPOINT
-                else -> Route.OTHER
-            }
+            val route = route(u)
             // Observed server redirect, with the public Meta login handler's full-page branch.
             // This grants only the exact first-party GET, never arbitrary Bloks/GraphQL POSTs.
             if (route == Route.AUTH_PLATFORM && facts.igLoginRecaptcha == false)

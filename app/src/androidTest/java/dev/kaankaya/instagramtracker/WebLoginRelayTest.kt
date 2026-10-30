@@ -66,12 +66,13 @@ class WebLoginRelayTest {
         assertTrue(done.await(5,TimeUnit.SECONDS))
     }
     private fun validBody(doc: String = WebLoginContract.DOCUMENT) = SyntheticWebLogin.body(doc)
-    private fun open(frame: Boolean = false) {
+    private fun open(frame: Boolean = false, security: Boolean = false) {
         scenario=ActivityScenario.launch(WebRelayFixtureActivity::class.java)
         scenario!!.onActivity { activity ->
             browser=WebView(activity); browser.settings.javaScriptEnabled=true; browser.settings.domStorageEnabled=true
             CookieManager.getInstance().setAcceptCookie(true)
-            relay=WebLoginRelay(activity,browser,gate,worker,LoginPageTrace(context),{ error, _ -> errors.add(error.kind) },factory)
+            relay=WebLoginRelay(activity,browser,gate,worker,LoginPageTrace(context),{ error, _ -> errors.add(error.kind) },factory,
+                securityScope={url->security && url=="https://www.instagram.com/auth_platform/synthetic/"})
             assertTrue(relay.install())
             browser.webViewClient=object:WebViewClient(){
                 override fun shouldInterceptRequest(view:WebView,request:WebResourceRequest):WebResourceResponse {
@@ -81,9 +82,27 @@ class WebLoginRelayTest {
                     return WebResourceResponse("text/html","UTF-8",ByteArrayInputStream(html.toByteArray()))
                 }
             }
-            activity.setContentView(browser);browser.loadUrl("https://www.instagram.com/accounts/login/")
+            activity.setContentView(browser);browser.loadUrl(if(security)"https://www.instagram.com/auth_platform/synthetic/" else "https://www.instagram.com/accounts/login/")
         }
         until("document.readyState==='complete' && typeof trackerLoginRelay==='object'", "true")
+    }
+    @Test fun securityOperationIdentityIsObservedWithoutSendingItsPrivateBodyOrApplyingCookies() {
+        open(security=true)
+        val body=JSONObject.quote("doc_id=123456789&fb_api_req_friendly_name=PolarisSecurityScreenQuery&variables=private-token&code=private-code")
+        js("fetch('/graphql/query/',{method:'POST',body:$body}).catch(()=>window.__securityBlocked=true)")
+        until("window.__securityBlocked===true","true")
+        val saved=LoginPageTrace.read(context)!!
+        val docs=JSONObject(saved).getJSONArray("blockedDocuments")
+        assertEquals("123456789",docs.getJSONObject(0).getString("document"))
+        assertEquals("PolarisSecurityScreenQuery",docs.getJSONObject(0).getString("operation"))
+        assertFalse(saved.contains("private-"));assertEquals(0,calls.get());assertEquals(0L,gate.attempts())
+        assertTrue(errors.isEmpty());assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").isNullOrBlank())
+    }
+    @Test fun alternateGraphqlPathCannotTurnTheInitialLoginDocumentIntoAnotherEndpoint() {
+        open()
+        js("fetch('/api/graphql/',{method:'POST',body:${JSONObject.quote(validBody())}}).catch(()=>window.__alternateBlocked=true)")
+        until("window.__alternateBlocked===true","true")
+        assertEquals(0,calls.get());assertEquals(0L,gate.attempts());assertEquals(listOf(ApiFailure.Kind.POLICY),errors.toList())
     }
     private fun js(script: String) = scenario!!.onActivity { browser.evaluateJavascript(script,null) }
     private fun until(script: String, expected: String, timeout: Long = 10000) {

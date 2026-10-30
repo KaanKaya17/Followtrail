@@ -25,7 +25,9 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private val failure: (ApiFailure, Int?) -> Unit,
     private val client: Call.Factory = WebRequestClients.create(context),
     private val started: () -> Unit = {},
-    private val completed: (WebLoginResponseFacts, WebLoginChallenge?) -> Unit = { _, _ -> }) : AutoCloseable {
+    private val completed: (WebLoginResponseFacts, WebLoginChallenge?) -> Unit = { _, _ -> },
+    private val securityScope: (String) -> Boolean = {false},
+    private val securityBlocked: () -> Unit = {}) : AutoCloseable {
     private val main = Handler(Looper.getMainLooper())
     private var script: ScriptHandler? = null
     private var installed = false
@@ -61,7 +63,9 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
         var id = "0"
         try {
             require(mainFrame && origin.scheme == "https" && origin.host == "www.instagram.com" && origin.port in listOf(-1,443) && origin.userInfo == null)
-            require(LoginBrowserPolicy.navigation(browser.url ?: ""))
+            val page=browser.url ?: ""
+            val security=securityScope(page)
+            require(LoginBrowserPolicy.navigation(page) || security)
             require(message.type == WebMessageCompat.TYPE_STRING)
             val raw = requireNotNull(message.data); require(raw.length <= 131072)
             val envelope = JSONObject(raw)
@@ -70,7 +74,17 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 return
             }
             id = envelope.getString("id"); require(id.matches(Regex("[1-9][0-9]{0,5}")))
-            require(envelope.keys().asSequence().toSet() == setOf("id", "body", "headers"))
+            val fields=envelope.keys().asSequence().toSet()
+            require(fields==setOf("id","body","headers") || fields==setOf("id","body","headers","path"))
+            val path=if(envelope.has("path")) envelope.get("path") as? String else "/api/graphql"
+            require(path in setOf("/api/graphql","/api/graphql/","/graphql/query/","/graphql_www"))
+            if(security) {
+                // Observe technical document identity, then deny. This is never authorization.
+                trace.blockedDocument(WebDocumentFacts.inspect(envelope.getString("body")))
+                trace.resource("POST",LoginBrowserPolicy.ResourceDecision(false,LoginBrowserPolicy.ResourceKind.GRAPHQL));trace.flush()
+                reply(proxy,id,JSONObject().put("error",true));securityBlocked();return
+            }
+            require(path=="/api/graphql")
             val authorized = WebLoginContract.authorize(envelope.getString("body"))
             val headers = envelope.getJSONObject("headers"); require(headers.length() <= 24)
             val accepted = linkedMapOf<String, String>()
