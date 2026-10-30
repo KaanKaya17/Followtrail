@@ -9,6 +9,8 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     private val resources = linkedMapOf<String, Int>()
     private val http = linkedMapOf<String, Int>()
     private val errors = linkedMapOf<String, Int>()
+    private val navigation = linkedMapOf<String, Int>()
+    private val blockedDocuments = linkedMapOf<String, WebDocumentFacts>()
     private val startedAt = clock()
     private var documentsStarted = 0
     private var documentsFinished = 0
@@ -20,8 +22,15 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
         val verb = when (method) { "GET" -> "GET"; "POST" -> "POST"; else -> "OTHER" }
         increment(resources, "${if (decision.allowed) "ALLOW" else "BLOCK"}:$verb:${decision.kind.name}")
     }
-    @Synchronized fun started() { if (active) { documentsStarted++; formVisible = null } }
-    @Synchronized fun finished() { if (active) { documentsFinished++; flush() } }
+    @Synchronized fun started(route: WebLoginChallenge.Companion.Route? = null) { if (active) {
+        documentsStarted++; formVisible = null; increment(navigation,"STARTED:${route?.name ?: "UNKNOWN"}")
+    } }
+    @Synchronized fun finished(route: WebLoginChallenge.Companion.Route? = null) { if (active) {
+        documentsFinished++; increment(navigation,"FINISHED:${route?.name ?: "UNKNOWN"}"); flush()
+    } }
+    @Synchronized fun navigated(allowed: Boolean, redirect: Boolean, route: WebLoginChallenge.Companion.Route?) {
+        if(active) increment(navigation,"${if(allowed)"ALLOW" else "BLOCK"}:${if(redirect)"HTTP_REDIRECT" else "PAGE"}:${route?.name ?: "UNKNOWN"}")
+    }
     @Synchronized fun http(status: Int, mainFrame: Boolean, allowed: Boolean) {
         require(status in 400..599)
         if (active) increment(http, "${if (allowed) "ALLOWED_RESOURCE" else "LOCAL_BLOCK"}:${if (mainFrame) "PAGE" else "PART"}:$status")
@@ -31,13 +40,18 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     }
     @Synchronized fun form(visible: Boolean?) { if (active) { formVisible = visible; flush() } }
     @Synchronized fun authentication(facts: WebLoginResponseFacts) { if (active) { authentication = facts; flush() } }
+    @Synchronized fun blockedDocument(facts: WebDocumentFacts) { if(active && blockedDocuments.size<4) {
+        blockedDocuments[facts.json().toString()]=facts
+    } }
     @Synchronized fun flush() {
         if (!active) return
-        val report = JSONObject().put("format", 2).put("startedAt", startedAt)
+        val report = JSONObject().put("format", 3).put("startedAt", startedAt)
             .put("documentsStarted", documentsStarted).put("documentsFinished", documentsFinished)
             .put("formVisible", formVisible ?: JSONObject.NULL)
             .put("resources", JSONObject(resources as Map<*, *>))
             .put("http", JSONObject(http as Map<*, *>)).put("errors", JSONObject(errors as Map<*, *>))
+            .put("navigation", JSONObject(navigation as Map<*, *>))
+            .put("blockedDocuments",org.json.JSONArray(blockedDocuments.values.map {it.json()}))
             .put("authentication", authentication?.json() ?: JSONObject.NULL)
         check(preferences.edit().putString("report", report.toString()).commit())
     }

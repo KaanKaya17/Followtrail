@@ -3,16 +3,17 @@
   if (window.top !== window || location.origin !== 'https://www.instagram.com' || !window.trackerLoginRelay) return;
   const bridge = window.trackerLoginRelay, pending = new Map();
   let next = 0;
-  const target = value => { try { const u = new URL(value, location.href); return u.href === 'https://www.instagram.com/api/graphql'; } catch (_) { return false; } };
-  const send = (body, headers) => {
+  const target = value => { try { const u = new URL(value, location.href); return u.origin === 'https://www.instagram.com' && !u.search && !u.hash && ['/api/graphql','/api/graphql/','/graphql/query/','/graphql_www'].includes(u.pathname) ? u.pathname : null; } catch (_) { return null; } };
+  const send = (body, headers, path) => {
     let cancel = () => {};
     const promise = new Promise((resolve, reject) => {
-    if (typeof body !== 'string' || body.length > 65536 || pending.size) { reject(new TypeError('Login request rejected')); return; }
+    const capacity = location.pathname.startsWith('/auth_platform/') ? 4 : 1;
+    if (typeof body !== 'string' || body.length > 65536 || pending.size >= capacity) { reject(new TypeError('Login request rejected')); return; }
     const id = String(++next);
     cancel = () => { if (pending.delete(id)) { clearTimeout(timer); bridge.postMessage(JSON.stringify({cancel:id})); reject(new DOMException('Aborted', 'AbortError')); } };
     const timer = setTimeout(cancel, 35000);
     pending.set(id, {resolve, reject, timer});
-    bridge.postMessage(JSON.stringify({id, body, headers}));
+    bridge.postMessage(JSON.stringify({id, body, headers, path}));
     });
     promise.cancel = () => cancel(); return promise;
   };
@@ -26,13 +27,14 @@
   window.fetch = function(input, init) {
     const url = input instanceof Request ? input.url : input;
     const method = init && init.method || (input instanceof Request ? input.method : 'GET');
-    if (String(method).toUpperCase() !== 'POST' || !target(url)) return originalFetch.apply(this, arguments);
+    const path = target(url);
+    if (String(method).toUpperCase() !== 'POST' || !path) return originalFetch.apply(this, arguments);
     const request = new Request(input, init);
     if (request.signal.aborted) return Promise.reject(new DOMException('Aborted', 'AbortError'));
     const headers = Object.fromEntries(request.headers.entries());
     return request.clone().text().then(body => {
       if (request.signal.aborted) throw new DOMException('Aborted', 'AbortError');
-      const promise = send(body, headers); const cancel = () => promise.cancel();
+      const promise = send(body, headers, path); const cancel = () => promise.cancel();
       request.signal.addEventListener('abort', cancel, {once:true});
       return promise.finally(() => request.signal.removeEventListener('abort', cancel));
     }).then(r => new Response(r.body, {status:r.status, headers:r.headers}));
@@ -42,7 +44,7 @@
     const xhr = new NativeXHR();
     const open = xhr.open, nativeSend = xhr.send, setHeader = xhr.setRequestHeader, abort = xhr.abort;
     const responseHeader = xhr.getResponseHeader, allHeaders = xhr.getAllResponseHeaders;
-    let scoped = false, handled = false, result = null, state = 0, headers = {}, cancelled = false, operation = null;
+    let scoped = null, handled = false, result = null, state = 0, headers = {}, cancelled = false, operation = null;
     const emit = type => xhr.dispatchEvent(new Event(type));
     for (const key of ['readyState','status','statusText','responseText','response','responseURL']) {
       Object.defineProperty(xhr, key, {configurable:true, get() {
@@ -50,14 +52,14 @@
         if (key === 'readyState') return state;
         if (key === 'status') return result ? result.status : 0;
         if (key === 'statusText') return '';
-        if (key === 'responseURL') return 'https://www.instagram.com/api/graphql';
+        if (key === 'responseURL') return 'https://www.instagram.com' + scoped;
         if (key === 'responseText') return result ? result.body : '';
         if (!result) return null;
         return xhr.responseType === 'json' ? JSON.parse(result.body) : result.body;
       }});
     }
     xhr.open = function(method, url) {
-      scoped = String(method).toUpperCase() === 'POST' && target(url);
+      scoped = String(method).toUpperCase() === 'POST' ? target(url) : null;
       headers = {}; handled = false; cancelled = false; result = null;
       return open.apply(xhr, arguments);
     };
@@ -69,7 +71,7 @@
       handled = true; state = 1;
       const encoded = body instanceof URLSearchParams ? body.toString() : body;
       emit('loadstart');
-      operation = send(encoded, headers);
+      operation = send(encoded, headers, scoped);
       operation.then(reply => {
         if (cancelled) return;
         result = reply; state = 2; emit('readystatechange'); state = 3; emit('readystatechange'); state = 4;

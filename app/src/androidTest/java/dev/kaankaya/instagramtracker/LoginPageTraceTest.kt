@@ -8,6 +8,18 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class LoginPageTraceTest {
+    @org.junit.Test fun navigationFactsContainOnlyFiniteRouteAndAuthorityLabels() {
+        val trace=LoginPageTrace(context) {1234}
+        trace.started(WebLoginChallenge.Companion.Route.BLANK)
+        trace.finished(WebLoginChallenge.Companion.Route.AUTH_PLATFORM)
+        trace.navigated(true,true,WebLoginChallenge.Companion.Route.AUTH_PLATFORM)
+        trace.navigated(false,false,WebLoginChallenge.Companion.Route.OTHER)
+        trace.flush()
+        val nav=report().getJSONObject("navigation")
+        assertEquals(1,nav.getInt("STARTED:BLANK"));assertEquals(1,nav.getInt("FINISHED:AUTH_PLATFORM"))
+        assertEquals(1,nav.getInt("ALLOW:HTTP_REDIRECT:AUTH_PLATFORM"));assertEquals(1,nav.getInt("BLOCK:PAGE:OTHER"))
+        trace.close()
+    }
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     @Before fun setup() { check(context.packageName.endsWith(".debug")); clear() }
     @After fun clear() { context.getSharedPreferences("login_page_trace", 0).edit().clear().commit() }

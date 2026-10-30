@@ -1,5 +1,15 @@
 # Değişiklikler
 
+## Android 0.1.57 — 2026-10-30 (Desteklenmeyen güvenlik adımını tanılama · test sürümü)
+
+- Yetkilendirilmiş Instagram güvenlik sayfasının engellenen GraphQL istekleri yalnız teknik belge numarası ve işlem adıyla sınırlı, en fazla dört kayıt olarak tanılanır. Değişkenler, başlıklar, kodlar, oturum veya CAPTCHA içeriği kaydedilmez; istekler gönderilmez.
+- Sayfa açılıp sonraki doğrulama işlemi desteklenmediğinde kullanıcıya açık yönlendirme gösterilir. Bu tanı yeni ağ yetkisi veya tamamlanmış CAPTCHA anlamına gelmez.
+
+## Android 0.1.56 — 2026-10-30 (Güvenlik gezinmesini ayırma · test sürümü)
+
+- Auth_platform sayfası açılmadan eski giriş belgesi temizlenir; aynı WebView ve çerezler korunur. Instagram’ın gerçek ana sayfa HTTP yönlendirmesi yalnız Instagram auth_platform GET’i olarak izlenebilir; sayfa kaynaklı farklı URL, POST ve sosyal istekler engelli kalır.
+- Güvenlik sayfası oturum oluşmadan giriş ekranına dönerse tamamlanmadığı açıkça gösterilir. Tanıya URL yerine yalnız sabit belge/yönlendirme sınıfları eklenir; eski kayıtlar okunabilir.
+
 ## Android 0.1.55 — 2026-10-30 (Instagram güvenlik sayfası · test sürümü)
 
 - Gerçek 0.1.54 yanıtında ayrı `/auth_platform/` akışı görüldü; klasik Instagram CAPTCHA işareti kapalıydı. Kullanıcı onayı sonrasında aynı giriş WebView’inde yalnız sunucunun döndürdüğü tam güvenlik sayfası GET’i açılabilir.

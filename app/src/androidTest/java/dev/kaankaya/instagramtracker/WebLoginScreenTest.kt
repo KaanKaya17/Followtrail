@@ -153,9 +153,16 @@ class WebLoginScreenTest {
             };return result
         }
         assertTrue(blocked("GET",url))
+        scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript("window.__trackerOldLoginDocument=true;",null)}
         scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<Button>().single {it.text==a.getString(R.string.web_login_show_challenge)}.performClick()}
         instrumentation.runOnMainSync {WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>().single {it.id==android.R.id.button1}.performClick()}
         until {a->all(a.window.decorView).filterIsInstance<WebView>().single().url==url}
+        until {org.json.JSONObject(LoginPageTrace.read(context)!!).optJSONObject("navigation")?.optInt("FINISHED:AUTH_PLATFORM",0)?.let {it>0}==true}
+        val document=java.util.concurrent.atomic.AtomicReference<String>()
+        until {a->all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(
+            "window.__trackerOldLoginDocument===undefined && document.querySelector('input[autocomplete=one-time-code]')!==null") {document.set(it)}
+            document.get()=="true"}
+        assertTrue(org.json.JSONObject(LoginPageTrace.read(context)!!).getJSONObject("navigation").getInt("FINISHED:BLANK")>0)
         assertFalse(blocked("GET",url));assertTrue(blocked("POST",url))
         assertTrue(blocked("GET",url+"-other"))
         assertTrue(blocked("POST","https://www.instagram.com/api/v1/web/friendships/123/follow/"))

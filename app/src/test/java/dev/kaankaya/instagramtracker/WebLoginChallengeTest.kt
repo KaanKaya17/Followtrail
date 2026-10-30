@@ -14,6 +14,8 @@ class WebLoginChallengeTest {
         assertEquals("AUTH_PLATFORM",result.route?.name)
         val c=result.challenge!!;val url="https://www.instagram.com$link"
         assertFalse(c.resource("GET",url));assertFalse(c.navigation("GET",url))
+        val redirected="https://www.instagram.com/auth_platform/next/?context=redirected-private"
+        assertFalse(c.followRedirect("GET",redirected,true,true))
         c.authorize()
         assertTrue(c.resource("GET",url));assertTrue(c.navigation("GET",url))
         for (other in listOf("https://www.instagram.com/auth_platform/other-token/?context=private-context",
@@ -22,8 +24,15 @@ class WebLoginChallengeTest {
             assertFalse(c.resource("GET",other));assertFalse(c.resource("POST",other));assertFalse(c.navigation("GET",other))
         }
         assertFalse(c.resource("POST",url));assertFalse(c.navigation("POST",url))
+        assertFalse(c.followRedirect("GET",redirected,true,false))
+        assertFalse(c.followRedirect("GET",redirected,false,true))
+        assertFalse(c.followRedirect("POST",redirected,true,true))
+        assertFalse(c.followRedirect("GET","https://evil.test/auth_platform/next/",true,true))
+        assertFalse(c.followRedirect("GET","https://www.instagram.com/api/v1/friendships/123/follow/",true,true))
+        assertTrue(c.followRedirect("GET",redirected,true,true));assertTrue(c.navigation("GET",redirected))
+        assertTrue(c.resource("GET",redirected));assertFalse(c.resource("POST",redirected))
         assertFalse(c.toString().contains("private-"));assertFalse(result.toString().contains("private-"))
-        c.close();assertFalse(c.resource("GET",url));assertFalse(c.navigation("GET",url))
+        c.close();assertFalse(c.resource("GET",url));assertFalse(c.navigation("GET",url));assertFalse(c.resource("GET",redirected))
     }
     @Test fun redirectFamiliesDoNotAuthorizeNewPagesOrRetainIdentity() {
         val routes=mapOf("/" to "ROOT", "/accounts/login/" to "LOGIN", "/accounts/login/two_factor/" to "TWO_FACTOR",
