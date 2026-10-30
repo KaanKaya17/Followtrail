@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.59 — 2026-10-30 (Kod ekranı sorgusunun şeması · test sürümü)
+
+- Gerçek emülatör kaydında engellenen `AuthPlatformCodeEntryViewQuery` / `34414353874878894` kimliği belirlendi. Yalnız bu sorgunun kök değişken adları ve türleri, değerleri kaydedilmeden tanılanır.
+- Onaylanmış güvenlik sayfasındaki aynı statik sorgu tanımı okunabiliyorsa sorgu türü, argüman adları ve kök alan adları sınırlı olarak kaydedilir. Eksik kapsam belirtilir; bu gözlem otomatik ağ yetkisi oluşturmaz. Parola, kod, oturum ve CAPTCHA içeriği tutulmaz.
+- WebView sonlanma callback’inin Android API açıklaması güncellendi. Gerçek kapanış ve açılamayan CAPTCHA ekranı 0.1.58’de ayrı emülatör testleriyle doğrulandı; genel test grubunun tamamı başarılı diye sunulmaz.
+
 ## Android 0.1.58 — 2026-10-30 (Giriş görüntüleyicisi kapanışı)
 
 - Instagram giriş WebView’i sonlandığında etkin giriş/okuma işi iptal edilir ve kullanıcıya açıklama gösterilir. Kapanan görüntüleyiciye yeniden sayfa veya JavaScript gönderilmez; mevcut hesaplar ve bekleme kaydı korunur.

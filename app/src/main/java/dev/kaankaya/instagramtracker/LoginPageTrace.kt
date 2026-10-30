@@ -11,6 +11,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     private val errors = linkedMapOf<String, Int>()
     private val navigation = linkedMapOf<String, Int>()
     private val blockedDocuments = linkedMapOf<String, WebDocumentFacts>()
+    private var securitySchema: JSONObject?=null
     private val startedAt = clock()
     private var documentsStarted = 0
     private var documentsFinished = 0
@@ -43,6 +44,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     @Synchronized fun blockedDocument(facts: WebDocumentFacts) { if(active && blockedDocuments.size<4) {
         blockedDocuments[facts.json().toString()]=facts
     } }
+    @Synchronized fun securitySchema(raw: String) {if(active){securitySchema=AuthPlatformCodeEntry.schema(raw);flush()}}
     @Synchronized fun flush() {
         if (!active) return
         val report = JSONObject().put("format", 3).put("startedAt", startedAt)
@@ -52,6 +54,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
             .put("http", JSONObject(http as Map<*, *>)).put("errors", JSONObject(errors as Map<*, *>))
             .put("navigation", JSONObject(navigation as Map<*, *>))
             .put("blockedDocuments",org.json.JSONArray(blockedDocuments.values.map {it.json()}))
+            .put("securitySchema",securitySchema ?: JSONObject.NULL)
             .put("authentication", authentication?.json() ?: JSONObject.NULL)
         check(preferences.edit().putString("report", report.toString()).commit())
     }

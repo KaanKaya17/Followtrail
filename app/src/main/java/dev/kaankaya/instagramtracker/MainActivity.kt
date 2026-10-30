@@ -1549,7 +1549,7 @@ class MainActivity : LocalizedActivity() {
             if(web===browser) loginFeedback(R.string.web_login_step_attention,R.string.web_login_security_unsupported_request)
         }).also { if (!it.install()) { loginRelayIssue = true; loginFeedback(R.string.web_login_step_attention, R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
-            @android.annotation.TargetApi(26)
+            @androidx.annotation.RequiresApi(26)
             override fun onRenderProcessGone(view: WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
                 if(web===view) {
                     recordLoginPage(pageTrace) {it.error(if(detail.didCrash()) -1001 else -1002,true)}
