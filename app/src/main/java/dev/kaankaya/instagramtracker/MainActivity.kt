@@ -1519,7 +1519,7 @@ class MainActivity : LocalizedActivity() {
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !(LoginBrowserPolicy.navigation(request.url.toString()) ||
                 !request.isForMainFrame && loginChallenge?.subframe(request.url.toString()) == true).also { allowed ->
-                if (!allowed) loginStatus?.setText(R.string.security_login_scope)
+                if (!allowed && !loginRelayIssue) loginStatus?.setText(R.string.security_login_scope)
             }
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 val decision = if (loginChallenge?.resource(request.method, request.url.toString()) == true)
