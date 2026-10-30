@@ -13,13 +13,12 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import okhttp3.Call
 import okhttp3.Cookie
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import org.json.JSONObject
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 
-/** One origin-bound, encrypted login POST. No redirects/replays, arbitrary URL or social operation. */
+/** One encrypted login and one context-bound security view. No arbitrary document, replay or social operation. */
 class WebLoginRelay(private val context: Context, private val browser: WebView, private val gate: RequestGate,
     private val worker: ExecutorService, private val trace: LoginPageTrace,
     private val failure: (ApiFailure, Int?) -> Unit,
@@ -27,15 +26,19 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private val started: () -> Unit = {},
     private val completed: (WebLoginResponseFacts, WebLoginChallenge?) -> Unit = { _, _ -> },
     private val securityScope: (String) -> Boolean = {false},
-    private val securityBlocked: () -> Unit = {}) : AutoCloseable {
+    private val securityBlocked: () -> Unit = {},
+    private val securityContext: (String) -> String? = {null},
+    private val securityStarted: () -> Unit = {},
+    private val securityCompleted: () -> Unit = {}) : AutoCloseable {
     private val main = Handler(Looper.getMainLooper())
     private var script: ScriptHandler? = null
     private var installed = false
     private var closed = false
     private var submitted = false
+    private var securitySubmitted=false
     private var schemaInspected=false
     @Volatile private var active: Pending? = null
-    private class Pending(val id: String, val reply: JavaScriptReplyProxy, val lease: AutoCloseable) {
+    private class Pending(val id: String, val reply: JavaScriptReplyProxy, val lease: AutoCloseable, val securityView: Boolean) {
         @Volatile var call: Call? = null
         var future: Future<*>? = null
     }
@@ -60,6 +63,18 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private fun record(facts: WebLoginResponseFacts) {
         try { trace.authentication(facts) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
     }
+    private fun recordSecurity(status: Int,parsed: Boolean,valid: Boolean,applied: Boolean?=null) {
+        try{trace.securityView(status,parsed,valid,applied)}catch(_: Exception){throw ApiFailure(ApiFailure.Kind.STORAGE)}
+    }
+    private fun inspectSecuritySchema(page: String) {
+        if(schemaInspected)return
+        schemaInspected=true
+        val script=context.assets.open("web_security_schema.js").bufferedReader().use {it.readText()}
+            .replace("__DOCUMENT__",AuthPlatformCodeEntry.DOCUMENT).replace("__OPERATION__",AuthPlatformCodeEntry.OPERATION)
+        browser.evaluateJavascript(script) {raw->
+            if(!closed && browser.url==page)try{trace.securitySchema(raw ?: "null")}catch(_: Exception){}
+        }
+    }
     private fun receive(message: WebMessageCompat, origin: Uri, mainFrame: Boolean, proxy: JavaScriptReplyProxy) {
         var id = "0"
         try {
@@ -78,23 +93,20 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
             val fields=envelope.keys().asSequence().toSet()
             require(fields==setOf("id","body","headers") || fields==setOf("id","body","headers","path"))
             val path=if(envelope.has("path")) envelope.get("path") as? String else "/api/graphql"
-            require(path in setOf("/api/graphql","/api/graphql/","/graphql/query/","/graphql_www"))
-            if(security) {
-                // Observe technical document identity, then deny. This is never authorization.
-                trace.blockedDocument(WebDocumentFacts.inspect(envelope.getString("body")))
-                trace.resource("POST",LoginBrowserPolicy.ResourceDecision(false,LoginBrowserPolicy.ResourceKind.GRAPHQL));trace.flush()
-                if(!schemaInspected) {
-                    schemaInspected=true
-                    val script=context.assets.open("web_security_schema.js").bufferedReader().use {it.readText()}
-                        .replace("__DOCUMENT__",AuthPlatformCodeEntry.DOCUMENT).replace("__OPERATION__",AuthPlatformCodeEntry.OPERATION)
-                    browser.evaluateJavascript(script) {raw->
-                        if(!closed && browser.url==page) try{trace.securitySchema(raw ?: "null")}catch(_: Exception){}
-                    }
+            require(path in WebGraphqlForm.PATHS)
+            val body=envelope.getString("body")
+            val securityAuthorization=if(security) {
+                inspectSecuritySchema(page)
+                val approved=try{WebSecurityViewContract.authorize(body,requireNotNull(path),securityContext(page))}catch(_: Exception){null}
+                if(approved==null) {
+                    trace.blockedDocument(WebDocumentFacts.inspect(body))
+                    trace.resource("POST",LoginBrowserPolicy.ResourceDecision(false,LoginBrowserPolicy.ResourceKind.GRAPHQL));trace.flush()
+                    reply(proxy,id,JSONObject().put("error",true));securityBlocked();return
                 }
-                reply(proxy,id,JSONObject().put("error",true));securityBlocked();return
-            }
-            require(path=="/api/graphql")
-            val authorized = WebLoginContract.authorize(envelope.getString("body"))
+                if(securitySubmitted || active!=null){reply(proxy,id,JSONObject().put("error",true));return}
+                approved
+            } else null
+            val authorized=if(!security){require(path=="/api/graphql");WebLoginContract.authorize(body)}else null
             val headers = envelope.getJSONObject("headers"); require(headers.length() <= 24)
             val accepted = linkedMapOf<String, String>()
             for (key in headers.keys()) {
@@ -102,24 +114,26 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 if (key.lowercase() in setOf("accept", "accept-language", "x-fb-lsd", "x-csrftoken", "x-asbd-id", "x-ig-app-id", "x-fb-friendly-name", "x-root-field-name", "x-ig-max-touch-points"))
                     accepted[key.lowercase()] = value
             }
-            if (submitted || active != null) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+            if (!security && (submitted || active != null)) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
             val cookies = CookieManager.getInstance().getCookie("https://www.instagram.com/").orEmpty()
             require(cookies.length <= 16384 && cookies.all { it.code in 32..126 })
-            val request = WebRequestContext.sameOrigin(authorized.apply(Request.Builder().url(WebLoginContract.URL))
+            val builder=securityAuthorization?.apply(Request.Builder()) ?: requireNotNull(authorized).apply(Request.Builder().url(WebLoginContract.URL))
+            val request = WebRequestContext.sameOrigin(builder
                 .header("User-Agent", browser.settings.userAgentString).header("Origin", "https://www.instagram.com")
-                .header("Referer", "https://www.instagram.com/accounts/login/")
+                .header("Referer", if(security)"https://www.instagram.com/auth_platform/" else "https://www.instagram.com/accounts/login/")
                 // Derived only after the actual source origin/main frame has been verified above.
                 .header("Accept", "*/*").apply {
                     if (cookies.isNotEmpty()) header("Cookie", cookies)
                     accepted.forEach { (key, value) -> header(key, value) }
                 }.build())
             val lease = gate.claim()
-            try { gate.beginWebAuthentication() } catch (error: Exception) { lease.close(); throw error }
-            submitted = true
-            val pending = Pending(id, proxy, lease); active = pending
+            if(!security)try { gate.beginWebAuthentication() } catch (error: Exception) { lease.close(); throw error }
+            if(security)securitySubmitted=true else submitted=true
+            val pending = Pending(id, proxy, lease,security); active = pending
             try {
-                trace.resource("POST", LoginBrowserPolicy.ResourceDecision(true, LoginBrowserPolicy.ResourceKind.AUTH)); trace.flush()
-                started()
+                if(security)securityStarted() else {
+                    trace.resource("POST", LoginBrowserPolicy.ResourceDecision(true, LoginBrowserPolicy.ResourceKind.AUTH)); trace.flush();started()
+                }
                 pending.future = worker.submit { exchange(pending, request) }
             }
             catch (error: Exception) { active = null; lease.close(); throw error }
@@ -134,6 +148,18 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
         var status: Int? = null
         try {
             if (active !== pending) return
+            if(pending.securityView) {
+                val delay=gate.nextAllowedAt()-gate.now()
+                if(delay>15000)throw ApiFailure(when {
+                    gate.blockedUntil()>gate.now()->ApiFailure.Kind.LIMITED
+                    gate.budgetNextAt()>gate.now()->ApiFailure.Kind.BUDGET
+                    else->ApiFailure.Kind.TOO_SOON
+                })
+                if(delay>0)Thread.sleep(delay)
+                if(active!==pending)return
+                gate.begin()
+                trace.resource("POST",LoginBrowserPolicy.ResourceDecision(true,LoginBrowserPolicy.ResourceKind.SECURITY_VIEW));trace.flush()
+            }
             val call = client.newCall(request); pending.call = call
             if (active !== pending) { call.cancel(); return }
             call.execute().use { response ->
@@ -142,6 +168,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 gate.observedStatus(response.code)
                 if (response.code in 400..599) { trace.http(response.code, false, true); trace.flush() }
                 if (response.code == 429) {
+                    if(pending.securityView)recordSecurity(429,false,false,false)
                     gate.limited(response.header("Retry-After"), reason = "HTTP 429 / Instagram web giriş isteği")
                     throw ApiFailure(ApiFailure.Kind.LIMITED)
                 }
@@ -152,15 +179,15 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 val text = source.readUtf8()
                 // Only a JSON response is returned to the same document; no body is logged or persisted.
                 val json = try { JSONObject(text.removePrefix("for (;;);")) } catch (_: Exception) { null }
-                val origin = WebLoginContract.URL.toHttpUrl()
+                val origin = request.url
                 val cookieLines = response.headers("Set-Cookie")
                 val parsedCookies = cookieLines.map { value ->
                     if (value.length <= 16384) Cookie.parse(origin, value)?.takeIf { it.matches(origin) } else null
                 }
-                val inspected = WebLoginResponseFacts.inspect(response.code, json, parsedCookies.filterNotNull(), parsedCookies.all { it != null }, gate.now())
-                val assessment = json?.let { WebLoginChallenge.assess(it, inspected) }
-                val facts = inspected.copy(challengeStatus = assessment?.status, challengeRoute = assessment?.route)
-                record(facts)
+                val inspected = if(!pending.securityView)WebLoginResponseFacts.inspect(response.code, json, parsedCookies.filterNotNull(), parsedCookies.all { it != null }, gate.now()) else null
+                val assessment = if(inspected!=null && json!=null)WebLoginChallenge.assess(json, inspected) else null
+                val facts = inspected?.copy(challengeStatus = assessment?.status, challengeRoute = assessment?.route)
+                if(facts!=null)record(facts) else recordSecurity(response.code,json!=null,json?.let(WebSecurityViewContract::validData)==true)
                 if (json == null) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val issue = InstagramResponsePolicy.issue(response.code, json)
                 if (issue?.restriction != null) {
@@ -168,10 +195,11 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                     throw ApiFailure(ApiFailure.Kind.LIMITED)
                 }
                 if (issue != null) throw ApiFailure(issue.kind)
-                if (!facts.caaResultPresent) {
+                if (facts!=null && !facts.caaResultPresent) {
                     record(facts.copy(cookiesApplied = false))
                     throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 }
+                if(pending.securityView && !WebSecurityViewContract.validData(json))throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val cookies = cookieLines.filterIndexed { index, _ -> parsedCookies[index] != null }
                 val result = JSONObject().put("status", response.code).put("body", text)
                     .put("headers", JSONObject().put("content-type", response.header("Content-Type") ?: "application/json"))
@@ -179,13 +207,13 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                     if (closed || active !== pending) return@post
                     fun finish() {
                         if (closed || active !== pending) return
-                        val finalFacts = facts.copy(cookiesApplied = cookies.isNotEmpty())
-                        try { record(finalFacts) }
+                        val finalFacts = facts?.copy(cookiesApplied = cookies.isNotEmpty())
+                        try { if(finalFacts!=null)record(finalFacts) else recordSecurity(response.code,true,true,cookies.isNotEmpty()) }
                         catch (problem: ApiFailure) {
                             active = null; reply(pending.reply, pending.id, JSONObject().put("error", true)); failure(problem, null); return
                         }
                         active = null; reply(pending.reply, pending.id, result)
-                        completed(finalFacts, assessment?.challenge)
+                        if(finalFacts!=null)completed(finalFacts, assessment?.challenge)else securityCompleted()
                     }
                     if (cookies.isEmpty()) finish() else {
                         var remaining = cookies.size
@@ -195,7 +223,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                             remaining--
                             if (remaining == 0) {
                                 if (!rejected) finish() else if (!closed && active === pending) {
-                                    try { record(facts.copy(cookiesApplied = false)) } catch (_: ApiFailure) { }
+                                    try { if(facts!=null)record(facts.copy(cookiesApplied = false))else recordSecurity(response.code,true,true,false) } catch (_: ApiFailure) { }
                                     active = null; reply(pending.reply, pending.id, JSONObject().put("error", true))
                                     failure(ApiFailure(ApiFailure.Kind.STORAGE), null)
                                 }

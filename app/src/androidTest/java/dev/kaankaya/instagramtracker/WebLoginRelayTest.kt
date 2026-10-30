@@ -35,6 +35,7 @@ class WebLoginRelayTest {
     private lateinit var gate: RequestGate
     private var now = 2_000_000_000_000L
     private val calls = AtomicInteger()
+    private val securityStarts=AtomicInteger()
     private val errors = java.util.concurrent.CopyOnWriteArrayList<ApiFailure.Kind>()
     private var response: (Request) -> Response = { request -> Response.Builder().request(request).protocol(Protocol.HTTP_2)
         .code(200).message("fixture").addHeader("Set-Cookie", "sessionid=synthetic-login; Path=/; Secure; HttpOnly")
@@ -42,7 +43,9 @@ class WebLoginRelayTest {
         .body("{\"data\":{\"caa_login_web\":{\"ig_authenticated\":true}}}".toResponseBody()).build() }
     private val factory = Call.Factory { request ->
         calls.incrementAndGet()
-        check(request.url.toString() == WebLoginContract.URL && request.method == "POST")
+        check(request.method == "POST")
+        if(request.tag(WebSecurityViewAuthorization::class.java)!=null)check(WebPlatformRequestPolicy.allowed(request))
+        else check(request.url.toString() == WebLoginContract.URL)
         check(request.header("Origin") == "https://www.instagram.com" && request.header("Sec-Fetch-Site") == "same-origin")
         check(request.header("Sec-Fetch-Mode") == "cors" && request.header("Sec-Fetch-Dest") == "empty")
         object : Call by PrivateReadTransport.client().newCall(request) {
@@ -72,7 +75,8 @@ class WebLoginRelayTest {
             browser=WebView(activity); browser.settings.javaScriptEnabled=true; browser.settings.domStorageEnabled=true
             CookieManager.getInstance().setAcceptCookie(true)
             relay=WebLoginRelay(activity,browser,gate,worker,LoginPageTrace(context),{ error, _ -> errors.add(error.kind) },factory,
-                securityScope={url->security && url=="https://www.instagram.com/auth_platform/synthetic/"})
+                securityScope={url->security && url=="https://www.instagram.com/auth_platform/synthetic/"},
+                securityContext={if(security)"synthetic-apc" else null},securityStarted={securityStarts.incrementAndGet()})
             assertTrue(relay.install())
             browser.webViewClient=object:WebViewClient(){
                 override fun shouldInterceptRequest(view:WebView,request:WebResourceRequest):WebResourceResponse {
@@ -85,6 +89,43 @@ class WebLoginRelayTest {
             activity.setContentView(browser);browser.loadUrl(if(security)"https://www.instagram.com/auth_platform/synthetic/" else "https://www.instagram.com/accounts/login/")
         }
         until("document.readyState==='complete' && typeof trackerLoginRelay==='object'", "true")
+    }
+    private fun viewBody()=JSONObject.quote("doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables="+
+        java.net.URLEncoder.encode("""{"apc":"synthetic-apc","device_id":null}""","UTF-8"))
+    @Test fun securityViewUsesOneReadWithoutExtendingTheAuthenticationDeadlineOrCreatingASession() {
+        gate.beginWebAuthentication(now-16000);val authenticationAt=gate.nextWebAuthenticationAt()
+        response={request->Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture")
+            .body("""{"data":{"xfb_auth_platform_enter_code_content":{"title":"fixture"},"xfb_auth_platform_afad_polling_interval":null}}""".toResponseBody()).build()}
+        open(security=true)
+        js("fetch('/graphql/query/',{method:'POST',body:${viewBody()}}).then(r=>r.json()).then(j=>window.__viewReady=!!j.data.xfb_auth_platform_enter_code_content)")
+        until("window.__viewReady===true","true")
+        assertEquals(1,calls.get());assertEquals(2L,gate.attempts());assertEquals(authenticationAt,gate.nextWebAuthenticationAt())
+        assertTrue(gate.nextPrototypeAt()<authenticationAt);assertTrue(errors.isEmpty())
+        assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").isNullOrBlank())
+        val saved=JSONObject(LoginPageTrace.read(context)!!)
+        assertTrue(saved.getJSONObject("securityView").getBoolean("validData"));assertTrue(saved.isNull("authentication"))
+        js("fetch('/graphql/query/',{method:'POST',body:${viewBody()}}).catch(()=>window.__repeatRejected=true)")
+        until("window.__repeatRejected===true","true");assertEquals(1,calls.get());assertEquals(2L,gate.attempts())
+    }
+    @Test fun cancellingAQueuedSecurityViewDoesNotSendItOrLeaveARequestLease() {
+        open(security=true);gate.beginWebAuthentication()
+        js("fetch('/graphql/query/',{method:'POST',body:${viewBody()}}).catch(()=>window.__queueCancelled=true)")
+        val deadline=android.os.SystemClock.elapsedRealtime()+5000
+        while(securityStarts.get()==0 && android.os.SystemClock.elapsedRealtime()<deadline)Thread.sleep(20)
+        assertEquals(1,securityStarts.get());scenario!!.onActivity {relay.cancel()}
+        until("window.__queueCancelled===true","true")
+        assertEquals(0,calls.get());assertEquals(1L,gate.attempts());gate.claim().close()
+    }
+    @Test fun securityView429StopsWithoutApplyingCookiesAndRecordsItsOwnResponse() {
+        response={request->Response.Builder().request(request).protocol(Protocol.HTTP_2).code(429).message("fixture")
+            .addHeader("Retry-After","3600").addHeader("Set-Cookie","sessionid=never-apply; Path=/; Secure; HttpOnly")
+            .body("{}".toResponseBody()).build()}
+        open(security=true)
+        js("fetch('/graphql/query/',{method:'POST',body:${viewBody()}}).catch(()=>window.__viewLimited=true)")
+        until("window.__viewLimited===true","true")
+        assertEquals(listOf(ApiFailure.Kind.LIMITED),errors.toList());assertEquals(now+3600000,gate.blockedUntil())
+        assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").isNullOrBlank())
+        assertEquals(429,JSONObject(LoginPageTrace.read(context)!!).getJSONObject("securityView").getInt("status"))
     }
     @Test fun securityOperationIdentityIsObservedWithoutSendingItsPrivateBodyOrApplyingCookies() {
         open(security=true)

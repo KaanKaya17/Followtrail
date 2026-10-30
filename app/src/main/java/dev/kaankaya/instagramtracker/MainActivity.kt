@@ -1547,6 +1547,19 @@ class MainActivity : LocalizedActivity() {
             } else challenge?.close()
         }, securityScope={url->loginChallenge?.navigation("GET",url)==true}, securityBlocked={
             if(web===browser) loginFeedback(R.string.web_login_step_attention,R.string.web_login_security_unsupported_request)
+        }, securityContext={url->loginChallenge?.viewContext(url)}, securityStarted={
+            if(web===browser) {
+                loginAuthenticating=true
+                if(!webComparison)completionButton?.visibility=View.GONE
+                loginFeedback(R.string.web_login_step_waiting,R.string.web_login_security_loading,true);updateLoginCompletion()
+            }
+        }, securityCompleted={
+            if(web===browser) {
+                loginAuthenticating=false;autoVerifyLogin=!webComparison
+                loginFeedback(R.string.web_login_step_code,R.string.web_login_two_factor)
+                updateLoginCompletion();scheduleGateWake();continueAuthenticatedLogin()
+                main.removeCallbacks(inspectPage);main.postDelayed(inspectPage,500)
+            }
         }).also { if (!it.install()) { loginRelayIssue = true; loginFeedback(R.string.web_login_step_attention, R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
             @androidx.annotation.RequiresApi(26)
@@ -1691,7 +1704,7 @@ class MainActivity : LocalizedActivity() {
             .setNegativeButton(R.string.ui_cancel, null).setPositiveButton(R.string.web_login_show_challenge) { _, _ ->
                 if (web === browser && loginChallenge === challenge) {
                     challenge.authorize(); challengeButton?.visibility = View.GONE
-                    completionButton?.visibility = View.VISIBLE
+                    completionButton?.visibility = if(webComparison || !challenge.securityPage)View.VISIBLE else View.GONE
                     autoVerifyLogin = !webComparison
                     loginFeedback(R.string.web_login_step_captcha, R.string.web_login_complete_challenge)
                     if(challenge.securityPage) {

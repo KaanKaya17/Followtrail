@@ -5,6 +5,18 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WebLoginChallengeTest {
+    @Test fun viewContextIsAvailableOnlyForTheConsentedExactPageAndRejectsDuplicateApc() {
+        val link="https://www.instagram.com/auth_platform/code/?apc=synthetic%2Bcontext"
+        fun make(url: String): WebLoginChallenge {
+            val body=JSONObject().put("data",JSONObject().put("caa_login_web",JSONObject().put("ig_authenticated",false)
+                .put("recaptcha_needed",true).put("is_ig_login_recaptcha",false).put("redirect_uri",url)))
+            return WebLoginChallenge.assess(body,WebLoginResponseFacts.inspect(200,body,emptyList(),true,1)).challenge!!
+        }
+        val c=make(link);assertNull(c.viewContext(link));c.authorize()
+        assertEquals("synthetic+context",c.viewContext(link));assertNull(c.viewContext(link+"-other"))
+        val duplicate=make(link+"&apc=other");duplicate.authorize();assertNull(duplicate.viewContext(link+"&apc=other"))
+        c.close();assertNull(c.viewContext(link))
+    }
     @Test fun observedAuthPlatformRedirectNeedsConsentAndGrantsOnlyItsExactFirstPartyGet() {
         val link="/auth_platform/private-token/?context=private-context"
         val body=JSONObject().put("data",JSONObject().put("caa_login_web",JSONObject().put("recaptcha_needed",true)

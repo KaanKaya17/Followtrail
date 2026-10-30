@@ -22,7 +22,7 @@ class WebDocumentFactsTest {
     }
     @Test fun malformedDuplicateAndOversizedFieldsDoNotBecomeDocumentFacts() {
         for (raw in listOf("doc_id=1&doc_id=2","doc_id=%xx","doc_id=abc","doc_id=0","doc_id=1&bad",
-            "doc_id=1&variables="+"x".repeat(WebLoginContract.MAX_BODY))) assertNull(WebDocumentFacts.inspect(raw).document)
+            "doc_id=1&variables="+"x".repeat(WebGraphqlForm.MAX_BODY))) assertNull(WebDocumentFacts.inspect(raw).document)
         assertNull(WebDocumentFacts.inspect("fb_api_req_friendly_name=private%40example.com").operation)
     }
 }

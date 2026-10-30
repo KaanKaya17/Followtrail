@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.60 — 2026-10-30 (Güvenlik kodu ekranını okuma · test sürümü)
+
+- Canlı güvenlik sayfasında doğrulanan tek `AuthPlatformCodeEntryViewQuery` sorgusu desteklenir. Sorgu, onaylanmış açık sayfanın bağlamıyla eşleşmeli; yalnız gözlenen `apc` ve boş `device_id` değişkenlerini taşımalıdır. Başka belge, kod gönderimi veya sosyal işlem yetkisi verilmez.
+- Ekran okuması ortak istek aralığı ve bütçesini kullanır, kısa bekleme iptal edilebilir. İlk girişin 15 dakikalık aralığı uzatılmaz; 429 molası korunur. Yanıt, giriş sonucu ve profil bağlantısından ayrı tanılanır; gizli içerik kaydedilmez.
+- 118 JVM testi, 8 JavaScript kontrolü ve release lint geçti. Yeni cihaz testleri derlendi; gerçek kod/CAPTCHA tamamlanması ve hesap bağlantısı henüz doğrulanmadı.
+
 ## Android 0.1.59 — 2026-10-30 (Kod ekranı sorgusunun şeması · test sürümü)
 
 - Gerçek emülatör kaydında engellenen `AuthPlatformCodeEntryViewQuery` / `34414353874878894` kimliği belirlendi. Yalnız bu sorgunun kök değişken adları ve türleri, değerleri kaydedilmeden tanılanır.

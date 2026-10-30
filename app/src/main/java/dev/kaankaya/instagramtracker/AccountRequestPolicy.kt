@@ -51,14 +51,14 @@ object LoginBrowserPolicy {
     private fun uri(url: String) = try { URI(url).takeIf { it.scheme == "https" && it.rawUserInfo == null && it.port in listOf(-1,443) && !it.rawPath.contains('%') && !it.rawPath.contains("..") } } catch (_: Exception) { null }
     private fun page(path: String) = path in setOf("/", "/accounts/login/", "/accounts/login/two_factor/", "/accounts/two_factor_authentication/", "/accounts/onetap/") || path.startsWith("/challenge/") || path.startsWith("/checkpoint/")
     fun navigation(url: String): Boolean = uri(url)?.let { it.host in setOf("www.instagram.com","instagram.com") && page(it.rawPath) } == true
-    enum class ResourceKind { PAGE, STATIC, BOOTSTRAP, PROFILE, CDN, AUTH, CAPTCHA, GRAPHQL, INSTAGRAM_OTHER, OTHER_HOST, INVALID }
+    enum class ResourceKind { PAGE, STATIC, BOOTSTRAP, PROFILE, CDN, AUTH, CAPTCHA, SECURITY_VIEW, GRAPHQL, INSTAGRAM_OTHER, OTHER_HOST, INVALID }
     data class ResourceDecision(val allowed: Boolean, val kind: ResourceKind)
     fun resource(method: String, url: String): Boolean = resourceDecision(method, url).allowed
     fun resourceDecision(method: String, url: String): ResourceDecision {
         val u = uri(url) ?: return ResourceDecision(false, ResourceKind.INVALID)
         val instagram = u.host in setOf("www.instagram.com", "instagram.com")
         val kind = when {
-            instagram && u.rawPath in setOf("/api/graphql", "/api/graphql/", "/graphql/query/", "/graphql_www") -> ResourceKind.GRAPHQL
+            instagram && u.rawPath in WebGraphqlForm.PATHS -> ResourceKind.GRAPHQL
             instagram && page(u.rawPath) -> ResourceKind.PAGE
             instagram && (u.rawPath.startsWith("/static/") || u.rawPath.startsWith("/rsrc.php/")) -> ResourceKind.STATIC
             instagram && u.rawPath in setOf("/data/shared_data/", "/api/v1/web/data/shared_data/", "/ajax/bootloader-endpoint/", "/ajax/bulk-route-definitions/") -> ResourceKind.BOOTSTRAP

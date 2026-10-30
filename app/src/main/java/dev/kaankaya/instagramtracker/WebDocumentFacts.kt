@@ -10,7 +10,7 @@ class WebDocumentFacts private constructor(val document: String?, val operation:
         .put("variableTypes",variableTypes ?: JSONObject.NULL).put("variablesIncomplete",incomplete)
     companion object {
         fun inspect(raw: String): WebDocumentFacts {
-            if(raw.length>WebLoginContract.MAX_BODY) return WebDocumentFacts(null,null)
+            if(raw.length>WebGraphqlForm.MAX_BODY) return WebDocumentFacts(null,null)
             return try {
                 var document: String?=null;var operation: String?=null;var variables: String?=null
                 val seen=hashSetOf<String>()

@@ -27,8 +27,11 @@ internal object WebPlatformRequestPolicy {
     fun allowed(request: Request): Boolean {
         val u=request.url
         if (!u.isHttps || u.host!="www.instagram.com" || u.port!=443 || u.username.isNotEmpty() || u.password.isNotEmpty()) return false
-        if (request.method=="POST") return u.toString()==WebLoginContract.URL &&
-            request.tag(WebLoginAuthorization::class.java)?.body?.let {it===request.body}==true
+        if (request.method=="POST") {
+            val security=request.tag(WebSecurityViewAuthorization::class.java)
+            if(security!=null)return u.toString()==security.url && security.body===request.body
+            return u.toString()==WebLoginContract.URL && request.tag(WebLoginAuthorization::class.java)?.body?.let {it===request.body}==true
+        }
         if (request.method!="GET" || request.body!=null) return false
         if (AccountRequestPolicy.readAllowed("GET",u.toString())) return true
         // Credential-free, opt-in public transport smoke; account readers still reject this route.
