@@ -1547,6 +1547,7 @@ class MainActivity : LocalizedActivity() {
         }).also { if (!it.install()) { loginRelayIssue = true; loginFeedback(R.string.web_login_step_attention, R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !(LoginBrowserPolicy.navigation(request.url.toString()) ||
+                request.isForMainFrame && loginChallenge?.navigation(request.method, request.url.toString()) == true ||
                 !request.isForMainFrame && loginChallenge?.subframe(request.url.toString()) == true).also { allowed ->
                 if (!allowed && !loginRelayIssue) loginStatus?.setText(R.string.security_login_scope)
             }

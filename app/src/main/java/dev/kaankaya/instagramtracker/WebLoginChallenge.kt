@@ -4,7 +4,7 @@ import java.net.URI
 import org.json.JSONObject
 
 /** An in-memory verification link from this login response. No link/token is persisted. */
-class WebLoginChallenge private constructor(val page: String, private val readPath: String) {
+class WebLoginChallenge private constructor(val page: String, private val readPath: String?, private val securityEntry: URI? = null) {
     @Volatile private var enabled = false
     fun authorize() { enabled = true }
     fun close() { enabled = false }
@@ -14,8 +14,9 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
         if (!enabled) return false
         val u = secure(url) ?: return false
         return when (u.host) {
-            "www.instagram.com" -> method == "GET" && u.rawPath == readPath ||
-                method == "POST" && u.rawPath == "/api/v1/challenge/web/action/"
+            "www.instagram.com" -> if (securityEntry != null) method == "GET" &&
+                u.rawPath == securityEntry.rawPath && u.rawQuery == securityEntry.rawQuery
+                else method == "GET" && u.rawPath == readPath || method == "POST" && u.rawPath == "/api/v1/challenge/web/action/"
             "www.fbsbx.com" -> method == "GET" && u.rawPath == "/captcha/recaptcha/iframe/"
             "www.google.com", "recaptcha.google.com" -> method in setOf("GET", "POST") && u.rawPath.startsWith("/recaptcha/")
             "www.gstatic.com" -> method == "GET" && u.rawPath.startsWith("/recaptcha/")
@@ -23,11 +24,14 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
         }
     }
     fun subframe(url: String): Boolean = resource("GET", url) && secure(url)?.host != "www.instagram.com"
+    fun navigation(method: String, url: String): Boolean = securityEntry != null && method == "GET" &&
+        secure(url)?.host == "www.instagram.com" && resource(method,url)
 
     companion object {
         enum class Status { NOT_REQUIRED, MISSING_LINK, INVALID_TYPE, EMPTY_LINK, INVALID_URL, OTHER_HOST, UNSUPPORTED_PATH, INVALID_TOKEN, SUPPORTED }
-        class Assessment(val status: Status, val challenge: WebLoginChallenge? = null) {
-            override fun toString() = "ChallengeAssessment($status)"
+        enum class Route { ROOT, LOGIN, TWO_FACTOR, AUTH_PLATFORM, CHALLENGE, CHECKPOINT, OTHER }
+        class Assessment(val status: Status, val challenge: WebLoginChallenge? = null, val route: Route? = null) {
+            override fun toString() = "ChallengeAssessment($status, $route)"
         }
         private fun secure(url: String): URI? = try {
             URI(url).takeIf { it.scheme == "https" && it.rawUserInfo == null && it.port in setOf(-1,443) &&
@@ -49,13 +53,26 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
             val url = try { URI("https://www.instagram.com/").resolve(raw).toString() } catch (_: Exception) { return Assessment(Status.INVALID_URL) }
             val u = secure(url) ?: return Assessment(Status.INVALID_URL)
             if (u.host != "www.instagram.com") return Assessment(Status.OTHER_HOST)
+            val route = when {
+                u.rawPath == "/" -> Route.ROOT
+                u.rawPath in setOf("/accounts/login/two_factor/", "/accounts/two_factor_authentication/") -> Route.TWO_FACTOR
+                u.rawPath == "/accounts/login/" -> Route.LOGIN
+                u.rawPath.startsWith("/auth_platform/") -> Route.AUTH_PLATFORM
+                u.rawPath.startsWith("/challenge/") -> Route.CHALLENGE
+                u.rawPath.startsWith("/checkpoint/") -> Route.CHECKPOINT
+                else -> Route.OTHER
+            }
+            // Observed server redirect, with the public Meta login handler's full-page branch.
+            // This grants only the exact first-party GET, never arbitrary Bloks/GraphQL POSTs.
+            if (route == Route.AUTH_PLATFORM && facts.igLoginRecaptcha == false)
+                return Assessment(Status.SUPPORTED, WebLoginChallenge(url, null, u), route)
             val tokens = when {
                 u.rawPath.startsWith("/challenge/action/") -> u.rawPath.removePrefix("/challenge/action/")
                 u.rawPath.startsWith("/challenge/") -> u.rawPath.removePrefix("/challenge/")
-                else -> return Assessment(Status.UNSUPPORTED_PATH)
+                else -> return Assessment(Status.UNSUPPORTED_PATH, route = route)
             }
-            if (tokens.length !in 1..2048 || !tokens.matches(Regex("[A-Za-z0-9_=-]+(?:/[A-Za-z0-9_=-]+)*/?"))) return Assessment(Status.INVALID_TOKEN)
-            return Assessment(Status.SUPPORTED, WebLoginChallenge(url, "/api/v1/challenge/web/$tokens"))
+            if (tokens.length !in 1..2048 || !tokens.matches(Regex("[A-Za-z0-9_=-]+(?:/[A-Za-z0-9_=-]+)*/?"))) return Assessment(Status.INVALID_TOKEN, route = route)
+            return Assessment(Status.SUPPORTED, WebLoginChallenge(url, "/api/v1/challenge/web/$tokens"), route)
         }
     }
 }

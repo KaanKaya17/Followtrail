@@ -49,11 +49,11 @@ class WebLoginScreenTest {
             .filterIsInstance<TextView>().joinToString(" | ") { it.text.toString() } }
         fail("Offline UI condition not reached: $visible")
     }
-    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false, rejected: Boolean = false, unsupportedCaptcha: Boolean = false, code: Boolean = false) {
+    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false, rejected: Boolean = false, unsupportedCaptcha: Boolean = false, code: Boolean = false, authPlatform: Boolean = false) {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java)
             .putExtra("offline_web_login", offline).putExtra("web_login_status", status).putExtra("web_bootstrap_fixture", bootstrap)
             .putExtra("web_auth_fixture", auth).putExtra("web_captcha_fixture", captcha).putExtra("web_rejected_fixture", rejected)
-            .putExtra("web_unsupported_captcha_fixture",unsupportedCaptcha).putExtra("web_code_fixture",code))
+            .putExtra("web_unsupported_captcha_fixture",unsupportedCaptcha).putExtra("web_code_fixture",code).putExtra("web_auth_platform_fixture",authPlatform))
         until { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text == a.getString(R.string.ui_connect_account) } }
         scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.ui_connect_account) }.performClick() }
         instrumentation.waitForIdleSync()
@@ -132,6 +132,37 @@ class WebLoginScreenTest {
         assertEquals("UNSUPPORTED_PATH",org.json.JSONObject(saved).getJSONObject("authentication").getString("challengeStatus"))
         assertFalse(saved.contains("synthetic-secret"));assertFalse(saved.contains("unsupported-verification"))
         assertTrue(RequestGate(context).nextWebAuthenticationAt()>System.currentTimeMillis())
+    }
+    @Test fun authPlatformOpensInTheSameBrowserOnlyAfterConsentAndDoesNotGrantSocialPosts() {
+        open(auth=true,captcha=true,authPlatform=true);submitSyntheticLogin()
+        until {a->all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_login_show_challenge)&&it.visibility==View.VISIBLE}}
+        val url="https://www.instagram.com/auth_platform/synthetic-token/?context=synthetic"
+        fun blocked(method: String,address: String): Boolean {
+            var result=false
+            scenario!!.onActivity {a->val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
+                val request=object: android.webkit.WebResourceRequest {
+                    override fun getUrl()=android.net.Uri.parse(address)
+                    override fun isForMainFrame()=true
+                    override fun isRedirect()=false
+                    override fun hasGesture()=false
+                    override fun getMethod()=method
+                    override fun getRequestHeaders()=emptyMap<String,String>()
+                }
+                result=browser.webViewClient.shouldOverrideUrlLoading(browser,request)
+                if (!browser.webViewClient.shouldInterceptRequest(browser,request).let {it==null||it.statusCode==200}) assertTrue(result)
+            };return result
+        }
+        assertTrue(blocked("GET",url))
+        scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<Button>().single {it.text==a.getString(R.string.web_login_show_challenge)}.performClick()}
+        instrumentation.runOnMainSync {WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>().single {it.id==android.R.id.button1}.performClick()}
+        until {a->all(a.window.decorView).filterIsInstance<WebView>().single().url==url}
+        assertFalse(blocked("GET",url));assertTrue(blocked("POST",url))
+        assertTrue(blocked("GET",url+"-other"))
+        assertTrue(blocked("POST","https://www.instagram.com/api/v1/web/friendships/123/follow/"))
+        val saved=LoginPageTrace.read(context)!!
+        val facts=org.json.JSONObject(saved).getJSONObject("authentication")
+        assertEquals("SUPPORTED",facts.getString("challengeStatus"));assertEquals("AUTH_PLATFORM",facts.getString("challengeRoute"))
+        assertFalse(saved.contains("synthetic-token"));assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
     }
     @Test fun twoFactorExplainsTheNextStepWithoutAWorkingSpinnerOrPrematureProfileButton() {
         open(auth=true,code=true);submitSyntheticLogin()

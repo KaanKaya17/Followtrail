@@ -27,6 +27,8 @@ object WebLoginMode {
                     else if (code) """{"data":{"caa_login_web":{"ig_authenticated":false,"recaptcha_needed":false,"two_factor_result":"synthetic-pending-code"}}}"""
                     else if (captcha) org.json.JSONObject("""{"data":{"caa_login_web":{"ig_authenticated":false,"recaptcha_needed":true,"redirect_uri":"/challenge/action/synthetic-token/","error_message":{"text":"The login information you entered is incorrect."}}}}""").apply {
                         if (activity.intent.getBooleanExtra("web_unsupported_captcha_fixture",false)) getJSONObject("data").getJSONObject("caa_login_web").put("redirect_uri","/unsupported-verification/synthetic-secret/")
+                        if (activity.intent.getBooleanExtra("web_auth_platform_fixture",false)) getJSONObject("data").getJSONObject("caa_login_web")
+                            .put("is_ig_login_recaptcha",false).put("redirect_uri","/auth_platform/synthetic-token/?context=synthetic")
                     }.toString()
                     else """{"data":{"caa_login_web":{"ig_authenticated":true,"recaptcha_needed":false,"redirect_uri":"/accounts/onetap/"}}}"""
                 return builder.body(body.toResponseBody()).build()
@@ -37,6 +39,10 @@ object WebLoginMode {
     fun intercept(request: WebResourceRequest, enabled: Boolean, activity: Activity): WebResourceResponse? {
         if (!enabled) return null
         if (LoginBrowserPolicy.landing(request.url.toString())) return LoginBrowserResources.landing()
+        if (activity.intent.getBooleanExtra("web_auth_platform_fixture",false) && request.url.path=="/auth_platform/synthetic-token/") {
+            val html="""<!doctype html><meta name="viewport" content="width=device-width"><h2>Instagram security fixture</h2><input autocomplete="one-time-code">"""
+            return WebResourceResponse("text/html","UTF-8",200,"fixture",emptyMap(),ByteArrayInputStream(html.toByteArray()))
+        }
         if (activity.intent.getBooleanExtra("web_bootstrap_fixture", false)) {
             if (request.url.path in setOf("/ajax/bootloader-endpoint/", "/ajax/bulk-route-definitions/"))
                 return WebResourceResponse("application/json", "UTF-8", ByteArrayInputStream("{}".toByteArray()))

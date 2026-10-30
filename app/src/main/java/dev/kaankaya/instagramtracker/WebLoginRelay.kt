@@ -136,7 +136,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 }
                 val inspected = WebLoginResponseFacts.inspect(response.code, json, parsedCookies.filterNotNull(), parsedCookies.all { it != null }, gate.now())
                 val assessment = json?.let { WebLoginChallenge.assess(it, inspected) }
-                val facts = inspected.copy(challengeStatus = assessment?.status)
+                val facts = inspected.copy(challengeStatus = assessment?.status, challengeRoute = assessment?.route)
                 record(facts)
                 if (json == null) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val issue = InstagramResponsePolicy.issue(response.code, json)

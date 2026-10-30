@@ -5,6 +5,38 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WebLoginChallengeTest {
+    @Test fun observedAuthPlatformRedirectNeedsConsentAndGrantsOnlyItsExactFirstPartyGet() {
+        val link="/auth_platform/private-token/?context=private-context"
+        val body=JSONObject().put("data",JSONObject().put("caa_login_web",JSONObject().put("recaptcha_needed",true)
+            .put("is_ig_login_recaptcha",false).put("ig_authenticated",false).put("redirect_uri",link)))
+        val facts=WebLoginResponseFacts.inspect(200,body,emptyList(),true,1)
+        val result=WebLoginChallenge.assess(body,facts)
+        assertEquals("AUTH_PLATFORM",result.route?.name)
+        val c=result.challenge!!;val url="https://www.instagram.com$link"
+        assertFalse(c.resource("GET",url));assertFalse(c.navigation("GET",url))
+        c.authorize()
+        assertTrue(c.resource("GET",url));assertTrue(c.navigation("GET",url))
+        for (other in listOf("https://www.instagram.com/auth_platform/other-token/?context=private-context",
+            "https://www.instagram.com/auth_platform/private-token/?context=other-context","https://evil.test$link",
+            "https://www.instagram.com/api/graphql","https://www.instagram.com/api/v1/challenge/web/action/")) {
+            assertFalse(c.resource("GET",other));assertFalse(c.resource("POST",other));assertFalse(c.navigation("GET",other))
+        }
+        assertFalse(c.resource("POST",url));assertFalse(c.navigation("POST",url))
+        assertFalse(c.toString().contains("private-"));assertFalse(result.toString().contains("private-"))
+        c.close();assertFalse(c.resource("GET",url));assertFalse(c.navigation("GET",url))
+    }
+    @Test fun redirectFamiliesDoNotAuthorizeNewPagesOrRetainIdentity() {
+        val routes=mapOf("/" to "ROOT", "/accounts/login/" to "LOGIN", "/accounts/login/two_factor/" to "TWO_FACTOR",
+            "/auth_platform/private-token/" to "AUTH_PLATFORM", "/checkpoint/private-token/" to "CHECKPOINT", "/other/private-token/" to "OTHER")
+        for ((link,route) in routes) {
+            val body=JSONObject().put("data",JSONObject().put("caa_login_web",JSONObject().put("recaptcha_needed",true).put("redirect_uri",link)))
+            val facts=WebLoginResponseFacts.inspect(200,body,emptyList(),true,1)
+            val result=WebLoginChallenge.assess(body,facts)
+            assertEquals(route,result.route?.name);assertNull(result.challenge)
+            val saved=facts.copy(challengeStatus=result.status,challengeRoute=result.route).json().toString()
+            assertFalse(saved.contains("private-token"));assertFalse(saved.contains("auth_platform/"))
+        }
+    }
     @Test fun unavailableReasonsPreserveShapeWithoutRetainingTheLinkOrToken() {
         val cases = listOf(
             JSONObject.NULL to WebLoginChallenge.Companion.Status.MISSING_LINK,

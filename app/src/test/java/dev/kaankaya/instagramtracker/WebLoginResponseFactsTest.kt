@@ -6,6 +6,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WebLoginResponseFactsTest {
+    @Test fun captchaDiscriminatorRetainsUnknownAndNeverStoresPayload() {
+        fun inspect(value: Any, data: Any) = WebLoginResponseFacts.inspect(200, JSONObject().put("data",JSONObject().put("caa_login_web",JSONObject()
+            .put("is_ig_login_recaptcha",value).put("captcha_persist_data",data))),emptyList(),true,1)
+        assertEquals(true,inspect(true,"private-captcha-payload").igLoginRecaptcha)
+        assertEquals(false,inspect(false,JSONObject.NULL).igLoginRecaptcha)
+        assertNull(inspect("true",JSONObject.NULL).igLoginRecaptcha)
+        assertEquals(false,inspect(true,JSONObject.NULL).captchaDataPresent)
+        assertEquals(true,inspect(true,"private-captcha-payload").captchaDataPresent)
+        assertFalse(inspect(true,"private-captcha-payload").json().toString().contains("private-"))
+    }
     @Test fun loginDocumentBusinessResultStaysDistinctFromHttpAndGraphqlTransport() {
         val body=JSONObject("""{"data":{"caa_login_web":{"error_code":103,"ig_authenticated":false,"recaptcha_needed":false,"two_factor_result":null,"redirect_uri":null,"crypted_uid":"private-user","error_message":{"text":"The login information you entered is incorrect. private-secret"}}}}""")
         val facts=WebLoginResponseFacts.inspect(200,body,emptyList(),true,1)
