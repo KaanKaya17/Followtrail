@@ -16,6 +16,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
+import org.json.JSONObject
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -151,7 +152,7 @@ class WebLoginScreenTest {
     @Test fun authPlatformOpensInTheSameBrowserOnlyAfterConsentAndDoesNotGrantSocialPosts() {
         open(auth=true,captcha=true,authPlatform=true);submitSyntheticLogin()
         until {a->all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_login_show_challenge)&&it.visibility==View.VISIBLE}}
-        val url="https://www.instagram.com/auth_platform/synthetic-token/?context=synthetic"
+        val url="https://www.instagram.com/auth_platform/synthetic-token/?apc=synthetic-apc"
         fun blocked(method: String,address: String): Boolean {
             var result=false
             scenario!!.onActivity {a->val browser=all(a.window.decorView).filterIsInstance<WebView>().single()
@@ -190,6 +191,19 @@ class WebLoginScreenTest {
         assertEquals("SUPPORTED",facts.getString("challengeStatus"));assertEquals("AUTH_PLATFORM",facts.getString("challengeRoute"))
         assertFalse(saved.contains("synthetic-token"));assertFalse(saved.contains("synthetic-private-value"))
         assertEquals(1L,RequestGate(context).attempts());assertNull(SessionVault(context).read())
+    }
+    @Test fun validCodeScreenQueryWaitsForTheReadIntervalAndDoesNotClaimTheAccountIsLinked() {
+        open(auth=true,captcha=true,authPlatform=true);submitSyntheticLogin()
+        until {a->all(a.window.decorView).filterIsInstance<Button>().any {it.text==a.getString(R.string.web_login_show_challenge)&&it.visibility==View.VISIBLE}}
+        val authenticationAt=RequestGate(context).nextWebAuthenticationAt()
+        scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<Button>().single {it.text==a.getString(R.string.web_login_show_challenge)}.performClick()}
+        instrumentation.runOnMainSync {WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>().single {it.id==android.R.id.button1}.performClick()}
+        until {a->all(a.window.decorView).filterIsInstance<WebView>().single().url?.contains("/auth_platform/")==true}
+        scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(
+            "fetch('/graphql/query/',{method:'POST',body:'doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables='+encodeURIComponent(JSON.stringify({apc:'synthetic-apc',device_id:null}))}).catch(()=>{});",null)}
+        until(23000) {JSONObject(LoginPageTrace.read(context)!!).optJSONObject("securityView")?.optBoolean("validData")==true}
+        assertEquals(2L,RequestGate(context).attempts());assertEquals(authenticationAt,RequestGate(context).nextWebAuthenticationAt())
+        assertNull(SessionVault(context).read());assertFalse(JSONObject(LoginPageTrace.read(context)!!).getJSONObject("authentication").getBoolean("authenticated"))
     }
     @Test fun twoFactorExplainsTheNextStepWithoutAWorkingSpinnerOrPrematureProfileButton() {
         open(auth=true,code=true);submitSyntheticLogin()

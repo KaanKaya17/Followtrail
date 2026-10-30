@@ -106,7 +106,7 @@ internal class PlatformWebClient(context: Context) : Call.Factory, AutoCloseable
             if (closing) throw IOException("Platform client closed")
             if (!WebPlatformRequestPolicy.allowed(original)) throw IOException("Web request policy rejected")
             val payload=original.body?.let {body->
-                require(body.contentLength() in 0..WebLoginContract.MAX_BODY.toLong())
+                require(body.contentLength() in 0..WebGraphqlForm.MAX_BODY.toLong())
                 Buffer().also {body.writeTo(it)}.readByteArray()
             }
             val max=if(payload==null)1024*1024 else 131072

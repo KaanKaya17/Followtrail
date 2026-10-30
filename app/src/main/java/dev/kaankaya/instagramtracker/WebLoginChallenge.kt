@@ -29,6 +29,16 @@ class WebLoginChallenge private constructor(val page: String, private val readPa
     fun subframe(url: String): Boolean = resource("GET", url) && secure(url)?.host != "www.instagram.com"
     fun navigation(method: String, url: String): Boolean = securityEntry != null && method == "GET" &&
         secure(url)?.host == "www.instagram.com" && resource(method,url)
+    fun viewContext(url: String): String? {
+        if(!authorizedSecurityPage || !navigation("GET",url))return null
+        return try {
+            val values=secure(url)?.rawQuery.orEmpty().split('&').mapNotNull {part->
+                val pair=part.split('=',limit=2)
+                if(java.net.URLDecoder.decode(pair[0],"UTF-8")!="apc")null else java.net.URLDecoder.decode(pair.getOrElse(1){""},"UTF-8")
+            }
+            values.singleOrNull()?.takeIf {it.length in 1..8192 && it.none {c->c.code<32||c.code==127}}
+        }catch(_: Exception){null}
+    }
     /** Authority comes from WebView's HTTP-redirect fact, not a page-supplied target. */
     fun followRedirect(method: String, url: String, mainFrame: Boolean, redirect: Boolean): Boolean {
         if (!authorizedSecurityPage || !mainFrame || !redirect || method != "GET") return false

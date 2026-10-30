@@ -1,19 +1,12 @@
 package dev.kaankaya.instagramtracker
 
-import okhttp3.FormBody
 import org.json.JSONObject
-import java.net.URLDecoder
 
 /** A single observed, persisted login document. This never authorizes arbitrary GraphQL. */
 object WebLoginContract {
     const val URL = "https://www.instagram.com/api/graphql"
     const val DOCUMENT = "28610511871940857"
     const val OPERATION = "useCDSWebLoginMutation"
-    const val MAX_BODY = 65536
-    private val fields = setOf("av", "__d", "__user", "__a", "__req", "__hs", "dpr", "__ccg", "__rev", "__s", "__hsi",
-        "__dyn", "__csr", "__hsdp", "__hblp", "__sjsp", "__comet_req", "lsd", "jazoest", "__spin_r", "__spin_b",
-        "__spin_t", "__crn", "qpl_active_flow_ids", "fb_api_caller_class", "fb_api_req_friendly_name", "server_timestamps",
-        "variables", "doc_id", "fb_api_analytics_tags")
     private val inputFields = setOf("actor_id", "client_mutation_id", "access_flow_version", "account_recovery_entry_point",
         "app", "auth_domain_data_key", "caa_login_request_extra_info", "credential_type", "dyi_job_id", "enc_password",
         "event_request_id", "identifier", "ig_web_device_id", "initial_request_id", "lids", "login_source", "next",
@@ -23,13 +16,7 @@ object WebLoginContract {
     private val cipher = Regex("#PWD_BROWSER:[1-9][0-9]{0,2}:[0-9]{10,13}:[A-Za-z0-9+/=]{64,20000}")
     private fun JSONObject.fieldNames() = keys().asSequence().toSet()
     internal fun authorize(raw: String): WebLoginAuthorization {
-        require(raw.length <= MAX_BODY && raw.toByteArray(Charsets.UTF_8).size <= MAX_BODY)
-        val pairs = linkedMapOf<String, String>()
-        for (part in raw.split('&')) {
-            val pair = part.split('=', limit = 2); require(pair.size == 2)
-            val key = URLDecoder.decode(pair[0], "UTF-8"); val value = URLDecoder.decode(pair[1], "UTF-8")
-            require(key in fields && key !in pairs); pairs[key] = value
-        }
+        val pairs = WebGraphqlForm.parse(raw)
         require(pairs["doc_id"] == DOCUMENT && pairs["fb_api_req_friendly_name"] == OPERATION)
         val variables = JSONObject(requireNotNull(pairs["variables"]))
         require(variables.fieldNames() == setOf("input", "scale"))
@@ -51,6 +38,6 @@ object WebLoginContract {
             require(input.isNull(key) || input.get(key) is String || input.get(key) is Boolean)
         // Canonicalize JSON once so duplicate JSON keys cannot be interpreted differently by the server.
         pairs["variables"] = variables.toString()
-        return WebLoginAuthorization(FormBody.Builder().apply { pairs.forEach { (key, value) -> add(key, value) } }.build())
+        return WebLoginAuthorization(WebGraphqlForm.body(pairs))
     }
 }

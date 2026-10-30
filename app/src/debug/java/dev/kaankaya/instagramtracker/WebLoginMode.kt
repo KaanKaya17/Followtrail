@@ -19,6 +19,8 @@ object WebLoginMode {
             override fun execute(): Response {
                 val captcha = activity.intent.getBooleanExtra("web_captcha_fixture", false)
                 val builder = Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture")
+                if(request.tag(WebSecurityViewAuthorization::class.java)!=null)return builder.body(
+                    """{"data":{"xfb_auth_platform_enter_code_content":{"title":"fixture"},"xfb_auth_platform_afad_polling_interval":null}}""".toResponseBody()).build()
                 val rejected = activity.intent.getBooleanExtra("web_rejected_fixture", false)
                 val code = activity.intent.getBooleanExtra("web_code_fixture", false)
                 if (!captcha && !rejected && !code) builder.addHeader("Set-Cookie", "sessionid=synthetic-session; Path=/; Secure; HttpOnly")
@@ -28,7 +30,7 @@ object WebLoginMode {
                     else if (captcha) org.json.JSONObject("""{"data":{"caa_login_web":{"ig_authenticated":false,"recaptcha_needed":true,"redirect_uri":"/challenge/action/synthetic-token/","error_message":{"text":"The login information you entered is incorrect."}}}}""").apply {
                         if (activity.intent.getBooleanExtra("web_unsupported_captcha_fixture",false)) getJSONObject("data").getJSONObject("caa_login_web").put("redirect_uri","/unsupported-verification/synthetic-secret/")
                         if (activity.intent.getBooleanExtra("web_auth_platform_fixture",false)) getJSONObject("data").getJSONObject("caa_login_web")
-                            .put("is_ig_login_recaptcha",false).put("redirect_uri","/auth_platform/synthetic-token/?context=synthetic")
+                            .put("is_ig_login_recaptcha",false).put("redirect_uri","/auth_platform/synthetic-token/?apc=synthetic-apc")
                     }.toString()
                     else """{"data":{"caa_login_web":{"ig_authenticated":true,"recaptcha_needed":false,"redirect_uri":"/accounts/onetap/"}}}"""
                 return builder.body(body.toResponseBody()).build()
