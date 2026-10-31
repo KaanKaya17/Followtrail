@@ -1,0 +1,8 @@
+<resources>
+    <string name="appearance_title">Tema</string>
+    <string name="appearance_system">Sistema</string>
+    <string name="appearance_light">Claro</string>
+    <string name="appearance_dark">Oscuro</string>
+    <string name="appearance_oled">Negro OLED</string>
+    <string name="appearance_save_failed">No se pudo guardar el tema. Se mantuvo tu selección anterior.</string>
+</resources>
