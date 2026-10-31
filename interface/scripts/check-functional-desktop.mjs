@@ -873,6 +873,33 @@ try {
     await page.waitForFunction(() => document.documentElement.lang === 'tr');
     await page.getByRole('heading', { name: 'Küçük ayarlar, daha rahat bir deneyim.', exact: true }).waitFor();
   });
+  await check("Spanish and Brazilian Portuguese persist, preserve evidence and render all routes", async () => {
+    const before = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
+    for (const language of ['es', 'pt-BR']) {
+      await page.locator('.sidebar nav a[href="#settings"]').click();
+      await page.locator('#app-language').selectOption(language);
+      await page.waitForFunction(value => document.documentElement.lang === value, language);
+      for (const route of ['overview', 'people', 'lists', 'timeline', 'notifications', 'settings']) {
+        await page.locator(`.sidebar nav a[href="#${route}"]`).click();
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, `${language}/${route}`);
+      }
+      await page.screenshot({path:path.join(output, `settings-${language}.png`),fullPage:true});
+      await desktop.close(); desktop = null;
+      desktop = await electron.launch({executablePath,args:[`--tracker-test-home=${home}`],env});
+      page = await desktop.firstWindow();
+      page.on('pageerror', e => errors.push(e.message));
+      page.on('request', r => {if (!r.url().startsWith('file:') && !r.url().startsWith('data:')) requests.push(r.url());});
+      await page.waitForFunction(value => document.documentElement.lang === value && !!document.querySelector('.sidebar'), language);
+      const after = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
+      assert.equal(after.settings.language, language);
+      assert.deepEqual(after.gate, before.gate);
+      assert.deepEqual(after.people, before.people);
+      assert.deepEqual(after.account, before.account);
+      await page.locator('.sidebar nav a[href="#settings"]').click();
+    }
+    await page.locator('#app-language').selectOption('tr');
+    await page.waitForFunction(() => document.documentElement.lang === 'tr');
+  });
   await check("All local renderer assets and no script errors", async () => {
     assert.deepEqual(errors, []);
     assert.deepEqual(requests, []);

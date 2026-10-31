@@ -60,6 +60,20 @@ try {
   await page.waitForFunction(() => document.documentElement.lang === 'tr');
   assert.equal(await page.evaluate(() => window.TrackerI18n.formats('tr').number.format(1200)), '1.200');
   checks.push('Switching back restores Turkish formatting');
+  for (const [language, heading, overview, formatted] of [
+    ['es', 'Pequeños ajustes, experiencia más cómoda.', 'Resumen', '1200'],
+    ['pt-BR', 'Pequenos ajustes, experiência mais confortável.', 'Resumo', '1.200'],
+  ]) {
+    await page.evaluate(() => { location.hash = '#settings'; });
+    await page.locator('#app-language').selectOption(language);
+    await page.waitForFunction(value => document.documentElement.lang === value, language);
+    await page.getByRole('heading', { name: heading, exact: true }).waitFor();
+    assert.equal(await page.evaluate(value => window.TrackerI18n.formats(value).number.format(1200), language), formatted);
+    await page.evaluate(() => { location.hash = '#overview'; });
+    await page.waitForFunction(value => document.title === value + ' — Tracker', overview);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
+  }
+  checks.push('Spanish and Brazilian Portuguese settings, number formats and overview render without overflow');
   const emptyPage = await browser.newPage({viewport:{width:390,height:844}});
   emptyPage.on('pageerror', error => errors.push(error.message));
   emptyPage.on('request', request => {if(!request.url().startsWith(origin) && !request.url().startsWith('data:')) external.push(request.url());});
@@ -91,7 +105,7 @@ try {
   await emptyPage.close();
   assert.deepEqual(errors, []); assert.deepEqual(external, []);
   await writeFile(path.join(output, 'checks.json'), JSON.stringify({ checks, errors, externalRequests: external.length, synthetic: true }, null, 2));
-  console.log(`${checks.length} bilingual browser checks passed; external requests 0.`);
+  console.log(`${checks.length} four-language browser checks passed; external requests 0.`);
 } finally {
   try { await browser?.close(); } finally { server.kill(); }
 }

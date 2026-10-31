@@ -136,6 +136,9 @@ select {
 .toolbar-note {
   max-width: 500px;
   line-height: 1.5;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .list-account {
   flex-wrap: wrap;

@@ -1,6 +1,12 @@
-# InstagramTracker Windows 0.2.19
+# InstagramTracker Windows 0.2.20
 
-`artifacts/InstagramTracker-Desktop-0.2.19/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.20/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+
+## Dört yerel uygulama dili
+
+**Ayarlar → Uygulama dili** üzerinden Türkçe, English, Español veya Português (Brasil) seçilir. Tercih cihaz genelindeki şifreli ayarda tutulur; hesap kasaları, oturumlar, istek bütçesi, 429 molası, otomasyon ve bildirim tercihleri değişmez. Ekranlar, erişilebilirlik etiketleri, tepsi menüsü, yeni Windows bildirimleri, yerel hata açıklamaları ve sayı/tarih biçimleri seçilen dile uyar. Kayıtlı kullanıcı adı, biyografi, not, eski/yeni değer ve ham kanıt metinleri çevrilmez.
+
+Çeviri katalogları paketle birlikte yereldir; uygulama dilini değiştirmek veya açmak için çeviri hizmetine, hesaba ya da Instagram’a ağ isteği gönderilmez. Eski depolar Türkçe seçili olarak açılır. Sistem dosya seçicisinin Windows tarafından sağlanan düğmeleri Windows’un kendi dilinde kalabilir.
 
 ## Otomatik başlangıç hazırlığı
 
@@ -34,7 +40,7 @@ Mevcut hesap yeniden giriş olmadan ilk kasa olarak korunur. Güncellemeden sonr
 
 Ayarlar → Tema: **Sistem / Açık tema / Koyu / OLED siyahı**. İlk açılışta Sistem seçilidir; sistem açık/koyu tercihi değişince arayüz de değişir. Açık/Koyu/OLED seçimleri sistemden bağımsızdır ve şifreli yerel ayarlarda kalır. OLED ana zemini siyah, kartları hafif ayrışan koyu yüzeylerdir. Tema tercihi ilk ekran için yalnız tema adını içeren yerel bir önbelleğe de yazılır; hesap bilgisi yazılmaz. Sistem değişimi CSS ile izlenir; yeni zamanlayıcı veya ağ isteği yoktur.
 
-Menüler, formlar, grafikler, ilerleme çubuğu, bildirim günlüğü ve profil zaman tüneli ortak paleti kullanır. Profil fotoğrafları ters çevrilmez. Türkçe/İngilizce desteklenir. Android 0.1.32'de ⋯ → Tema aynı seçenekleri sunar; web tasarım önizlemesi de aynı paletle yerel tercih kaydeder. Üç platform arasında ayar senkronizasyonu veya yeni web hesap bağlantısı eklenmedi. [Doğrulama kapsamı](../docs/APPEARANCE-TEST.md).
+Menüler, formlar, grafikler, ilerleme çubuğu, bildirim günlüğü ve profil zaman tüneli ortak paleti kullanır. Profil fotoğrafları ters çevrilmez. Türkçe, English, Español ve Português (Brasil) desteklenir. Android 0.1.32'de ⋯ → Tema aynı seçenekleri sunar; web tasarım önizlemesi de aynı paletle yerel tercih kaydeder. Üç platform arasında ayar senkronizasyonu veya yeni web hesap bağlantısı eklenmedi. [Doğrulama kapsamı](../docs/APPEARANCE-TEST.md).
 
 ## Tarama ilerlemesi ve bekleme
 
@@ -42,7 +48,7 @@ Liste tararken alt durum çubuğu ilgili hesabı, takipçi/takip edilen yönün�
 
 İstekler arasındaki ayrılan 12–18 saniyelik rastgele aralıkta kalan saniye ve süre çubuğu görünür. Bu çubuk yalnız bekleme süresine aittir; bütün taramanın tamamlanma oranı değildir. Süre bitince sunucudan yanıt gelene kadar yanıt bekleniyor denir. Geri sayım ağ isteği göndermez; tepsiye gizlenme/küçültülmede durur ve açılışta güncel zamandan devam eder. İptalde geri sayım hemen kapanır; devam eden HTTP yanıtının mevcut zaman aşımı süresi beklenebilir. Alınmış kısmi kayıtlar korunur.
 
-HTTP 429, normal saniyelik aralıktan ayrı **İstekler duraklatıldı** durumudur. Mola kaydındaki en erken saat ve İstek bilgileri bağlantısı gösterilir; otomatik yeniden deneme başlatılmaz. Saat erişim garantisi değildir. Türkçe/İngilizce desteklenir. [Doğrulama kapsamı](../docs/PROGRESS-FEEDBACK-TEST.md).
+HTTP 429, normal saniyelik aralıktan ayrı **İstekler duraklatıldı** durumudur. Mola kaydındaki en erken saat ve İstek bilgileri bağlantısı gösterilir; otomatik yeniden deneme başlatılmaz. Saat erişim garantisi değildir. Dört uygulama dili desteklenir. [Doğrulama kapsamı](../docs/PROGRESS-FEEDBACK-TEST.md).
 
 ## Klavye ve ilk kullanım
 

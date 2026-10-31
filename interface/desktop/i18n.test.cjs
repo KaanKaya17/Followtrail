@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const i18n = require('../web/i18n.js');
 const { changeNotification } = require('./notifications.cjs');
 
-test('two local languages preserve substitution values and format numbers', () => {
+test('four local languages preserve substitution values and format numbers', () => {
   assert.equal(i18n.translate('Özet', [], 'en'), 'Overview');
   assert.equal(i18n.translate('Özet', [], 'tr'), 'Özet');
   assert.equal(i18n.translate('{0} dakika', [1], 'en'), '1 minute');
@@ -12,6 +12,12 @@ test('two local languages preserve substitution values and format numbers', () =
   assert.equal(i18n.translate('{0} · {1} değişiklik', ['@qa', 3], 'en'), '@qa · 3 changes');
   assert.equal(i18n.formats('tr').number.format(1200), '1.200');
   assert.equal(i18n.formats('en').number.format(1200), '1,200');
+  assert.equal(i18n.translate('Özet', [], 'es'), 'Resumen');
+  assert.equal(i18n.translate('Özet', [], 'pt-BR'), 'Resumo');
+  assert.equal(i18n.translate('{0} dakika', [1], 'es'), '1 minuto');
+  assert.equal(i18n.translate('{0} dakika', [2], 'pt-BR'), '2 minutos');
+  assert.equal(i18n.formats('es').number.format(1200), '1200');
+  assert.equal(i18n.formats('pt-BR').number.format(1200), '1.200');
   assert.equal(i18n.formats('en'), i18n.formats('en'));
   for (const key of ['constructor', 'toString', '__proto__', 'PRIVATE-QA-NOTE <script>'])
     assert.equal(i18n.translate(key, [], 'en'), key);
@@ -23,6 +29,8 @@ test('historical titles translate without changing frozen records or usernames',
   assert.equal(i18n.stored('@qa.person · Erişim kontrolü kaydedildi', 'en'), '@qa.person · Access check saved');
   assert.equal(i18n.stored('My private note: Özet', 'en'), 'My private note: Özet');
   assert.equal(i18n.stored(source, 'tr'), source);
+  assert.match(i18n.stored(source, 'es'), /^Sospecha de bloqueo · @qa.person:/);
+  assert.match(i18n.stored(source, 'pt-BR'), /^Suspeita de bloqueio · @qa.person:/);
 });
 test('Windows notification uses current language and retained selection', () => {
   const entry = { id: 'log', selectedChangeIds: ['event'], changes: [{ eventId: 'event', username: 'qa.person', category: 'followers', label: 'Takipçi sayısı', title: 'original' }] };

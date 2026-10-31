@@ -62,3 +62,16 @@ class LanguageTests(unittest.TestCase):
                 e.settings({'language': value, 'automatic': True})
             self.assertEqual(e.data['settings'], before)
         self.assertEqual(localization.translate('En fazla 200 profil kaydedilebilir.', 'en'), 'You can save up to 200 profiles.')
+
+    def test_spanish_and_brazilian_portuguese_are_full_local_choices(self):
+        e = self.connected()
+        for language, expected in (('es', 'Resumen'), ('pt-BR', 'Resumo')):
+            with self.subTest(language=language):
+                before = copy.deepcopy(e.data)
+                e.run('settings', {'language': language})
+                self.assertEqual(e.data['settings']['language'], language)
+                self.assertEqual(e.snapshot()['settings']['language'], language)
+                self.assertEqual(localization.translate('Özet', language), expected)
+                self.assertIn('qa.person', localization.translate('@{0} profili kontrol edildi', language, ('qa.person',)))
+                expected_data = copy.deepcopy(before); expected_data['settings']['language'] = language
+                self.assertEqual(e.data, expected_data)
