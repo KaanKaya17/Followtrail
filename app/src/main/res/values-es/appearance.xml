@@ -1,8 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="appearance_title">Tema</string>
     <string name="appearance_system">Sistema</string>
-    <string name="appearance_light">Claro</string>
-    <string name="appearance_dark">Oscuro</string>
-    <string name="appearance_oled">Negro OLED</string>
-    <string name="appearance_save_failed">No se pudo guardar el tema. Se mantuvo tu selección anterior.</string>
+    <string name="appearance_light">Luz</string>
+    <string name="appearance_dark">oscuro</string>
+    <string name="appearance_oled">OLED negro</string>
+    <string name="appearance_save_failed">No se pudo guardar el tema. Su selección anterior se mantuvo.</string>
 </resources>

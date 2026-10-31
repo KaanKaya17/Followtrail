@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="quick_start">reloj rápido</string>
+    <string name="quick_hint">Una sesión de 15 minutos mientras la pantalla de esta aplicación está visible. 60 segundos es el objetivo más temprano; los resultados pueden tardar más. Las comprobaciones rápidas se detienen mientras la pantalla está oculta. Los objetivos de fondo normales continúan después.</string>
+    <string name="quick_title">Vigilancia rápida · @%1$s</string>
+    <string name="quick_status">%1$s izquierda · Objetivo de verificación más temprano en %2$s s</string>
+    <string name="quick_busy">%1$s restantes · Comprobar y analizar listas</string>
+    <string name="quick_stop">Finalizar visualización rápida</string>
+    <string name="quick_restriction">La vigilancia rápida no puede eliminar un tiempo de reutilización existente o una retención de conexión. Consulta Solicitar información.</string>
+    <string name="timeline_title">Línea de tiempo</string>
+    <string name="timeline_menu">comprobar el historial</string>
+    <string name="timeline_subtitle">Qué se leyó y comparó, y cuándo.</string>
+    <string name="timeline_empty">Aquí aparecerán nuevos cheques. Los registros de perfil anteriores permanecen en la pantalla de análisis.</string>
+    <string name="timeline_scope">Los últimos 120 registros están cifrados en este dispositivo. Los tiempos se refieren a lecturas y comparaciones de dispositivos, no a tiempos exactos de eventos de Instagram. Los tiempos que faltan en registros más antiguos se muestran como no registrados.</string>
+    <string name="timeline_filter">Elige cuenta</string>
+    <string name="timeline_all">Todas las cuentas</string>
+    <string name="timeline_unknown">No grabado</string>
+    <string name="timeline_started">Acción iniciada: %1$s</string>
+    <string name="timeline_received">Datos recibidos: %1$s</string>
+    <string name="timeline_analyzed">Comparación guardada: %1$s</string>
+    <string name="timeline_failed_at">Acción finalizada: %1$s</string>
+    <string name="timeline_previous">Comprobación anterior: %1$s</string>
+    <string name="timeline_window">Este cambio se observó entre dos controles. Se desconoce su hora exacta.</string>
+    <string name="timeline_profile_initial">Primer registro de perfil</string>
+    <string name="timeline_profile_unchanged">Perfil comprobado · Sin cambios</string>
+    <string name="timeline_profile_changed">Cambio de perfil observado</string>
+    <string name="timeline_counts">Cambio de seguidor: %1$s · Cambio de siguiente: %2$s</string>
+    <string name="timeline_list">%1$s · Lista leída</string>
+    <string name="timeline_list_compared">%1$s · Listas comparadas</string>
+    <string name="timeline_list_counts">Páginas: %1$d · Cuentas descargadas: %2$d</string>
+    <string name="timeline_failure">No se pudo completar el cheque</string>
+    <string name="timeline_observed">Observado · %1$s</string>
+    <string name="timeline_saved">Procesado · %1$s</string>
+    <string name="timeline_profile_last">Última verificación de perfil · %1$s</string>
+    <string name="timeline_open_profile">Abrir perfil</string>
+    <string name="timeline_unavailable">No se pudo abrir el historial de cheques. Los registros de perfil y lista se almacenan por separado.</string>
+    <string name="timeline_write_failed">La última acción no pudo agregarse a la historia; verifique el perfil y enumere los registros por separado.</string>
+    <string name="adaptive_scope">Primero se verifican los recuentos de perfiles. Un cambio de recuento prioriza la lista relevante; Las listas completadas también conservan un control diario. Las personas pueden cambiar incluso cuando los recuentos siguen siendo los mismos. Una ronda en segundo plano utiliza hasta seis solicitudes y una ventana de 90 segundos para iniciar solicitudes, con al menos 15 segundos de diferencia. Android puede retrasar el trabajo. La visualización rápida solo se ejecuta mientras la aplicación está visible y se detiene ante el primer error; Se conservan 429 tiempos de reutilización.</string>
+    <string name="journal_privacy">El historial de verificación y comparación de listas también está cifrado en este dispositivo. Se conservan hasta 120 acciones recientes; Las contraseñas y las respuestas sin procesar no se escriben en este historial.</string>
+    <plurals name="timeline_member_sample">
+        <item quantity="one">El historial conserva la primera cuenta %1$d en cada dirección; Las diferencias totales se muestran arriba. Abra la pantalla de lista para todos los registros retenidos de la última lectura.</item>
+        <item quantity="other">La historia conserva las primeras %1$d cuentas en cada dirección; Las diferencias totales se muestran arriba. Abra la pantalla de lista para todos los registros retenidos de la última lectura.</item>
+        <item quantity="many">La historia conserva las primeras %1$d cuentas en cada dirección; Las diferencias totales se muestran arriba. Abra la pantalla de lista para todos los registros retenidos de la última lectura.</item>
+    </plurals>
+</resources>

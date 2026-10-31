@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="preparation_title">Cuenta conectada. Preparando tus listas</string>
+    <string name="preparation_paused">La preparación de la lista está en pausa</string>
+    <string name="preparation_waiting">La preparación de la lista está esperando</string>
+    <string name="preparation_ready">Tus listas de referencia están listas</string>
+    <string name="preparation_scope">Tus seguidores, que luego te siguen, se leen automáticamente. Se desconocen las personas que dejaron de seguir antes de comenzar a usar la aplicación.</string>
+    <string name="preparation_ready_scope">El primer registro es una línea de base. Los escaneos completados posteriormente le permiten ver los cambios en la lista.</string>
+    <string name="preparation_incomplete">La exploración está incompleta; Se conservaron los registros guardados.</string>
+    <string name="preparation_baseline">Línea de base lista</string>
+    <string name="preparation_progress">%1$d páginas · %2$d cuentas guardadas</string>
+    <string name="preparation_queued">Leer en cola</string>
+    <string name="preparation_held">Hay una restricción o verificación de Instagram pendiente. No se envía ninguna nueva solicitud; marque Solicitar información.</string>
+    <string name="preparation_daily">Cuente los cambios y el objetivo de verificación diaria ponga en cola otro escaneo.</string>
+    <string name="preparation_reading">Leyendo una página de lista…</string>
+    <string name="preparation_seconds">Pausa corta · continúa en %1$d segundos</string>
+    <string name="preparation_background">La preparación continúa automáticamente. La configuración en segundo plano de su teléfono y otras comprobaciones pueden hacer que demore más.</string>
+    <string name="preparation_pause">Pausar escaneos de lista</string>
+    <string name="preparation_resume">Reanudar la preparación</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="web_relay_blocked">Este formato de solicitud de inicio de sesión no es compatible; la aplicación no lo envió. Esto no significa que su contraseña sea incorrecta. Abra Diagnóstico de página antes de volver a intentarlo.</string>
+    <string name="web_relay_unavailable">Esta versión de WebView no admite las comprobaciones de inicio de sesión requeridas. Busque una actualización de WebView del sistema Android; no se envió ninguna solicitud de inicio de sesión.</string>
+    <string name="web_relay_invalid_response">Instagram no arrojó el resultado de inicio de sesión esperado. El error genérico de la página no confirma que su contraseña sea incorrecta. Abra los detalles de la página antes de volver a intentarlo.</string>
+</resources>

@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="web_compare_menu">Comparar conexão web</string>
+    <string name="web_compare_instruction">Conclua o login no Instagram. A lê seu perfil uma vez dentro deste navegador. Se for bem-sucedido, inicie B separadamente. O primeiro erro 429 ou de verificação interrompe o fluxo. Fique nesta tela; não compartilhe senhas ou códigos.</string>
+    <string name="web_compare_browser">A · Verifique dentro do navegador</string>
+    <string name="web_compare_native">B · Conecte-se com o aplicativo</string>
+    <string name="web_compare_reading">A · Lendo o perfil na mesma sessão do navegador…</string>
+    <string name="web_compare_browser_success">Um sucesso · %1$s seguidores · %2$s seguidores. A conta ainda não está conectada ao aplicativo. Pressione B uma vez quando o intervalo de solicitação de cerca de 15 segundos terminar.</string>
+    <string name="web_compare_native_ready">Um sucesso. B está pronto; nenhuma solicitação foi enviada automaticamente. Pressione B uma vez para continuar.</string>
+    <string name="web_compare_cancelled">A comparação de conexão foi interrompida após navegar ou sair do aplicativo. Isso não estabelece uma nova conexão. Revise o resultado em Solicitar informações.</string>
+    <string name="web_compare_journal_failed">Não foi possível ler ou gravar diagnósticos de conexão da Web.</string>
+    <string name="web_compare_no_report">Nenhuma comparação de conexão da web registrada.</string>
+    <string name="web_compare_report">Comparação de conexão da web mais recente · Recurso de página W00 / perfil de navegador W01 / aplicativo W02. Apenas etapa, hora, resultado e HTTP são retidos.</string>
+    <string name="web_compare_report_row">%1$s · %2$s · HTTP %3$s · %4$s</string>
+    <string name="web_compare_started">Iniciado; nenhum resultado concluído</string>
+    <string name="web_compare_success">Sucesso</string>
+    <string name="web_compare_limited">Limitado; parou</string>
+    <string name="web_compare_auth">Login ou verificação necessária</string>
+    <string name="web_compare_invalid">Resposta ou identidade não verificada</string>
+    <string name="web_compare_connection">A conexão não foi concluída</string>
+    <string name="web_compare_cancel">Cancelado; nenhum resultado concluído</string>
+    <string name="web_compare_legacy_attribution">Diagnóstico legado: esta versão pode não ter distinguido qual solicitação WebView retornou 429. Este registro W01 não é uma evidência verificada de uma resposta HTTP de perfil.</string>
+    <string name="web_compare_last_counted_http">Resposta HTTP da última solicitação contada: %1$s</string>
+    <string name="web_compare_page_limit_signal">Recurso de página HTTP 429/Instagram</string>
+</resources>

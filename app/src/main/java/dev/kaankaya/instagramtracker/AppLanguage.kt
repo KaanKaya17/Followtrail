@@ -29,8 +29,8 @@ object AppLanguage {
     fun wrap(context: Context): Context {
         val locale = Locale.forLanguageTag(selected(context))
         val configuration = Configuration(context.resources.configuration)
-        // Preview packs are intentionally partial. Prefer English rather than the Turkish default for missing keys.
-        configuration.setLocales(if (locale.language == "tr") LocaleList(locale) else LocaleList(locale, Locale.ENGLISH))
+        // Each supported locale has a complete resource pack. Do not silently mix languages.
+        configuration.setLocales(LocaleList(locale))
         return context.createConfigurationContext(configuration)
     }
 

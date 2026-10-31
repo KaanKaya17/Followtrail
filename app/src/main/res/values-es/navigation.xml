@@ -1,5 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="navigation_own_followers">Abrir mi lista de seguidores</string>
-    <string name="navigation_continue_list">Seguir leyendo la lista</string>
-    <string name="navigation_list_pacing">La lista se lee página por página, con pausas entre solicitudes. Las páginas descargadas se guardan en tu dispositivo.</string>
+    <string name="navigation_continue_list">Continuar leyendo lista</string>
+    <string name="navigation_list_pacing">La lista se lee página por página, con pausas entre solicitudes. Las páginas descargadas se guardan en su dispositivo.</string>
 </resources>

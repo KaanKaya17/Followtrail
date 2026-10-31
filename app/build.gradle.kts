@@ -6,8 +6,8 @@ android {
         applicationId = "dev.kaankaya.instagramtracker"
         minSdk = 24
         targetSdk = 36
-        versionCode = 63
-        versionName = "0.1.62"
+        versionCode = 64
+        versionName = "0.1.63"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { buildConfig = true }
@@ -16,9 +16,6 @@ android {
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     lint {
         abortOnError = true
-        // Spanish and Brazilian Portuguese are explicitly marked preview packs. Their translated subset and
-        // placeholder contracts are checked by scripts/check-locales.py; missing keys use English fallback.
-        disable += "MissingTranslation"
     }
 }
 dependencies {

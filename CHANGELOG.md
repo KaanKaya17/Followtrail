@@ -1,12 +1,15 @@
 # Değişiklikler
 
-## Android 0.1.62 — 2026-10-31 (İspanyolca ve Brezilya Portekizcesi · önizleme)
+## Android 0.1.63 — 2026-10-31 (Tam İspanyolca ve Brezilya Portekizcesi)
 
-- Uygulama dili seçimine İspanyolca ve Brezilya Portekizcesi eklendi. Bölgesel `pt-BR` etiketi Android'in uygulama dili ayarına aynen aktarılır; seçilen dil ve önceki kayıtlar korunur.
-- İlk paket, dil/tema/liste gezinmesi ve güvenlik durumu metinlerini çevirir. Çevrilmemiş metinler Türkçeye düşmek yerine İngilizceye güvenli olarak döner; seçicideki “önizleme” etiketi kapsamı açıkça belirtir.
-- Dil paketi denetimi, her önizleme anahtarının kaynak türünü ve biçim parametrelerini doğrular; bilinmeyen anahtarları reddeder.
-- Android'in tüm diller için tam çeviri varsayımı bu iki önizleme için kapalıdır; aynı kapsam yerel kaynak denetiminde açıkça doğrulanır. İngilizce tam paket denetimi korunur.
+- Uygulama dili seçimine tam İspanyolca ve Brezilya Portekizcesi eklendi. Bölgesel `pt-BR` etiketi Android'in uygulama dili ayarına aynen aktarılır; seçilen dil ve önceki kayıtlar korunur.
+- İki paketin de 648 kaynak anahtarı vardır: dil, tema, menüler, takip listeleri, otomasyon, bildirimler, oturum/güvenlik yönlendirmesi ve istek tanıları çevrilidir.
+- Dil paketi denetimi dört dilin kaynak türlerini, anahtar kapsamını, biçim parametrelerini ve çoğulları eşitlik olarak doğrular. Android lint’in eksik-çeviri denetimi de yeniden açıktır.
 - 118 birim testi, kaynak denetimi ve release lint geçti. Telefon bağlantısı kesildiği için yeni fiziksel cihaz dil-geçiş testi henüz çalıştırılmadı.
+
+## Android 0.1.62 — 2026-10-31 (İlk dil seçimi)
+
+- İspanyolca ve Brezilya Portekizcesi için ilk uygulama dili seçimi sunuldu. Tam kaynak kapsamı ve tek-dilli kaynak çözümü 0.1.63'te tamamlandı.
 
 ## Android 0.1.61 — 2026-10-30 (Okunabilir istek tanısı)
 

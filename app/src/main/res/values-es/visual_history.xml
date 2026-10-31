@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="visual_title">Túnel del tiempo de perfil</string>
+    <string name="visual_back">Atrás</string>
+    <string name="visual_scope">El archivo comienza con el primer registro. Las fechas muestran los horarios de verificación; Se desconoce el momento exacto de un cambio. Sólo se guardan las fotos de perfil pequeñas disponibles durante el uso normal.</string>
+    <string name="visual_enable">Habilitar archivado</string>
+    <string name="visual_stop">Pausar el archivado</string>
+    <string name="visual_clear">Borrar archivo</string>
+    <string name="visual_clear_hint">La biografía y el archivo de avatar de este perfil se eliminarán y se detendrá el archivado. Se mantienen otras observaciones de perfil.</string>
+    <string name="visual_clear_confirm">Eliminar archivo y detener</string>
+    <string name="visual_failed">El archivo no se pudo guardar ni leer. Se mantuvo el registro anterior.</string>
+    <string name="visual_full">Se alcanzó el límite de archivo. Se mantienen registros más antiguos; borre el archivo para hacer espacio.</string>
+    <string name="visual_avatars">galería de avatares</string>
+    <string name="visual_photo">Foto de perfil archivada</string>
+    <string name="visual_no_photos">Aún no se ha archivado ninguna foto. Las fotos más antiguas que no estén disponibles no se pueden reconstruir.</string>
+    <string name="visual_first_last">Primera verificación: %1$s\nÚltima verificación: %2$s</string>
+    <string name="visual_size">%1$d imágenes · %2$d KB</string>
+    <string name="visual_bios">Biografía túnel del tiempo</string>
+    <string name="visual_legend">+ Agregado · − Eliminado</string>
+    <string name="visual_baseline">Registro inicial</string>
+    <string name="visual_empty">No se capturan registros nuevos mientras el archivado está en pausa. Los registros existentes permanecen disponibles.</string>
+    <string name="visual_limits">Hasta %1$d cambios y %2$d miniaturas por perfil. El archivo tiene un presupuesto total de 1,8 MiB y utiliza cifrado Keystore; los límites de observación móviles no lo borran.</string>
+</resources>

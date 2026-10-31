@@ -1,13 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="language_menu">Idioma / Language</string>
+    <string name="language_menu">Idioma</string>
     <string name="language_title">Idioma de la aplicación</string>
-    <string name="language_spanish">Español (vista previa)</string>
-    <string name="language_portuguese_brazil">Português (Brasil) (vista previa)</string>
-    <string name="language_save_failed">No se pudo guardar tu preferencia de idioma. Inténtalo de nuevo.</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_portuguese_brazil">Português (Brasil)</string>
+    <string name="language_save_failed">No se pudo guardar su preferencia de idioma. Por favor inténtalo de nuevo.</string>
     <string name="welcome_hello">hola</string>
-    <string name="welcome_circle">CONOCE MEJOR A TU CÍRCULO</string>
-    <string name="limit_wait_signal">Respuesta de espera de Instagram</string>
+    <string name="welcome_circle">CONOCE TU CÍRCULO</string>
+    <string name="limit_wait_signal">Instagram espera respuesta</string>
     <string name="limit_feedback_signal">Restricción de acciones de Instagram</string>
-    <string name="limit_prototype_signal">HTTP 429 / página de prototipo</string>
+    <string name="limit_prototype_signal">HTTP 429 / página prototipo</string>
     <string name="limit_legacy_signal">Restricción registrada por una versión anterior</string>
 </resources>

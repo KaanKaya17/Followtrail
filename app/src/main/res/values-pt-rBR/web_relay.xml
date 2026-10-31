@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="web_relay_blocked">Este formato de solicitação de login não é compatível; o aplicativo não enviou. Isso não significa que sua senha esteja incorreta. Abra o diagnóstico da página antes de tentar novamente.</string>
+    <string name="web_relay_unavailable">Esta versão do WebView não oferece suporte às verificações de login necessárias. Verifique se há uma atualização do Android System WebView; nenhuma solicitação de login foi enviada.</string>
+    <string name="web_relay_invalid_response">O Instagram não retornou o resultado de login esperado. O erro genérico da página não confirma que sua senha está errada. Abra os detalhes da página antes de tentar novamente.</string>
+</resources>

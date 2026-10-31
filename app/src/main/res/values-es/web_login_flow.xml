@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="web_login_security_loading">Preparando la pantalla de verificación de Instagram. Después del breve intervalo de solicitud existente, solo se leerá la pantalla del código; su contraseña no será enviada nuevamente. Luego completa el paso que muestra Instagram.</string>
+    <string name="web_login_renderer_stopped">El renderizador de páginas de Instagram se detuvo; Esto también puede suceder cuando la memoria del dispositivo es baja. Se canceló el inicio de sesión abierto y se conservaron sus cuentas guardadas. No se envió ninguna nueva solicitud. Cierra otras aplicaciones y vuelve a intentarlo cuando estés listo; Los períodos de espera existentes aún se aplican.</string>
+    <string name="web_login_security_unsupported_request">Se abrió la página de seguridad de Instagram, pero esta versión no admite su siguiente paso de verificación. Su cuenta no está conectada. No vuelva a enviar su contraseña; El diagnóstico de página identifica la operación técnica sin conservar su contraseña o código.</string>
+    <string name="web_login_security_returned_login">La página de seguridad de Instagram volvió a iniciar sesión. La verificación y la conexión del Tracker no están completas. No vuelva a enviar su contraseña; El diagnóstico de página puede mostrar qué paso regresó.</string>
+    <string name="web_login_step_loading">Abrir el inicio de sesión de Instagram</string>
+    <string name="web_login_step_credentials">Tu turno · Inicia sesión en Instagram</string>
+    <string name="web_login_step_waiting">Esperando la respuesta de Instagram</string>
+    <string name="web_login_step_code">Tu turno · Introduce el código de verificación</string>
+    <string name="web_login_step_captcha">Tu turno · Completa el control de seguridad</string>
+    <string name="web_login_step_profile">Paso final · Conectar tu cuenta</string>
+    <string name="web_login_step_attention">Tu conexión necesita atención</string>
+    <string name="web_login_page_timeout">La página de inicio de sesión de Instagram no se pudo cargar. El inicio de sesión no está completo. Comprueba tu conexión o busca alertas de seguridad en Instagram. No sigas enviando tu contraseña.</string>
+    <string name="web_login_sending">Instagram está comprobando tu inicio de sesión. El resultado debería aparecer en unos 35 segundos; no volver a enviar.</string>
+    <string name="web_login_profile_pending">Iniciado sesión. Después del breve intervalo de solicitud, su perfil se verificará una vez para completar la conexión.</string>
+    <string name="web_login_comparison_ready">Ha iniciado sesión. Utilice A para comprobar el lector del navegador y luego B para comparar el lector de la aplicación.</string>
+    <string name="web_login_captcha">Instagram requiere un control de seguridad adicional; el inicio de sesión no está completo. Abra la verificación a continuación en lugar de enviar su contraseña nuevamente.</string>
+    <string name="web_login_captcha_unavailable">Instagram requiere un CAPTCHA/control de seguridad. Esta versión no pudo abrir el paso de verificación en la respuesta, por lo que el inicio de sesión no se completó y el formulario se cerró. Esto no establece que su contraseña sea incorrecta. Toque Verificar en Instagram y complete usted mismo cualquier control de seguridad que se muestre allí. Eso no conecta automáticamente Tracker. Inténtalo de nuevo después del tiempo indicado a continuación.</string>
+    <string name="web_login_two_factor">Instagram requiere verificación adicional. Introduce el SMS o el código del autenticador solicitado en la página de Instagram de abajo, o aprueba el inicio de sesión en Instagram si se te pide. No envíes el código por el chat. Si no aparece ningún campo de código o paso de aprobación, no vuelvas a enviar tu contraseña; cancela y revisa las alertas de seguridad de Instagram.</string>
+    <string name="web_login_rejected">Instagram no creó una sesión para este único intento. El formulario estaba cerrado; no se enviaron credenciales adicionales. La respuesta por sí sola no establece la causa subyacente.</string>
+    <string name="web_login_not_accepted">El inicio de sesión en Instagram no se completó</string>
+    <string name="web_login_not_sent">No se envió ningún nuevo inicio de sesión desde esta pantalla. El intento anterior no verifica las credenciales de otras cuentas. Espere hasta el tiempo indicado a continuación antes de volver a intentarlo.</string>
+    <string name="web_compare_direct_native">Prueba el lector de aplicaciones directamente</string>
+    <string name="web_login_show_challenge">Mostrar verificación de Instagram</string>
+    <string name="web_login_challenge_privacy">Esto abre la página de seguridad de Instagram. El marco CAPTCHA de Meta y Google reCAPTCHA pueden cargar y recibir su dirección IP e información del navegador. La aplicación no reenvía su contraseña ni su sesión de Instagram a estos dominios. Complete la verificación usted mismo; cancelar deja estos recursos bloqueados.</string>
+    <string name="web_login_complete_challenge">Complete el paso de seguridad de Instagram en esta página. Después del éxito, se verificará su perfil. Si la página no continúa, finalice la verificación y toque Verificar cuenta una vez.</string>
+</resources>

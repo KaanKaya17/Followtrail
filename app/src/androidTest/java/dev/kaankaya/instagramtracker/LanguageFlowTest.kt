@@ -154,18 +154,18 @@ class LanguageFlowTest {
         assertEquals("1 saved profile", resources.getQuantityString(R.plurals.ui_saved_profiles, 1, 1))
     }
 
-    @Test fun previewLanguagesKeepTheirRegionalTagAndUseEnglishForMissingTranslations() {
+    @Test fun fullLanguagesKeepTheirRegionalTagAndTranslateTheHomeLabel() {
         instrumentation.runOnMainSync { AppLanguage.set(context, "es") }
         instrumentation.waitForIdleSync()
         assertEquals("es", AppLanguage.selected(context))
         assertEquals("Idioma de la aplicación", AppLanguage.wrap(context).getString(R.string.language_title))
-        assertEquals("At a glance", AppLanguage.wrap(context).getString(R.string.ui_at_a_glance))
+        assertEquals("De un vistazo", AppLanguage.wrap(context).getString(R.string.ui_at_a_glance))
 
         instrumentation.runOnMainSync { AppLanguage.set(context, "pt-BR") }
         instrumentation.waitForIdleSync()
         assertEquals("pt-BR", AppLanguage.selected(context))
         assertEquals("Idioma do aplicativo", AppLanguage.wrap(context).getString(R.string.language_title))
-        assertEquals("At a glance", AppLanguage.wrap(context).getString(R.string.ui_at_a_glance))
+        assertEquals("Em resumo", AppLanguage.wrap(context).getString(R.string.ui_at_a_glance))
         assertEquals(0L, gate.attempts())
     }
 }
