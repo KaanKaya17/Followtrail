@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows/web 0.2.20 — 2026-10-31 (İspanyolca ve Brezilya Portekizcesi)
+
+- Windows uygulaması ve aynı kaynakları kullanan web önizlemesine Español ile Português (Brasil) eklendi. Türkçe ve English seçenekleri korunur; eski yerel depolar Türkçe seçili olarak açılır.
+- Dört katalog da aynı 999 uygulama metnini, çoğul biçimlerini ve yer tutucularını kapsar. Ekranlar, erişilebilirlik etiketleri, tepsi menüsü, yeni Windows bildirimleri, yerel hata açıklamaları ile sayı/tarih biçimleri seçilen dilde görünür.
+- Dil tercihi cihaz genelindeki şifreli ayarda kalır; hesap kasaları, kullanıcı içerikleri, kanıt metinleri, istek bütçesi, 429 molası ve otomasyon değiştirilmez. Çeviri paketleri uygulamayla birlikte gelir; dil seçimi hiçbir ağ isteği başlatmaz.
+- 167 çevrimdışı Python testi, 28 Node testi, 11 tarayıcı kontrolü ve gerçek paketli EXE üzerinde 31 kontrol geçti. Yeni dillerde altı ekranın taşması, yeniden açılış, kişisel metin ve mola korunumu doğrulandı. Canlı Instagram girişi ve gerçek Windows bildirim teslimi bu dil güncellemesinde yeniden denenmedi.
+
 ## Android 0.1.63 — 2026-10-31 (Tam İspanyolca ve Brezilya Portekizcesi)
 
 - Uygulama dili seçimine tam İspanyolca ve Brezilya Portekizcesi eklendi. Bölgesel `pt-BR` etiketi Android'in uygulama dili ayarına aynen aktarılır; seçilen dil ve önceki kayıtlar korunur.

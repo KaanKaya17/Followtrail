@@ -4,10 +4,10 @@
   else root.TrackerI18n = factory();
 })(globalThis, function () {
   'use strict';
-  const en = /* TRANSLATIONS */ {};
-  const locales = { tr: 'tr-TR', en: 'en-US' };
+  const catalogs = /* TRANSLATIONS */ {};
+  const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };
   const formatterCache = new Map();
-  function valid(language) { return language === 'tr' || language === 'en'; }
+  function valid(language) { return Object.hasOwn(locales, language); }
   function locale(language) { return locales[language] || locales.tr; }
   function formats(language) {
     const key = valid(language) ? language : 'tr';
@@ -20,7 +20,8 @@
   }
   function translate(message, values = [], language = 'tr') {
     if (typeof message !== 'string') return message;
-    let text = language === 'en' && Object.hasOwn(en, message) ? en[message] : message;
+    const catalog = catalogs[language];
+    let text = catalog && Object.hasOwn(catalog, message) ? catalog[message] : message;
     if (typeof text !== 'string') {
       const count = values[text.count || 0];
       text = count === 1 || count === '1' ? text.one : text.other;
@@ -36,12 +37,12 @@
   ];
   const storedPatterns = storedKeys.map(key => [key, new RegExp('^' + key.split(/\{\d+\}/).map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('([A-Za-z0-9._]+)') + '$')]);
   function stored(message, language = 'tr') {
-    if (language !== 'en' || typeof message !== 'string' || Object.hasOwn(en, message)) return translate(message, [], language);
+    if (language === 'tr' || typeof message !== 'string' || Object.hasOwn(catalogs[language] || {}, message)) return translate(message, [], language);
     for (const [key, pattern] of storedPatterns) {
       const match = message.match(pattern);
       if (match) return translate(key, match.slice(1), language);
     }
     return message;
   }
-  return Object.freeze({ translate, stored, valid, locale, formats, keys: Object.freeze(Object.keys(en)) });
+  return Object.freeze({ translate, stored, valid, locale, formats, keys: Object.freeze(Object.keys(catalogs.en)) });
 });

@@ -15,6 +15,7 @@ from network import AppFailure
 from storage import Vault, StorageFailure
 from login_identity import device_settings
 import request_budget
+import localization
 
 DEVICE_SETTINGS = ('language', 'theme', 'compact')
 
@@ -89,7 +90,7 @@ class Accounts(Engine):
         if (type(c.get('limitedHold')) is not bool or
                 c.get('active') is not None and c.get('active') not in c['accounts'] or
                 any(c['preferences'].get(k) not in values for k, values in
-                    (('language', ('tr', 'en')), ('theme', ('system', 'light', 'dark', 'oled')))) or
+                    (('language', localization.LANGUAGES), ('theme', ('system', 'light', 'dark', 'oled')))) or
                 type(c['preferences'].get('compact')) is not bool):
             raise StorageFailure('Hesap dizini geçersiz. Mevcut dosyalar korundu.')
         slots = set()

@@ -1,6 +1,6 @@
 # Tracker — ortak web ve masaüstü arayüzü
 
-**Güncel Windows uygulaması 0.2.19:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.19/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
+**Güncel Windows uygulaması 0.2.20:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.20/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
 
 Ayarlar → Tema: Sistem / Açık tema / Koyu / OLED siyahı. Varsayılan Sistem canlı sistem değişimini izler; açık seçimler bu tarayıcıda saklanır. Aynı ortak palet Windows 0.2.11 ve Android 0.1.32’de de kullanılır.
 
@@ -30,6 +30,6 @@ Bu örnek verili önizlemenin açılması Instagram erişiminin çalıştığın
 
 ## Dil seçimi
 
-Web önizlemesinde **Ayarlar → Arayüz dili**, Windows uygulamasında **Ayarlar → Uygulama dili** üzerinden **Türkçe / English** seçilir. Web tercihi bu tarayıcının localStorage alanında, Windows tercihi mevcut DPAPI deposunda saklanır. Hesap/izleme/mola/bildirim tercihleri değişmez; web önizlemesi yine yalnız örnek veridir.
+Web önizlemesinde **Ayarlar → Arayüz dili**, Windows uygulamasında **Ayarlar → Uygulama dili** üzerinden **Türkçe / English / Español / Português (Brasil)** seçilir. Web tercihi bu tarayıcının localStorage alanında, Windows tercihi mevcut DPAPI deposunda saklanır. Hesap/izleme/mola/bildirim tercihleri değişmez; web önizlemesi yine yalnız örnek veridir.
 
-`locales/en.json` Türkçe kaynak mesajların İngilizce karşılıklarını ve çoğul biçimlerini, `locales/runtime.js` yerel biçimlendiriciyi içerir. `npm run i18n`, web ve Node tarafından kullanılan `web/i18n.js` çıktısını üretir; `npm run check` güncelliği, yer tutucuları ve kaynak mesaj kapsamını denetler. Worker aynı JSON kataloğunu paketler. Çeviri servisi veya ek ağ isteği yoktur. Kullanıcı adı/biyografi/not/önceki-sonraki değerler çevrilmez.
+`locales/en.json`, `locales/es.json` ve `locales/pt-BR.json` Türkçe kaynak mesajların karşılıklarını ve çoğul biçimlerini, `locales/runtime.js` yerel biçimlendiriciyi içerir. `npm run i18n`, web ve Node tarafından kullanılan `web/i18n.js` çıktısını üretir; `npm run check` her dilde aynı 999 anahtarı, yer tutucuları ve kaynak mesaj kapsamını denetler. Worker aynı JSON kataloglarını paketler. Çalışma sırasında çeviri servisi veya ek ağ isteği yoktur. Kullanıcı adı/biyografi/not/önceki-sonraki değerler çevrilmez.
