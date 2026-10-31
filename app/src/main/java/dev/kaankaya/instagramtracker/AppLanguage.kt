@@ -13,32 +13,35 @@ import java.util.Locale
 object AppLanguage {
     private const val PREFERENCES = "interface_language"
     private const val KEY = "language"
-    val choices = listOf("tr", "en")
+    val choices = listOf("tr", "en", "es", "pt-BR")
+
+    private fun supported(tag: String?): String? = choices.firstOrNull { it.equals(tag, ignoreCase = true) }
 
     fun selected(context: Context): String {
         if (Build.VERSION.SDK_INT >= 33) {
             val locales = context.getSystemService(LocaleManager::class.java).applicationLocales
-            if (!locales.isEmpty) return locales[0].language.takeIf { it in choices } ?: "tr"
+            if (!locales.isEmpty) return supported(locales[0].toLanguageTag()) ?: "tr"
         }
         return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY, "tr")
-            ?.takeIf { it in choices } ?: "tr"
+            ?.let(::supported) ?: "tr"
     }
 
     fun wrap(context: Context): Context {
         val locale = Locale.forLanguageTag(selected(context))
         val configuration = Configuration(context.resources.configuration)
-        configuration.setLocales(LocaleList(locale))
+        // Preview packs are intentionally partial. Prefer English rather than the Turkish default for missing keys.
+        configuration.setLocales(if (locale.language == "tr") LocaleList(locale) else LocaleList(locale, Locale.ENGLISH))
         return context.createConfigurationContext(configuration)
     }
 
     fun set(context: Context, language: String) {
-        require(language in choices)
+        val selected = requireNotNull(supported(language))
         if (Build.VERSION.SDK_INT >= 33) {
-            context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(language)
+            context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(selected)
             // Android owns persistence on 13+. Remove an older-OS preference after handing it off.
             context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().remove(KEY).apply()
         } else {
-            check(context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putString(KEY, language).commit())
+            check(context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putString(KEY, selected).commit())
         }
     }
 
@@ -46,7 +49,7 @@ object AppLanguage {
         if (Build.VERSION.SDK_INT < 33) return
         val saved = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY, null) ?: return
         val manager = context.getSystemService(LocaleManager::class.java)
-        if (manager.applicationLocales.isEmpty && saved in choices) manager.applicationLocales = LocaleList.forLanguageTags(saved)
+        supported(saved)?.let { selected -> if (manager.applicationLocales.isEmpty) manager.applicationLocales = LocaleList.forLanguageTags(selected) }
         context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().remove(KEY).apply()
     }
 

@@ -22,9 +22,10 @@ def catalog(folder):
 base = catalog(ROOT / "values")
 english = catalog(ROOT / "values-en")
 required = {name for name, entry in base.items() if entry.get("translatable") != "false"}
-assert required == set(english), f"Missing: {required - set(english)}; extra: {set(english) - required}"
-for name in required:
-    source, target = base[name], english[name]
+assert required == set(english), f"English missing: {required - set(english)}; extra: {set(english) - required}"
+
+
+def validate_entry(name, source, target):
     assert source.tag == target.tag, name
     if source.tag == "string":
         assert sorted(ARGUMENT.findall(source.text or "")) == sorted(ARGUMENT.findall(target.text or "")), name
@@ -35,6 +36,20 @@ for name in required:
         assert target.find("item[@quantity='other']") is not None, name
         for item in target:
             assert sorted(ARGUMENT.findall(fallback.text or "")) == sorted(ARGUMENT.findall(item.text or "")), name
+
+
+for name in required:
+    validate_entry(name, base[name], english[name])
+
+preview_packs = {"values-es": "es", "values-pt-rBR": "pt-BR"}
+for folder, tag in preview_packs.items():
+    target = catalog(ROOT / folder)
+    assert set(target) <= set(base), f"{tag} has unknown keys: {set(target) - set(base)}"
+    for name, entry in target.items():
+        validate_entry(name, base[name], entry)
+    language_keys = set(catalog(ROOT / "values").keys()) & set(catalog(ROOT / folder).keys())
+    assert {"language_menu", "language_title", "language_save_failed", "language_spanish", "language_portuguese_brazil"} <= language_keys, tag
+
 assert {node.attrib["{http://schemas.android.com/apk/res/android}name"] for node in
-        ET.parse(ROOT / "xml/locales_config.xml").getroot()} == {"tr", "en"}
-print(f"Turkish / English: {len(required)} matching resources; placeholders and plurals valid.")
+        ET.parse(ROOT / "xml/locales_config.xml").getroot()} == {"tr", "en", "es", "pt-BR"}
+print(f"Turkish / English: {len(required)} matching resources; Spanish and Brazilian Portuguese previews validate their translated keys, placeholders and plurals.")

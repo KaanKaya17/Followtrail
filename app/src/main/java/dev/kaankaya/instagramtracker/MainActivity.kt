@@ -825,7 +825,8 @@ class MainActivity : LocalizedActivity() {
         }
     }
     private fun languagePicker() {
-        val choices = arrayOf(getString(R.string.language_turkish), getString(R.string.language_english))
+        val choices = arrayOf(getString(R.string.language_turkish), getString(R.string.language_english),
+            getString(R.string.language_spanish), getString(R.string.language_portuguese_brazil))
         AlertDialog.Builder(this).setTitle(R.string.language_title)
             .setSingleChoiceItems(choices, AppLanguage.choices.indexOf(AppLanguage.selected(this))) { dialog, index ->
                 dialog.dismiss()
