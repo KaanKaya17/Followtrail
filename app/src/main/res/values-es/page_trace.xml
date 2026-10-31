@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="page_trace_open">Detalles de la página</string>
+    <string name="page_trace_report">Detalles de la página de inicio de sesión · LP01\nSolo se guardan los tipos/recuentos de solicitudes, eventos de carga, códigos de error numéricos, visibilidad de campo y si se recibieron cookies de sesión. No se guarda ninguna URL, contraseña, código de verificación, valor de cookie ni contenido de formulario/respuesta. HTTP 200 no significa que el inicio de sesión se haya realizado correctamente. ALLOWED_RESOURCE solo indica permiso de filtro local.\n%1$s</string>
+    <string name="page_trace_unavailable">Los detalles de la página de inicio de sesión no se pudieron guardar ni leer.</string>
+    <string name="page_trace_waiting">El campo de inicio de sesión aún no está visible. Puede abrir los detalles de la página sin volver a abrirla. No se inició ningún nuevo intento de inicio de sesión.</string>
+</resources>

@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="lab_limited">"Instagram devolvió HTTP 429. Se detuvo otro intento".</string>
+    <string name="lab_tls_failure">"No se pudo verificar la conexión segura. La acción se detuvo".</string>
+    <string name="lab_summary">"Lecturas de prototipo iniciadas en este dispositivo: %1$d\nRecursos de perfil observados en el navegador: %2$d\nÚltimo evento: %3$s%4$s"</string>
+    <string name="lab_wait">"\nPróximo intento no antes de: %1$s. Este es un tiempo de reutilización local".</string>
+    <string name="lab_start_failure">"No se pudo iniciar el experimento de forma segura".</string>
+    <string name="lab_waiting">"Esperando la solicitud de perfil único…"</string>
+    <string name="lab_counts">"@%1$s\n%2$s seguidores · %3$s siguiendo"</string>
+    <string name="lab_success">"HTTP 200 · Se leyeron los recuentos de perfiles. No se transfirió a la aplicación principal".</string>
+    <string name="lab_invalid">"No se pudo validar la respuesta; no se muestran recuentos".</string>
+    <string name="lab_update_webview">"WebView del sistema Android no admite este experimento. Actualice WebView; no se envió ninguna solicitud de perfil".</string>
+    <string name="lab_browser_closed">"El navegador se cerró en segundo plano. Finalice el experimento y vuelva a abrirlo".</string>
+    <string name="lab_login_instruction">"Completa el inicio de sesión en Instagram y cualquier verificación".</string>
+    <string name="lab_ready">"La página está lista. Después de iniciar sesión/verificar, puede iniciar la lectura única".</string>
+</resources>

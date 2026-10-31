@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="desktop_link_header">"Conexão de conta"</string>
+    <string name="desktop_link_title">"Traga sua conta."</string>
+    <string name="desktop_link_intro">"Transfira com segurança a conexão do seu computador."</string>
+    <string name="desktop_link_prepare">"Preparar conexão"</string>
+    <string name="desktop_link_import">"Receber transferência"</string>
+    <string name="desktop_link_read">"Conectar"</string>
+    <string name="desktop_link_close">"Voltar"</string>
+    <string name="desktop_link_busy">“Um momento…”</string>
+    <string name="desktop_link_success">"Conectado"</string>
+    <string name="desktop_link_error">"Não foi possível abrir a transferência. Verifique a transferência no seu computador."</string>
+    <string name="desktop_link_pause">"Recarga local · %1$s"</string>
+    <string name="desktop_link_switch">"Conectar outra conta"</string>
+    <string name="desktop_link_help">"Como funciona?"</string>
+</resources>

@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="phone_diagnostic_saved">Última solicitud de inicio de sesión por teléfono · %1$s\nHTTP: %2$s\nSolicitud iniciada: %3$s\nEsto sobrevive a la reapertura; no se guarda ninguna contraseña, código o contenido de respuesta.</string>
+    <string name="phone_diagnostic_empty">No se guardó ningún diagnóstico de inicio de sesión del teléfono. Los pasos de versiones anteriores no se pueden recuperar.</string>
+    <string name="phone_diagnostic_unavailable">No se pudo leer el diagnóstico de inicio de sesión del teléfono.</string>
+    <string name="phone_failure_detail">Diagnóstico (última solicitud): %1$s · HTTP: %2$s</string>
+    <string name="phone_menu">Conéctese en este teléfono · Sin computadora</string>
+    <string name="phone_title">Conéctate en tu teléfono</string>
+    <string name="phone_intro">No se necesita computadora, USB ni archivo de sesión. Inicia sesión en este dispositivo; ingrese un código de verificación en el siguiente paso si es necesario.</string>
+    <string name="phone_access">La conexión se utiliza para leer perfiles accesibles y listas de seguidores/seguidos. Esta no es una pantalla de permisos oficial de Instagram; la aplicación utiliza la sesión de su cuenta.</string>
+    <string name="phone_contact">Nombre de usuario o correo electrónico</string>
+    <string name="phone_password">contraseña de instagram</string>
+    <string name="phone_start">Iniciar sesión</string>
+    <string name="phone_password_notice">Su contraseña se procesa en la memoria durante el inicio de sesión y no se escribe en archivos ni registros. Una sesión exitosa está cifrada en este dispositivo. Su conexión y registros anteriores permanecen hasta que se verifique la nueva conexión.</string>
+    <string name="phone_session_notice">La sesión no tiene fecha de vencimiento prometida. Vuelve a conectarte si Instagram lo invalida. Puede eliminar la conexión a través de Administrar conexión en la aplicación.</string>
+    <string name="phone_connected">Cuenta conectada.</string>
+    <string name="phone_attention">Información de conexión</string>
+    <string name="phone_input_error">Verifique su nombre de usuario/correo electrónico y contraseña. No se enviaron entradas vacías o no compatibles.</string>
+    <string name="phone_credentials_error">Instagram no aceptó las credenciales. No se realizó ningún reintento automático; verifique sus datos y el tiempo de reintento local.</string>
+    <string name="phone_unsupported">Instagram no completó este paso de inicio de sesión en el formato admitido. No se intentó ningún reintento automático ni inicio de sesión alternativo. Consulte Instagram para conocer cualquier aprobación adicional de la cuenta.</string>
+    <string name="phone_code_error">La verificación del código no se completó. Verifique el código y envíelo nuevamente dentro de la misma sesión de verificación abierta.</string>
+    <string name="phone_expired">Este intento de inicio de sesión expiró o alcanzó su presupuesto de pasos. Inicie un nuevo inicio de sesión cuando el tiempo de reutilización actual lo permita.</string>
+    <string name="phone_open_instagram">Consultar en Instagram</string>
+    <string name="phone_wait">La conexión inicial puede tardar unos minutos. Las solicitudes siguen el espacio existente; mantenga esta pantalla abierta hasta que termine. Al salir de la pantalla se cancela el trabajo en curso.</string>
+    <string name="phone_method_hint">Elija un método de verificación habilitado en su cuenta. Ingrese su código cuando la pantalla de código esté lista; su contraseña no se enviará nuevamente.</string>
+    <string name="phone_method_totp">Aplicación de autenticación</string>
+    <string name="phone_method_sms">código SMS</string>
+    <string name="phone_method_backup">código de respaldo</string>
+    <string name="phone_code_hint">Introduce el correo electrónico/SMS o código de autenticación solicitado por Instagram. Puede salir de esta pantalla para recuperar el código y regresar sin iniciar otro inicio de sesión.</string>
+    <string name="phone_code">Código de verificación</string>
+    <string name="phone_verify">Verificar código</string>
+    <string name="phone_code_notice">El código se utiliza únicamente para este intento de inicio de sesión abierto y no se guarda. El contexto de inicio de sesión pendiente sobrevive a la recreación de la pantalla solo en la memoria de la aplicación. El cierre completo de la aplicación requiere un nuevo intento.</string>
+    <string name="phone_preparing">Preparando tu conexión…</string>
+    <string name="phone_signing_in">Comprobando sus datos de inicio de sesión…</string>
+    <string name="phone_verifying">Verificando tu cuenta…</string>
+    <string name="phone_reading_profile">Iniciado sesión. Comprobando los datos de tu perfil…</string>
+    <string name="phone_close_error">No se pudo cerrar la pantalla de conexión. Intente volver de nuevo.</string>
+    <plurals name="phone_spacing">
+        <item quantity="one">Esperando %1$d segundo antes del siguiente paso.</item>
+        <item quantity="other">Esperando %1$d segundos antes del siguiente paso.</item>
+        <item quantity="many">Esperando %1$d segundos antes del siguiente paso.</item>
+    </plurals>
+</resources>

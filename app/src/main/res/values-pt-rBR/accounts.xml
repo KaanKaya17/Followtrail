@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="accounts_title">Minhas contas</string>
+    <string name="accounts_add">Adicionar conta</string>
+    <string name="accounts_none">Nenhuma conta conectada</string>
+    <string name="accounts_current">%1$s · Minhas contas</string>
+    <string name="accounts_privacy">A sessão de cada conta, perfis monitorados, listas e histórico são criptografados separadamente neste dispositivo. A troca de contas não envia nenhuma solicitação do Instagram. Pausas de segurança e limites de solicitação são compartilhados entre contas.</string>
+    <string name="accounts_added">Troque de conta sem fazer login novamente. Os registros de suas outras contas são preservados.</string>
+    <string name="accounts_remove_warning">Somente a sessão da conta selecionada, perfis assistidos, listas e histórico neste dispositivo serão excluídos. Os registros de suas outras contas são preservados.</string>
+</resources>

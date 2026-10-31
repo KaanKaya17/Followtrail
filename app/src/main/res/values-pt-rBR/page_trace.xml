@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="page_trace_open">Detalhes da página</string>
+    <string name="page_trace_report">Detalhes da página de login · LP01\nSomente são salvos tipos/contagens de solicitação, eventos de carregamento, códigos de erro numéricos, visibilidade de campo e se cookies de sessão foram recebidos. Nenhum URL, senha, código de verificação, valor de cookie ou conteúdo de formulário/resposta é salvo. HTTP 200 não significa que o login foi bem-sucedido. ALLOWED_RESOURCE indica apenas permissão de filtro local.\n%1$s</string>
+    <string name="page_trace_unavailable">Os detalhes da página de login não puderam ser salvos ou lidos.</string>
+    <string name="page_trace_waiting">O campo de login ainda não está visível. Você pode abrir os detalhes da página sem reabri-la. Nenhuma nova tentativa de login foi iniciada.</string>
+</resources>

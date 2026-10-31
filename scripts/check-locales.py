@@ -41,15 +41,13 @@ def validate_entry(name, source, target):
 for name in required:
     validate_entry(name, base[name], english[name])
 
-preview_packs = {"values-es": "es", "values-pt-rBR": "pt-BR"}
-for folder, tag in preview_packs.items():
+full_packs = {"values-es": "es", "values-pt-rBR": "pt-BR"}
+for folder, tag in full_packs.items():
     target = catalog(ROOT / folder)
-    assert set(target) <= set(base), f"{tag} has unknown keys: {set(target) - set(base)}"
-    for name, entry in target.items():
-        validate_entry(name, base[name], entry)
-    language_keys = set(catalog(ROOT / "values").keys()) & set(catalog(ROOT / folder).keys())
-    assert {"language_menu", "language_title", "language_save_failed", "language_spanish", "language_portuguese_brazil"} <= language_keys, tag
+    assert set(target) == set(english), f"{tag} missing: {set(english) - set(target)}; extra: {set(target) - set(english)}"
+    for name in english:
+        validate_entry(name, english[name], target[name])
 
 assert {node.attrib["{http://schemas.android.com/apk/res/android}name"] for node in
         ET.parse(ROOT / "xml/locales_config.xml").getroot()} == {"tr", "en", "es", "pt-BR"}
-print(f"Turkish / English: {len(required)} matching resources; Spanish and Brazilian Portuguese previews validate their translated keys, placeholders and plurals.")
+print(f"Turkish / English / Spanish / Brazilian Portuguese: {len(required)} matching resources; placeholders and plurals valid.")

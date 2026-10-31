@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="web_transport_selected">Transporte web selecionado: %1$s</string>
+    <string name="web_transport_android">Android Http Engine / Chromium</string>
+    <string name="web_transport_standard">Leitor HTTP/2 padrão</string>
+</resources>

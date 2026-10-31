@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="scope_line">Marcado · %1$s</string>
+    <string name="current_state_line">Estado actual · %1$s</string>
+    <string name="scope_profile_only">Perfil verificado · Listas aún no leídas</string>
+    <string name="scope_two_ends">Perfil y última página de ambas listas marcadas</string>
+    <string name="scope_partial_lists">Perfil revisado · Listas aún no terminadas</string>
+    <string name="quick_visible_scope">60 segundos es el objetivo de verificación más temprano, no un resultado cada minuto. Las comprobaciones rápidas se detienen mientras la pantalla de esta aplicación está oculta y luego se reanudan dentro del tiempo restante. La sesión de 15 minutos no se prorroga.</string>
+    <string name="quick_delayed">%1$s izquierda · Verificación retrasada; esperando el espacio de solicitud compartido</string>
+    <string name="quick_due">%1$s izquierda · Comprobar objetivo alcanzado; esperando para comenzar</string>
+    <string name="history_retention_scope">Se guardan las últimas %1$d comprobaciones exitosas. El período de tiempo que se muestra depende de la frecuencia de las comprobaciones. Se desconocen los cambios entre controles.</string>
+    <string name="history_single_scope">Un registro · %1$s\nAún no hay un intervalo de tiempo comparable.</string>
+    <string name="history_actual_scope">%1$d registros · Lapso registrado: %2$d d %3$d h %4$d min\n%5$s → %6$s</string>
+    <string name="product_observation_scope">Ver cambios en perfiles y listas de seguimiento. Los controles no muestran la hora exacta de un cambio ni prueban que alguien dejó de seguir.</string>
+    <string name="people_capacity_scope">Guarda hasta %1$d personas. El historial del perfil comparte un presupuesto de 2 MiB; Los registros existentes permanecen si están llenos. Más personas no envían más solicitudes a la vez; su turno puede tardar más.</string>
+    <string name="people_more">Mostrar más personas</string>
+</resources>

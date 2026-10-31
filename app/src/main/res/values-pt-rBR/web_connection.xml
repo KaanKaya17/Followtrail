@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="web_connection_menu">Conecte-se ao Instagram · Recomendado</string>
+    <string name="web_connection_instruction">Faça login no Instagram e conclua qualquer verificação. Após um login bem-sucedido, seu perfil é verificado automaticamente uma vez.</string>
+    <string name="web_connection_privacy">Sua senha e código de verificação não são salvos. Sua solicitação de login criptografada vai apenas para o Instagram; sua sessão está criptografada neste dispositivo.</string>
+    <string name="web_connection_verify">Verifique a conta</string>
+    <string name="web_connection_failed">Falha na verificação da conta</string>
+    <string name="web_connection_failed_scope">Esta tentativa não concluiu a conexão da conta. A tela de login foi fechada; não haverá nova tentativa automática.</string>
+</resources>

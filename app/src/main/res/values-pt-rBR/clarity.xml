@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="scope_line">Verificado · %1$s</string>
+    <string name="current_state_line">Situação atual · %1$s</string>
+    <string name="scope_profile_only">Perfil verificado · Listas ainda não lidas</string>
+    <string name="scope_two_ends">Perfil e a última página de ambas as listas verificadas</string>
+    <string name="scope_partial_lists">Perfil verificado · Listas ainda não finalizadas</string>
+    <string name="quick_visible_scope">60 segundos é o primeiro alvo de verificação, não um resultado a cada minuto. As verificações rápidas são pausadas enquanto a tela do aplicativo está oculta e, em seguida, são retomadas dentro do tempo restante. A sessão de 15 minutos não é estendida.</string>
+    <string name="quick_delayed">%1$s restante · Cheque atrasado; aguardando o slot de solicitação compartilhada</string>
+    <string name="quick_due">%1$s esquerda · Verificar meta atingida; esperando para começar</string>
+    <string name="history_retention_scope">As últimas %1$d verificações bem-sucedidas são salvas. O período de tempo mostrado depende da frequência de verificação. As alterações entre verificações são desconhecidas.</string>
+    <string name="history_single_scope">Um registro · %1$s\nAinda não há intervalo de tempo comparável.</string>
+    <string name="history_actual_scope">%1$d registros · Extensão gravada: %2$d d %3$d h %4$d min\n%5$s → %6$s</string>
+    <string name="product_observation_scope">Veja mudanças nos perfis e siga listas. As verificações não mostram a hora exata de uma alteração nem provam que alguém deixou de seguir.</string>
+    <string name="people_capacity_scope">Economize até %1$d pessoas. O histórico do perfil compartilha um orçamento de 2 MiB; os registros existentes permanecem se estiverem cheios. Mais pessoas não enviam mais solicitações de uma vez; a vez deles pode demorar mais.</string>
+    <string name="people_more">Mostrar mais pessoas</string>
+</resources>

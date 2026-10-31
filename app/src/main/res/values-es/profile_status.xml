@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="profile_status_open">Estado de cheque abierto</string>
+    <string name="profile_status_title">@%1$s · Verificar estado</string>
+    <string name="profile_status_loading">Cargando estado de verificación…</string>
+    <string name="profile_status_unavailable">Verificar estado no disponible</string>
+    <string name="profile_status_last">Última comprobación · %1$s</string>
+    <string name="profile_status_just_now">Última comprobación · Justo ahora</string>
+    <string name="profile_status_off">Verificaciones automáticas</string>
+    <string name="profile_status_lists_only">Listas marcadas automáticamente · Monitoreo de perfil desactivado</string>
+    <string name="profile_status_notifications">Esperando permiso de notificación</string>
+    <string name="profile_status_limited">Solicitudes limitadas de Instagram · Comprobaciones pausadas</string>
+    <string name="profile_status_connection">Vuelva a conectar su cuenta</string>
+    <string name="profile_status_link">Conexión de cuenta en curso</string>
+    <string name="profile_status_paused">Comprobaciones automáticas en pausa</string>
+    <string name="profile_status_offline">Esperando una conexión a Internet</string>
+    <string name="profile_status_checking">Comprobación rápida en curso</string>
+    <string name="profile_status_quick">Reloj rápido activo</string>
+    <string name="profile_status_failed">La última comprobación no finalizó · Ver detalles</string>
+    <string name="profile_status_unchanged">No hay cambios de perfil en la última verificación.</string>
+    <string name="profile_status_due">Verificación en cola · Esperando Android</string>
+    <string name="profile_status_scheduled">Verificación automática programada</string>
+    <string name="profile_status_lists_unavailable">Estado de la lista no disponible</string>
+    <string name="profile_status_lists_failed">Verificación de lista en espera · Última lectura fallida</string>
+    <string name="profile_status_lists_observed">Se leyó la última página de ambas listas.</string>
+    <string name="profile_status_lists_limited">No se pudieron leer las listas completas.</string>
+    <string name="profile_status_lists_pending">Listas aún no terminadas</string>
+    <string name="profile_status_lists_initial">Verificación de lista inicial en cola</string>
+    <string name="profile_status_list_missing">%1$s · Aún no hay lectura guardada</string>
+    <string name="profile_status_list_detail">%1$s · Cuentas descargadas: %2$s\nÚltima página: %3$s\n%4$s</string>
+    <string name="profile_status_last_failure">Último fallo · %1$s\n%2$s</string>
+    <string name="profile_status_scope">Esta vista no envía solicitudes adicionales de Instagram. La última verificación significa una lectura exitosa del perfil; Los tiempos de la lista están separados. Se actualiza aproximadamente cada 30 segundos mientras está visible. Los objetivos de verificación pueden retrasarse.</string>
+    <plurals name="profile_status_minutes">
+        <item quantity="one">Última comprobación · %1$d hace minutos</item>
+        <item quantity="other">Última comprobación · %1$d hace minutos</item>
+        <item quantity="many">Última comprobación · %1$d hace minutos</item>
+    </plurals>
+    <string name="profile_status_other_quick">Esperando la visualización rápida del otro perfil</string>
+    <string name="profile_status_lists_due">Actualización de lista en cola</string>
+</resources>

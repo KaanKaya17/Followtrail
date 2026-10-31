@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="visual_title">Túnel de tempo do perfil</string>
+    <string name="visual_back">Voltar</string>
+    <string name="visual_scope">O arquivo começa com o primeiro registro. As datas mostram horários de verificação; a hora exata de uma mudança é desconhecida. Apenas pequenas fotos de perfil disponíveis durante o uso normal são salvas.</string>
+    <string name="visual_enable">Habilitar arquivamento</string>
+    <string name="visual_stop">Pausar arquivamento</string>
+    <string name="visual_clear">Limpar arquivo</string>
+    <string name="visual_clear_hint">A biografia e o arquivo de avatar deste perfil serão excluídos e o arquivamento será interrompido. Outras observações de perfil são mantidas.</string>
+    <string name="visual_clear_confirm">Excluir arquivo e parar</string>
+    <string name="visual_failed">O arquivo não pôde ser salvo ou lido. O recorde anterior foi mantido.</string>
+    <string name="visual_full">O limite de arquivo foi atingido. Os registros mais antigos são mantidos; limpe o arquivo para liberar espaço.</string>
+    <string name="visual_avatars">Galeria de avatares</string>
+    <string name="visual_photo">Foto de perfil arquivada</string>
+    <string name="visual_no_photos">Nenhuma foto foi arquivada ainda. Fotos mais antigas indisponíveis não podem ser reconstruídas.</string>
+    <string name="visual_first_last">Primeira verificação: %1$s\nÚltima verificação: %2$s</string>
+    <string name="visual_size">%1$d imagens · %2$d KB</string>
+    <string name="visual_bios">Túnel do tempo da biografia</string>
+    <string name="visual_legend">+ Adicionado · − Removido</string>
+    <string name="visual_baseline">Registro inicial</string>
+    <string name="visual_empty">Nenhum novo registro é capturado enquanto o arquivamento está pausado. Os registros existentes permanecem disponíveis.</string>
+    <string name="visual_limits">Até %1$d alterações e %2$d miniaturas por perfil. O arquivo tem um orçamento total de 1,8 MiB e usa criptografia Keystore; limites de observação contínuos não o apagam.</string>
+</resources>

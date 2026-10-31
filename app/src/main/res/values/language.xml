@@ -3,8 +3,8 @@
     <string name="language_title">Uygulama dili</string>
     <string name="language_turkish" translatable="false">Türkçe</string>
     <string name="language_english" translatable="false">English</string>
-    <string name="language_spanish">Español (preview)</string>
-    <string name="language_portuguese_brazil">Português (Brasil) (preview)</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_portuguese_brazil">Português (Brasil)</string>
     <string name="language_save_failed">Dil tercihi kaydedilemedi. Tekrar deneyebilirsin.</string>
     <string name="welcome_hello">merhaba</string>
     <string name="welcome_circle">ÇEVRENİ YAKINDAN TANI</string>
