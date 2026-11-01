@@ -2,6 +2,8 @@
 
 ## Windows 0.2.22 — 2026-11-01 (İzlenen profillerin liste değişiklikleri)
 
+- Sonraki hedefli doğrulama: kullanıcı 82 kişi beklenen listede 76 kayıt ve sayı uyuşmazlığı mesajı bildirdi. Aynı durum kendi hesap/izlenen profil için sentetik sayfalarda sınandı: kayıt kısmi kalıyor, önceki tam liste korunuyor, altı kişi için ayrılma sonucu veya liste farkı bildirimi üretilmiyor. Devam belirteci yoksa yeni tam deneme 30 dakika sonrasına sıraya alınıyor; 76 + 6 üyeli geçerli devam sayfalarıyla 82'ye ulaşılınca tamamlanıyor. Bu test geçti; canlı hesapta eksik altı kişinin neden dönmediği doğrulanmadı. Çalışma kodu değiştirilmedi.
+
 - Otomatik takipçi/takip edilen taraması kendi hesabına ek olarak **İzlemeye al** seçili profilleri kapsar. Mevcut **Otomatik liste karşılaştırması** tercihi ayarlardan yönetilir. Eski çoklu hesap dizininin zamanlama bilgisi yeni liste kapsamıyla yeniden hesaplanır; etkin hesap, oturum, mola ve tercihler korunur.
 - Başlangıç listeleri otomatik hazırlanır. Sayaç değişimi ilgili yönü yeniden taramaya alır; mevcut 15 dakikalık tekrar tarama alt sınırı korunur. Sayı aynı kaldığında günlük tarama sürer. Liste işleri profiller arasında sıra alır; profil kontrolüyle dönüşümlü çalışır ve ortak istek bütçesine uyar.
 - İki tam listede eklenen ve artık görünmeyen hesapların sayısal kimlikleri, gözlenen adları ve kullanıcı adları olay/bildirim kaydında şifreli tutulur. Altı liste kaydı döndüğünde isim kanıtı kaybolmaz; eski yalnız sayısal kayıtlar için isim uydurulmaz. Yarım listeler fark üretmez. Başlangıç ve değişikliksiz liste taraması Windows bildirimi üretmez.
