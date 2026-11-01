@@ -4,6 +4,16 @@ const i18n = require('../web/i18n.js');
 const APP_ID = "dev.kaankaya.instagramtracker.desktop";
 const TOAST_ID = "{D3085DD3-667D-4514-BD5F-1C8C0C8A5927}";
 
+function retireLegacyShortcut({shell,shortcut,dataDir}) {
+  const legacy=path.join(path.dirname(shortcut),'Electron.lnk');
+  if (!fs.existsSync(legacy)) return;
+  const previous=shell.readShortcutLink(legacy);
+  if (previous.appUserModelId!==APP_ID || path.basename(previous.target).toLowerCase()!=='instagramtracker.exe') return;
+  fs.mkdirSync(dataDir,{recursive:true});
+  const backup=fs.mkdtempSync(path.join(dataDir,'legacy-electron-shortcut-'));
+  fs.renameSync(legacy,path.join(backup,'Electron.lnk'));
+}
+
 function changeNotification(entry, language = 'tr') {
   const t = (message, ...values) => i18n.translate(message, values, language);
   const selected = entry.changes.filter((change) =>
@@ -75,8 +85,10 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
       previous.icon === options.icon &&
       previous.iconIndex === options.iconIndex &&
       previous.toastActivatorClsid?.toUpperCase() === TOAST_ID.toUpperCase()
-    )
+    ) {
+      retireLegacyShortcut({shell,shortcut,dataDir});
       return;
+    }
     fs.mkdirSync(dataDir, { recursive: true });
     fs.copyFileSync(
       shortcut,
@@ -85,6 +97,7 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
   }
   if (!shell.writeShortcutLink(shortcut, options))
     throw new Error(t("Notification shortcut could not be written"));
+  retireLegacyShortcut({shell,shortcut,dataDir});
 }
 
 function showNotification({ Notification, title, body, onClick, onFailure }) {
