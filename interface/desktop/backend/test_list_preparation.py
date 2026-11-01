@@ -255,6 +255,41 @@ class ListPreparationTests(unittest.TestCase):
         self.assertEqual(self.e.data['lists']['200:followers']['draft']['pages'],1)
         self.assertIsNone(list_preparation.next_job(self.e.data,self.now[0]))
 
+    def test_82_expected_76_returned_is_partial_for_owner_and_watched_profile_until_fresh_complete_scan(self):
+        self.linked();self.watched()
+        ids=[str(i) for i in range(1000,1082)]
+        for identity in ('100','200'):
+            with self.subTest(identity=identity):
+                def scan(*responses):
+                    client=PacedClient(self.e,responses)
+                    with patch.object(self.e,'client',return_value=client):
+                        self.e.run('scan',{'id':identity,'direction':'followers'})
+                    return client
+                scan(profile(identity,followers=82),page(ids))
+                key=identity+':followers'
+                baseline=copy.deepcopy(self.e.data['lists'][key]['snapshots'][-1])
+                with self.assertRaises(AppFailure) as result:
+                    scan(profile(identity,followers=82),page(ids[:50],'qa-next'),page(ids[50:76]))
+                self.assertEqual(result.exception.code,'list_count')
+                record=self.e.data['lists'][key]
+                self.assertEqual(record['snapshots'],[baseline])
+                self.assertEqual(len(record['draft']['members']),76)
+                self.assertEqual(record['draft']['expected'],82)
+                self.assertFalse(record['draft']['complete'])
+                self.assertIsNone(record['draft']['nextCursor'] or None)
+                self.assertEqual(record['schedule']['error'],'list_count')
+                self.assertEqual(record['schedule']['after'],self.now[0]+1800)
+                self.assertIsNone(self.e.snapshot()['lists'][key]['comparison'])
+                # Incomplete reads never claim the six missing identities left.
+                self.assertFalse(any(c['category']=='lists' for entry in self.e.data['notificationLog'] for c in entry['changes']))
+                self.now[0]+=1800
+                # The next complete scan owns a fresh snapshot, not a union of
+                # identities observed during incompatible partial attempts.
+                scan(profile(identity,followers=82),page(ids[:76],'qa-last'),page(ids[76:]))
+                self.assertNotIn('draft',self.e.data['lists'][key])
+                self.assertEqual(len(self.e.data['lists'][key]['snapshots'][-1]['members']),82)
+                self.assertEqual(self.e.snapshot()['lists'][key]['comparison']['removed'],[])
+
     def test_cancel_during_single_page_response_keeps_partial_and_stops_automatic_lists(self):
         self.linked()
         engine=self.e
