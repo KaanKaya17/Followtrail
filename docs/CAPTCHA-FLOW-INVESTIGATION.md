@@ -148,6 +148,16 @@ Kod yanıtının HTTP/JSON/kök doğruluğu ve çerez uygulanması `codeSubmissi
 
 İmzalı 0.1.66 / code 67: 2.388.707 bayt, SHA-256 `7b47af45eb3e63d3949b98f3279022159f8f3845f1f9802c7a8e5d46ff6e4a6b`. v2/v3 imzası ve paket denetimi geçti. Ana üretim paketi aynı telefonda `install -r` ile veri silmeden güncellendi, sürüm doğrulandı. Telefon saati 1 Kasım 16:23:40 +03:00 iken önceki girişin 15 dakikalık aralığı korunuyordu; kullanıcıya uygulamanın gösterdiği saat dolduktan sonra aynı hesapla tek canlı deneme verildi. Sonuç henüz bekleniyor; başarılı hesap bağlantısı iddiası yok.
 
+## 0.1.66 canlı sonuç · 1 Kasım 16:34
+
+Kullanıcı yeni girişte e-posta kodunu bir kez gönderdi; ardından Hesap doğrulanamadı ekranı açıldı. Telefonun açık tanısından `codeSubmission.status=200`, `jsonParsed=true`, `validData=true`, `cookiesApplied=true` okundu. Son sayaçlı deneme 86 / 1 Kasım 16:34 / HTTP 429; hata ekranındaki yerel mola 2 Kasım 16:34. Yeni giriş veya ek okuma gönderilmedi.
+
+Kaynakta normal girişin `checkLogin` yolu, `readLoginSession` ile sessionid ve sayısal ds_user_id biçimini doğrulamadan WebConnectionAttempt başlatmaz. Bu yolun sonraki isteği `WebRequests.profile` üzerinden profil doğrulamasıdır. Kod POST'unun 200 dönmesi ve son ayrı profil denemesinin 429 olması birlikte değerlendirildiğinde kod gönderiminin ilerlediği, bağlantının profil okumasında sınırlanmaya takıldığı sonucuna varılır. Tracker hesabı bağlantısı tamamlanmış değildir; oturum çerezi tek başına hesap kimliği/profil doğrulaması yerine geçmez.
+
+Tanıdaki `authentication` ilk parola yanıtını korur (`authenticated=false`, 1348009, auth_platform yönlendirmesi). Bu alanın kod gönderiminden sonra aynı kalması yeni bir parola veya kod reddi değildir. Kod sonucunun sahibi ayrı `codeSubmission` bölümüdür. İlk ve sonraki adımlar birbirinin üzerine yazılmaz.
+
+Ek kaynak bulgusu: WebConnectionAttempt.finally, açıklamasında bekleyen kaydın korunacağını söylemesine rağmen `sessions.discardPending(reference)` çağırır; profil 429'unda henüz bağlanmamış yeni bankayı temizler. `leaveLogin` da WebView çerezlerini kaldırır. Bu nedenle mevcut 0.1.66 başarısız doğrulaması sonrasında yeni oturumu tekrar kullanma yolu yoktur. Daha sonraki iyileştirme, yalnız bağlantı bekleyen ayrı şifreli oturumun sahipliğini ve kullanıcının açık devam/silme eylemini tanımlamalı; hesabı doğrulanmış gibi eklememeli, diğer hesabı değiştirmemeli veya mola bitmeden istek göndermemelidir. Bu davranış henüz değiştirilmedi.
+
 ## 0.1.63 tam uygulama dili paketleri
 
 İspanyolca (`es`) ve Brezilya Portekizcesi (`pt-BR`) Android uygulama diline tam paket olarak eklendi. Bölge etiketi korunur; `pt` olarak daraltılmaz. Her pakette İngilizce kaynakla aynı 648 anahtar bulunur; dil/tema/liste gezinmesi, otomasyon, bildirimler, oturum/güvenlik yönlendirmesi ve istek tanıları seçilen dilde görünür.
