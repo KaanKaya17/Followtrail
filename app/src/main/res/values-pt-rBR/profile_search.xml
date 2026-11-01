@@ -9,4 +9,9 @@
     <string name="search_none">Nenhum perfil correspondente encontrado.</string>
     <string name="search_query_invalid">Digite de 2 a 100 caracteres para pesquisar.</string>
     <string name="search_saved_hint">Pesquisar nome, @usuário ou grupo</string>
+    <plurals name="search_waiting">
+        <item quantity="one">A última busca será feita em %1$d segundo.</item>
+        <item quantity="other">A última busca será feita em %1$d segundos.</item>
+        <item quantity="many">A última busca será feita em %1$d segundos.</item>
+    </plurals>
 </resources>

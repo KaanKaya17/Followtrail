@@ -9,4 +9,8 @@
     <string name="search_none">Eşleşen profil bulunamadı.</string>
     <string name="search_query_invalid">Arama için 2–100 karakter yaz.</string>
     <string name="search_saved_hint">Ad, @kullanıcı adı veya grup ara</string>
+    <plurals name="search_waiting">
+        <item quantity="one">Son arama %1$d saniye sonra yapılacak.</item>
+        <item quantity="other">Son arama %1$d saniye sonra yapılacak.</item>
+    </plurals>
 </resources>

@@ -1067,5 +1067,11 @@
   "Son profil kontrolü": "Last profile check",
   "Kontrol edilenler": "Checked",
   "Örnek kontrol kayıtları": "Sample check records",
-  "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "The app shortcut could not be prepared; you can open the app from its folder."
+  "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "The app shortcut could not be prepared; you can open the app from its folder.",
+  "Son arama {0} saniye sonra yapılacak.": {
+    "count": 0,
+    "one": "The latest search will run in {0} second.",
+    "other": "The latest search will run in {0} seconds."
+  },
+  "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes."
 }

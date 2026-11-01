@@ -1,8 +1,10 @@
 # Veri ve ağ sınırları
 
-## Android 0.1.68 / Windows 0.2.23 profil arama
+## Android 0.1.69 / Windows 0.2.26 profil arama
 
-Kayıtlı profillerde ad/kullanıcı adı/grup araması cihazdaki kayıtlarda yapılır. **Instagram’da ara** işlemi kullanıcı tarafından başlatıldığında yalnız Instagram'a bir okuma isteği gönderir; yazarken otomatik ağ araması yoktur. En fazla 20 aday gösterilir; adaylar seçilmeden kayıtlı profil oluşturulmaz. Seçilen hesabın sayısal kimliği doğrulanarak profil okunur. Aday sonuçları dosyaya yazılmayan geçici yanıtlardır; hesap geçişinde yeni hesabın arama yanıtı olarak kullanılmaz. Okunan görünen ad şifreli profil kaydına eklenir. Sabit Instagram adresindeki arama GET'i mevcut istek sırası, bütçe ve sınırlamalara tabidir; takip etme, takipten çıkma, beğeni veya mesaj gönderme yetkisi açılmaz.
+Kayıtlı profillerde ad/kullanıcı adı/grup araması cihazdaki kayıtlarda yapılır. Profil ekleme penceresinde en az iki karakter yazıldıktan ve yazmaya 650 ms ara verildikten sonra son sorgu Instagram'a gönderilebilir. Mevcut istek aralığı, bütçe ve güvenlik molası korunur; bekleme sırasında değişen sorgulardan yalnız sonuncusu aranır. Aynı pencerede en fazla altı yakın sorgu 60 saniye boyunca bellekte yeniden kullanılabilir. Sınırlama yanıtı otomatik aramayı durdurur. En fazla 20 aday gösterilir; adaylar seçilmeden kayıtlı profil oluşturulmaz. Seçilen hesabın sayısal kimliği doğrulanarak profil okunur. Aday sonuçları dosyaya yazılmayan geçici yanıtlardır; hesap geçişinde veya pencere kapanınca yeni bağlama taşınmaz. Okunan görünen ad şifreli profil kaydına eklenir. Takip etme, takipten çıkma, beğeni veya mesaj gönderme yetkisi açılmaz.
+
+Arama fotoğrafları sonuç metinlerinden bağımsız, en fazla iki eşzamanlı işlemle doğrudan izinli HTTPS Meta CDN adreslerinden indirilir. Oturum, çerez ve Instagram API istemcisi görsel taşıyıcısına verilmez; yönlendirme izlenmez. Mevcut boyut ve çözünürlük sınırları kullanılır. Arama küçük resimleri ve kaynak adresleri diske/şifreli kasaya yazılmaz; arama penceresine ait sınırlı bellek kullanılır ve pencere kapanınca işler iptal edilir. Masaüstünde renderer bir URL seçemez; yalnız mevcut arama yanıtındaki geçici belirteç ve kullanıcı ID'siyle görsel isteyebilir. Görsel alınamazsa baş harf gösterilir; profil seçimi devam eder.
 
 ## Windows 0.2.17 / Android 0.1.37 başlangıç hazırlığı
 

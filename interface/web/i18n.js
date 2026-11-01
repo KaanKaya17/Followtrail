@@ -1075,7 +1075,13 @@
     "Son profil kontrolü": "Last profile check",
     "Kontrol edilenler": "Checked",
     "Örnek kontrol kayıtları": "Sample check records",
-    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "The app shortcut could not be prepared; you can open the app from its folder."
+    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "The app shortcut could not be prepared; you can open the app from its folder.",
+    "Son arama {0} saniye sonra yapılacak.": {
+      "count": 0,
+      "one": "The latest search will run in {0} second.",
+      "other": "The latest search will run in {0} seconds."
+    },
+    "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2146,7 +2152,13 @@
     "Son profil kontrolü": "Verificación final del perfil",
     "Kontrol edilenler": "Comprobado",
     "Örnek kontrol kayıtları": "Registros de control de muestras",
-    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "No se pudo crear el acceso directo; puedes abrir la aplicación desde su carpeta."
+    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "No se pudo crear el acceso directo; puedes abrir la aplicación desde su carpeta.",
+    "Son arama {0} saniye sonra yapılacak.": {
+      "count": 0,
+      "one": "La última búsqueda se realizará en {0} segundo.",
+      "other": "La última búsqueda se realizará en {0} segundos."
+    },
+    "Diğer işlem tamamlanınca aranacak.": "La búsqueda comenzará cuando termine la otra operación."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3217,7 +3229,13 @@
     "Son profil kontrolü": "Verificação final do perfil",
     "Kontrol edilenler": "Verificado",
     "Örnek kontrol kayıtları": "Registros de controle de amostra",
-    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "Não foi possível criar o atalho; você pode abrir o aplicativo pela pasta dele."
+    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "Não foi possível criar o atalho; você pode abrir o aplicativo pela pasta dele.",
+    "Son arama {0} saniye sonra yapılacak.": {
+      "count": 0,
+      "one": "A última busca será feita em {0} segundo.",
+      "other": "A última busca será feita em {0} segundos."
+    },
+    "Diğer işlem tamamlanınca aranacak.": "A busca começará quando a outra operação terminar."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

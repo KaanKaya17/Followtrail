@@ -77,6 +77,8 @@ const allowed = new Set([
   "scan",
   "add_person",
   "search_people",
+  "search_avatar",
+  "cancel_search_images",
   "save_person",
   "remove_person",
   "settings",
@@ -117,6 +119,8 @@ function validate(operation, args) {
     scan: ["id", "direction"],
     add_person: ["username", "id"],
     search_people: ["query"],
+    search_avatar: ["token", "id"],
+    cancel_search_images: [],
     save_person: ["id", "favorite", "watching", "group", "note"],
     remove_person: ["id"],
     settings: [

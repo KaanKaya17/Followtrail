@@ -54,6 +54,7 @@
     serviceError = null,
     windowVisible = true,
     drawerId = null,
+    profileSearch = null,
     toastTimer;
   const ui = {
     page: "overview",
@@ -140,6 +141,7 @@
     window.scrollTo(0, 0);
   }
   function closeDialog() {
+    profileSearch?.close();profileSearch=null;
     document.querySelector("#overlay-root dialog")?.close();
     drawerId = null;
   }
@@ -205,6 +207,8 @@
     const messages = {
       limited: t("Instagram istekleri sınırladı. Kontroller geçici olarak duraklatıldı."),
       cooldown: t("Kontroller için mola sürüyor. Yeniden deneme saatini İstek bilgileri bölümünden görebilirsin."),
+      budget: t("Kontroller için mola sürüyor. Yeniden deneme saatini İstek bilgileri bölümünden görebilirsin."),
+      connection: t("Önce hesabınla bağlantı kuralım."),
       list_coverage: t("Instagram listenin tamamını göstermedi. Okunan hesaplar saklandı; bu listeden değişiklik sonucu çıkarılmadı."),
       list_count: t("Okunan liste ile profilindeki sayı uyuşmadı. Kayıtlar korundu; bu listeden değişiklik sonucu çıkarılmadı."),
       access_unknown: t("Hesap bağlantın doğrulanamadığı için diğer profil kontrol edilmedi.")
@@ -245,8 +249,9 @@
         progress = null;
         render();
       }
-      errorDialog(t("Yerel hizmete ulaşılamadı. Uygulamayı yeniden açabilirsin."));
-      return null;
+      const error={message:t("Yerel hizmete ulaşılamadı. Uygulamayı yeniden açabilirsin.")};
+      if(showErrors)errorDialog(error.message);
+      return {ok:false,error};
     }
   }
   async function file(action, args = {}) {
@@ -472,14 +477,51 @@
         `<p>${t("Kaydedilen Profiller bölümünde yıldızladığın hesaplar burada görünür.")}</p>`}</section></aside></div>`;
   }
   function profileChoices(users,label) {
-    return `<h3>${esc(label)}</h3>${users.length ? users.slice(0,20).map(p=>`<button type="button" class="person-row" data-action="choose-profile" ${idattr(p.id)} data-username="${esc(p.username)}"><span class="person-ident"><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span>${icon('plus')}</button>`).join('') : `<p class="field-hint">${t("Eşleşen profil bulunamadı.")}</p>`}`;
+    return `<h3>${esc(label)}</h3>${users.length ? users.slice(0,20).map(p=>`<button type="button" class="person-row" data-action="choose-profile" ${idattr(p.id)} data-username="${esc(p.username)}">${avatar(p)}<span class="person-ident"><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span>${icon('plus')}</button>`).join('') : `<p class="field-hint">${t("Eşleşen profil bulunamadı.")}</p>`}`;
   }
   function localProfileChoices(query) {
     return data.people.filter(p=>window.TrackerProfileSearch.matches((p.name || '')+' '+p.username,query));
   }
   function addPersonDialog(query='',users=null,error='') {
     dialog(`<span class="dialog-symbol lavender">${icon('search')}</span><h2 id="dialog-title">${t("Bir profil ekle.")}</h2><form id="add-person-form"><label class="form-label" for="new-username">${t("Ad, kullanıcı adı veya profil bağlantısı")}</label><input id="new-username" name="username" required maxlength="256" value="${esc(query)}" autocomplete="off"><div class="drawer-actions"><button class="button primary" type="submit">${t("Instagram’da ara")}</button>${button(t("Kullanıcı adıyla ekle"),'direct-add-person','plus')}</div></form>${error ? `<p role="status" class="notice warning">${esc(error)}</p>` : ''}<div id="profile-search-results">${profileChoices(users || localProfileChoices(query),users ? t("Instagram sonuçları") : t("Kayıtlı eşleşmeler"))}</div>`);
-    document.getElementById('new-username')?.focus();
+    const field=document.getElementById('new-username'), container=document.getElementById('profile-search-results');
+    const note=document.createElement('p');note.className='field-hint';note.setAttribute('role','status');
+    field.after(note);
+    const owner=data.activeAccountId, modal=field.closest('dialog');
+    let imageRevision=0,photosPending=false;
+    const cancelImages=()=>{
+      imageRevision++;
+      if(photosPending)api.command('cancel_search_images').catch(()=>{});
+      photosPending=false;
+    };
+    profileSearch=window.TrackerProfileSearch.live({
+      cancelImages,
+      availability:()=>({busy,wait:Math.max(0,(data.gate.nextAt || 0)*1000-Date.now()),
+        stop:!data.connected ? {code:'connection'} : (data.gate.blockedUntil || 0)*1000>Date.now() ? {code:'cooldown'} :
+          (data.requestBudget.nextAt || 0)*1000>Date.now() ? {code:'budget'} : null}),
+      local:raw=>{container.innerHTML=profileChoices(localProfileChoices(raw),t("Kayıtlı eşleşmeler"));note.textContent='';},
+      status:(phase,value)=>{note.textContent=phase==='loading' ? t("Profiller aranıyor…") : phase==='waiting' ? t("Son arama {0} saniye sonra yapılacak.",value) :
+        phase==='busy' ? t("Diğer işlem tamamlanınca aranacak.") : phase==='error' ? userError(value) : '';note.classList.toggle('warning',phase==='error');note.classList.toggle('notice',phase==='error');},
+      search:async q=>{
+        const response=await command('search_people',{query:q},'',false);
+        return {...response,users:response?.state?.searchResults?.users || [],token:response?.state?.searchResults?.token};
+      },
+      results:response=>{
+        if(!modal.open || data.activeAccountId!==owner)return;
+        container.innerHTML=profileChoices(response.users,t("Instagram sonuçları"));
+        if(!response.token)return;
+        const ticket=imageRevision;photosPending=true;
+        Promise.all(response.users.map(async p=>{
+          if(p.avatar)return;
+          const image=await api.command('search_avatar',{token:response.token,id:p.id}).catch(()=>null);
+          if(ticket!==imageRevision || !modal.open || data.activeAccountId!==owner || !image?.avatar)return;
+          p.avatar=image.avatar;
+          const row=[...container.querySelectorAll('[data-action="choose-profile"]')].find(row=>row.dataset.id===p.id);
+          if(row)row.querySelector('.avatar').outerHTML=avatar(p);
+        })).finally(()=>{if(ticket===imageRevision)photosPending=false;});
+      },
+    });
+    field.focus();profileSearch.input(query);
   }
   async function addByInput() {
     const field=document.getElementById('new-username');
@@ -1262,20 +1304,15 @@
       closeDialog();
       await command("code", { code });
     } else {
-      const field=document.getElementById('new-username'), raw=String(values.get('username')).trim();
-      const query=raw.startsWith('@') || raw.startsWith('https://') ? window.TrackerProfileSearch.username(raw) : raw;
-      if(!query || query.length<2 || query.length>100) {field.setCustomValidity(t("Arama için 2–100 karakter yaz."));field.reportValidity();return;}
-      const modal=form.closest('dialog'), owner=data.activeAccountId;
-      form.querySelectorAll('button,input').forEach(node=>node.disabled=true);
-      document.getElementById('profile-search-results').textContent=t("Profiller aranıyor…");
-      const result=await command('search_people',{query},'',false);
-      if(modal.open && data.activeAccountId===owner)addPersonDialog(raw,result?.ok ? data.searchResults?.users || [] : [],result?.ok ? '' : userError(result?.error));
+      const field=document.getElementById('new-username');
+      if(!window.TrackerProfileSearch.query(field.value)) {field.setCustomValidity(t("Arama için 2–100 karakter yaz."));field.reportValidity();return;}
+      profileSearch?.submit();
     }
   });
   document.addEventListener("input", (event) => {
     if(event.target.id==='new-username') {
       event.target.setCustomValidity('');
-      document.getElementById('profile-search-results').innerHTML=profileChoices(localProfileChoices(event.target.value),t("Kayıtlı eşleşmeler"));
+      profileSearch?.input(event.target.value);
     }
     if (event.target.id === "people-search") {
       ui.query = event.target.value;

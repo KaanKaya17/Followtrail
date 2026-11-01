@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.69 / Windows-web 0.2.26 — 2026-11-01 (Canlı profil arama ve fotoğraflar)
+
+- Profil ekle penceresi en az iki karakter yazıldıktan ve yazmaya 650 ms ara verildikten sonra Instagram aramasını sıraya alır. Kayıtlı eşleşmeler hemen filtrelenir. Mevcut istek aralığı/bütçesi korunur; beklerken yalnız son sorgu tutulur ve kısa geri sayım gösterilir. Ağ isteği sırasında alan yazılabilir kalır, geç gelen başka sorgunun yanıtı sonuçları değiştirmez. Aynı pencerenin son altı sorgusu 60 saniye bellekte yeniden kullanılabilir; sınırlama yanıtı otomatik aramayı durdurur. Elle arama ve kullanıcı adıyla doğrudan ekleme korunur.
+- Sonuçlarda profil fotoğrafları metinden bağımsız yüklenir; görsel gelmezse baş harf gösterilir. Mevcut çerezsiz Meta CDN taşıyıcısı ve görüntü sınırları yeniden kullanılır; en fazla iki indirme çalışır. Masaüstünde renderer adres seçemez, yalnız mevcut sonuç belirteci ve kullanıcı ID'sini iletir. Görseller ve arama önbelleği diske yazılmaz. Pencere kapanınca işler iptal edilir; Android arama görselleri kalıcı avatar önbelleği/zaman tüneline eklenmez.
+- Doğrulama: 183 Python, 38 Node ve 128 Android birim testi geçti. Sentetik API ile dört arama ekranı kontrolü (otomatik arama, odak, fotoğraf, 429, geç yanıt), 12 dört dilli web kontrolü, iki Windows marka/kısayol kontrolü, eksik listeyle paketli başlangıç ve paketli EXE üzerinde 35 çevrimdışı kontrol geçti. Dört dilde 658 Android kaynağı ve 1.025 masaüstü metni eşleşir. Android release/debug/test APK derlemeleri ve release lint tamamlandı. Canlı Instagram arama/CDN yanıtı ve yeni Android arama ekranı fiziksel cihazda/emülatörde denenmedi; test APK'sı yalnız derlendi. Mevcut Instagram hesabında yeni giriş başlatılmadı.
+
 ## Windows-web 0.2.25 — 2026-11-01 (Windows uygulama adı ve logosu)
 
 - Paketli EXE'nin Electron ürün/dosya bilgileri InstagramTracker adı ve uygulamanın sürümüyle değiştirilir. Mevcut yerel marka işareti yedi boyutta (16–256 piksel) EXE'ye gömülür; pencere ve tepsi aynı işareti kullanır. Düzenleme yalnız paket çıktısında, kilitli geliştirme bağımlılığı `resedit` 3.1.0 ile yapılır.

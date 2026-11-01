@@ -25,8 +25,9 @@ try {
    if(operation==='search_people') {
     if(args.query==='late')await new Promise(resolve=>window.qaResolve=resolve);
     if(args.query==='rate limit')return {ok:false,state,error:{code:'limited',message:'Instagram isteği sınırladı. Otomatik tekrar durduruldu; mola bilgisini kontrol et.'}};
-    state.searchResults={query:args.query,users:[{id:'900',username:'ipek.kaya',name:'İpek Kaya <img src=x onerror=window.qaInjected=true>'},{id:'901',username:'ipek.deniz',name:'İpek Deniz'}]};
+    state.searchResults={query:args.query,token:'qa-search-token',users:[{id:'900',username:'ipek.kaya',name:'İpek Kaya <img src=x onerror=window.qaInjected=true>'},{id:'901',username:'ipek.deniz',name:'İpek Deniz'}]};
    }
+   if(operation==='search_avatar')return {ok:true,avatar:state.people.find(p=>p.avatar)?.avatar || null};
    if(operation==='add_person') {
     state.people.push({id:args.id,username:args.username,name:'İpek Kaya',followers:1,following:1,observedAt:1800000000,watching:false});
     state.searchResults=null;
@@ -44,14 +45,18 @@ try {
  checks.push('Saved partial, @, URL, multiword and Turkish group searches remain local');
  await page.locator('[data-action="add-person"]').first().click();
  await page.locator('#new-username').fill('ipe');
- await page.getByRole('dialog').getByRole('button',{name:'Instagram’da ara',exact:true}).click();
+ // No button: typed input must trigger the query while preserving the field.
+ await page.evaluate(()=>{window.qaSearchField=document.getElementById('new-username')});
  await page.locator('[data-action="choose-profile"][data-id="900"]').waitFor();
  assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='add_person').length),0);
  assert.equal(await page.evaluate(()=>window.qaInjected),undefined);
+ assert.equal(await page.evaluate(()=>window.qaSearchField===document.getElementById('new-username')),true);
+ assert.equal(await page.locator('#new-username').isEnabled(),true);
+ await page.locator('[data-action="choose-profile"][data-id="900"] .avatar img').waitFor();
  await page.screenshot({path:path.join(output,'instagram-search-results.png')});
  await page.locator('[data-action="choose-profile"][data-id="900"]').click();
  assert.deepEqual(await page.evaluate(()=>qaCalls.find(c=>c.operation==='add_person').args),{id:'900',username:'ipek.kaya'});
- checks.push('Explicit remote query shows escaped candidates; only selected numeric identity is added');
+ checks.push('Debounced live query preserves input/focus and shows safe asynchronous avatars; only selected numeric identity is added');
  await page.locator('[data-action="add-person"]').first().click();
  await page.locator('#new-username').fill('rate limit');
  await page.getByRole('dialog').getByRole('button',{name:'Instagram’da ara',exact:true}).click();

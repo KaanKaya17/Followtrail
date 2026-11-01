@@ -4,7 +4,7 @@ import java.text.Normalizer
 import java.util.Locale
 import org.json.JSONObject
 
-data class ProfileCandidate(val id: String, val username: String, val name: String)
+data class ProfileCandidate(val id: String, val username: String, val name: String, val pictureUrl: String? = null)
 
 object ProfileSearch {
     fun fold(value: String): String = Normalizer.normalize(value,Normalizer.Form.NFKD)
@@ -30,7 +30,8 @@ object ProfileSearch {
             val id=InstagramIdentity.id(user.opt("pk"))
             val username=(user.opt("username") as? String)?.takeIf(ProfileInput::validUsername) ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
             val name=(user.opt("full_name") as? String)?.takeIf {it.length<=1000}.orEmpty()
-            if(results.size<20)results[id]=ProfileCandidate(id,username,name)
+            val picture=(user.opt("profile_pic_url") as? String)?.takeIf {it.length<=8192 && AvatarPolicy.url(it)!=null}
+            if(results.size<20)results[id]=ProfileCandidate(id,username,name,picture)
         }
         return results.values.toList()
     }

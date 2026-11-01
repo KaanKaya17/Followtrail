@@ -27,4 +27,11 @@ class ProfileSearchTest {
         assertFalse(AccountRequestPolicy.readAllowed("POST",url,true))
         assertFalse(AccountRequestPolicy.readAllowed("GET",url.replace("i.instagram.com","evil.test")))
     }
+    @Test fun candidatePicturesAcceptOnlyPublicMetaCdnUrls() {
+        fun candidate(url:String)=ProfileSearch.parse(JSONObject().put("status","ok").put("users",org.json.JSONArray().put(
+            JSONObject().put("pk","200").put("username","ipek").put("profile_pic_url",url)))).single()
+        assertEquals("https://scontent.cdninstagram.com/a.jpg",candidate("https://scontent.cdninstagram.com/a.jpg").pictureUrl)
+        for(url in listOf("https://cdninstagram.com.evil.test/a.jpg","http://cdninstagram.com/a.jpg","https://u:p@cdninstagram.com/a.jpg"))
+            assertNull(candidate(url).pictureUrl)
+    }
 }

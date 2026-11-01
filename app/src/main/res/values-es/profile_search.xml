@@ -9,4 +9,9 @@
     <string name="search_none">No se encontraron perfiles coincidentes.</string>
     <string name="search_query_invalid">Escribe entre 2 y 100 caracteres para buscar.</string>
     <string name="search_saved_hint">Buscar nombre, @usuario o grupo</string>
+    <plurals name="search_waiting">
+        <item quantity="one">La última búsqueda se realizará en %1$d segundo.</item>
+        <item quantity="other">La última búsqueda se realizará en %1$d segundos.</item>
+        <item quantity="many">La última búsqueda se realizará en %1$d segundos.</item>
+    </plurals>
 </resources>

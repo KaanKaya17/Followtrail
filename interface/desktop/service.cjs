@@ -133,7 +133,7 @@ class Backend {
         ok: false,
         error: { message: this.failure || "Yerel hizmet hazırlanıyor." },
       };
-    const control = ["cancel", "code"].includes(operation);
+    const control = ["cancel", "code", "search_avatar", "cancel_search_images"].includes(operation);
     if (!control && this.busy)
       return {
         ok: false,

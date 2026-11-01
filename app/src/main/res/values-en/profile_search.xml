@@ -9,4 +9,8 @@
     <string name="search_none">No matching profile found.</string>
     <string name="search_query_invalid">Enter 2–100 characters to search.</string>
     <string name="search_saved_hint">Search name, @username or group</string>
+    <plurals name="search_waiting">
+        <item quantity="one">The latest search will run in %1$d second.</item>
+        <item quantity="other">The latest search will run in %1$d seconds.</item>
+    </plurals>
 </resources>
