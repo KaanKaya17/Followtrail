@@ -8,6 +8,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { brandWindows } from './brand-windows.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const version = JSON.parse(
   await readFile(path.join(root, "package.json"), "utf8"),
@@ -31,6 +32,7 @@ if (refresh) {
     `../artifacts/desktop-${version}-source-${new Date().toISOString().replace(/[:.]/g, "-")}`,
   );
   await cp(resources, backup, { recursive: true });
+  await cp(path.join(output, 'InstagramTracker.exe'), path.join(backup, 'InstagramTracker.exe'));
 } else {
   try {
     await access(output);
@@ -87,6 +89,9 @@ await cp(
   path.join(root, ".cache/tray-icon.png"),
   path.join(resources, "desktop/tray.png"),
 );
+for (const extension of ['png','ico'])
+  await cp(path.join(root, `.cache/app-icon.${extension}`), path.join(resources, `desktop/app-icon.${extension}`));
+await brandWindows(path.join(output,'InstagramTracker.exe'),path.join(resources,'desktop/app-icon.ico'),version);
 await cp(
   path.join(root, ".cache/worker-licenses"),
   path.join(output, "Python-dependency-notices"),
@@ -97,6 +102,7 @@ await writeFile(
   JSON.stringify(
     {
       name: "instagramtracker-desktop",
+      productName: "InstagramTracker",
       version,
       main: "desktop/main.cjs",
     },

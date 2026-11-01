@@ -29,6 +29,8 @@ for (const file of [
   "scripts/preview.mjs",
   "scripts/package-desktop.mjs",
   "scripts/package-functional-desktop.mjs",
+  "scripts/brand-windows.mjs",
+  "scripts/check-branding-desktop.mjs",
   "scripts/check-ui.mjs",
   "scripts/check-desktop.mjs",
   "scripts/check-functional-desktop.mjs",

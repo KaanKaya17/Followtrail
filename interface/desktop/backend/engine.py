@@ -136,7 +136,7 @@ class Engine:
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.24'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.25'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}

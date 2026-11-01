@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows-web 0.2.25 — 2026-11-01 (Windows uygulama adı ve logosu)
+
+- Paketli EXE'nin Electron ürün/dosya bilgileri InstagramTracker adı ve uygulamanın sürümüyle değiştirilir. Mevcut yerel marka işareti yedi boyutta (16–256 piksel) EXE'ye gömülür; pencere ve tepsi aynı işareti kullanır. Düzenleme yalnız paket çıktısında, kilitli geliştirme bağımlılığı `resedit` 3.1.0 ile yapılır.
+- Başlat menüsü kısayolu bildirim tercihi kapalıyken de açılışta oluşturulur/güncellenir; simgesi güncel EXE'den alınır. Güncel olmayan simge/çalışma klasörü/açıklama da güncellemeyi tetikler. Önceki kendi kısayolunun yedeği korunur; farklı sahibin kısayolu değiştirilmez. Kısayol oluşturmak bildirim iznini açmaz.
+- Doğrulama: 32 Node testi, tema/dil/kaynak kontrolü, iki paketli Windows marka/kısayol kontrolü ve 34 paketli uygulama kontrolü geçti. Windows'un dosya sürüm API'si ürün adını InstagramTracker ve sürümü 0.2.25 olarak okudu; EXE'den yerel Windows API'siyle çıkartılan simge görsel olarak kontrol edildi. Testler çevrimdışı örnek veriler kullanır; Windows arama dizininin/önceden sabitlenmiş kısayolların önbellek yenilenme süresi doğrulanmadı. Android paketi değişmedi.
+
 ## Windows-web 0.2.24 — 2026-11-01 (Eksik liste sonrası açılış düzeltmesi)
 
 - Profil sayısına ulaşmadan sona eren liste taraması boş devam işaretçisi kaydediyordu; sonraki açılışta depo doğrulaması bu kaydı reddediyordu. Yeni taramalar devam sayfası yokluğunu `null` olarak kaydeder. Eski boş işaretçiler depo okunurken aynı biçime dönüştürülür; kısmi üyeler, önceki tam listeler, tarama durumu ve mola/bütçe kayıtları korunur. Geçersiz işaretçi türleri kabul edilmez; eksik liste tamamlanmış sayılmaz.

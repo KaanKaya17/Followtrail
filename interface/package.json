@@ -1,6 +1,6 @@
 {
   "name": "instagramtracker-interface",
-  "version": "0.2.24",
+  "version": "0.2.25",
   "private": true,
   "description": "Local encrypted Windows Instagram observations and shared interface preview.",
   "main": "desktop/main.cjs",
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "electron": "45.0.0",
-    "playwright-core": "1.64.1"
+    "playwright-core": "1.64.1",
+    "resedit": "3.1.0"
   }
 }
