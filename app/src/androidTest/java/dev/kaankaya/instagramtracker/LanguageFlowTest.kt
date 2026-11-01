@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
+import androidx.lifecycle.Lifecycle
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
 import org.junit.Assert.*
@@ -166,6 +167,31 @@ class LanguageFlowTest {
         assertEquals("pt-BR", AppLanguage.selected(context))
         assertEquals("Idioma do aplicativo", AppLanguage.wrap(context).getString(R.string.language_title))
         assertEquals("Em resumo", AppLanguage.wrap(context).getString(R.string.ui_at_a_glance))
+        assertEquals(0L, gate.attempts())
+    }
+
+    @Test fun brazilianPortugueseKeepsTheSameActivityAcrossResumeAndPreservesRecords() {
+        instrumentation.runOnMainSync { AppLanguage.set(context, "pt-BR") }
+        instrumentation.waitForIdleSync()
+        gate.limited(null)
+        val before = vault.read()
+        val pause = gate.blockedUntil()
+        launch("Em resumo")
+        var first: MainActivity? = null
+        scenario!!.onActivity { first = it }
+        repeat(3) {
+            scenario!!.moveToState(Lifecycle.State.CREATED)
+            scenario!!.moveToState(Lifecycle.State.RESUMED)
+            instrumentation.waitForIdleSync()
+            scenario!!.onActivity { activity ->
+                assertSame("Resuming pt-BR must not recreate the activity", first, activity)
+                assertEquals("pt-BR", AppLanguage.selected(activity))
+                assertEquals("pt-BR", AppLanguage.locale(activity).toLanguageTag())
+                assertEquals("Em resumo", activity.getString(R.string.ui_at_a_glance))
+            }
+        }
+        assertEquals(before, vault.read())
+        assertEquals(pause, gate.blockedUntil())
         assertEquals(0L, gate.attempts())
     }
 }

@@ -6,8 +6,8 @@ android {
         applicationId = "dev.kaankaya.instagramtracker"
         minSdk = 24
         targetSdk = 36
-        versionCode = 64
-        versionName = "0.1.63"
+        versionCode = 65
+        versionName = "0.1.64"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { buildConfig = true }
