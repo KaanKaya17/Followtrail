@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.65 — 2026-11-01 (Kod gönderme sözleşmesini tanılama)
+
+- İkinci telefonun 30 Ekim kaydında engellenen `useAuthPlatformSubmitCodeMutation` ve `AuthPlatformApproveFromAnotherDevicePollingMutation` işlemleri kimlikleriyle tanınır. Yalnız kök değişken ve bir düzey altındaki giriş alanlarının ad/tür bilgileri tutulur; kod, parola, oturum veya bağlam değerleri okunup kaydedilmez.
+- Açık, onaylanmış güvenlik sayfasında bu iki sabit işlemin statik tanımı varsa kimlik, mutation türü, argüman ve kök alan adları doğrulanır. Şema ayrıştırması mevcut kod-ekranı sorgusuyla aynı sahibin kontrolündedir. Bu gözlem yeni ağ yetkisi oluşturmaz; sonraki kod gönderim desteğinin gerçek alanlarını belirlemek içindir.
+- Tanı kaydının okuma sınırı, dört belgenin sınırlı giriş alanları ve iki ek şemanın genişlemesini karşılayacak 32 KiB'ye yükseltildi. Önceki kayıtlar korunur.
+- 120 JVM testi, 9 JavaScript kontrolü, 648 kaynak denetimi, release lint ve release/debug/test derlemeleri geçti. Yeni ekran testi derlendi; cihazda çalıştırıldığı iddia edilmez. İmzalı paket kullanıcının kendi telefonuna mevcut 0.1.57'nin üzerine veri silmeden kuruldu; yeni canlı tanı sonucu ayrıca bekleniyor.
+
 ## Android 0.1.64 — 2026-11-01 (PT-BR ekran yaşam döngüsü)
 
 - Ekranın öne gelmesindeki dil kontrolü, yalnız dil bölümünü (`pt`) tam tercih (`pt-BR`) ile karşılaştırıyordu. Kontrol artık ekran oluşturulurken alınan tam dil tercihiyle güncel tercihi karşılaştırır. PT-BR seçiliyken gereksiz yeniden oluşturma döngüsü önlenir; gerçek dil ve tema değişimleri ekranı yenilemeye devam eder.

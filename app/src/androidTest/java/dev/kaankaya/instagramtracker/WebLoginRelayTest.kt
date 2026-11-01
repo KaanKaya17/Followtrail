@@ -92,6 +92,19 @@ class WebLoginRelayTest {
     }
     private fun viewBody()=JSONObject.quote("doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables="+
         java.net.URLEncoder.encode("""{"apc":"synthetic-apc","device_id":null}""","UTF-8"))
+    @Test fun blockedSubmitCodeCollectsOnlyItsSchemaWithoutSendingOrPersistingTheCode() {
+        open(security=true)
+        val body=JSONObject.quote("doc_id=25017097917894476&fb_api_req_friendly_name=useAuthPlatformSubmitCodeMutation&variables="+
+            java.net.URLEncoder.encode("""{"input":{"apc":"private-context","code":"private-code"}}""","UTF-8"))
+        js("window.require=()=>({params:{id:'25017097917894476',name:'useAuthPlatformSubmitCodeMutation',operationKind:'mutation'},operation:{argumentDefinitions:[{name:'input'}],selections:[{kind:'LinkedField',name:'synthetic_verification'}]}});fetch('/graphql/query/',{method:'POST',body:$body}).catch(()=>window.__submitBlocked=true)")
+        until("window.__submitBlocked===true","true")
+        val end=android.os.SystemClock.elapsedRealtime()+5000
+        while (JSONObject(LoginPageTrace.read(context)!!).getJSONObject("verificationSchemas").length()==0 && android.os.SystemClock.elapsedRealtime()<end) Thread.sleep(20)
+        val report=LoginPageTrace.read(context)!!
+        val schema=JSONObject(report).getJSONObject("verificationSchemas").getJSONObject("useAuthPlatformSubmitCodeMutation")
+        assertTrue(schema.getBoolean("available"));assertEquals("input",schema.getJSONArray("arguments").getString(0))
+        assertFalse(report.contains("private-"));assertEquals(0,calls.get());assertEquals(0L,gate.attempts())
+    }
     @Test fun securityViewUsesOneReadWithoutExtendingTheAuthenticationDeadlineOrCreatingASession() {
         gate.beginWebAuthentication(now-16000);val authenticationAt=gate.nextWebAuthenticationAt()
         response={request->Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture")

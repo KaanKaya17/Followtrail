@@ -110,6 +110,24 @@ Kullanıcı başka telefonda gerçek test yapmak istedi, mail kodu ekranı geldi
 
 0.1.61 derlemesi 4 dakika 30 saniyede tamamlandı; 118 JVM testi, release lint (sıfır hata / 24 uyarı) ve 646 TR/EN kaynak kontrolü geçti. İmzalı APK code 62, 2.261.731 bayt, SHA-256 `39f07344095e1c0b2fd5a145caaad8ddbfbc885905e9ca49189c1d102d09ed99`. Paket kontrolünde mevcut dört izin ve kapalı backup/debuggable/cleartext korundu. İkinci fiziksel telefona veri silmeden `install -r` başarılı oldu; kurulu sürüm paket yöneticisiyle doğrulandı. Uygulama açıldı, fakat bildirim perdesi üzerindeydi; kullanıcıdan perdeyi kapatıp İstek bilgilerini yeniden açması istendi. Yeni görünümün bu telefonda tanıyı okunabilir yaptığı veya kod sonrası bağlantıyı çözdüğü henüz doğrulanmadı. Emülatör açılmadı; yeni giriş/OTP gönderilmedi.
 
+## 1 Kasım · ikinci telefondaki kayıt okundu
+
+Android 0.1.61 kurulu ikinci telefonun açık İstek bilgileri ekranı, UIAutomator erişilebilirliği üzerinden parça parça okundu. Yeni giriş gönderilmedi. Son sayaçlı deneme 30 Ekim 17:52 / HTTP 200; LP01'de bir AUTH ve bir SECURITY_VIEW iletimi var. Yerel 403'ler `LOCAL_BLOCK` olarak ayrılıyor; Instagram 403'ü değiller.
+
+Engellenen sabit belge/işlem çiftleri: `25017097917894476` / `useAuthPlatformSubmitCodeMutation`, `24626773746933809` / `AuthPlatformApproveFromAnotherDevicePollingMutation`. Ayrı `ConversationalSupportIGLRRChatExperienceQuery` de engellenmiş. Kod gönderiminin yerel filtreden geçemediği gözlendi; bu, diğer tüm giriş koşullarının başarılı olduğunu kanıtlamaz. Kod ekranı sorgusunun statik şeması mevcut. Ekranın sonuna kaydırılınca `securityView` bölümü arada kaldığından bu kaydın validData sonucu okunamadı.
+
+İlk `authentication` yanıtı HTTP 200, `authenticated=false`, oturum/sahip çerezleri yok, kod 1348009, `captchaNeeded=true`, `igLoginRecaptcha=false`, `challengeRoute=AUTH_PLATFORM`, `challengeStatus=SUPPORTED` içeriyor. Bu ilk yanıttaki `BAD_LOGIN_INFORMATION` sınıfı, desteklenmeyen kod gönderiminden sonra Instagram'ın kodu reddettiğinin kanıtı değildir.
+
+Kullanıcının kendi telefonuna geri dönüldüğünde 0.1.57 kurulu, önceki 429 30 Ekim 10:01 ve yerel mola dolmuş görüldü. İki telefonun kayıtları birbirine aitmiş gibi yorumlanmadı.
+
+## 0.1.65 · doğrulama işlem şemaları
+
+Yukarıdaki iki belge kimliğiyle tam işlem adı eşleşirse, engellenen isteğin kök alanları ile bir düzey altındaki nesne alanlarının yalnız ad ve türleri tutulur. Kök en fazla 8, alt alanlar toplam en fazla 16 öğedir; kapsam aşılırsa eksik olduğu belirtilir. İç içe nesne/array içerikleri ve değerler tanılanmaz.
+
+Aynı açık/onaylanmış güvenlik sayfasının statik modülü, belge numarası, tam işlem adı ve `operationKind=mutation` eşleşmesiyle okunur. Argüman/kök alan adları ortak şema ayrıştırıcısından geçirilir. Bu bilgi POST izni değildir. Kod gönderme ve cihaz onayı desteği, gerçek alanlar doğrulandıktan sonra ayrı sözleşmeyle uygulanacaktır. Bu ara sürümde girişin çözüldüğü iddia edilmez.
+
+120 JVM testi ve 9 JavaScript kontrolü geçti; release lint 0 hata / önceki 24 uyarı. Release, debug ve cihaz test paketleri derlendi; yeni WebView ekran vakası cihazda henüz çalıştırılmadı. Son kaynak yeniden denetlenerek imzalanan 0.1.65 / code 66, 2.384.611 bayt; SHA-256 `476da3f42309a781715384a09458e1a8a045a69f524a4a9624a955fd563ce5b7`. v2/v3 imzaları ve paket kontrolü geçti. Kullanıcının kendi telefonuna eski 0.1.57'nin üzerine `install -r` başarılı oldu; 0.1.65 kurulu sürüm olarak doğrulandı. Veri silme, mola sıfırlama veya otomatik parola/kod gönderimi yapılmadı. Kullanıcıya tek açık giriş ve gerekiyorsa kendi gireceği kodla yeni tanı testi verildi; sonuç bekleniyor.
+
 ## 0.1.63 tam uygulama dili paketleri
 
 İspanyolca (`es`) ve Brezilya Portekizcesi (`pt-BR`) Android uygulama diline tam paket olarak eklendi. Bölge etiketi korunur; `pt` olarak daraltılmaz. Her pakette İngilizce kaynakla aynı 648 anahtar bulunur; dil/tema/liste gezinmesi, otomasyon, bildirimler, oturum/güvenlik yönlendirmesi ve istek tanıları seçilen dilde görünür.

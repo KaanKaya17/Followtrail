@@ -37,6 +37,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private var submitted = false
     private var securitySubmitted=false
     private var schemaInspected=false
+    private val inspectedVerification = hashSetOf<String>()
     @Volatile private var active: Pending? = null
     private class Pending(val id: String, val reply: JavaScriptReplyProxy, val lease: AutoCloseable, val securityView: Boolean) {
         @Volatile var call: Call? = null
@@ -70,9 +71,18 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
         if(schemaInspected)return
         schemaInspected=true
         val script=context.assets.open("web_security_schema.js").bufferedReader().use {it.readText()}
-            .replace("__DOCUMENT__",AuthPlatformCodeEntry.DOCUMENT).replace("__OPERATION__",AuthPlatformCodeEntry.OPERATION)
+            .replace("__DOCUMENT__",AuthPlatformCodeEntry.DOCUMENT).replace("__OPERATION__",AuthPlatformCodeEntry.OPERATION).replace("__KIND__", "query")
         browser.evaluateJavascript(script) {raw->
             if(!closed && browser.url==page)try{trace.securitySchema(raw ?: "null")}catch(_: Exception){}
+        }
+    }
+    private fun inspectVerificationSchema(page: String, operation: AuthPlatformVerification.Operation) {
+        if (!inspectedVerification.add(operation.name)) return
+        val script = context.assets.open("web_security_schema.js").bufferedReader().use { it.readText() }
+            .replace("__DOCUMENT__", operation.document).replace("__OPERATION__", operation.name).replace("__KIND__", "mutation")
+        browser.evaluateJavascript(script) { raw ->
+            if (!closed && browser.url == page && securityScope(page))
+                try { trace.verificationSchema(operation, raw ?: "null") } catch (_: Exception) { }
         }
     }
     private fun receive(message: WebMessageCompat, origin: Uri, mainFrame: Boolean, proxy: JavaScriptReplyProxy) {
@@ -99,7 +109,9 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 inspectSecuritySchema(page)
                 val approved=try{WebSecurityViewContract.authorize(body,requireNotNull(path),securityContext(page))}catch(_: Exception){null}
                 if(approved==null) {
-                    trace.blockedDocument(WebDocumentFacts.inspect(body))
+                    val facts = WebDocumentFacts.inspect(body)
+                    AuthPlatformVerification.find(facts.document, facts.operation)?.let { inspectVerificationSchema(page, it) }
+                    trace.blockedDocument(facts)
                     trace.resource("POST",LoginBrowserPolicy.ResourceDecision(false,LoginBrowserPolicy.ResourceKind.GRAPHQL));trace.flush()
                     reply(proxy,id,JSONObject().put("error",true));securityBlocked();return
                 }
