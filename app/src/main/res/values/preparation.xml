@@ -5,7 +5,6 @@
     <string name="preparation_waiting">Liste hazırlığı bekliyor</string>
     <string name="preparation_ready">Başlangıç listelerin hazır</string>
     <string name="preparation_scope">Takipçilerin, ardından takip edilenlerin otomatik okunur. Uygulamayı kullanmaya başlamadan önceki takipten çıkışlar bilinmiyor.</string>
-    <string name="preparation_ready_scope">İlk kayıt bir başlangıçtır. Sonraki tamamlanan taramalarda liste farklarını görebilirsin.</string>
     <string name="preparation_incomplete">Tarama tamamlanmadı; kayıtlar korundu.</string>
     <string name="preparation_baseline">Başlangıç kaydı hazır</string>
     <string name="preparation_progress">%1$d sayfa · %2$d hesap kaydedildi</string>

@@ -5,7 +5,6 @@
     <string name="preparation_waiting">List preparation is waiting</string>
     <string name="preparation_ready">Your baseline lists are ready</string>
     <string name="preparation_scope">Your followers, then following, are read automatically. Unfollows from before you started using the app are unknown.</string>
-    <string name="preparation_ready_scope">The first record is a baseline. Later completed scans let you see list changes.</string>
     <string name="preparation_incomplete">The scan is incomplete; saved records were preserved.</string>
     <string name="preparation_baseline">Baseline ready</string>
     <string name="preparation_progress">%1$d pages · %2$d accounts saved</string>

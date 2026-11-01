@@ -15,14 +15,13 @@
 .saved-account.selected { border-color:var(--violet); background:var(--violet-soft); }
 .account-switcher:disabled { opacity:.6; }
 @media (max-height:800px) {
-  .sidebar .privacy-note { display:none; }
   .sidebar .brand { margin-bottom:24px; }
   .sidebar-bottom { padding-top:16px; }
 }
-.preparation-card { margin-bottom:24px; padding:24px; }
-.preparation-card h2 { margin:8px 0; font-size:21px; }
+.preparation-card { margin-bottom:24px; padding:20px; }
+.preparation-card h2 { margin:4px 0; font-size:18px; }
 .preparation-card p { color:var(--muted); line-height:1.65; font-size:13px; }
-.preparation-card ul { list-style:none; padding:0; margin:18px 0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.preparation-card ul { list-style:none; padding:0; margin:14px 0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 .preparation-card li { padding:12px; background:var(--subtle-surface); border:1px solid var(--line); border-radius:var(--radius-control); }
 .preparation-card li strong, .preparation-card li span { display:block; }
 .preparation-card li span { margin-top:6px; color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }

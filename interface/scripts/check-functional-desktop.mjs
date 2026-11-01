@@ -55,6 +55,25 @@ async function check(name, work) {
 }
 try {
   await launch();
+  await check('Footer help contains disclosure and retention details without starting network work', async () => {
+    const before = await page.evaluate(() => window.TrackerDesktop.command('state'));
+    await page.locator('.page-footer [data-action="usage-notes"]').click();
+    await page.getByRole('dialog').getByRole('heading', {name:'Kullanım notları',exact:true}).waitFor();
+    assert.match(await page.getByRole('dialog').innerText(), /2\.000 olay/);
+    assert.match(await page.getByRole('dialog').innerText(), /Değişikliğin kesin zamanı/);
+    await page.screenshot({path:path.join(output,'usage-notes-tr.png')});
+    await page.keyboard.press('Escape');
+    assert.equal(await page.getByRole('dialog').count(), 0);
+    const after = await page.evaluate(() => window.TrackerDesktop.command('state'));
+    assert.deepEqual(after.gate, before.gate);
+    assert.deepEqual(after.account, before.account);
+    await page.evaluate(() => window.scrollTo(0,0));
+    await page.screenshot({path:path.join(output,'overview-tr.png'),fullPage:true});
+    await page.locator('.sidebar nav a[href="#timeline"]').click();
+    assert.equal(await page.locator('.timeline-explainer').count(), 0);
+    await page.screenshot({path:path.join(output,'timeline-tr.png'),fullPage:true});
+    await page.locator('.sidebar nav a[href="#overview"]').click();
+  });
   await check(
     "Closing the actual window keeps the renderer and local worker alive in the tray",
     async () => {

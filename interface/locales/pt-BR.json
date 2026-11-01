@@ -1,4 +1,8 @@
 {
+  "Kullanım notları": "Notas de uso",
+  "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Os resultados mostram diferenças entre verificações salvas. Por si só, não determinam o momento exato de uma mudança nem comprovam que alguém deixou de seguir você.",
+  "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "A primeira lista completa é o registro inicial. Depois, as listas completas são comparadas. Listas parciais não permitem estabelecer um resultado definitivo; a busca abrange apenas os registros no dispositivo.",
+  "Kontrol aralığı bir hedeftir. Instagram molası, internet ve arka plan koşulları geciktirebilir.": "O intervalo de verificação é uma meta. Pausas do Instagram, conexão e restrições em segundo plano podem causar atrasos.",
   ". Sayfalama bitti ve kayıt sayısı profil sayısıyla uyuştu. Liste tarama sırasında değişebilir.": ". A paginação foi concluída e o número de registros corresponde ao número de perfis. A lista pode mudar durante a digitalização.",
   "26 Eki 16:40 → 27 Eki 16:42 · İki örnek profil gözleminin net farkı.": "26 Out 16:40 → 27 Out 16:42 · Diferença líquida de duas observações de perfil amostral.",
   "26 Ekim, 16:40 → 27 Ekim, 16:42": "26 de outubro, 16h40 → 27 de outubro, 16h42",

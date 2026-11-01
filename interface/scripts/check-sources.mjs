@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 for (const file of [
   "web/app.js",
+  "web/usage-notes.js",
   "web/appearance.js",
   "web/desktop.js",
   "web/wayback.js",

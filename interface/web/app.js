@@ -272,16 +272,16 @@
             `<a class="nav-item ${state.page === key ? "selected" : ""}" href="#${key}" ${state.page === key ? 'aria-current="page"' : ""}>${icon(symbol)}<span>${t(label)}</span>${key === "people" ? `<span class="nav-count">${state.people.length}</span>` : ""}</a>`,
         )
         .join("")}</nav>
-      <div class="sidebar-bottom"><div class="privacy-note">${icon("shield")}<strong>${t("Çevren sana özel.")}</strong><p>${t("Kontrollerin, değişiklikler ve sana ait notlar bir arada.")}</p><button class="text-button" data-action="privacy">${t("Gizliliği incele {0}", icon("arrow"))}</button></div><div class="preview-label"><span class="status-dot"></span> ${t("Arayüz önizlemesi")} <span>01</span></div></div></aside>`;
+      <div class="sidebar-bottom"><div class="preview-label"><span class="status-dot"></span> ${t("Arayüz önizlemesi")} <span>01</span></div></div></aside>`;
   }
   function topbar() {
     return `<header class="topbar"><a class="mobile-brand" href="#overview"><span class="brand-mark">${icon("chart")}</span>${t("Tracker")}</a><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[state.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${t("Örnek veriler")}</span>${iconButton("bell", t("Örnek bildirimler"), "notifications")}<button class="account-button" data-action="account" aria-label="${t("Örnek hesap bağlantısını incele")}">${avatar(own)}<span><strong>${t("@benim.demo")}</strong><small>${t("Örnek hesap")}</small></span>${icon("down")}</button></div></header>`;
   }
   function title(kicker, heading, text, action = "") {
-    return `<div class="page-heading"><div><span class="eyebrow">${kicker}</span><h1>${heading}</h1><p>${text}</p></div>${action}</div>`;
+    return `<div class="page-heading"><div><span class="eyebrow">${kicker}</span><h1>${heading}</h1>${text ? `<p>${text}</p>` : ""}</div>${action}</div>`;
   }
   function footer() {
-    return `<footer class="page-footer"><span>${t("{0} Yalnız örnek veriler · Instagram bağlantısı etkin değil", icon("lock"))}</span><button class="text-button" data-action="scope">${t("Bu önizleme hakkında {0}", icon("info"))}</button></footer>`;
+    return `<footer class="page-footer"><span>${t("{0} Yalnız örnek veriler · Instagram bağlantısı etkin değil", icon("lock"))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="scope">${t("Bu önizleme hakkında {0}", icon("info"))}</button></div></footer>`;
   }
   function mobileNavigation() {
     return `<nav class="mobile-nav" aria-label="${t("Mobil gezinme")}">${Object.entries(
@@ -344,7 +344,7 @@
     return `<button class="event-row ${compact ? "compact-event" : ""}" data-action="event" data-id="${e.id}"><span class="event-icon ${e.tone}">${icon(e.icon)}</span><span class="event-copy"><strong>${t(e.title)}</strong><small>${t(e.text)}</small></span><time>${e.time}</time>${icon("chevron")}</button>`;
   }
   function overview() {
-    return `${title(t("27 EKİM 2026 · SALI"), t("Çevrende neler oluyor?"), t("Hesabın, favori profillerin ve son değişiklikler bir arada."), button(t("Şimdi kontrol et"), "refresh", "refresh", "primary"))}
+    return `${title(t("27 EKİM 2026 · SALI"), t("Çevrende neler oluyor?"), "", button(t("Şimdi kontrol et"), "refresh", "refresh", "primary"))}
       <section class="stats-grid" aria-label="${t("Örnek hesap özeti")}"><button class="stat-card violet" data-action="open-list" data-value="followers"><span class="stat-label">${t("Takipçiler {0}", icon("people"))}</span><strong class="stat-value">875</strong><span class="stat-bottom"><span class="stat-change">${icon("chart")} +18 <span>${t("son kontrolde")}</span></span>${icon("arrow")}</span></button>
       <button class="stat-card peach" data-action="open-list" data-value="following"><span class="stat-label">${t("Takip edilen {0}", icon("people"))}</span><strong class="stat-value">412</strong><span class="stat-bottom"><span class="stat-change">${icon("chart")} +4 <span>${t("son kontrolde")}</span></span>${icon("arrow")}</span></button>
       <button class="stat-card white" data-action="profile-events"><span class="stat-label">${t("Profil değişiklikleri {0}", icon("photo"))}</span><strong class="stat-value">3<span class="stat-unit">${t("yeni kontrol")}</span></strong><span class="stat-bottom"><span class="muted">${t("Küçük değişiklikleri fark et.")}</span>${icon("arrow")}</span></button></section>
@@ -352,9 +352,9 @@
         .slice(0, 3)
         .map((e) => eventRow(e, true))
         .join("")}</div></section></div>
-      <aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("check")}</span><span>${t("SON ÖRNEK KONTROL")}</span></div><h2>${t("Her şey bir kayıttan başlar.")}</h2><p>${t("Bugün, 16:42")}</p><div class="snapshot-rule"></div><div class="snapshot-line"><span>${t("Profil bilgisi")}</span><span class="mini-check">${t("{0} Kayıtlı", icon("check"))}</span></div><div class="snapshot-line"><span>${t("Listenin ne kadarı okundu?")}</span><button class="text-button" data-action="scope">${t("Örneği incele {0}", icon("chevron"))}</button></div><p class="snapshot-footnote">${t("Gösterilenler önceki kontrollerden kaydedildi; Instagram’daki anlık durum farklı olabilir.")}</p></section>
+      <aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("check")}</span><span>${t("SON ÖRNEK KONTROL")}</span></div><h2>${t("Her şey bir kayıttan başlar.")}</h2><p>${t("Bugün, 16:42")}</p><div class="snapshot-rule"></div><div class="snapshot-line"><span>${t("Profil bilgisi")}</span><span class="mini-check">${t("{0} Kayıtlı", icon("check"))}</span></div><div class="snapshot-line"><span>${t("Listenin ne kadarı okundu?")}</span><button class="text-button" data-action="scope">${t("Örneği incele {0}", icon("chevron"))}</button></div></section>
       <section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2>${iconButton("plus", t("Favori kişileri seç"), "favorites")}</div>${favoriteRows()}<a class="all-people" href="#people">${t("Bütün kişileri keşfet {0}", icon("arrow"))}</a></section>
-      <div class="little-note">${icon("lock")}<p>${t("Kontrol sende.")}<br><span>${t("Yalnızca anlamlı değişikliklere odaklan.")}</span></p></div></aside></div>`;
+      </aside></div>`;
   }
   function filteredPeople() {
     const query = state.peopleSearch.toLocaleLowerCase(i18n.locale(language));
@@ -383,7 +383,7 @@
       : empty(t("Farklı bir arama veya filtre deneyebilirsin."));
   }
   function people() {
-    return `${title(t("KAYDEDİLEN PROFİLLER"), t("Kaydettiğin profiller bir arada."), t("Özellikle kaydettiğin örnek profiller burada yer alır. Örnek takipçi ve takip edilen kayıtları Takip Listeleri bölümündedir."), button(t("Örnek profil ekle"), "add-person", "plus", "primary"))}
+    return `${title(t("KAYDEDİLEN PROFİLLER"), t("Kaydettiğin profiller bir arada."), "", button(t("Örnek profil ekle"), "add-person", "plus", "primary"))}
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Profil filtresi")}">${[
         ["all", t("Tümü"), state.people.length],
         [
@@ -436,7 +436,7 @@
     const removed = record.previous.filter(
       (id) => !record.current.includes(id),
     ).length;
-    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), t("Takipçi ve takip edilen listelerini incele, iki kontrol arasında nelerin değiştiğini gör."), button(state.comparing ? t("Listeye dön") : t("Kontrolleri karşılaştır"), "compare", "compare", state.comparing ? "primary" : "secondary"))}
+    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", button(state.comparing ? t("Listeye dön") : t("Kontrolleri karşılaştır"), "compare", "compare", state.comparing ? "primary" : "secondary"))}
       <section class="list-account card">${avatar(own)}<div><strong>${t("@benim.demo")}</strong><span>${t("Örnek hesap · Son kayıt bugün, 16:42")}</span></div><button class="text-button" data-action="scope">${t("Neler kontrol edildi? {0}", icon("info"))}</button></section>
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Liste yönü")}">${[
         ["followers", t("Takipçiler"), "875"],
@@ -449,14 +449,14 @@
         .join(
           "",
         )}</div><label class="search-input">${icon("search")}<input id="list-search" type="search" placeholder="${t("Kayıtlı listede ara")}" aria-label="${t("Listede ara")}" value="${esc(state.listSearch)}"></label></div>
-      ${state.comparing ? `<section class="comparison-panel"><div><span class="eyebrow">${t("ÖNCEKİ → YENİ KONTROL")}</span><h2>${t("Listendeki küçük farklar")}</h2><p>${t("26 Ekim, 16:40 → 27 Ekim, 16:42")}</p></div><div class="comparison-stat"><strong>+${added}</strong><span>${t("Yeni görülen hesaplar")}</span></div><div class="comparison-stat removed"><strong>${removed}</strong><span>${t("Son kontrolde görünmeyenler")}</span></div><p class="comparison-note">${t("{0} Seçilen yöndeki örnek listeler karşılaştırılıyor. Görünmemek, kesin takipten çıkış anlamına gelmez.", icon("info"))}</p></section>` : ""}
+      ${state.comparing ? `<section class="comparison-panel"><div><span class="eyebrow">${t("ÖNCEKİ → YENİ KONTROL")}</span><h2>${t("Listendeki küçük farklar")}</h2><p>${t("26 Ekim, 16:40 → 27 Ekim, 16:42")}</p></div><div class="comparison-stat"><strong>+${added}</strong><span>${t("Yeni görülen hesaplar")}</span></div><div class="comparison-stat removed"><strong>${removed}</strong><span>${t("Son kontrolde görünmeyenler")}</span></div></section>` : ""}
       <section class="list-card card"><div class="list-table-head"><span>${t("Hesap")}</span><span>${t("Profil kaydı")}</span><span>${t("Son kontrol")}</span><span></span><span></span></div><div id="list-rows">${listRows()}</div><div class="list-table-footer"><span id="list-result-count">${t("{0} örnek hesap gösteriliyor", listPeople().length)}</span><span>${t("Arama yeni istek göndermez")}</span></div></section>`;
   }
   function timeline() {
     const filtered = events.filter(
       (e) => state.eventType === "all" || e.type === state.eventType,
     );
-    return `${title(t("KONTROL GEÇMİŞİ"), t("Değişimlerin izini sür."), t("Neyin ne zaman kontrol edildiğini ve nelerin değiştiğini gör."), button(t("Neler kontrol edildi?"), "scope", "calendar"))}
+    return `${title(t("KONTROL GEÇMİŞİ"), t("Değişimlerin izini sür."), "", button(t("Neler kontrol edildi?"), "scope", "calendar"))}
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Geçmiş filtresi")}">${[
         ["all", t("Tüm kontroller")],
         ["profile", t("Profil değişiklikleri")],
@@ -468,7 +468,7 @@
         )
         .join(
           "",
-        )}</div><span class="toolbar-note">${t("{0} örnek kayıt", filtered.length)}</span></div><div class="timeline-layout"><section class="timeline-main">${[
+        )}</div><span class="toolbar-note">${t("{0} örnek kayıt", filtered.length)}</span></div><div class="timeline-layout timeline-focused"><section class="timeline-main">${[
         t("Bugün"),
         t("Dün"),
       ]
@@ -480,7 +480,7 @@
         })
         .join(
           "",
-        )}</section><aside class="timeline-explainer"><span class="outline-orbit">${icon("clock")}</span><h2>${t("Bir anı değil,")}<br>${t("bir kontrol sonucunu kaydediyoruz.")}</h2><p>${t("Buradaki zamanlar kayıtların alındığı anlardır. Değişikliğin Instagram’da gerçekleştiği kesin zamanı göstermez.")}</p><button class="text-button" data-action="scope">${t("Daha fazla bilgi {0}", icon("arrow"))}</button></aside></div>`;
+        )}</section></div>`;
   }
   function settings() {
     return `${title(t("SANA GÖRE"), t("Küçük ayarlar, daha rahat bir deneyim."), t("Görünümü düzenle ve bu önizlemenin kapsamını incele."))}
@@ -588,6 +588,9 @@
         break;
       case "event":
         eventDialog(id);
+        break;
+      case "usage-notes":
+        dialog(window.TrackerUsageNotes.render(t));
         break;
       case "privacy":
         navigate("settings");

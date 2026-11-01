@@ -11,7 +11,6 @@
     <string name="history_retention_scope">As últimas %1$d verificações bem-sucedidas são salvas. O período de tempo mostrado depende da frequência de verificação. As alterações entre verificações são desconhecidas.</string>
     <string name="history_single_scope">Um registro · %1$s\nAinda não há intervalo de tempo comparável.</string>
     <string name="history_actual_scope">%1$d registros · Extensão gravada: %2$d d %3$d h %4$d min\n%5$s → %6$s</string>
-    <string name="product_observation_scope">Veja mudanças nos perfis e siga listas. As verificações não mostram a hora exata de uma alteração nem provam que alguém deixou de seguir.</string>
     <string name="people_capacity_scope">Economize até %1$d pessoas. O histórico do perfil compartilha um orçamento de 2 MiB; os registros existentes permanecem se estiverem cheios. Mais pessoas não enviam mais solicitações de uma vez; a vez deles pode demorar mais.</string>
     <string name="people_more">Mostrar mais pessoas</string>
 </resources>

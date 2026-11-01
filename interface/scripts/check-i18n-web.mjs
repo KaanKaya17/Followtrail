@@ -24,6 +24,17 @@ try {
   await page.goto(origin);
   await page.getByRole('heading', { name: 'Çevrende neler oluyor?' }).waitFor();
   checks.push('Turkish default');
+  for (const [lang, label] of [['tr', 'Kullanım notları'], ['en', 'Usage notes'], ['es', 'Notas de uso'], ['pt-BR', 'Notas de uso']]) {
+    await page.evaluate(() => { location.hash = '#settings'; });
+    await page.locator('#app-language').selectOption(lang);
+    await page.locator('.page-footer [data-action="usage-notes"]').click();
+    await page.getByRole('dialog').getByRole('heading', {name:label,exact:true}).waitFor();
+    assert.equal(await page.getByRole('dialog').locator('.usage-notes section').count(), 3);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.getByRole('dialog').count(), 0);
+  }
+  await page.locator('#app-language').selectOption('tr');
+  checks.push('Footer help opens in all four languages and closes with Escape');
   await page.locator('.sidebar nav a[href="#settings"]').click();
   await page.locator('#app-language').selectOption('en');
   await page.waitForFunction(() => document.documentElement.lang === 'en');

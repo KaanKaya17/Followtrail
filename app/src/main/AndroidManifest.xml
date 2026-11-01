@@ -15,6 +15,7 @@
         <activity android:name=".FollowListActivity" android:exported="false" />
         <activity android:name=".MemberProfileActivity" android:exported="false" />
         <activity android:name=".TimelineActivity" android:exported="false" />
+        <activity android:name=".UsageNotesActivity" android:exported="false" />
         <activity android:name=".VisualHistoryActivity" android:exported="false" />
         <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
