@@ -4,6 +4,19 @@ const { EventEmitter } = require("node:events");
 const { Backend } = require("./service.cjs");
 const { changeNotification, showNotification, openAccountNotification } = require("./notifications.cjs");
 
+test('list notification previews frozen names in four languages and respects muted list changes', () => {
+ const membersAdded=['ada','deniz','cem'].map((username,i)=>({id:String(300+i),username,name:username}));
+ const list={eventId:'list-qa',category:'lists',username:'qa.owner',label:'Liste taraması',after:{membersAdded,membersRemoved:[{id:'400',username:'eski.ad'}]}};
+ const entry={id:'group',changes:[list],selectedChangeIds:['list-qa']};
+ for(const language of ['tr','en','es','pt-BR']) {
+  const notice=changeNotification(entry,language);
+  assert.match(notice.body,/@ada, @deniz/);assert.match(notice.body,/@eski\.ad/);
+  assert.doesNotMatch(notice.body,/@cem/);assert.equal(notice.logId,'group');
+ }
+ const muted=changeNotification({...entry,selectedChangeIds:[]});
+ assert.doesNotMatch(muted.body,/@ada|@eski\.ad/);
+});
+
 test('notification click switches to owning account before opening its log and never opens a foreign log while busy',async()=>{
  const calls=[],entry={id:'qa-log',ownerId:'100'};
  const backend={state:{activeAccountId:'400'},command:async(operation,args)=>{calls.push({operation,args});return {ok:true};}};

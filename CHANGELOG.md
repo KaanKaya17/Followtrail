@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.22 — 2026-11-01 (İzlenen profillerin liste değişiklikleri)
+
+- Otomatik takipçi/takip edilen taraması kendi hesabına ek olarak **İzlemeye al** seçili profilleri kapsar. Mevcut **Otomatik liste karşılaştırması** tercihi ayarlardan yönetilir. Eski çoklu hesap dizininin zamanlama bilgisi yeni liste kapsamıyla yeniden hesaplanır; etkin hesap, oturum, mola ve tercihler korunur.
+- Başlangıç listeleri otomatik hazırlanır. Sayaç değişimi ilgili yönü yeniden taramaya alır; mevcut 15 dakikalık tekrar tarama alt sınırı korunur. Sayı aynı kaldığında günlük tarama sürer. Liste işleri profiller arasında sıra alır; profil kontrolüyle dönüşümlü çalışır ve ortak istek bütçesine uyar.
+- İki tam listede eklenen ve artık görünmeyen hesapların sayısal kimlikleri, gözlenen adları ve kullanıcı adları olay/bildirim kaydında şifreli tutulur. Altı liste kaydı döndüğünde isim kanıtı kaybolmaz; eski yalnız sayısal kayıtlar için isim uydurulmaz. Yarım listeler fark üretmez. Başlangıç ve değişikliksiz liste taraması Windows bildirimi üretmez.
+- Bildirim ayrıntısından veya zaman çizelgesinden isimler açılır; eklenen/eksilen filtreleri ve 100 satırlık sayfalama vardır. Windows bildirimi ilk birkaç kullanıcı adını ve kalan sayıyı gösterir. Kayıtlı profilin panelinden takip listeleri doğrudan açılabilir. İzlenen bir profilin taramasını iptal etmek otomatik liste taramalarını duraklatır; kendiliğinden hemen devam etmez.
+- 173 çevrimdışı Python testi, 29 Node testi, 12 tarayıcı kontrolü ve paketli EXE üzerinde 33 kontrol geçti. Dört dilde 1.014 metin eşleşir. Bir dakikalık otomatik sayaç kontrolü, isim kanıtı, aynı sayıda üye değişimi, 429, iptal, eski dizin geçişi, adların HTML olarak çalışmaması, filtre/sayfalama ve dar ekran kontrol edildi. Canlı Instagram isteği veya gerçek Windows bildirim teslimi yeniden denenmedi. Kullanıcının önceki gecikmesinin canlı nedeni doğrulanmadı; mevcut kontrol aralığı ve izleme tercihleri otomatik değiştirilmedi.
+
 ## Android 0.1.67 / Windows-web 0.2.21 — 2026-11-01 (Daha sade çalışma alanı)
 
 - Genel açıklamalar ve sonuçların sınırları ana ekranlardan **Kullanım notları** alanına taşındı. Windows/web sayfa altından ortak yardım penceresini, Android sayfa altından veya ⋯ menüsünden ayrı yardım ekranını açar. Gizlilik açıklamaları ayrıca erişilebilir kalır.

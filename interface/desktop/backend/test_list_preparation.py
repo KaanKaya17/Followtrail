@@ -145,7 +145,7 @@ class ListPreparationTests(unittest.TestCase):
         self.e.catalog['accounts']['100']['monitor'].pop('listPlanVersion');self.e.persist_catalog()
         reopened=Accounts(self.home.name,clock=lambda:self.now[0])
         self.assertTrue(reopened.data['settings']['automaticLists'])
-        self.assertEqual(reopened.catalog['accounts']['100']['monitor']['listPlanVersion'],1)
+        self.assertEqual(reopened.catalog['accounts']['100']['monitor']['listPlanVersion'],list_preparation.PLAN_VERSION)
 
     def test_zero_member_lists_are_valid_baselines_not_missing_data(self):
         self.linked()
@@ -155,6 +155,105 @@ class ListPreparationTests(unittest.TestCase):
         self.assertTrue(state['listPreparation']['ready'])
         self.assertEqual([d['count'] for d in state['listPreparation']['directions']],[0,0])
         self.assertIsNone(state['lists']['100:followers']['comparison'])
+
+    def watched(self):
+        self.e.record_profile(parse_profile(profile('200',followers=1,following=1)))
+        self.e.run('save_person',{'id':'200','watching':True})
+
+    def test_automatic_watched_baseline_change_names_and_unwatch(self):
+        self.linked()
+        self.work(profile(followers=3,following=1),page(['200','201','202']))
+        self.work(profile(followers=3,following=1),page(['300']))
+        self.watched()
+        client=self.work(profile('200',followers=1,following=1),page(['301']))
+        self.assertEqual(client.calls[-1][0],'friendships/200/followers/')
+        self.work(profile('200',followers=1,following=1),page(['400']))
+        self.assertFalse(any(c['category']=='lists' for log in self.e.data['notificationLog'] for c in log['changes']))
+        self.now[0]+=901
+        self.e.record_profile(parse_profile(profile('200',followers=2,following=1)))
+        self.e.save()
+        self.work(profile('200',followers=2,following=1),page(['301','302']))
+        change=self.e.data['notificationLog'][0]['changes'][0]
+        self.assertEqual(change['category'],'lists')
+        self.assertEqual(change['after']['membersAdded'],[{'id':'302','username':'qa.302','name':'QA 302'}])
+        self.assertEqual(change['after']['membersRemoved'],[])
+        # Identity evidence is historical, independent of the rotating scans.
+        self.e.data['lists']['200:followers']['snapshots']=[];self.e.save()
+        reopened=Accounts(self.home.name,clock=lambda:self.now[0])
+        self.assertEqual(reopened.data['notificationLog'][0]['changes'][0]['after'],change['after'])
+        reopened.run('save_person',{'id':'200','watching':False})
+        self.assertNotEqual(list_preparation.next_job(reopened.data,self.now[0])['ownerId'],'200')
+
+    def test_equal_count_daily_scan_records_added_and_missing_identities(self):
+        self.linked()
+        self.work(profile(followers=3,following=1),page(['200','201','202']))
+        self.work(profile(followers=3,following=1),page(['300']))
+        self.now[0]+=86401
+        self.e.data['lastAutomaticTask']='profile';self.e.save()
+        self.work(profile(followers=3,following=1),page(['200','201','203']))
+        event=self.e.data['events'][0]
+        self.assertEqual(event['new']['membersAdded'][0]['id'],'203')
+        self.assertEqual(event['new']['membersRemoved'][0]['id'],'202')
+        from engine import validate_archive
+        malformed=copy.deepcopy(self.e.data)
+        malformed['events'][0]['new']['added']=2
+        with self.assertRaises(ValueError):validate_archive(malformed)
+        malformed=copy.deepcopy(self.e.data)
+        malformed['notificationLog'][0]['changes'][0]['after']['membersRemoved'][0]['id']='0'
+        with self.assertRaises(ValueError):validate_archive(malformed)
+
+    def test_watched_partial_list_and_limit_keep_baseline_and_gate(self):
+        self.linked();self.e.settings({'automaticLists':False})
+        self.watched()
+        self.e.settings({'automaticLists':True})
+        # Owner baselines exist; only the watched profile is due.
+        for direction,ids in [('followers',['200','201','202']),('following',['300'])]:
+            client=PacedClient(self.e,[profile(followers=3,following=1),page(ids)])
+            with patch.object(self.e,'client',return_value=client):self.e.run('scan',{'direction':direction})
+        self.work(profile('200',followers=2,following=1),page(['301'],'qa-next'))
+        with self.assertRaises(AppFailure):self.work(429)
+        before=copy.deepcopy(self.e.data['gate'])
+        with patch.object(self.e,'client') as client:self.e.run('automatic',{})
+        client.assert_not_called();self.assertEqual(self.e.data['gate'],before)
+        record=self.e.data['lists']['200:followers']
+        self.assertEqual(record['snapshots'],[])
+        self.assertEqual(len(record['draft']['members']),1)
+
+    def test_one_minute_profile_changes_are_committed_by_automatic_without_refresh_command(self):
+        self.linked();self.e.settings({'automaticLists':False,'interval':1})
+        self.watched();self.now[0]+=60
+        self.work(profile(followers=3,following=1))
+        self.work(profile('200',followers=2,following=1))
+        state=self.e.snapshot()
+        self.assertEqual(next(p for p in state['people'] if p['id']=='200')['followers'],2)
+        self.assertTrue(any(c['category']=='followers' for log in state['notificationLog'] for c in log['changes']))
+
+    def test_old_catalog_plan_is_upgraded_for_watched_baselines(self):
+        self.linked()
+        self.work(profile(followers=3,following=1),page(['200','201','202']))
+        self.work(profile(followers=3,following=1),page(['300']))
+        self.watched()
+        self.e.catalog['accounts']['100']['monitor'].update(listPlanVersion=1,nextAt=self.now[0]+86400)
+        self.e.persist_catalog()
+        reopened=Accounts(self.home.name,clock=lambda:self.now[0])
+        self.assertEqual(reopened.active_id,'100')
+        self.assertEqual(reopened.catalog['accounts']['100']['monitor']['listPlanVersion'],list_preparation.PLAN_VERSION)
+        self.assertEqual(reopened.background_status()['nextAt'],max(self.now[0],reopened.data['gate']['nextAt']))
+
+    def test_cancel_watched_scan_pauses_automatic_lists_without_erasing_its_page(self):
+        self.linked();self.watched();engine=self.e
+        class CancelPage(PacedClient):
+            def private_request(self,endpoint,**kwargs):
+                response=super().private_request(endpoint,**kwargs)
+                if endpoint.startswith('friendships/'):engine.cancel.set()
+                return response
+        client=CancelPage(self.e,[profile('200',followers=2,following=1),page(['301'],'qa-next')])
+        with patch.object(self.e,'client',return_value=client),self.assertRaises(AppFailure):
+            self.e.run('scan',{'id':'200','direction':'followers'})
+        self.e.cancel.clear()
+        self.assertFalse(self.e.data['settings']['automaticLists'])
+        self.assertEqual(self.e.data['lists']['200:followers']['draft']['pages'],1)
+        self.assertIsNone(list_preparation.next_job(self.e.data,self.now[0]))
 
     def test_cancel_during_single_page_response_keeps_partial_and_stops_automatic_lists(self):
         self.linked()

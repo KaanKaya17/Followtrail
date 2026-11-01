@@ -64,6 +64,14 @@ def main():
         e.data['lists']['300:followers']={'snapshots':[{'id':'large','ownerId':'300','direction':'followers',
             'startedAt':now-30,'finishedAt':now,'complete':True,'status':'complete','pages':3,'expected':150,'members':large}]}
         e.event('list','QA list', '100',None,{'direction':'followers','count':3,'added':1,'removed':1})
+        e.event('list','QA named owner list','100',None,{'direction':'followers','count':3,'added':1,'removed':1,
+            'previousAt':now-50,'ownerUsername':'qa.owner','membersAdded':[members['203']],
+            'membersRemoved':[members['200']]},group_id='qa-named-own')
+        arrivals=[{'id':str(i),'username':'qa.'+str(i),'name':'QA '+str(i)} for i in range(500,603)]
+        arrivals[0]['name']='Unsafe <img src=x onerror=window.memberInjected=true>'
+        e.event('list','QA named watched list','200',None,{'direction':'followers','count':103,'added':103,'removed':1,
+            'previousAt':now-50,'ownerUsername':'qa.deniz','membersAdded':arrivals,
+            'membersRemoved':[{'id':'400','username':'qa.400','name':'Old observed name'}]},group_id='qa-named-watched')
         e.settings({'notifications':True})
         e.notification_rule({'id':'200','enabled':True,'fields':{'followers':False}})
         e.observation_group='qa-multi-change'

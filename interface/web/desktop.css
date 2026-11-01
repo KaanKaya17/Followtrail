@@ -298,6 +298,16 @@ select {
 .person-bio {
   white-space: pre-wrap;
 }
+.list-change-preview { padding:12px 0; }
+.list-change-preview p { margin:8px 0; }
+.member-change-list { list-style:none; padding:0; margin:20px 0; }
+.member-change-list li { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+.member-change-list li > span { min-width:0; overflow-wrap:anywhere; }
+.member-change-list .badge { white-space:normal; max-width:100%; }
+.member-change-list small { display:block; color:var(--muted); margin-top:5px; }
+.list-change-pagination { display:flex; align-items:center; flex-wrap:wrap; gap:12px; position:sticky; top:0; background:var(--surface); z-index:1; padding:8px 0; border-bottom:1px solid var(--line); }
+.list-change-filters .compare-stat { border:1px solid transparent; cursor:pointer; text-align:left; }
+.list-change-filters .compare-stat[aria-pressed="true"] { border-color:var(--violet); }
 .monitor-summary {
   background: var(--violet-soft, #efe9ff);
   margin-top: 20px;

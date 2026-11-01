@@ -74,6 +74,51 @@ try {
     await page.screenshot({path:path.join(output,'timeline-tr.png'),fullPage:true});
     await page.locator('.sidebar nav a[href="#overview"]').click();
   });
+  await check('Own and watched list logs show escaped frozen names with bounded pagination and local profile navigation', async () => {
+    await page.locator('.sidebar nav a[href="#notifications"]').click();
+    await page.locator('[data-id="qa-named-own"]').click();
+    await page.getByRole('dialog').getByRole('button',{name:'Değişen hesapları gör',exact:true}).click();
+    assert.equal(await page.locator('.member-change-list li').count(),2);
+    assert.match(await page.getByRole('dialog').innerText(),/@qa\.203/);
+    assert.match(await page.getByRole('dialog').innerText(),/@qa\.200/);
+    await page.keyboard.press('Escape');
+    await page.locator('[data-id="qa-named-watched"]').click();
+    await page.getByRole('dialog').getByRole('button',{name:'Değişen hesapları gör',exact:true}).click();
+    assert.equal(await page.locator('.member-change-list li').count(),100);
+    assert.match(await page.getByRole('dialog').innerText(),/Unsafe <img/);
+    assert.equal(await page.evaluate(()=>window.memberInjected),undefined);
+    await page.screenshot({path:path.join(output,'watched-list-changes.png')});
+    await page.getByRole('dialog').getByRole('button',{name:'Sonraki sayfa',exact:true}).click();
+    assert.equal(await page.locator('.member-change-list li').count(),4);
+    assert.match(await page.getByRole('dialog').innerText(),/@qa\.400/);
+    await page.getByRole('dialog').getByRole('button',{name:'Önceki sayfa',exact:true}).click();
+    assert.equal(await page.locator('.member-change-list li').count(),100);
+    await page.locator('[data-action="list-change-filter"][data-value="removed"]').click();
+    assert.equal(await page.locator('.member-change-list li').count(),1);
+    assert.match(await page.locator('.member-change-list').innerText(),/@qa\.400/);
+    await page.screenshot({path:path.join(output,'missing-list-member.png')});
+    await page.locator('[data-action="list-change-filter"][data-value="all"]').click();
+    assert.equal(await page.locator('.member-change-list li').count(),100);
+    await page.keyboard.press('Escape');
+    const viewport=await page.evaluate(()=>({width:innerWidth,height:innerHeight}));
+    for(const language of ['en','es','pt-BR','tr']) {
+      await page.locator('.sidebar nav a[href="#settings"]').click();
+      await page.locator('#app-language').selectOption(language);
+      await page.locator('.sidebar nav a[href="#notifications"]').click();
+      await page.locator('[data-id="qa-named-watched"]').click();
+      await page.getByRole('dialog').locator('[data-action="list-changes"]').click();
+      await page.setViewportSize({width:390,height:844});
+      assert.equal(await page.getByRole('dialog').evaluate(node=>node.scrollWidth>node.clientWidth+1),false);
+      assert.match(await page.getByRole('dialog').innerText(),/@qa\.500/);
+      await page.keyboard.press('Escape');
+      await page.setViewportSize(viewport);
+    }
+    await page.locator('.sidebar nav a[href="#people"]').click();
+    await page.locator('[data-action="person"][data-id="200"]').first().click();
+    await page.getByRole('dialog').getByRole('button',{name:'Takip listelerini aç',exact:true}).click();
+    assert.equal(await page.locator('#list-owner').inputValue(),'200');
+    await page.locator('.sidebar nav a[href="#overview"]').click();
+  });
   await check(
     "Closing the actual window keeps the renderer and local worker alive in the tray",
     async () => {
@@ -211,6 +256,7 @@ try {
     "Lists show partial coverage without replacing completed snapshot",
     async () => {
       await page.locator('.sidebar a[href="#lists"]').click();
+      await page.locator('#list-owner').selectOption('100');
       await page
         .getByText("Tamamlanan kayıt: 3 hesap", { exact: true })
         .waitFor();

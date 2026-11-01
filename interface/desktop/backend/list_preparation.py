@@ -1,4 +1,4 @@
-"""Own-account list preparation and bounded automatic rescan deadlines."""
+"""List preparation for the owner and watched profiles, with shared pacing."""
 import math
 
 DIRECTIONS = ('followers', 'following')
@@ -6,6 +6,7 @@ DAY = 86400
 MIN_RESCAN = 900
 RESUME_AGE = 86400
 ATTENTION = {'capacity', 'pagination', 'list_coverage', 'network_policy'}
+PLAN_VERSION = 2
 
 
 def initialize(data):
@@ -18,8 +19,13 @@ def resumable(draft, now):
                 0 <= now - draft.get('startedAt', 0) < RESUME_AGE)
 
 
-def plan(data, now):
-    account = data['account']
+def targets(data):
+    return ([data['account']] if data['account'] else []) + [
+        person for person in data['people'].values() if person.get('watching')]
+
+
+def plan(data, now, account=None):
+    account = account or data['account']
     if not account:
         return []
     result = []
@@ -34,7 +40,7 @@ def plan(data, now):
             due = min(due, max(latest['startedAt'] + MIN_RESCAN, account.get('observedAt') or now))
         due = max(due, schedule.get('after', 0))
         error = schedule.get('error')
-        result.append({'direction': direction, 'ready': latest is not None,
+        result.append({'ownerId': account['id'], 'direction': direction, 'ready': latest is not None,
                        'count': len((draft or latest or {}).get('members', {})),
                        'pages': (draft or latest or {}).get('pages', 0),
                        'resumable': resumable(draft, now), 'error': error,
@@ -46,8 +52,14 @@ def plan(data, now):
 def next_job(data, now):
     if not data['settings'].get('automaticLists'):
         return None
-    tasks = [p for p in plan(data, now) if p['dueAt'] is not None]
-    return min(tasks, key=lambda p: (p['dueAt'], p['ready'], DIRECTIONS.index(p['direction']))) if tasks else None
+    tasks = [p for owner in targets(data) for p in plan(data, now, owner) if p['dueAt'] is not None]
+    # Equal baseline deadlines must advance other profiles instead of draining
+    # every page of one large profile first. Completed pages own their turn time.
+    def order(task):
+        records = [data['lists'].get(task['ownerId'] + ':' + direction, {}) for direction in DIRECTIONS]
+        attempt = max((record.get('schedule', {}).get('lastAt', 0) for record in records), default=0)
+        return task['dueAt'], attempt, task['ownerId'] != (data['account'] or {}).get('id'), task['ownerId'], DIRECTIONS.index(task['direction'])
+    return min(tasks, key=order) if tasks else None
 
 
 def view(data, now):
@@ -66,6 +78,8 @@ def validate(data):
         schedule = record.get('schedule', {})
         if (not isinstance(schedule, dict) or type(schedule.get('after', 0)) not in (int, float) or
                 not math.isfinite(schedule.get('after', 0)) or schedule.get('after', 0) < 0 or
+                type(schedule.get('lastAt', 0)) not in (int, float) or
+                not math.isfinite(schedule.get('lastAt', 0)) or schedule.get('lastAt', 0) < 0 or
                 schedule.get('error') is not None and not isinstance(schedule['error'], str)):
             raise ValueError('list schedule')
         draft = record.get('draft')

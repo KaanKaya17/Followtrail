@@ -7,6 +7,17 @@
   'use strict';
   const catalogs = {
   "en": {
+    "Bu eski kayıtta kişi adları saklanmamış.": "Names were not saved in this older record.",
+    "ve {0} hesap daha": "and {0} more accounts",
+    "Değişen hesapları gör": "View changed accounts",
+    "Liste değişiklikleri": "List changes",
+    "{0}–{1} / {2} hesap": "{0}–{1} / {2} accounts",
+    "Önceki sayfa": "Previous page",
+    "Sonraki sayfa": "Next page",
+    "Yeni: {0}": "New: {0}",
+    "Listede yok: {0}": "Missing from list: {0}",
+    "Otomatik liste karşılaştırması": "Automatic list comparisons",
+    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compare lists for your own account and watched profiles. Count changes queue a scan; complete scans are at least 15 minutes apart. Unchanged counts are scanned daily.",
     "Kullanım notları": "Usage notes",
     "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Results show differences between saved checks. They do not establish the exact time of a change or prove an unfollow on their own.",
     "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "The first complete list is your starting record. Later complete lists are compared. Partial lists cannot establish a definitive result; search only covers records on your device.",
@@ -1058,6 +1069,17 @@
     "Örnek kontrol kayıtları": "Sample check records"
   },
   "es": {
+    "Bu eski kayıtta kişi adları saklanmamış.": "No se guardaron nombres en este registro anterior.",
+    "ve {0} hesap daha": "y {0} cuentas más",
+    "Değişen hesapları gör": "Ver cuentas que cambiaron",
+    "Liste değişiklikleri": "Cambios en la lista",
+    "{0}–{1} / {2} hesap": "{0}–{1} / {2} cuentas",
+    "Önceki sayfa": "Página anterior",
+    "Sonraki sayfa": "Página siguiente",
+    "Yeni: {0}": "Nuevas: {0}",
+    "Listede yok: {0}": "Ya no aparecen: {0}",
+    "Otomatik liste karşılaştırması": "Comparación automática de listas",
+    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compara las listas de tu cuenta y de los perfiles seguidos. Los cambios en el número ponen un análisis en cola; hay al menos 15 minutos entre análisis completos. Si el número no cambia, se analizan a diario.",
     "Kullanım notları": "Notas de uso",
     "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Los resultados muestran diferencias entre comprobaciones guardadas. Por sí solos no determinan el momento exacto de un cambio ni demuestran que alguien haya dejado de seguirte.",
     "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "La primera lista completa es el registro inicial. Después se comparan las listas completas. Las listas parciales no permiten establecer un resultado definitivo; la búsqueda solo abarca los registros del dispositivo.",
@@ -2109,6 +2131,17 @@
     "Örnek kontrol kayıtları": "Registros de control de muestras"
   },
   "pt-BR": {
+    "Bu eski kayıtta kişi adları saklanmamış.": "Os nomes não foram salvos neste registro antigo.",
+    "ve {0} hesap daha": "e mais {0} contas",
+    "Değişen hesapları gör": "Ver contas alteradas",
+    "Liste değişiklikleri": "Mudanças na lista",
+    "{0}–{1} / {2} hesap": "{0}–{1} / {2} contas",
+    "Önceki sayfa": "Página anterior",
+    "Sonraki sayfa": "Próxima página",
+    "Yeni: {0}": "Novas: {0}",
+    "Listede yok: {0}": "Não estão mais na lista: {0}",
+    "Otomatik liste karşılaştırması": "Comparação automática de listas",
+    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compare as listas da sua conta e dos perfis monitorados. Mudanças na contagem colocam uma leitura na fila; há pelo menos 15 minutos entre leituras completas. Se a contagem não mudar, a leitura é diária.",
     "Kullanım notları": "Notas de uso",
     "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Os resultados mostram diferenças entre verificações salvas. Por si só, não determinam o momento exato de uma mudança nem comprovam que alguém deixou de seguir você.",
     "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "A primeira lista completa é o registro inicial. Depois, as listas completas são comparadas. Listas parciais não permitem estabelecer um resultado definitivo; a busca abrange apenas os registros no dispositivo.",
