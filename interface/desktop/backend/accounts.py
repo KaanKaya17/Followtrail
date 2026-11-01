@@ -16,6 +16,7 @@ from storage import Vault, StorageFailure
 from login_identity import device_settings
 import request_budget
 import localization
+import list_preparation
 
 DEVICE_SETTINGS = ('language', 'theme', 'compact')
 
@@ -63,7 +64,7 @@ class Accounts(Engine):
         selected_id = self.active_id
         try:
             for identity, entry in list(self.catalog['accounts'].items()):
-                if entry['monitor'].get('listPlanVersion') != 1:
+                if entry['monitor'].get('listPlanVersion') != list_preparation.PLAN_VERSION:
                     self.activate(identity)
                     self.update_entry()
             self.persist_catalog()

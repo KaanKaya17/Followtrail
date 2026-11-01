@@ -133,7 +133,7 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.21'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.22'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -424,6 +424,7 @@ class Engine:
             if not continuing:
                 profile = self.read_profile(client, identity, avatar=False)
                 self.record_profile(profile, own=identity == self.data['account']['id'])
+                owner = profile
                 draft['expected'] = profile[direction]
                 self.scan_progress.update(username=profile['username'], expected=draft['expected'], step='page')
             cursor = draft.get('nextCursor') or ''
@@ -444,6 +445,7 @@ class Engine:
                 draft['members'].update(members)
                 draft['pages'] += 1
                 draft['finishedAt'] = self.clock()
+                schedule['lastAt'] = self.clock()
                 self.data['session'] = client.get_settings()
                 self.scan_progress.update(completedPages=draft['pages'], count=len(draft['members']))
                 if parsed.coverage in ('limited', 'unknown'):
@@ -464,9 +466,16 @@ class Engine:
                     record.pop('draft', None)
                     schedule.update(after=self.clock() + list_preparation.MIN_RESCAN, error=None)
                     diff = compare(record['snapshots'][-2], record['snapshots'][-1]) if len(record['snapshots']) > 1 else None
-                    self.event('list', f"@{owner['username']} · {direction} listesi kaydedildi", identity,
-                               None, {'direction': direction, 'count': len(draft['members']),
-                                      'added': len(diff['added']) if diff else None, 'removed': len(diff['removed']) if diff else None})
+                    changes = {'direction': direction, 'count': len(draft['members']),
+                               'added': len(diff['added']) if diff else None, 'removed': len(diff['removed']) if diff else None}
+                    if diff is not None:
+                        before = record['snapshots'][-2]
+                        # Freeze observed identities and names, not current profile
+                        # lookups. Evidence survives the six-snapshot rotation.
+                        changes.update(previousAt=before['finishedAt'], ownerUsername=owner['username'],
+                                       membersAdded=[copy.deepcopy(draft['members'][key]) for key in diff['added']],
+                                       membersRemoved=[copy.deepcopy(before['members'][key]) for key in diff['removed']])
+                    self.event('list', f"@{owner['username']} · {direction} listesi kaydedildi", identity, None, changes)
                     if identity == self.data['account']['id'] and direction == 'followers':
                         access_checks.discover(self.data, record, self.clock())
                         self.data['accessPlan'] = {'status': 'idle'}
@@ -487,7 +496,7 @@ class Engine:
                 draft['seenCursors'] = []
             draft['status'] = 'cancelled' if self.cancel.is_set() else 'partial'
             draft['finishedAt'] = self.clock()
-            if code == 'cancelled' and identity == (self.data['account'] or {}).get('id'):
+            if code == 'cancelled':
                 self.data['settings']['automaticLists'] = False
             schedule.update(error=code, after=self.clock() + (0 if code in ('budget','cooldown','cancelled') else 1800))
             self.save()
@@ -643,7 +652,7 @@ class Engine:
             deadlines.append(d['lastInvestigationAt'] + interval)
         reason = ('disabled' if not d['settings']['automatic'] else 'session' if not d['session'] else
                   'restricted' if d['gate'].get('manualOnly') else None)
-        return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason, 'listPlanVersion': 1,
+        return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason, 'listPlanVersion': list_preparation.PLAN_VERSION,
                 'profileCount': len(profiles), 'intervalSeconds': interval,
                 'estimatedCycleSeconds': max(interval, sum(REQUEST_SPACING) / 2 * len(profiles)),
                 'accessPending': len(pending), 'followerScanPending': bool(investigation and investigation[0] == 'followers_scan'),
@@ -661,7 +670,7 @@ class Engine:
         if lists and lists['dueAt'] <= now and (not profile_due or d['lastAutomaticTask'] != 'lists'):
             d['lastAutomatic'] = now
             d['lastAutomaticTask'] = 'lists'
-            self.scan({'direction':lists['direction']}, one_page=True, resume=True)
+            self.scan({'id':lists['ownerId'], 'direction':lists['direction']}, one_page=True, resume=True)
             return
         investigation_due = investigation and d['lastInvestigationAt'] + d['settings']['interval'] * 60 <= now
         d['lastAutomatic'] = now
@@ -833,6 +842,27 @@ def validate_archive(d):
                 or type(p.get('username')) is not str or not re.fullmatch(r'[A-Za-z0-9._]{1,30}', p['username'])
                 or (p.get('name') is not None and type(p['name']) is not str)):
             raise ValueError('identity')
+    def list_details(value):
+        if not isinstance(value, dict) or not {'membersAdded', 'membersRemoved'} & value.keys():
+            return  # Older summaries did not retain identity details.
+        if value.get('direction') not in list_preparation.DIRECTIONS or not timestamp(value.get('previousAt')):
+            raise ValueError('list difference')
+        if type(value.get('ownerUsername')) is not str or not re.fullmatch(r'[A-Za-z0-9._]{1,30}', value['ownerUsername']):
+            raise ValueError('list difference owner')
+        identities = []
+        for key, count in (('membersAdded', 'added'), ('membersRemoved', 'removed')):
+            items = value.get(key)
+            if (not isinstance(items, list) or len(items) > MAX_MEMBERS or
+                    type(value.get(count)) is not int or len(items) != value[count]):
+                raise ValueError('list difference members')
+            for person in items:
+                member(person)
+            ids = {person['id'] for person in items}
+            if len(ids) != len(items):
+                raise ValueError('list difference duplicates')
+            identities.append(ids)
+        if identities[0] & identities[1]:
+            raise ValueError('list difference overlap')
     for p in [d.get('account'), *d['people'].values()]:
         if p is None:
             continue
@@ -883,6 +913,8 @@ def validate_archive(d):
                 or type(event.get('title')) is not str or not timestamp(event.get('at'))
                 or event.get('type') not in ('profile', 'list', 'check', 'error')):
             raise ValueError('event')
+        if event['type'] == 'list':
+            list_details(event.get('new'))
     if (not timestamp(d.get('lastAutomatic')) or not timestamp(d.get('lastInvestigationAt'))
             or not isinstance(d.get('automaticAttempts'), dict) or len(d['automaticAttempts']) > 201
             or any(not identity(key) or not timestamp(value) for key, value in d['automaticAttempts'].items())):
@@ -894,4 +926,8 @@ def validate_archive(d):
         raise ValueError('automatic task')
     access_checks.validate(d)
     notification_log.validate(d)
+    for entry in d['notificationLog']:
+        for change in entry['changes']:
+            if change['category'] == 'lists':
+                list_details(change.get('after'))
     wayback.validate(d)

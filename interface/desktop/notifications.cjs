@@ -12,18 +12,26 @@ function changeNotification(entry, language = 'tr') {
   const access = selected.filter((change) => change.category === "access");
   const strong = access.some(change => change.after?.reason === 'anonymous_visible');
   const accounts = new Set(selected.map((change) => change.username));
-  return {
-    title: access.length
-      ? strong ? t("InstagramTracker · Güçlü engellenme şüphesi") : t("InstagramTracker · Engellenme şüphesi")
-      : t("InstagramTracker · Yeni gözlem"),
-    body:
+  let body =
       selected.length === 1
         ? selected[0].category === "access"
           ? i18n.stored(selected[0].title, language)
           : t("@{0} · {1} değişti. Ayrıntıları aç.", selected[0].username, t(selected[0].label))
         : access.length
           ? t("{0} hesap için engellenme şüphesi. Kontrol yöntemlerini ve kanıtları incele.", access.length)
-          : t("{0} · {1} değişiklik. Ayrıntıları aç.", accounts.size === 1 ? "@" + selected[0].username : accounts.size + t(" hesap"), selected.length),
+          : t("{0} · {1} değişiklik. Ayrıntıları aç.", accounts.size === 1 ? "@" + selected[0].username : accounts.size + t(" hesap"), selected.length);
+  const lists = selected.find(change => change.category === 'lists' && Array.isArray(change.after?.membersAdded));
+  if (lists && !access.length) {
+    const names = members => members.slice(0,2).map(person => '@'+person.username).join(', ') +
+      (members.length > 2 ? ' · ' + t("ve {0} hesap daha", members.length-2) : '');
+    body += '\n' + [lists.after.membersAdded.length ? t("Yeni: {0}",names(lists.after.membersAdded)) : '',
+      lists.after.membersRemoved.length ? t("Listede yok: {0}",names(lists.after.membersRemoved)) : ''].filter(Boolean).join('\n');
+  }
+  return {
+    title: access.length
+      ? strong ? t("InstagramTracker · Güçlü engellenme şüphesi") : t("InstagramTracker · Engellenme şüphesi")
+      : t("InstagramTracker · Yeni gözlem"),
+    body,
     logId: entry.id,
   };
 }

@@ -40,7 +40,8 @@ def category(event):
     if event.get('topic') == 'access':
         return 'access' if event.get('new', {}).get('status') == 'suspected' and event['type'] == 'profile' else None
     if event['type'] == 'list':
-        return 'lists'
+        value = event.get('new') or {}
+        return 'lists' if (value.get('added') or value.get('removed')) else None
     if event['type'] == 'profile' and isinstance(event.get('new'), dict) and len(event['new']) == 1:
         key = next(iter(event['new']))
         return key if key in TYPES and key not in ('lists', 'access') else None
