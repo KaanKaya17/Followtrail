@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows-web 0.2.24 — 2026-11-01 (Eksik liste sonrası açılış düzeltmesi)
+
+- Profil sayısına ulaşmadan sona eren liste taraması boş devam işaretçisi kaydediyordu; sonraki açılışta depo doğrulaması bu kaydı reddediyordu. Yeni taramalar devam sayfası yokluğunu `null` olarak kaydeder. Eski boş işaretçiler depo okunurken aynı biçime dönüştürülür; kısmi üyeler, önceki tam listeler, tarama durumu ve mola/bütçe kayıtları korunur. Geçersiz işaretçi türleri kabul edilmez; eksik liste tamamlanmış sayılmaz.
+- Yerel hizmetin belirli hata açıklaması, hemen ardından gelen genel süreç kapanma mesajıyla artık değiştirilmez.
+- Doğrulama: 180 Python ve 32 Node testi, ortak tema/dil/kaynak kontrolü ve paketli EXE üzerinde 34 çevrimdışı kontrol geçti. Ayrı paketli hizmet testi eski boş işaretçili 76/82 kaydının başlangıç listesini ve güvenlik molasını koruyarak açıldığını doğruladı. Kullanıcının şifreli kayıtlarının ayrı yerel kopyası da yeni paketli hizmette çevrimdışı açıldı. Bu inceleme canlı Instagram isteği göndermedi; Android paketi değişmedi.
+
 ## Android 0.1.68 / Windows-web 0.2.23 — 2026-11-01 (Kısmi adla profil arama)
 
 - Kayıtlı profillerde kısmi kullanıcı adı, @ad, Instagram profil bağlantısı, birden fazla kelime ve Türkçe karakterleri dikkate alan yerel arama eklendi/iyileştirildi. Android arama alanı yazarken yeniden oluşturulmaz; liste filtrelenir, odak korunur. Yeni profil okumalarında görünen ad şifreli kayda alınır; eski kayıtta ad yoksa kullanıcı adıyla arama sürer, ad sonraki profil okumasıyla gelir.

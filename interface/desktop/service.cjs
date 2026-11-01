@@ -65,6 +65,9 @@ class Backend {
     );
   }
   fail(message) {
+    // A worker can send a specific fatal cause before exiting. Keep that
+    // cause instead of replacing it with the subsequent generic exit event.
+    if (this.failure) return;
     this.failure = message;
     this.ready = false;
     this.busy = false;
