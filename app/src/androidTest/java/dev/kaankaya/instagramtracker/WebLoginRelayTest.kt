@@ -44,7 +44,7 @@ class WebLoginRelayTest {
     private val factory = Call.Factory { request ->
         calls.incrementAndGet()
         check(request.method == "POST")
-        if(request.tag(WebSecurityViewAuthorization::class.java)!=null)check(WebPlatformRequestPolicy.allowed(request))
+        if(request.tag(WebSecurityViewAuthorization::class.java)!=null || request.tag(WebCodeSubmissionAuthorization::class.java)!=null)check(WebPlatformRequestPolicy.allowed(request))
         else check(request.url.toString() == WebLoginContract.URL)
         check(request.header("Origin") == "https://www.instagram.com" && request.header("Sec-Fetch-Site") == "same-origin")
         check(request.header("Sec-Fetch-Mode") == "cors" && request.header("Sec-Fetch-Dest") == "empty")
@@ -92,6 +92,31 @@ class WebLoginRelayTest {
     }
     private fun viewBody()=JSONObject.quote("doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables="+
         java.net.URLEncoder.encode("""{"apc":"synthetic-apc","device_id":null}""","UTF-8"))
+    @Test fun codeSubmissionFollowsTheViewOnceAndReturnsCookiesWithoutReplayingThePassword() {
+        gate.beginWebAuthentication(now-16000);val authenticationAt=gate.nextWebAuthenticationAt()
+        response={request->
+            val code=request.tag(WebCodeSubmissionAuthorization::class.java)!=null
+            Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture").apply {
+                if(code)addHeader("Set-Cookie","sessionid=synthetic-completed-session; Path=/; Secure; HttpOnly")
+            }.body((if(code)"""{"data":{"xfb_auth_platform_submit_code":{}}}"""
+                else """{"data":{"xfb_auth_platform_enter_code_content":{}}}""").toResponseBody()).build()
+        }
+        open(security=true)
+        js("fetch('/graphql/query/',{method:'POST',body:${viewBody()}}).then(r=>r.json()).then(()=>window.__viewReady=true)")
+        until("window.__viewReady===true","true");now+=15001
+        val body=JSONObject.quote("doc_id=25017097917894476&fb_api_req_friendly_name=useAuthPlatformSubmitCodeMutation&variables="+
+            java.net.URLEncoder.encode("""{"input":{"actor_id":"0","client_mutation_id":"1","code":"123456","device_id":null,"encrypted_ap_context":"synthetic-apc"}}""","UTF-8"))
+        js("fetch('/graphql/query/',{method:'POST',body:$body}).then(r=>r.json()).then(()=>window.__codeSent=true)")
+        until("window.__codeSent===true","true")
+        assertEquals(2,calls.get());assertEquals(3L,gate.attempts());assertEquals(authenticationAt,gate.nextWebAuthenticationAt())
+        assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").contains("synthetic-completed-session"))
+        val report=LoginPageTrace.read(context)!!
+        assertTrue(JSONObject(report).getJSONObject("codeSubmission").getBoolean("validData"))
+        assertTrue(JSONObject(report).getJSONObject("codeSubmission").getBoolean("cookiesApplied"))
+        assertFalse(report.contains("123456"));assertFalse(report.contains("synthetic-apc"))
+        js("fetch('/graphql/query/',{method:'POST',body:$body}).catch(()=>window.__codeRepeatRejected=true)")
+        until("window.__codeRepeatRejected===true","true");assertEquals(2,calls.get())
+    }
     @Test fun blockedSubmitCodeCollectsOnlyItsSchemaWithoutSendingOrPersistingTheCode() {
         open(security=true)
         val body=JSONObject.quote("doc_id=25017097917894476&fb_api_req_friendly_name=useAuthPlatformSubmitCodeMutation&variables="+

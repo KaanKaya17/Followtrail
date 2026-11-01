@@ -128,6 +128,26 @@ Aynı açık/onaylanmış güvenlik sayfasının statik modülü, belge numaras�
 
 120 JVM testi ve 9 JavaScript kontrolü geçti; release lint 0 hata / önceki 24 uyarı. Release, debug ve cihaz test paketleri derlendi; yeni WebView ekran vakası cihazda henüz çalıştırılmadı. Son kaynak yeniden denetlenerek imzalanan 0.1.65 / code 66, 2.384.611 bayt; SHA-256 `476da3f42309a781715384a09458e1a8a045a69f524a4a9624a955fd563ce5b7`. v2/v3 imzaları ve paket kontrolü geçti. Kullanıcının kendi telefonuna eski 0.1.57'nin üzerine `install -r` başarılı oldu; 0.1.65 kurulu sürüm olarak doğrulandı. Veri silme, mola sıfırlama veya otomatik parola/kod gönderimi yapılmadı. Kullanıcıya tek açık giriş ve gerekiyorsa kendi gireceği kodla yeni tanı testi verildi; sonuç bekleniyor.
 
+## 0.1.65 gerçek telefon kaydı · 1 Kasım 16:13
+
+Kullanıcı tek giriş yaptı, Instagram doğrulamasını kendi onayıyla açtı ve kodunu bir kez girdi. Son sayaçlı HTTP 200, toplam başlatılan deneme 82 idi; önceki W02/429 30 Ekim 10:01 tarihli eski kayıttı. Yeni 429 gözlenmedi.
+
+Engellenen submit-code isteğinin kök değişkeni `input=OBJECT`; bir düzey altındaki alan türleri `actor_id=STRING`, `client_mutation_id=STRING`, `code=STRING`, `device_id=NULL`, `encrypted_ap_context=STRING`. Değerler kaydedilmedi. Statik şema kimlik ve `kind=mutation` eşleşmesiyle mevcut; argüman `input`, tek kök `xfb_auth_platform_submit_code`, kapsam eksik değil.
+
+Diğer cihaz onayının kök değişkenleri `apc=STRING`, `device_id=NULL`; statik argümanlar apc/device_id, tek kök `xfb_auth_platform_afad_approval_state`, kapsam eksik değil. Bu işlem ayrı olarak kapalı kalır. Kaydırma, telefonun uzaktan INJECT_EVENTS izni olmadığı için kullanıcı tarafından yapıldı; yalnız açık tanı metinleri okundu.
+
+## 0.1.66 kod gönderim sözleşmesi
+
+Sabit submit-code belge/işlem çifti, GraphQL form sahibinde ayrıştırılan aynı-origin yol ve yalnız `input` köküyle kabul edilir. Alt alan kümesi gözlenen beş alanla tam eşleşir. Anonim actor `0`, null device_id, 1–64 yazdırılabilir karakterli client_mutation_id ve 6–10 rakamlı kod kabul edilir. encrypted_ap_context, mevcut onaylanmış sayfanın APC değeriyle bellekte eşleşmelidir. Bu değer koşulları güvenli kabul koşullarıdır; eski tanı değerleri saklamadığı için gerçek bu girişteki değerlerin koşulları geçtiği henüz söylenmez.
+
+Sözleşme kendi değişmez URL/gövde yetkisini üretir; platform taşıyıcısı aynı nesne kimliğini denetler. Kod ekranı sorgusu ve kod gönderimi için ayrı tek-gönderim durumu vardır. Kod gönderimi de ortak istek aralığını/bütçeyi tüketir, parola giriş aralığını uzatmaz, hata veya iptalden sonra otomatik tekrar etmez. Yanıt yalnız beklenen submit-code kökü ve hatasız GraphQL zarfıyla sayfaya döndürülür. Sonuçta oturum çerezi oluşursa mevcut profil doğrulama akışı devreye girer; bu, yalnız HTTP 200 ile bağlantı tamamlanması değildir.
+
+Kod yanıtının HTTP/JSON/kök doğruluğu ve çerez uygulanması `codeSubmission` bölümünde tutulur. Parola yanıtı ile kod-ekranı yanıtı üzerine yazılmaz. Bilinen ama desteklenmeyen isteğe bağlı cihaz onayı polling'i, e-posta kodu adımının üst açıklamasını sürekli genel hata ile değiştirmez; arayüz bu yöntemin desteklenmediğini açıkça anlatır.
+
+123 JVM testi, 9 JavaScript kontrolü ve 650 TR/EN/ES/PT-BR kaynak denetimi geçti. Release lint 0 hata / önceki 24 uyarı; release, debug ve cihaz testi derlemeleri başarılı. Yeni sentetik WebView vakası kod ekranı ardından ayrı kod POST'u, çerezin yanıt öncesi uygulanması, ilk parola aralığının korunması ve ikinci kod POST'unun reddini sınar; ancak kendi telefonda debug APK kurulumu `INSTALL_FAILED_USER_RESTRICTED` ile reddedildiği için bu vaka çalıştırılamadı. Bu testin geçtiği iddia edilmez.
+
+İmzalı 0.1.66 / code 67: 2.388.707 bayt, SHA-256 `7b47af45eb3e63d3949b98f3279022159f8f3845f1f9802c7a8e5d46ff6e4a6b`. v2/v3 imzası ve paket denetimi geçti. Ana üretim paketi aynı telefonda `install -r` ile veri silmeden güncellendi, sürüm doğrulandı. Telefon saati 1 Kasım 16:23:40 +03:00 iken önceki girişin 15 dakikalık aralığı korunuyordu; kullanıcıya uygulamanın gösterdiği saat dolduktan sonra aynı hesapla tek canlı deneme verildi. Sonuç henüz bekleniyor; başarılı hesap bağlantısı iddiası yok.
+
 ## 0.1.63 tam uygulama dili paketleri
 
 İspanyolca (`es`) ve Brezilya Portekizcesi (`pt-BR`) Android uygulama diline tam paket olarak eklendi. Bölge etiketi korunur; `pt` olarak daraltılmaz. Her pakette İngilizce kaynakla aynı 648 anahtar bulunur; dil/tema/liste gezinmesi, otomasyon, bildirimler, oturum/güvenlik yönlendirmesi ve istek tanıları seçilen dilde görünür.

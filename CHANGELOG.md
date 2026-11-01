@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.66 — 2026-11-01 (Güvenlik kodunu gönderme)
+
+- Kendi telefondaki yeni canlı 0.1.65 kaydında kod gönderiminin kök değişkeni `input`; alt alanları actor_id, client_mutation_id, code, device_id ve encrypted_ap_context olarak doğrulandı. Statik mutation şeması tek kök `xfb_auth_platform_submit_code` alanını gösterdi. Ayrı cihaz onayı sorgusunun alanları da gözlendi; o sorgu henüz açılmadı.
+- Yalnız bu belge/işlem ve alan sözleşmesi, onaylanmış açık güvenlik sayfasının bağlamı ile eşleştiğinde bir kod POST'u gönderebilir. Genel GraphQL, sosyal işlemler, parola tekrarı ve kodun otomatik tekrar gönderimi açılmaz. Ortak aralık, bütçe ve 429 molası korunur.
+- Kod yanıtı ilk parola yanıtı ve kod ekranı okumasından ayrı tanılanır. Yanıtın beklenen kökü doğrulanmadan çerez uygulanmaz; hesap bağlantısı ayrıca profil doğrulamasından geçer. Kod ve bağlam değerleri kaydedilmez. Dört dilde kod gönderiliyor açıklaması ve cihaz onayı sınırı eklendi.
+- 123 JVM testi, 9 JavaScript kontrolü, dört dilde 650 kaynak denetimi, release lint ve release/debug/test derlemeleri geçti. Yeni WebView testi telefonun test APK kurulumunu reddetmesi nedeniyle çalıştırılamadı. İmzalı ana uygulama kendi telefonda veri silmeden 0.1.66'ya güncellendi; canlı kod gönderimi sonucu bekleniyor.
+
 ## Android 0.1.65 — 2026-11-01 (Kod gönderme sözleşmesini tanılama)
 
 - İkinci telefonun 30 Ekim kaydında engellenen `useAuthPlatformSubmitCodeMutation` ve `AuthPlatformApproveFromAnotherDevicePollingMutation` işlemleri kimlikleriyle tanınır. Yalnız kök değişken ve bir düzey altındaki giriş alanlarının ad/tür bilgileri tutulur; kod, parola, oturum veya bağlam değerleri okunup kaydedilmez.

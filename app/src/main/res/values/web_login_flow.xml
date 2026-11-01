@@ -24,4 +24,6 @@
     <string name="web_login_show_challenge">Instagram doğrulamasını göster</string>
     <string name="web_login_challenge_privacy">Instagram’ın güvenlik sayfası açılacak. Gerektiğinde Meta’nın CAPTCHA çerçevesi ve Google reCAPTCHA yüklenir; bu sağlayıcılar IP adresi ve tarayıcı bilgilerini alabilir. Uygulama parolanı veya Instagram oturumunu bu alan adlarına aktarmaz. Doğrulamayı kendin tamamla; iptal edersen bu kaynaklar açılmaz.</string>
     <string name="web_login_complete_challenge">Instagram güvenlik adımını bu sayfada tamamla. Başarılı olunca profilin kontrol edilir. Sayfa kendiliğinden ilerlemezse doğrulamayı bitirdikten sonra Hesabı doğrula’ya bir kez dokun.</string>
+    <string name="web_login_submitting_code">Doğrulama kodun Instagram’a gönderiliyor; yanıt bekleniyor…</string>
+    <string name="web_login_verification_code_ready">Instagram sayfasında kodunu girip bir kez gönder. Bu sürüm başka cihazdan onay sonucunu otomatik sorgulamaz; varsa e-posta veya SMS kodu seçeneğini kullan. Kodunu sohbette paylaşma.</string>
 </resources>

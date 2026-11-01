@@ -20,6 +20,12 @@ Windows ortak bütçesi kayan saatte 240, 24 saatte 2400; hesap bütçesi 120/12
 
 Tarayıcı sayfasının kendi JavaScript/CDN trafiği bu sayaçlı uygulama bütçesinin ölçümü değildir. Android giriş tarayıcısı ayrıca sayfa/kaynak/yöntem izin listesi ve servis çalışanı ağı yasağıyla sınırlandırılır. WebView bütün tarayıcı kanalları için bir güvenlik duvarı değildir; genel GraphQL gövdeleri görülemediği için reddedilir. Yeni Instagram giriş akışı bu yola ihtiyaç duyarsa inceleme gerekir; canlı uyumluluk henüz doğrulanmadı. [Test kapsamı](ACCOUNT-SAFETY-TEST.md).
 
+## 0.1.66 giriş güvenlik kodu
+
+Okuyucuların GET sınırı değişmez. Ayrı giriş köprüsü, kullanıcının onayladığı açık auth_platform sayfasında gözlenen `useAuthPlatformSubmitCodeMutation` / `25017097917894476` işlemi için tek kod gönderimini destekler. Yalnız gözlenen input alanları ve mevcut APC ile eşleşen encrypted_ap_context kabul edilir; bu yetki genel GraphQL veya sosyal işlem izni değildir.
+
+Kod POST'u kendi değişmez URL/gövde yetkisini taşır. Ortak RequestGate, bütçe, bekleme, iptal ve 429 davranışı korunur; kod kendiliğinden yeniden gönderilmez. Kod yanıtı beklenen `xfb_auth_platform_submit_code` köküyle ayrıştırılır, ilk parola yanıtından ayrı tanılanır. Kod veya bağlam değeri saklanmaz. Oturum çerezi oluşması, ayrıca profil ve hesap kimliği doğrulanmadan tamamlanmış Tracker bağlantısı sayılmaz. Diğer cihazdan onay sonucu polling'i bu sürümde gönderilmez; kullanıcıya e-posta/SMS kodu yolu açıklanır. Canlı test kapsamı [CAPTCHA kaydındadır](CAPTCHA-FLOW-INVESTIGATION.md).
+
 ## 0.1.27 doğrudan web okuyucusu
 
 Yeni web bağlantıları ayrı şifreli WebSessions bankası ve sabit www.instagram.com origin'i kullanır. Session türü tek okuyucuyu istekten önce seçer; hata/429 sonrası mobil/web fallback veya farklı endpoint denemesi yoktur. Ortak PrivateReadTransport 15 saniye kapıyı, 15 dakika ilk bağlantı aralığını, tek etkin taşıma, HTTP/2 ve tek iletim/yönlendirmeme/1 MiB sınırını korur. Bağlantı sayfasındaki Instagram 429'u da aynı kalıcı molayı uygular ve tarayıcı kapanır.
