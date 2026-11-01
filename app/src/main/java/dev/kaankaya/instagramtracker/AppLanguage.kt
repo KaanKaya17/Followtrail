@@ -92,7 +92,7 @@ abstract class LocalizedActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        if (AppLanguage.locale(this).language != AppLanguage.selected(this) || createdAppearance != AppAppearance.resolved(this) || createdAppearanceChoice != AppAppearance.selected(this)) {
+        if (createdLanguage != AppLanguage.selected(this) || createdAppearance != AppAppearance.resolved(this) || createdAppearanceChoice != AppAppearance.selected(this)) {
             recreatingForInterface = true
             recreate()
         }

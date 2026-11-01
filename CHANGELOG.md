@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.64 — 2026-11-01 (PT-BR ekran yaşam döngüsü)
+
+- Ekranın öne gelmesindeki dil kontrolü, yalnız dil bölümünü (`pt`) tam tercih (`pt-BR`) ile karşılaştırıyordu. Kontrol artık ekran oluşturulurken alınan tam dil tercihiyle güncel tercihi karşılaştırır. PT-BR seçiliyken gereksiz yeniden oluşturma döngüsü önlenir; gerçek dil ve tema değişimleri ekranı yenilemeye devam eder.
+- PT-BR ile ana ekranı açan, üç kez arka plana alıp geri getiren, aynı ekran örneğini, bölge etiketini, kayıtları ve 429 molasını kontrol eden çevrimdışı cihaz testi eklendi ve derlendi.
+- 118 birim testi, dört dilde 648 kaynak denetimi, release lint ve APK imza/paket doğrulaması geçti. Cihaz testi çalıştırılmadı: telefon test kurulumu reddedildi ve kullanıcı bu telefona kurulum istemedi; derleme sonrası 3,2 GiB boş RAM bulunduğu için emülatör açılmadı. [Doğrulama kapsamı](docs/ANDROID-PTBR-LIFECYCLE-TEST.md).
+
 ## Windows/web 0.2.20 — 2026-10-31 (İspanyolca ve Brezilya Portekizcesi)
 
 - Windows uygulaması ve aynı kaynakları kullanan web önizlemesine Español ile Português (Brasil) eklendi. Türkçe ve English seçenekleri korunur; eski yerel depolar Türkçe seçili olarak açılır.
