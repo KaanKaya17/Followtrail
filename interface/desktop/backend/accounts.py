@@ -173,6 +173,7 @@ class Accounts(Engine):
             self.active_id = identity
             self.bind_shared_state()
             self.wayback_id = None
+            self.search_results = None
             self.recover_interrupted()
         except Exception:
             self.vault, self.data, self.active_id = old_vault, old_data, old_id

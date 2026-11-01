@@ -55,6 +55,15 @@ async function check(name, work) {
 }
 try {
   await launch();
+  await check('Partial saved search accepts @, shared URLs, multiple words and Turkish spelling without requests',async()=>{
+    await page.locator('.sidebar nav a[href="#people"]').click();
+    for(const query of ['@qa.den','QA den','arkadas','https://instagram.com/qa.deniz/?igsh=abc']) {
+      await page.locator('#people-search').fill(query);
+      assert.equal(await page.locator('.person-card').count(),1,query);
+    }
+    await page.locator('#people-search').fill('');
+    await page.locator('.sidebar nav a[href="#overview"]').click();
+  });
   await check('Footer help contains disclosure and retention details without starting network work', async () => {
     const before = await page.evaluate(() => window.TrackerDesktop.command('state'));
     await page.locator('.page-footer [data-action="usage-notes"]').click();

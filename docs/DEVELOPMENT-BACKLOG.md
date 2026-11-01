@@ -1,5 +1,9 @@
 # Geliştirme notları
 
+## Resmî Instagram arşivi ve veri taşınabilirliği — 1 Kasım 2026
+
+Kullanıcı bu konuya daha sonra dönülmesini istedi; ZIP içe aktarma veya resmî veri taşıma entegrasyonu henüz geliştirilmedi. Seçili takipçi/takip edilen JSON dosyalarını yerel okuyup arşivler arasında karşılaştırma değerlendirilecek. Kendi hesabının dışa aktarımı, izlenen başka kişilerin bütün listelerini sağlamaz. Arşivlerde sayısal kimlik ve tarih anlamları gerçek dosyadan doğrulanmalı; mevcut API kimlikleriyle kullanıcı adına bakarak sessizce birleştirilmemeli. Meta Data Portability için uygulama/onay süreci var; takipçi/takip edilen kapsamı ile tamamen cihazda çalışma uyumluluğu doğrulanmadı. Kaynak: https://developers.facebook.com/docs/data-portability .
+
 ## Android girişine mola sonrasında devam — 1 Kasım 2026
 
 E-posta kodu gönderimi 0.1.66 canlı testinde HTTP 200 ve geçerli yanıt verdi; ardından profil okuması HTTP 429 aldı. Bağlantı tamamlanmış sayılmıyor. Geçici oturum şu anda kapanışta temizleniyor. Sonraki çalışma: henüz doğrulanmamış oturumu etkin hesaplardan ayrı ve şifreli saklayıp, mevcut mola bittikten sonra açık kullanıcı işlemiyle yalnız profil kontrolünü sürdürmek. Eski hesap, istek sınırları ve oturum kimliği korunmalı; geçersiz oturumda yeni giriş istenmeli. Bu değişiklik henüz uygulanmadı; ayrıntılar CAPTCHA-FLOW-INVESTIGATION.md'de.

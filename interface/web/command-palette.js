@@ -1,7 +1,6 @@
 (function (root) {
   'use strict';
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const normalize = value => String(value).normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/ı/g,'i');
   function create({t, icon, entries, select}) {
     let current = null;
     function open() {
@@ -24,8 +23,7 @@
       }
       function render() {
         const profilesOnly = input.value.trim().startsWith('@');
-        const query = normalize(input.value.trim().replace(/^@/, ''));
-        const matches = entries().filter(entry => (!profilesOnly || entry.kind === 'profile') && (!query || normalize(`${entry.title} ${entry.subtitle || ''} ${entry.terms || ''}`).includes(query)));
+        const matches = entries().filter(entry => (!profilesOnly || entry.kind === 'profile') && root.TrackerProfileSearch.matches(`${entry.title} ${entry.subtitle || ''} ${entry.terms || ''}`,input.value.trim().replace(/^@/, '')));
         rows = matches.slice(0, 12); selected = 0;
         count.textContent = matches.length > rows.length ? t("{0} sonuç · İlk {1} gösteriliyor", matches.length, rows.length) : t("{0} sonuç", matches.length);
         list.innerHTML = rows.map((entry,index) => `<button type="button" role="option" id="command-option-${index}" data-palette-index="${index}" tabindex="-1" aria-selected="${index===0}"><span class="palette-symbol">${icon(entry.icon || 'people')}</span><span class="palette-copy"><strong>${escape(entry.title)}</strong><small>${escape(entry.subtitle || '')}</small></span>${entry.shortcut ? `<kbd>${escape(entry.shortcut)}</kbd>` : ''}</button>`).join('') || `<p class="palette-empty">${escape(t("Kayıtlı profil veya ekran bulunamadı. Farklı bir ad deneyebilirsin."))}</p>`;

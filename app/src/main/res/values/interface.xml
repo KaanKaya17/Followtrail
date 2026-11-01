@@ -100,8 +100,6 @@
     <string name="ui_remove_this_person">"Kişi kaldırılsın mı?"</string>
     <string name="ui_remove">"Kaldır"</string>
     <plurals name="ui_this_version_stores_up_to_people_you"><item quantity="other">"Bu sürümde en fazla %1$d kişi saklanır. Önce bir kişiyi kaldırabilirsin."</item></plurals>
-    <string name="ui_username_or_profile_link">"@kullanıcıadı veya profil bağlantısı"</string>
-    <string name="ui_the_profile_is_queried_once_you_control">"Profil bir kez sorgulanır. Sonraki yenilemeler senin kontrolünde."</string>
     <string name="ui_load_profile">"Profili getir"</string>
     <string name="ui_enter_a_valid_username_or_instagram_profile">"Geçerli bir kullanıcı adı veya Instagram profil bağlantısı gir."</string>
     <string name="ui_reconnect_your_account_first">"Önce hesabını yeniden bağla."</string>

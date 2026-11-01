@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_people_hint">Nombre, usuario o enlace del perfil</string>
+    <string name="search_instagram">Buscar en Instagram</string>
+    <string name="search_direct">Añadir por usuario</string>
+    <string name="search_local">Coincidencias guardadas</string>
+    <string name="search_results">Resultados de Instagram</string>
+    <string name="search_loading">Buscando perfiles…</string>
+    <string name="search_none">No se encontraron perfiles coincidentes.</string>
+    <string name="search_query_invalid">Escribe entre 2 y 100 caracteres para buscar.</string>
+    <string name="search_saved_hint">Buscar nombre, @usuario o grupo</string>
+</resources>

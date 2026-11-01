@@ -11,7 +11,7 @@ data class Session(val userId: String, val cookie: String, val userAgent: String
     val supportsLists: Boolean get() = connectionBinding != null
 }
 data class Profile(val userId: String, val username: String, val followers: Long, val following: Long, val observedAt: Long,
-    val posts: Long? = null, val details: ProfileDetails = ProfileDetails())
+    val posts: Long? = null, val details: ProfileDetails = ProfileDetails(), val name: String? = null)
 data class SavedAccount(val session: Session, val profile: Profile, val people: List<TrackedPerson> = emptyList(),
     val automation: ListAutomation = ListAutomation())
 
@@ -98,10 +98,11 @@ object ProfileParser {
             count(user.optJSONObject("edge_follow")?.opt("count")), time,
             optionalCount(user.optJSONObject("edge_owner_to_timeline_media")?.opt("count")), ProfileDetailsParser.parse(user))
         if (!profile.username.equals(expectedUsername, ignoreCase = true)) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT)
-        return profile
+        return profile.copy(name = displayName(user))
     }
     fun user(user: JSONObject, time: Long): Profile = Profile(InstagramIdentity.id(user.opt("pk")), username(user),
-        count(user.opt("follower_count")), count(user.opt("following_count")), time, optionalCount(user.opt("media_count")), ProfileDetailsParser.parse(user))
+        count(user.opt("follower_count")), count(user.opt("following_count")), time, optionalCount(user.opt("media_count")), ProfileDetailsParser.parse(user), displayName(user))
+    private fun displayName(user: JSONObject) = (user.opt("full_name") as? String)?.takeIf { it.length <= 1000 }
     private fun username(user: JSONObject): String = (user.opt("username") as? String)
         ?.takeIf { ProfileInput.validUsername(it) } ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
     private fun count(value: Any?): Long = when (value) {

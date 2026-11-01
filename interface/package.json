@@ -1,6 +1,6 @@
 {
   "name": "instagramtracker-interface",
-  "version": "0.2.22",
+  "version": "0.2.23",
   "private": true,
   "description": "Local encrypted Windows Instagram observations and shared interface preview.",
   "main": "desktop/main.cjs",

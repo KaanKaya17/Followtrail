@@ -26,7 +26,7 @@ def allowed(request, authenticating=False):
         if (u.scheme != 'https' or u.port not in (None, 443) or u.username or u.password or
                 u.fragment or '%' in u.path or '..' in u.path or '\\' in u.path):
             return False
-        if request.method == 'GET' and not request.body and u.hostname == 'i.instagram.com' and READ_PATH.fullmatch(u.path):
+        if request.method == 'GET' and not request.body and u.hostname == 'i.instagram.com' and (READ_PATH.fullmatch(u.path) or u.path == '/api/v1/users/search/'):
             return True
         if not authenticating:
             return False

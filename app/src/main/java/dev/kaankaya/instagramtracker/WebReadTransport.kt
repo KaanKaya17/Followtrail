@@ -46,6 +46,8 @@ object WebRequests {
         InstagramIdentity.id(id)
         return request(state, "/api/v1/users/$id/info/")
     }
+    fun search(state: WebSession, query: String): Request = request(state,"/api/v1/users/search/",
+        mapOf("query" to ProfileSearch.query(query),"count" to "20"))
     fun username(state: WebSession, username: String): Request {
         require(ProfileInput.validUsername(username))
         return request(state, "/api/v1/users/web_profile_info/", mapOf("username" to username))

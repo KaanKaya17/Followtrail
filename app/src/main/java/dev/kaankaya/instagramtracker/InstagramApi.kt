@@ -20,6 +20,13 @@ class InstagramApi(
         connection?.disconnect()
     }
     fun read(session: Session): Profile = readId(session, session.userId)
+    fun search(session: Session, query: String): List<ProfileCandidate> {
+        val q=ProfileSearch.query(query)
+        if(session.mobileBinding!=null)return mobile.search(session,q)
+        if(session.webBinding!=null)return webReader.read(session,request={state,_->WebRequests.search(state,q)}) {body,_->ProfileSearch.parse(body)}
+        val encoded=java.net.URLEncoder.encode(q,"UTF-8")
+        return request(session,"https://www.instagram.com/api/v1/users/search/?query=$encoded&count=20") {ProfileSearch.parse(JSONObject(it))}
+    }
     fun testMobileConnection(session: Session): Profile {
         require(session.mobileBinding != null)
         return mobile.read(session, session.userId, null, connectionTest = true)
@@ -52,7 +59,7 @@ class InstagramApi(
             ProfileParser.byUsername(it, username, gate.now())
         }
     }
-    private fun request(session: Session, address: String, connectionTest: Boolean = false, parse: (String) -> Profile): Profile {
+    private fun <T> request(session: Session, address: String, connectionTest: Boolean = false, parse: (String) -> T): T {
         val gate=this.gate.forAccount(session.userId)
         if (!AccountRequestPolicy.readAllowed("GET", address)) throw ApiFailure(ApiFailure.Kind.POLICY)
         val ticket = synchronized(lock) { generation }

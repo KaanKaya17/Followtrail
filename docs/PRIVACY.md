@@ -1,5 +1,9 @@
 # Veri ve ağ sınırları
 
+## Android 0.1.68 / Windows 0.2.23 profil arama
+
+Kayıtlı profillerde ad/kullanıcı adı/grup araması cihazdaki kayıtlarda yapılır. **Instagram’da ara** işlemi kullanıcı tarafından başlatıldığında yalnız Instagram'a bir okuma isteği gönderir; yazarken otomatik ağ araması yoktur. En fazla 20 aday gösterilir; adaylar seçilmeden kayıtlı profil oluşturulmaz. Seçilen hesabın sayısal kimliği doğrulanarak profil okunur. Aday sonuçları dosyaya yazılmayan geçici yanıtlardır; hesap geçişinde yeni hesabın arama yanıtı olarak kullanılmaz. Okunan görünen ad şifreli profil kaydına eklenir. Sabit Instagram adresindeki arama GET'i mevcut istek sırası, bütçe ve sınırlamalara tabidir; takip etme, takipten çıkma, beğeni veya mesaj gönderme yetkisi açılmaz.
+
 ## Windows 0.2.17 / Android 0.1.37 başlangıç hazırlığı
 
 Yeni bağlantıdan sonra kendi listelerinin okunması otomatik sıraya alınır; ayrı bir takip/beğeni/DM yetkisi yoktur. İlk bağlantı açıklaması ve ana ekrandaki hazırlık kartı bunu belirtir, duraklatma sunar. Windows'ta devam imleci ve döngü kontrolü için hash'leri mevcut hesap kasasında DPAPI ile saklanır. Ham devam bilgisi renderer durumuna, gözlem yedeğine veya loga eklenmez; yeni oturum ve geri yüklemede kullanılmaz. Android mevcut Keystore ile şifreli liste arşivini kullanır. Yeni sunucu veya telemetri yoktur.

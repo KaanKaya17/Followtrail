@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.68 / Windows-web 0.2.23 — 2026-11-01 (Kısmi adla profil arama)
+
+- Kayıtlı profillerde kısmi kullanıcı adı, @ad, Instagram profil bağlantısı, birden fazla kelime ve Türkçe karakterleri dikkate alan yerel arama eklendi/iyileştirildi. Android arama alanı yazarken yeniden oluşturulmaz; liste filtrelenir, odak korunur. Yeni profil okumalarında görünen ad şifreli kayda alınır; eski kayıtta ad yoksa kullanıcı adıyla arama sürer, ad sonraki profil okumasıyla gelir.
+- Profil ekleme ekranında açık **Instagram’da ara** işlemi en fazla 20 aday gösterir. Yazarken Instagram isteği gönderilmez. Sonuç seçildiğinde gerçek profil sayısal kimliğiyle okunup kaydedilir; adayın takipçi sayısı uydurulmaz. Arama adayları kalıcı dosyaya yazılmaz ve hesap değiştirilince temizlenir. Kullanıcı adıyla doğrudan ekleme @ad ve paylaşılan HTTPS profil bağlantılarını da kabul eder.
+- Yalnız sabit Instagram adresindeki `GET users/search/` okuması izinli isteklere eklendi. Mevcut mola, istek sırası, oturum sınırları ve sosyal işlem yasağı korunur. Windows'ta arama hatası girilen metni korur; kapatılmış pencere geç gelen yanıtla yeniden açılmaz. Android'de pencere kapanınca kendisine ait okuyucu iptal edilir.
+- Doğrulama: 127 Android birim testi, release lint (0 hata, mevcut 24 uyarı), release/debug/test APK derlemeleri ve imzalı APK paket kontrolü geçti. Dört dilde 657 Android kaynağı ve 1.023 masaüstü/web metni eşleşir. 178 Python testi, 31 Node testi, 12 web kontrolü, sentetik API yanıtlarıyla 4 arama ekranı kontrolü ve paketli EXE üzerinde 34 kontrol geçti. Sonradan eklenen hesap bağlamı testi ayrıca sınandı. Canlı Instagram arama yanıtı doğrulanmadı. Fiziksel test APK’sı USB kurulumu reddedildiği için çalışmadı; kullanıcı ek telefon test kurulumu istemedi. Ana 0.1.68 APK kendi telefona veri silmeden kuruldu.
+
 ## Windows 0.2.22 — 2026-11-01 (İzlenen profillerin liste değişiklikleri)
 
 - Sonraki hedefli doğrulama: kullanıcı 82 kişi beklenen listede 76 kayıt ve sayı uyuşmazlığı mesajı bildirdi. Aynı durum kendi hesap/izlenen profil için sentetik sayfalarda sınandı: kayıt kısmi kalıyor, önceki tam liste korunuyor, altı kişi için ayrılma sonucu veya liste farkı bildirimi üretilmiyor. Devam belirteci yoksa yeni tam deneme 30 dakika sonrasına sıraya alınıyor; 76 + 6 üyeli geçerli devam sayfalarıyla 82'ye ulaşılınca tamamlanıyor. Bu test geçti; canlı hesapta eksik altı kişinin neden dönmediği doğrulanmadı. Çalışma kodu değiştirilmedi.

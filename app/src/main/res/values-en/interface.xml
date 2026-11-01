@@ -100,8 +100,6 @@
     <string name="ui_remove_this_person">"Remove this person?"</string>
     <string name="ui_remove">"Remove"</string>
     <plurals name="ui_this_version_stores_up_to_people_you"><item quantity="one">"This version stores up to %1$d person. You can remove someone first."</item><item quantity="other">"This version stores up to %1$d people. You can remove someone first."</item></plurals>
-    <string name="ui_username_or_profile_link">"@username or profile link"</string>
-    <string name="ui_the_profile_is_queried_once_you_control">"The profile is queried once. You control subsequent refreshes."</string>
     <string name="ui_load_profile">"Load profile"</string>
     <string name="ui_enter_a_valid_username_or_instagram_profile">"Enter a valid username or Instagram profile link."</string>
     <string name="ui_reconnect_your_account_first">"Reconnect your account first."</string>

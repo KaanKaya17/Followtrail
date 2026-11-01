@@ -17,6 +17,7 @@ import localization
 import wayback
 import request_budget
 import list_preparation
+import profile_search
 import hashlib
 from login_identity import LoginIdentity, device_settings
 
@@ -76,6 +77,7 @@ class Engine:
         self.list_scan_active = False
         self.scan_progress = None
         self.wayback_id = None
+        self.search_results = None
         self.recover_interrupted()
 
     def recover_interrupted(self):
@@ -132,8 +134,9 @@ class Engine:
                 'notificationTypes': {key: localization.translate(value, d['settings']['language']) for key, value in notification_log.TYPES.items()},
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
+                'searchResults': self.search_results,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.22'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.23'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -372,18 +375,19 @@ class Engine:
             self.vault.save(self.data, replace_previous=bool(args.get('clear')))
 
     def add_person(self, args):
-        username = str(args.get('username', '')).strip().lstrip('@')
-        if not re.fullmatch(r'[A-Za-z0-9._]{1,30}', username):
-            raise AppFailure('input', 'Geçerli bir Instagram kullanıcı adı gir.')
+        username = profile_search.username(args.get('username', ''))
+        identity=args.get('id')
+        if identity is not None and (not isinstance(identity,str) or not re.fullmatch(r'[1-9][0-9]{0,29}',identity)):
+            raise AppFailure('input','Geçerli bir Instagram kullanıcı adı gir.')
         if len(self.data['people']) >= 200:
             raise AppFailure('capacity', 'En fazla 200 profil kaydedilebilir.')
         client = self.client()
         try:
             self.progress('profile')
             # One explicit mobile lookup. No public fallback or endpoint rotation.
-            payload = client.private_request(f'users/{username}/usernameinfo/')
-            profile = parse_profile(payload)
-            if profile['username'].lower() != username.lower():
+            payload = client.private_request(f'users/{identity}/info/' if identity else f'users/{username}/usernameinfo/')
+            profile = parse_profile(payload,identity)
+            if identity is None and profile['username'].lower() != username.lower():
                 raise AppFailure('identity', 'Aranan kullanıcı adı ile yanıt uyuşmadı.')
             if profile['id'] == self.data['account']['id']:
                 raise AppFailure('input', 'Kendi hesabın zaten Özet bölümünde.')
@@ -391,6 +395,19 @@ class Engine:
             self.check_cancel()
             self.record_profile(profile)
             self.data['session'] = client.get_settings()
+            self.save()
+        finally:
+            close_client(client)
+
+    def search_people(self, args):
+        query=profile_search.query(args.get('query'))
+        client=self.client()
+        try:
+            self.progress('profile')
+            payload=client.private_request('users/search/',params={'query':query,'count':20})
+            self.check_cancel()
+            self.search_results={'query':query,'users':profile_search.results(payload)}
+            self.data['session']=client.get_settings()
             self.save()
         finally:
             close_client(client)
@@ -747,15 +764,16 @@ class Engine:
 
     def run(self, operation, args, *, group_id=None, project=True):
         self.operation = operation
+        self.search_results = None
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()
         try:
-            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'automatic', 'check_access'):
+            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'automatic', 'check_access'):
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
             handlers = {'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
                         'refresh': lambda: self.refresh(args), 'add_person': lambda: self.add_person(args),
-                        'scan': lambda: self.scan(args), 'save_person': lambda: self.save_person(args),
+                        'scan': lambda: self.scan(args), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
                         'check_access': lambda: self.check_access(args),
                         'notification_rule': lambda: self.notification_rule(args),

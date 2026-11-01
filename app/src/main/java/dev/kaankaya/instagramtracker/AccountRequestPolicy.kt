@@ -14,7 +14,7 @@ object AccountRequestPolicy {
     fun readAllowed(method: String, url: String, hasBody: Boolean = false): Boolean {
         val u = address(url) ?: return false
         return method == "GET" && !hasBody && u.host in setOf("i.instagram.com", "www.instagram.com") &&
-            (read.matches(u.rawPath) || u.host == "www.instagram.com" && u.rawPath == "/api/v1/users/web_profile_info/")
+            (read.matches(u.rawPath) || u.rawPath == "/api/v1/users/search/" || u.host == "www.instagram.com" && u.rawPath == "/api/v1/users/web_profile_info/")
     }
     private val actions = setOf("com.bloks.www.bloks.caa.login.process_client_data_and_redirect",
         "com.bloks.www.caa.login.oauth.token.fetch.async", "com.bloks.www.bloks.caa.login.async.send_login_request",
