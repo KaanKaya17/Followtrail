@@ -11,7 +11,6 @@
     <string name="history_retention_scope">Se guardan las últimas %1$d comprobaciones exitosas. El período de tiempo que se muestra depende de la frecuencia de las comprobaciones. Se desconocen los cambios entre controles.</string>
     <string name="history_single_scope">Un registro · %1$s\nAún no hay un intervalo de tiempo comparable.</string>
     <string name="history_actual_scope">%1$d registros · Lapso registrado: %2$d d %3$d h %4$d min\n%5$s → %6$s</string>
-    <string name="product_observation_scope">Ver cambios en perfiles y listas de seguimiento. Los controles no muestran la hora exacta de un cambio ni prueban que alguien dejó de seguir.</string>
     <string name="people_capacity_scope">Guarda hasta %1$d personas. El historial del perfil comparte un presupuesto de 2 MiB; Los registros existentes permanecen si están llenos. Más personas no envían más solicitudes a la vez; su turno puede tardar más.</string>
     <string name="people_more">Mostrar más personas</string>
 </resources>

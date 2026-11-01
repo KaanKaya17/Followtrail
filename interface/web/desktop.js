@@ -129,9 +129,9 @@
     )}</span>`;
   }
   const title = (kicker, heading, text, action = "") =>
-    `<div class="page-heading"><div><span class="eyebrow">${esc(kicker)}</span><h1>${esc(heading)}</h1><p>${esc(text)}</p></div>${action}</div>`;
+    `<div class="page-heading"><div><span class="eyebrow">${esc(kicker)}</span><h1>${esc(heading)}</h1>${text ? `<p>${esc(text)}</p>` : ""}</div>${action}</div>`;
   const empty = (text, action = "") =>
-    `<div class="empty-state">${icon("info")}<h2>${t("Burada henüz bir kayıt yok.")}</h2><p>${esc(text)}</p>${action}</div>`;
+    `<div class="empty-state">${icon("info")}<h2>${t("Burada henüz bir kayıt yok.")}</h2>${text ? `<p>${esc(text)}</p>` : ""}${action}</div>`;
   function navigate(page) {
     ui.page = page;
     closeDialog();
@@ -274,7 +274,7 @@
       )
       .join(
         "",
-      )}</nav><div class="sidebar-bottom"><button class="account-switcher" data-action="accounts" aria-label="${t("Hesaplar arasında geçiş")}" ${busy ? "disabled" : ""}>${avatar(data.account)}<span><strong>${data.account ? "@" + esc(data.account.username) : t("Hesabını bağla")}</strong><small>${t("{0} kayıtlı hesap", (data.accounts || []).length)}</small></span>${icon("down")}</button><div class="privacy-note">${icon("shield")}<strong>${t("Çevren sana özel.")}</strong><p>${t("Oturum ve gözlemler bu Windows kullanıcısına bağlı şifrelenir.")}</p><button class="text-button" data-action="privacy">${t("Gizliliği incele {0}", icon("arrow"))}</button></div><div class="preview-label"><span class="status-dot"></span> ${t("Yerel masaüstü")} <span>0.2</span></div></div></aside>`;
+      )}</nav><div class="sidebar-bottom"><button class="account-switcher" data-action="accounts" aria-label="${t("Hesaplar arasında geçiş")}" ${busy ? "disabled" : ""}>${avatar(data.account)}<span><strong>${data.account ? "@" + esc(data.account.username) : t("Hesabını bağla")}</strong><small>${t("{0} kayıtlı hesap", (data.accounts || []).length)}</small></span>${icon("down")}</button><div class="preview-label"><span class="status-dot"></span> ${t("Yerel masaüstü")} <span>0.2</span></div></div></aside>`;
   }
   function topbar() {
     const own = data.account;
@@ -318,7 +318,7 @@
         .join(" ");
       graph = `<div class="chart-summary"><strong>${num(values.at(-1))}<span>${t("takipçi")}</span></strong><span class="muted">${t("{0} kayıt", history.length)}</span></div><div class="chart-wrap"><svg class="history-chart" viewBox="0 0 710 252" role="img" aria-label="${t("Kayıtlı takipçi sayıları")}">${[0, 1, 2, 3].map((i) => `<line x1="50" y1="${40 + (i * 170) / 3}" x2="680" y2="${40 + (i * 170) / 3}" class="grid-line"/><text x="34" y="${44 + (i * 170) / 3}" text-anchor="end" class="axis-label">${num(Math.round(max - (i * (max - min)) / 3))}</text>`).join("")}<path d="${line}" class="chart-line"/>${points.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="5" class="chart-point" tabindex="0"><title>${esc(date(history[i].observedAt))} · ${num(values[i])}</title></circle>`).join("")}<text x="50" y="242" class="axis-label">${esc(new Date(start * 1000).toLocaleDateString(i18n.locale(language)))}</text><text x="670" y="242" text-anchor="end" class="axis-label">${esc(new Date(end * 1000).toLocaleDateString(i18n.locale(language)))}</text></svg></div>`;
     }
-    return `<section class="chart-card card"><div class="section-heading"><div><h2>${t("Takipçi geçmişi")}</h2><p>${t("Önceki kontrollerdeki takipçi sayın.")}</p></div>${controls}</div>${graph}<div class="chart-caption"><span>${t("Noktalar arasındaki hareketler bilinmiyor.")}</span>${button(t("Kayıtları gör"), "history", "clock", "secondary", idattr(p?.id || ""))}</div></section>`;
+    return `<section class="chart-card card"><div class="section-heading"><div><h2>${t("Takipçi geçmişi")}</h2><p>${t("Önceki kontrollerdeki takipçi sayın.")}</p></div>${controls}</div>${graph}<div class="chart-caption">${button(t("Kayıtları gör"), "history", "clock", "secondary", idattr(p?.id || ""))}</div></section>`;
   }
   function eventTitle(e) {
     if (e.type === "error") return t("Kontrol tamamlanamadı");
@@ -417,16 +417,14 @@
     const working = state.directions.some(d => d.scanning);
     const heading = paused ? t("Liste hazırlığı duraklatıldı") : blocked ? t("Liste hazırlığı bekliyor") :
       state.ready ? t("Başlangıç listelerin hazır") : t("Hesabın bağlandı, listelerin hazırlanıyor");
-    const copy = state.ready ? t("İlk kayıt bir başlangıçtır. Sonraki otomatik taramalarda liste farklarını karşılaştırabilirsin.") :
-      t("Takipçilerin, ardından takip edilenlerin otomatik okunur. Uygulamayı kullanmaya başlamadan önceki takipten çıkışlar bilinmiyor.");
     const rows = state.directions.map(d => `<li><strong>${d.direction === 'followers' ? t("Takipçiler") : t("Takip edilen")}</strong><span>${
       d.error ? t("Tarama tamamlanmadı; kayıtlar korundu.") : d.ready && !d.scanning ? t("Başlangıç kaydı hazır") :
       d.pages ? t("{0} sayfa · {1} hesap kaydedildi", num(d.pages), num(d.count)) : t("Okuma sırada")}</span></li>`).join('');
-    return `<section class="preparation-card card" aria-label="${t("Başlangıç listeleri")}"><div><span class="eyebrow">${t("LİSTE HAZIRLIĞI")}</span><h2>${heading}</h2><p>${copy}</p></div><ul>${rows}</ul>${
+    return `<section class="preparation-card card" aria-label="${t("Başlangıç listeleri")}"><div><span class="eyebrow">${t("LİSTE HAZIRLIĞI")}</span><h2>${heading}</h2></div><ul>${rows}</ul>${
       blocked ? `<p>${t("Instagram molası veya doğrulama sürüyor. Otomatik tekrar yapılmaz; İstek bilgilerini incele.")}</p>` :
       data.requestBudget.nextAt > Date.now()/1000 ? `<p>${t("Bütçe için sonraki uygun zaman: {0}", esc(date(data.requestBudget.nextAt)))}</p>` :
       !paused && (!state.ready || working) && data.gate.nextAt > Date.now()/1000 ? `<p>${t("Sonraki istek için en erken saat: {0}", esc(new Date(data.gate.nextAt*1000).toLocaleTimeString(i18n.locale(language))))}</p>` :
-      state.ready && !working ? `<p>${t("Sayı değişikliklerinde ve günlük kontrol hedefinde yeni tarama sıraya alınır. İstek bütçesine göre gecikebilir.")}</p>` : ''}<div class="drawer-actions">${
+      ''}<div class="drawer-actions">${
       button(paused ? t("Hazırlığa devam et") : t("Liste taramalarını duraklat"), paused ? 'preparation-resume' : 'preparation-pause', paused ? 'refresh' : 'clock', 'secondary', busy ? 'disabled' : '')}${
       button(t("Takip listelerini aç"), 'preparation-lists', 'list')}${blocked ? button(t("İstek bilgileri"),'requests','info') : ''}</div></section>`;
   }
@@ -437,10 +435,10 @@
     const stat = (label, key, tone) =>
       `<button class="stat-card ${tone}" data-action="open-list" data-value="${key}"><span class="stat-label">${t(label)} ${icon("people")}</span><strong class="stat-value">${num(own?.[key])}</strong><span class="stat-bottom"><span>${previous && own ? t("{0}{1} son kontrole göre", own[key] - previous[key] > 0 ? "+" : "", num(own[key] - previous[key])) : t("İlk kayıt bir başlangıçtır.")}</span>${icon("arrow")}</span></button>`;
     const changes = data.events.filter((e) => e.type === "profile").length;
-    return `${title(new Date().toLocaleDateString(i18n.locale(language), { dateStyle: "full" }), t("Çevrende neler oluyor?"), t("Hesabın, favori profillerin ve son değişiklikler bir arada."), button(data.connected ? t("Şimdi kontrol et") : t("Hesabını bağla"), data.connected ? "refresh" : "account", "refresh", "primary", data.connected ? netDisabled() : ""))}
+    return `${title(new Date().toLocaleDateString(i18n.locale(language), { dateStyle: "full" }), t("Çevrende neler oluyor?"), "", button(data.connected ? t("Şimdi kontrol et") : t("Hesabını bağla"), data.connected ? "refresh" : "account", "refresh", "primary", data.connected ? netDisabled() : ""))}
       ${!own ? `<section class="connect-banner card"><span class="dialog-symbol lavender">${icon("link")}</span><div><h2>${t("Önce hesabınla bağlantı kuralım.")}</h2><p>${t("Şifren kaydedilmez. Oturum ve gözlemler şifreli olarak bilgisayarında kalır.")}</p></div>${button(t("Hesabını bağla"), "account", "arrow", "primary")}</section>` : ""}
       <section class="stats-grid" aria-label="${t("Hesap özeti")}">${stat(t("Takipçiler"), "followers", "violet")}${stat(t("Takip edilen"), "following", "peach")}<button class="stat-card white" data-action="profile-events"><span class="stat-label">${t("Profil değişiklikleri {0}", icon("photo"))}</span><strong class="stat-value">${num(changes)}<span class="stat-unit">${t("kayıtlı fark")}</span></strong><span class="stat-bottom"><span class="muted">${t("Kontroller arasında görülen değişiklikler.")}</span>${icon("arrow")}</span></button></section>
-      ${preparationCard()}<div class="overview-columns"><div class="main-column">${chart(own)}<section class="activity-section"><div class="section-heading"><h2>${t("Son değişiklikler ve kontroller")}</h2><a class="text-button" href="#timeline">${t("Tümünü gör {0}", icon("arrow"))}</a></div><div class="activity-list">${data.events.slice(0, 5).map(eventRow).join("") || empty(t("İlk kontrolünden sonra kayıtlar burada görünür."))}</div></section></div><aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("clock")}</span><span>${t("SON PROFİL KONTROLÜ")}</span></div><h2>${own ? "@" + esc(own.username) : t("Henüz bağlantı yok")}</h2><p>${esc(date(own?.observedAt))}</p><div class="snapshot-rule"></div><p>${t("Takipçi sayısını kontrol etmek, takipçi listesini okumakla aynı şey değildir. Listelerin hazırlık durumunu da kontrol edebilirsin.")}</p>${button(t("İstek bilgileri"), "requests", "info")}</section><section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2><a href="#people" class="text-button">${t("Kaydedilen Profiller {0}", icon("arrow"))}</a></div>${data.people
+      ${preparationCard()}<div class="overview-columns"><div class="main-column">${chart(own)}<section class="activity-section"><div class="section-heading"><h2>${t("Son değişiklikler ve kontroller")}</h2><a class="text-button" href="#timeline">${t("Tümünü gör {0}", icon("arrow"))}</a></div><div class="activity-list">${data.events.slice(0, 5).map(eventRow).join("") || empty(t("İlk kontrolünden sonra kayıtlar burada görünür."))}</div></section></div><aside class="insights-column"><section class="snapshot-card"><div class="snapshot-top"><span class="tiny-icon">${icon("clock")}</span><span>${t("SON PROFİL KONTROLÜ")}</span></div><h2>${own ? "@" + esc(own.username) : t("Henüz bağlantı yok")}</h2><p>${esc(date(own?.observedAt))}</p><div class="snapshot-rule"></div>${button(t("İstek bilgileri"), "requests", "info")}</section><section class="favorites-section"><div class="section-heading"><h2>${t("Favorilerin")}</h2><a href="#people" class="text-button">${t("Kaydedilen Profiller {0}", icon("arrow"))}</a></div>${data.people
           .filter((p) => p.favorite)
           .slice(0, 5)
           .map(
@@ -467,7 +465,7 @@
     return `<article class="person-card card"><div class="person-card-top"><button class="avatar-button" data-action="person" ${idattr(p.id)} aria-label="${t("{0} kaydını aç", esc(p.name || p.username))}">${avatar(p, true)}</button><button class="icon-button star-button ${p.favorite ? "is-favorite" : ""}" data-action="star" ${idattr(p.id)} aria-label="${t("{0} favori durumunu değiştir", esc(p.username))}" aria-pressed="${!!p.favorite}" ${busy ? "disabled" : ""}>${icon("star")}</button></div><button class="person-title" data-action="person" ${idattr(p.id)}><h2>${esc(p.name || p.username)}</h2><p>@${esc(p.username)}</p></button><p class="person-bio">${esc(p.bio || t("Henüz kayıtlı biyografi yok."))}</p><div class="person-stats"><span><strong>${num(p.followers)}</strong><small>${t("takipçi")}</small></span><span><strong>${num(p.following)}</strong><small>${t("takip edilen")}</small></span></div><div class="person-card-bottom"><span class="group-label">${esc(p.group || t("Grupsuz"))}</span><span class="watch-label ${p.watching ? "on" : ""}">${icon(p.watching ? "bell" : "clock")}${p.watching ? t("İzlenen") : t("Kayıtlı")}</span></div></article>`;
   }
   function people() {
-    return `${title(t("KAYDEDİLEN PROFİLLER"), t("Kaydettiğin profiller bir arada."), t("Özellikle kaydettiğin profiller burada yer alır. Takipçi ve takip edilen kayıtlarını Takip Listeleri bölümünden açabilirsin."), button(t("Profil ekle"), "add-person", "plus", "primary", netDisabled()))}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Profil filtresi")}">${[
+    return `${title(t("KAYDEDİLEN PROFİLLER"), t("Kaydettiğin profiller bir arada."), "", button(t("Profil ekle"), "add-person", "plus", "primary", netDisabled()))}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Profil filtresi")}">${[
       ["all", t("Tümü")],
       ["favorites", t("Favoriler")],
       ["watching", t("İzlenenler")],
@@ -584,8 +582,8 @@
             `<option value="${esc(s.id)}" ${s.id === selected?.id ? "selected" : ""}>${t("{0} · {1} hesap", esc(date(s.finishedAt)), num(Object.keys(s.members).length))}</option>`,
         )
         .join("");
-    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), t("Kontroller arasındaki liste değişikliklerini gör. Değişikliğin tam olarak ne zaman olduğu bilinmez."), button(current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
-      <p class="field-hint">${t("Liste sayfa sayfa okunur. İstekler arasında molalar verilir; kaydedilen sayfa ve hesap sayısını ilerleme göstergesinden izleyebilirsin. Bu sırada diğer ekranları kullanabilirsin; yeni ağ işlemleri sıra bekler.")}</p>
+    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", button(current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
+
       <section class="list-account card"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${[
         data.account,
         ...data.people,
@@ -609,10 +607,10 @@
         .join(
           "",
         )}</div><label class="search-input">${icon("search")}<input id="list-search" type="search" placeholder="${t("Listede ara")}" aria-label="${t("Listede ara")}" value="${esc(ui.listQuery)}"></label></div>
-      <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(Object.keys(current.members).length) + t(" hesap") : t("Listenin tamamı henüz okunmadı")}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) + t(". Sayfalama bitti ve kayıt sayısı profil sayısıyla uyuştu. Liste tarama sırasında değişebilir.") : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${record.draft ? `<div class="notice warning"><strong>${t("Liste henüz tamamlanmadı · {0} hesap kaydedildi", num(Object.keys(record.draft.members).length))}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
+      <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(Object.keys(current.members).length) + t(" hesap") : t("Listenin tamamı henüz okunmadı")}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${record.draft ? `<div class="notice warning"><strong>${t("Liste henüz tamamlanmadı · {0} hesap kaydedildi", num(Object.keys(record.draft.members).length))}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
       <div class="comparison-controls card"><label>${t("Önceki kontrol")}<select id="previous-scan" ${scans.length < 2 ? "disabled" : ""}>${scanOptions(previous)}</select></label><label>${t("Yeni kontrol")}<select id="current-scan" ${!scans.length ? "disabled" : ""}>${scanOptions(current)}</select></label>${button(ui.comparison ? t("Listeye dön") : t("Farkları göster"), "compare", "compare", "secondary", !ready ? "disabled" : "")}</div>
-      ${ui.comparison && ready ? `<div class="compare-summary"><div class="compare-stat mint"><strong>${num(added)}</strong><span>${ui.direction === "followers" ? t("Yeni görülen takipçiler") : t("Yeni takip edilen hesaplar")}</span></div><div class="compare-stat peach"><strong>${num(removed)}</strong><span>${t("Son kontrolde görünmeyenler")}</span></div><p>${t("“Son kayıtta yok” tek başına takipten çıkış veya engelleme kanıtı değildir.")}</p></div>` : ""}
-      <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option></select></label><span class="toolbar-note">${t("Bu sonuç kaydedilen takipçi ve takip edilen listelerine göre gösterilir. İki listenin kontrol zamanı farklı olabilir.")}</span></div><div class="results-line"><span id="list-result-count">${t("{0} hesap · En fazla {1} satır gösteriliyor", listEntries().length, ui.pageSize)}</span></div><div class="list-table card" id="list-rows">${listRows()}</div><div id="list-pagination">${listPagination()}</div>${accessOverview()}`;
+      ${ui.comparison && ready ? `<div class="compare-summary"><div class="compare-stat mint"><strong>${num(added)}</strong><span>${ui.direction === "followers" ? t("Yeni görülen takipçiler") : t("Yeni takip edilen hesaplar")}</span></div><div class="compare-stat peach"><strong>${num(removed)}</strong><span>${t("Son kontrolde görünmeyenler")}</span></div></div>` : ""}
+      <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option></select></label></div><div class="results-line"><span id="list-result-count">${t("{0} hesap · En fazla {1} satır gösteriliyor", listEntries().length, ui.pageSize)}</span></div><div class="list-table card" id="list-rows">${listRows()}</div><div id="list-pagination">${listPagination()}</div>${accessOverview()}`;
   }
   function accessLabel(c) {
     const last = c.checks.at(-1);
@@ -708,7 +706,7 @@
           : e.type === ui.eventType &&
             (ui.eventType !== "profile" || e.topic !== "access")),
     );
-    return `${title(t("KONTROL GEÇMİŞİ"), t("Neyin ne zaman kontrol edildiğini gör."), t("Bunlar kayıt zamanlarıdır; değişikliğin Instagram’da gerçekleştiği kesin zaman bilinmez."))}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Olay filtresi")}">${[
+    return `${title(t("KONTROL GEÇMİŞİ"), t("Neyin ne zaman kontrol edildiğini gör."), "")}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Olay filtresi")}">${[
       ["all", t("Tümü")],
       ["profile", t("Profil farkları")],
       ["access", t("Profil görünürlüğü")],
@@ -722,7 +720,7 @@
       )
       .join(
         "",
-      )}</div><span>${t("{0} kayıt", num(events.length))}</span></div><div class="timeline-layout"><section class="timeline-main"><div class="timeline-events card">${events.slice(0, ui.eventLimit).map(eventRow).join("") || empty(t("Seçilen türde henüz kayıt yok."))}</div>${events.length > ui.eventLimit ? button(t("Daha fazla göster"), "more-events", "down") : ""}</section><aside class="timeline-explainer"><span class="outline-orbit">${icon("clock")}</span><h2>${t("Kontroller neleri gösterir?")}</h2><p>${t("Profil, takip listesi ve hata kayıtları ayrı gösterilir. Bir kontrol başarısız olursa önceki kayıtların durur.")}</p><p>${t("Son 2.000 olay, profil başına son 366 gözlem ve liste yönü başına son 6 tamamlanmış tarama korunur.")}</p></aside></div>`;
+      )}</div><span>${t("{0} kayıt", num(events.length))}</span></div><div class="timeline-layout timeline-focused"><section class="timeline-main"><div class="timeline-events card">${events.slice(0, ui.eventLimit).map(eventRow).join("") || empty(t("Seçilen türde henüz kayıt yok."))}</div>${events.length > ui.eventLimit ? button(t("Daha fazla göster"), "more-events", "down") : ""}</section></div>`;
   }
   function toggle(label, description, key) {
     return `<div class="setting-row"><div><strong>${esc(t(label))}</strong><p>${esc(description)}</p></div><button class="switch ${data.settings[key] ? "on" : ""}" role="switch" aria-checked="${!!data.settings[key]}" aria-label="${esc(t(label))}" data-action="setting" data-value="${key}" ${busy ? "disabled" : ""}><span></span></button></div>`;
@@ -771,7 +769,7 @@
       : "comfortable";
     document.title = `${t(pages[ui.page][0])} — Tracker`;
     document.getElementById("app").innerHTML =
-      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></footer></main></div>`;
+      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`;
     operationPanel();
   }
   function accountsDialog() {
@@ -888,6 +886,9 @@
         break;
       case "requests":
         requestsDialog();
+        break;
+      case "usage-notes":
+        dialog(window.TrackerUsageNotes.render(t, t("Son 2.000 olay, profil başına son 366 gözlem ve liste yönü başına son 6 tamamlanmış tarama korunur.")));
         break;
       case "privacy":
         dialog(

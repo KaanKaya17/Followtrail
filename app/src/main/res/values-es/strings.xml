@@ -97,7 +97,6 @@
     <string name="favorite_removed">"@%1$s eliminado de favoritos."</string>
     <string name="people_summary">"Personas: %1$d · Favoritos: %2$d"</string>
     <string name="activity_title">"Cambios recientes"</string>
-    <string name="activity_subtitle">"De registros exitosos en este dispositivo".</string>
     <string name="activity_empty">"Aún no hay cambios guardados. Aparecerán aquí a medida que lleguen nuevas lecturas exitosas".</string>
     <string name="activity_followers">"Seguidores %1$s"</string>
     <string name="activity_following">"Siguiendo a %1$s"</string>

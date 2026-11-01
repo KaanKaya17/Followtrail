@@ -7,6 +7,10 @@
   'use strict';
   const catalogs = {
   "en": {
+    "Kullanım notları": "Usage notes",
+    "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Results show differences between saved checks. They do not establish the exact time of a change or prove an unfollow on their own.",
+    "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "The first complete list is your starting record. Later complete lists are compared. Partial lists cannot establish a definitive result; search only covers records on your device.",
+    "Kontrol aralığı bir hedeftir. Instagram molası, internet ve arka plan koşulları geciktirebilir.": "The check interval is a target. Instagram pauses, connectivity and background restrictions can cause delays.",
     ". Sayfalama bitti ve kayıt sayısı profil sayısıyla uyuştu. Liste tarama sırasında değişebilir.": ". Pagination ended and the saved count matched the profile count. The list may change during a scan.",
     "26 Eki 16:40 → 27 Eki 16:42 · İki örnek profil gözleminin net farkı.": "Oct 26, 16:40 → Oct 27, 16:42 · Net difference between two sample profile observations.",
     "26 Ekim, 16:40 → 27 Ekim, 16:42": "October 26, 16:40 → October 27, 16:42",
@@ -1054,6 +1058,10 @@
     "Örnek kontrol kayıtları": "Sample check records"
   },
   "es": {
+    "Kullanım notları": "Notas de uso",
+    "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Los resultados muestran diferencias entre comprobaciones guardadas. Por sí solos no determinan el momento exacto de un cambio ni demuestran que alguien haya dejado de seguirte.",
+    "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "La primera lista completa es el registro inicial. Después se comparan las listas completas. Las listas parciales no permiten establecer un resultado definitivo; la búsqueda solo abarca los registros del dispositivo.",
+    "Kontrol aralığı bir hedeftir. Instagram molası, internet ve arka plan koşulları geciktirebilir.": "El intervalo de comprobación es un objetivo. Las pausas de Instagram, la conexión y las restricciones en segundo plano pueden causar retrasos.",
     ". Sayfalama bitti ve kayıt sayısı profil sayısıyla uyuştu. Liste tarama sırasında değişebilir.": ". La paginación finaliza y el número de registros coincide con el número de perfiles. La lista puede cambiar durante el escaneo.",
     "26 Eki 16:40 → 27 Eki 16:42 · İki örnek profil gözleminin net farkı.": "26 de octubre 16:40 → 27 de octubre 16:42 · Diferencia neta de dos observaciones de perfil de muestra.",
     "26 Ekim, 16:40 → 27 Ekim, 16:42": "26 de octubre, 16:40 → 27 de octubre, 16:42",
@@ -2101,6 +2109,10 @@
     "Örnek kontrol kayıtları": "Registros de control de muestras"
   },
   "pt-BR": {
+    "Kullanım notları": "Notas de uso",
+    "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Os resultados mostram diferenças entre verificações salvas. Por si só, não determinam o momento exato de uma mudança nem comprovam que alguém deixou de seguir você.",
+    "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "A primeira lista completa é o registro inicial. Depois, as listas completas são comparadas. Listas parciais não permitem estabelecer um resultado definitivo; a busca abrange apenas os registros no dispositivo.",
+    "Kontrol aralığı bir hedeftir. Instagram molası, internet ve arka plan koşulları geciktirebilir.": "O intervalo de verificação é uma meta. Pausas do Instagram, conexão e restrições em segundo plano podem causar atrasos.",
     ". Sayfalama bitti ve kayıt sayısı profil sayısıyla uyuştu. Liste tarama sırasında değişebilir.": ". A paginação foi concluída e o número de registros corresponde ao número de perfis. A lista pode mudar durante a digitalização.",
     "26 Eki 16:40 → 27 Eki 16:42 · İki örnek profil gözleminin net farkı.": "26 Out 16:40 → 27 Out 16:42 · Diferença líquida de duas observações de perfil amostral.",
     "26 Ekim, 16:40 → 27 Ekim, 16:42": "26 de outubro, 16h40 → 27 de outubro, 16h42",

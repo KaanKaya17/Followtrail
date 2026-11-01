@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Android 0.1.67 / Windows-web 0.2.21 — 2026-11-01 (Daha sade çalışma alanı)
+
+- Genel açıklamalar ve sonuçların sınırları ana ekranlardan **Kullanım notları** alanına taşındı. Windows/web sayfa altından ortak yardım penceresini, Android sayfa altından veya ⋯ menüsünden ayrı yardım ekranını açar. Gizlilik açıklamaları ayrıca erişilebilir kalır.
+- Android Özet ekranında takipçi/takip edilen sayaçları durum kartlarının önüne alındı. Kalıcı tekrarlar, profil izleme ve saklama açıklamaları yardım ekranında toplandı. İlk kullanım yönlendirmeleri, canlı ilerleme, eksik tarama, hata ve güvenlik molaları görünür kalır.
+- Windows/web'de sol menüdeki tanıtım bloğu ve zaman çizelgesinin açıklama sütunu kaldırıldı; kayıtlar tam genişlikte açılır. Sayfa başlıkları ve hazırlık kartı daha az yer kaplar. Aynı dört dil ve açık/koyu/OLED temalar korunur.
+- Giriş işleyişi ve istek politikası değiştirilmedi. Profil 429 sonrasında geçici giriş oturumunu ayrı, şifreli saklayıp mola sonrasında sürdürme işi geliştirme notlarına alındı; henüz uygulanmadı.
+- Doğrulama: 123 Android JVM testi, release lint (0 hata, mevcut 24 uyarı), release/debug/test APK derlemeleri ve imzalı APK paket kontrolü geçti. Android'de dört dilde 650 kaynak, Windows/web'de 1.003 çeviri eşleşiyor. 12 tarayıcı ve paketli EXE üzerinde 32 çevrimdışı kontrol geçti; Instagram isteği gönderilmedi. Windows yardım ve zaman çizelgesi ekran görüntüleri incelendi. Yeni Android yardım ekranı fiziksel cihazda veya emülatörde çalıştırılmadı; canlı giriş yeniden denenmedi.
+
 ## Android 0.1.66 — 2026-11-01 (Güvenlik kodunu gönderme)
 
 - Kendi telefondaki yeni canlı 0.1.65 kaydında kod gönderiminin kök değişkeni `input`; alt alanları actor_id, client_mutation_id, code, device_id ve encrypted_ap_context olarak doğrulandı. Statik mutation şeması tek kök `xfb_auth_platform_submit_code` alanını gösterdi. Ayrı cihaz onayı sorgusunun alanları da gözlendi; o sorgu henüz açılmadı.

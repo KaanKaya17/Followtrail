@@ -8,7 +8,6 @@
     <string name="quick_restriction">Quick watch cannot remove an existing cooldown or connection hold. Check Request information.</string>
     <string name="timeline_title">Timeline</string>
     <string name="timeline_menu">Check history</string>
-    <string name="timeline_subtitle">What was read and compared, and when.</string>
     <string name="timeline_empty">New checks will appear here. Previous profile records remain on the analysis screen.</string>
     <string name="timeline_scope">The latest 120 records are encrypted on this device. Times refer to device reads and comparisons, not exact Instagram event times. Times missing from older records are shown as not recorded.</string>
     <string name="timeline_filter">Choose account</string>

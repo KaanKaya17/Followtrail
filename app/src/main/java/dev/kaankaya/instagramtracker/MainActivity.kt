@@ -313,7 +313,9 @@ class MainActivity : LocalizedActivity() {
                 else if (gate.mobileLinkActive()) startActivity(Intent(this, DesktopLinkActivity::class.java)) else openLab()
             }, LinearLayout.LayoutParams(-1, -2))
         }
-        if (saved == null) { page.gap(20); page.addView(text(getString(R.string.ui_your_data_is_encrypted_on_this_device), 12f, muted).apply { gravity = Gravity.CENTER; setOnClickListener { privacy() } }) }
+        page.gap(20)
+        page.addView(UsageNotes.link(this))
+        if (saved == null) { page.gap(8); page.addView(text(getString(R.string.ui_your_data_is_encrypted_on_this_device), 12f, muted).apply { gravity = Gravity.CENTER; setOnClickListener { privacy() } }) }
         if (saved != null) {
             val navigation = LinearLayout(this).apply {
                 background = shape(panel, 24, AppUi.line); setPadding(dp(8), dp(7), dp(8), dp(7))
@@ -350,7 +352,6 @@ class MainActivity : LocalizedActivity() {
             pending.isEmpty() -> R.string.preparation_ready
             else -> R.string.preparation_title
         }), 20f)); card.gap(8)
-        card.addView(text(getString(if (pending.isEmpty()) R.string.preparation_ready_scope else R.string.preparation_scope), 12f, muted))
         for (direction in FollowDirection.entries) {
             val run = target?.snapshot?.run(direction)
             val title = getString(if (direction == FollowDirection.FOLLOWERS) R.string.ui_followers else R.string.ui_following)
@@ -387,13 +388,10 @@ class MainActivity : LocalizedActivity() {
 
     private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
         page.addView(AppUi.heading(this, getString(R.string.ui_at_a_glance), 28f)); page.gap(8)
-        page.addView(text(getString(R.string.product_observation_scope), 12f, muted)); page.gap(12)
         val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         identity.addView(avatar(saved.profile, 40))
         identity.addView(text("@${saved.profile.username}", 15f, ink, true).apply { setPadding(dp(12), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
         page.addView(identity); page.gap(12)
-        page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(18)
-        renderPreparation(page, saved); page.gap(18)
         val row = LinearLayout(this)
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
             val foreground = if (purple) UiPalette.onAccent else ink
@@ -421,9 +419,11 @@ class MainActivity : LocalizedActivity() {
         }
         row.addView(stat(getString(R.string.ui_followers), saved.profile.followers, FollowDirection.FOLLOWERS, true), LinearLayout.LayoutParams(0, -1, 1f).apply { marginEnd = dp(12) })
         row.addView(stat(getString(R.string.ui_following), saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
-        page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
+        page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(16)
+        page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(16)
+        renderPreparation(page, saved); page.gap(16)
         page.addView(button(getString(R.string.quick_start), false) { startQuickWatch(saved.profile.userId) }); page.gap(8)
-        page.addView(text(getString(R.string.quick_hint), 12f, muted)); page.gap(18)
+        page.gap(12)
         renderFavorites(page, saved)
         renderRecentActivity(page, saved)
         renderAutomation(page, saved)
@@ -716,7 +716,7 @@ class MainActivity : LocalizedActivity() {
         val entries = RecentActivity.all(saved, snapshots)
         val card = AppUi.card(this)
         card.addView(AppUi.heading(this, getString(R.string.activity_title), 21f)); card.gap(6)
-        card.addView(text(getString(R.string.activity_subtitle), 12f, muted)); card.gap(14)
+        card.gap(10)
         if (entries.isEmpty()) {
             card.addView(text(getString(R.string.activity_empty), 14f, muted))
         } else {
@@ -766,7 +766,7 @@ class MainActivity : LocalizedActivity() {
         }.setNegativeButton(getString(R.string.ui_cancel), null).show()
     }
     private fun options() {
-        val options = mutableListOf(R.string.ui_manage_connection, R.string.ui_refresh_settings, R.string.ui_request_information, R.string.language_menu, R.string.appearance_title, R.string.ui_privacy, R.string.ui_advanced)
+        val options = mutableListOf(R.string.ui_manage_connection, R.string.ui_refresh_settings, R.string.ui_request_information, R.string.language_menu, R.string.appearance_title, R.string.usage_notes_title, R.string.ui_privacy, R.string.ui_advanced)
         if(!preview)options.add(0,R.string.accounts_title)
         if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
@@ -793,6 +793,7 @@ class MainActivity : LocalizedActivity() {
                 R.string.timeline_menu -> openTimeline()
                 R.string.ui_request_information -> requestInfo()
                 R.string.ui_privacy -> privacy()
+                R.string.usage_notes_title -> UsageNotes.open(this)
                 R.string.ui_advanced -> AlertDialog.Builder(this).setTitle(R.string.ui_advanced).setItems(arrayOf(getString(R.string.web_compare_menu),getString(R.string.ui_web_connection_experiment))) { _, item -> if(item == 0) startLogin(compare = true) else openLab() }.setNegativeButton(R.string.ui_close, null).show()
                 R.string.ui_my_lists -> account?.profile?.let(::openLists)
                 R.string.ui_open_offline_demo -> startActivity(Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
@@ -945,7 +946,7 @@ class MainActivity : LocalizedActivity() {
             actions.addView(text(getString(R.string.people_summary, saved.people.size, saved.people.count { it.favorite }), 13f, muted), LinearLayout.LayoutParams(0, -2, 1f))
             if (saved.people.isNotEmpty()) actions.addView(button(getString(R.string.ui_add_person), networkAction = true) { addPerson() }, LinearLayout.LayoutParams(-2, -2))
             page.addView(actions); page.gap(12)
-            page.addView(text(getString(R.string.people_capacity_scope, PeoplePolicy.MAX_PEOPLE), 12f, muted)); page.gap(20)
+            page.gap(8)
             if (saved.people.isEmpty()) {
                 val empty = stack().apply { background = shape(panel, 24, AppUi.line); setPadding(dp(24), dp(28), dp(24), dp(28)) }
                 empty.addView(AppUi.avatar(this, "+", 56, AppUi.mint, AppUi.teal)); empty.gap(18)
@@ -1021,7 +1022,6 @@ class MainActivity : LocalizedActivity() {
         }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
         val historyCard = AppUi.card(this)
         historyCard.addView(AppUi.heading(this, getString(R.string.ui_observation_history), 22f)); historyCard.gap(10)
-        historyCard.addView(text(getString(R.string.history_retention_scope, PeoplePolicy.MAX_HISTORY), 12f, muted)); historyCard.gap(10)
         val filters = LinearLayout(this)
         for ((label, days) in listOf(getString(R.string.ui_7_days) to 7, getString(R.string.ui_30_days) to 30, getString(R.string.ui_all) to 0)) {
             filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
@@ -1243,8 +1243,6 @@ class MainActivity : LocalizedActivity() {
         if (status.ahead > 0 && status.reason != WatchReason.QUEUED) {
             card.addView(text(resources.getQuantityString(R.plurals.watch_reason_queue, status.ahead, status.ahead), 13f, muted)); card.gap(10)
         }
-        card.addView(text(getString(R.string.profile_watch_scope), 12f, muted)); card.gap(8)
-        card.addView(text(getString(R.string.watch_timing_scope), 12f, muted)); card.gap(12)
         if (person.watching) {
             card.addView(button(getString(R.string.watch_change_interval), false) { watchSettings(person) }); card.gap(8)
         }

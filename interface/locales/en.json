@@ -1,4 +1,8 @@
 {
+  "Kullanım notları": "Usage notes",
+  "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Results show differences between saved checks. They do not establish the exact time of a change or prove an unfollow on their own.",
+  "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "The first complete list is your starting record. Later complete lists are compared. Partial lists cannot establish a definitive result; search only covers records on your device.",
+  "Kontrol aralığı bir hedeftir. Instagram molası, internet ve arka plan koşulları geciktirebilir.": "The check interval is a target. Instagram pauses, connectivity and background restrictions can cause delays.",
   ". Sayfalama bitti ve kayıt sayısı profil sayısıyla uyuştu. Liste tarama sırasında değişebilir.": ". Pagination ended and the saved count matched the profile count. The list may change during a scan.",
   "26 Eki 16:40 → 27 Eki 16:42 · İki örnek profil gözleminin net farkı.": "Oct 26, 16:40 → Oct 27, 16:42 · Net difference between two sample profile observations.",
   "26 Ekim, 16:40 → 27 Ekim, 16:42": "October 26, 16:40 → October 27, 16:42",

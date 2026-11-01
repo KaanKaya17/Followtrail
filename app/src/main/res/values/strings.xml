@@ -76,7 +76,6 @@
     <string name="favorite_removed">@%1$s favorilerden çıkarıldı.</string>
     <string name="people_summary">Kişi: %1$d · Favori: %2$d</string>
     <string name="activity_title">Son değişiklikler</string>
-    <string name="activity_subtitle">Cihazdaki başarılı kayıtlardan.</string>
     <string name="activity_empty">Henüz kayıtlı değişiklik yok. Yeni başarılı okumalar geldikçe burada görünür.</string>
     <string name="activity_followers">Takipçi %1$s</string>
     <string name="activity_following">Takip edilen %1$s</string>

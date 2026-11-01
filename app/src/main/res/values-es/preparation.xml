@@ -5,7 +5,6 @@
     <string name="preparation_waiting">La preparación de la lista está esperando</string>
     <string name="preparation_ready">Tus listas de referencia están listas</string>
     <string name="preparation_scope">Tus seguidores, que luego te siguen, se leen automáticamente. Se desconocen las personas que dejaron de seguir antes de comenzar a usar la aplicación.</string>
-    <string name="preparation_ready_scope">El primer registro es una línea de base. Los escaneos completados posteriormente le permiten ver los cambios en la lista.</string>
     <string name="preparation_incomplete">La exploración está incompleta; Se conservaron los registros guardados.</string>
     <string name="preparation_baseline">Línea de base lista</string>
     <string name="preparation_progress">%1$d páginas · %2$d cuentas guardadas</string>

@@ -109,7 +109,6 @@ class TimelineActivity : LocalizedActivity() {
         header.addView(AppUi.iconButton(this, "back", getString(R.string.list_back)) { finish() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         header.addView(AppUi.heading(this, getString(R.string.timeline_title)), LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(12) })
         page.addView(header); page.gap(12)
-        page.addView(AppUi.text(this, getString(R.string.timeline_subtitle), 13f, AppUi.muted)); page.gap(14)
         page.addView(AppUi.button(this, selected?.let { id -> "@${profiles.first { it.userId == id }.username}" } ?: getString(R.string.timeline_all), false) {
             val labels = listOf(getString(R.string.timeline_all)) + profiles.map { "@${it.username}" }
             AlertDialog.Builder(this).setTitle(R.string.timeline_filter).setSingleChoiceItems(labels.toTypedArray(),
@@ -148,7 +147,7 @@ class TimelineActivity : LocalizedActivity() {
             }
             page.addView(card); page.gap(12)
         }
-        page.gap(12); page.addView(AppUi.text(this, getString(R.string.timeline_scope), 12f, AppUi.muted))
+        page.gap(12); page.addView(UsageNotes.link(this))
         viewport.post { viewport.scrollTo(0, position) }
     }
     private fun dp(value: Int) = AppUi.dp(this, value)

@@ -10,7 +10,6 @@
     <string name="history_retention_scope">Son %1$d başarılı kontrol saklanır. Kontrol sıklığına göre gösterilen dönem değişir. Kontroller arasındaki bütün hareketler bilinmez.</string>
     <string name="history_single_scope">Tek kayıt · %1$s\nHenüz karşılaştırılabilir zaman aralığı yok.</string>
     <string name="history_actual_scope">%1$d kayıt · Kayıtlı aralık: %2$d gün %3$d saat %4$d dakika\n%5$s → %6$s</string>
-    <string name="product_observation_scope">Profil ve takip listelerindeki değişiklikleri gör. Kontroller, değişikliğin tam olarak ne zaman olduğunu veya kesin takipten çıkışı göstermez.</string>
     <string name="people_capacity_scope">En fazla %1$d kişi kaydedebilirsin. Profil geçmişi toplam 2 MiB ile sınırlıdır; dolarsa mevcut kayıt korunur. Daha çok kişi aynı anda daha çok istek göndermez; kontrol sırası uzayabilir.</string>
     <string name="people_more">Daha fazla kişi göster</string>
 </resources>

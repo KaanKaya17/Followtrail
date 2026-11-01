@@ -76,7 +76,6 @@
     <string name="favorite_removed">"@%1$s removed from favorites."</string>
     <string name="people_summary">"People: %1$d · Favorites: %2$d"</string>
     <string name="activity_title">"Recent changes"</string>
-    <string name="activity_subtitle">"From successful records on this device."</string>
     <string name="activity_empty">"No saved changes yet. They will appear here as new successful reads arrive."</string>
     <string name="activity_followers">"Followers %1$s"</string>
     <string name="activity_following">"Following %1$s"</string>

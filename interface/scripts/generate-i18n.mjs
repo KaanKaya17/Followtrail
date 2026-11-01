@@ -20,7 +20,7 @@ for (const [language, target] of Object.entries(translations)) {
   }
 }
 // Literal UI messages are checked without interpreting user content or HTML.
-for (const file of ['web/appearance.js', 'web/desktop.js', 'web/app.js', 'web/wayback.js', 'web/command-palette.js', 'web/operation-progress.js', 'desktop/main.cjs', 'desktop/background.cjs', 'desktop/notifications.cjs']) {
+for (const file of ['web/appearance.js', 'web/desktop.js', 'web/app.js', 'web/usage-notes.js', 'web/wayback.js', 'web/command-palette.js', 'web/operation-progress.js', 'desktop/main.cjs', 'desktop/background.cjs', 'desktop/notifications.cjs']) {
   const source = await readFile(path.join(root, file), 'utf8');
   for (const match of source.matchAll(/\bt\(("(?:[^"\\]|\\.)*")/g)) {
     const key = JSON.parse(match[1]);

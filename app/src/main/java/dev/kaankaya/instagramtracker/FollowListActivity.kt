@@ -142,8 +142,6 @@ class FollowListActivity : LocalizedActivity() {
         val status = column().apply { setPadding(dp(14), dp(12), dp(14), dp(12)); background = AppUi.shape(this@FollowListActivity, AppUi.surface, 18, AppUi.line) }
         status.addView(AppUi.text(this, getString(R.string.ui_saved_on_this_device), 11f, AppUi.muted, true)); status.gap(6)
         status.addView(AppUi.text(this, if (run == null) getString(R.string.list_not_read) else getString(R.string.list_count, run.users.size, run.pages.size), 13f, fg, true))
-        status.gap(6)
-        status.addView(AppUi.text(this, getString(R.string.navigation_list_pacing), 12f, AppUi.muted))
         if (run != null) {
             status.gap(5)
             status.addView(AppUi.text(this, coverageText(run.coverage()), 12f,
@@ -327,7 +325,7 @@ class FollowListActivity : LocalizedActivity() {
             getString(R.string.list_count, run.users.size, run.pages.size) + "\n" + coverageText(run.coverage()) + "\n" +
                 getString(R.string.list_observed, SimpleDateFormat("d MMM yyyy · HH:mm", AppLanguage.locale(this)).format(Date(run.latest.observedAt)))
         AlertDialog.Builder(this).setTitle(R.string.list_info_title)
-            .setMessage(description + "\n\n" + getString(R.string.list_info_body))
+            .setMessage(description + "\n\n" + getString(R.string.list_info_body) + "\n\n" + getString(R.string.navigation_list_pacing))
             .setNeutralButton(R.string.auto_list_differences) { _, _ -> showListDifferences() }
             .setPositiveButton(R.string.list_close, null).show()
     }

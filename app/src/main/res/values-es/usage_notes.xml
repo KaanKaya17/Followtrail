@@ -1,0 +1,6 @@
+<resources>
+    <string name="usage_notes_title">Notas de uso</string>
+    <string name="usage_notes_observations">Los resultados muestran diferencias entre comprobaciones guardadas. Por sí solos no determinan el momento exacto de un cambio ni demuestran que alguien haya dejado de seguirte.</string>
+    <string name="usage_notes_lists">La primera lista completa es el registro inicial. Después se comparan las listas completas. Las listas parciales no permiten establecer un resultado definitivo; la búsqueda solo abarca los registros del dispositivo.</string>
+    <string name="usage_notes_checks">El intervalo de comprobación es un objetivo. Las pausas de Instagram, la conexión y las restricciones en segundo plano pueden causar retrasos.</string>
+</resources>
