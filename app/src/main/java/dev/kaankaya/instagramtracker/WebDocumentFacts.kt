@@ -5,9 +5,11 @@ import org.json.JSONObject
 
 /** Protocol identifiers only. No variables, headers or field values are retained. */
 class WebDocumentFacts private constructor(val document: String?, val operation: String?,
-    private val variableTypes: JSONObject? = null, private val incomplete: Boolean = false) {
+    private val variableTypes: JSONObject? = null, private val incomplete: Boolean = false,
+    private val inputTypes: JSONObject? = null) {
     fun json() = JSONObject().put("document",document ?: JSONObject.NULL).put("operation",operation ?: JSONObject.NULL)
         .put("variableTypes",variableTypes ?: JSONObject.NULL).put("variablesIncomplete",incomplete)
+        .put("inputTypes", inputTypes ?: JSONObject.NULL)
     companion object {
         fun inspect(raw: String): WebDocumentFacts {
             if(raw.length>WebGraphqlForm.MAX_BODY) return WebDocumentFacts(null,null)
@@ -26,13 +28,15 @@ class WebDocumentFacts private constructor(val document: String?, val operation:
                     }
                     if(key=="variables")variables=pair[1]
                 }
-                if(document!=AuthPlatformCodeEntry.DOCUMENT || operation!=AuthPlatformCodeEntry.OPERATION)return WebDocumentFacts(document,operation)
+                val knownView = document==AuthPlatformCodeEntry.DOCUMENT && operation==AuthPlatformCodeEntry.OPERATION
+                if(!knownView && AuthPlatformVerification.find(document, operation)==null)return WebDocumentFacts(document,operation)
                 val types=JSONObject();var incomplete=false
+                val inputTypes=JSONObject()
                 try {
                     val values=JSONObject(URLDecoder.decode(requireNotNull(variables),"UTF-8"))
                     for(key in values.keys()) {
                         if(types.length()>=8 || !AuthPlatformCodeEntry.fieldName.matches(key)){incomplete=true;continue}
-                        types.put(key,when(values.get(key)) {
+                        fun type(value: Any): String = when(value) {
                             JSONObject.NULL->"NULL"
                             is String->"STRING"
                             is Boolean->"BOOLEAN"
@@ -40,10 +44,18 @@ class WebDocumentFacts private constructor(val document: String?, val operation:
                             is JSONObject->"OBJECT"
                             is org.json.JSONArray->"ARRAY"
                             else->{incomplete=true;"UNKNOWN"}
-                        })
+                        }
+                        types.put(key,type(values.get(key)))
+                        if (!knownView && values.opt(key) is JSONObject) {
+                            val input=values.getJSONObject(key)
+                            for (field in input.keys()) {
+                                if(inputTypes.length()>=16 || !AuthPlatformCodeEntry.fieldName.matches(field)) {incomplete=true;continue}
+                                inputTypes.put("$key.$field",type(input.get(field)))
+                            }
+                        }
                     }
                 }catch(_: Exception){incomplete=true}
-                WebDocumentFacts(document,operation,types,incomplete)
+                WebDocumentFacts(document,operation,types,incomplete,if(knownView)null else inputTypes)
             } catch (_: Exception) {WebDocumentFacts(null,null)}
         }
     }

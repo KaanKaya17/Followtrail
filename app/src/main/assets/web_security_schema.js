@@ -2,7 +2,7 @@
   try {
     if (typeof require !== 'function') return {available:false};
     const doc=require('__OPERATION__.graphql');
-    if (!doc || doc.params?.id!=='__DOCUMENT__' || doc.params?.name!=='__OPERATION__' || doc.params?.operationKind!=='query') return {available:false};
+    if (!doc || doc.params?.id!=='__DOCUMENT__' || doc.params?.name!=='__OPERATION__' || doc.params?.operationKind!=='__KIND__') return {available:false};
     const args=doc.operation?.argumentDefinitions||[],selections=doc.operation?.selections||[];
     const valid=x=>typeof x.name==='string' && /^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(x.name);
     const fields=selections.filter(x=>x.kind==='LinkedField'||x.kind==='ScalarField');

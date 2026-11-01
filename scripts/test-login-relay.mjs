@@ -6,7 +6,7 @@ import test from 'node:test';
 
 const source=await readFile(new URL('../app/src/main/assets/web_login_relay.js',import.meta.url),'utf8');
 const schemaSource=(await readFile(new URL('../app/src/main/assets/web_security_schema.js',import.meta.url),'utf8'))
-  .replaceAll('__DOCUMENT__','34414353874878894').replaceAll('__OPERATION__','AuthPlatformCodeEntryViewQuery');
+  .replaceAll('__DOCUMENT__','34414353874878894').replaceAll('__OPERATION__','AuthPlatformCodeEntryViewQuery').replaceAll('__KIND__','query');
 test('security schema reads static names and never argument values',()=>{
   const argument={name:'context',get defaultValue(){throw Error('Private value was inspected');}};
   const doc={params:{id:'34414353874878894',name:'AuthPlatformCodeEntryViewQuery',operationKind:'query'},
@@ -17,6 +17,16 @@ test('security schema reads static names and never argument values',()=>{
 test('unknown module or mutation cannot be reported as a known query schema',()=>{
   for(const requireFn of [()=>{throw Error('unknown module');},()=>({params:{id:'34414353874878894',name:'AuthPlatformCodeEntryViewQuery',operationKind:'mutation'}})])
     assert.equal(vm.runInNewContext(schemaSource,{require:requireFn}).available,false);
+});
+test('observed submit-code schema reads only static mutation names without input values',async()=>{
+  const raw=await readFile(new URL('../app/src/main/assets/web_security_schema.js',import.meta.url),'utf8');
+  const script=raw.replaceAll('__DOCUMENT__','25017097917894476').replaceAll('__OPERATION__','useAuthPlatformSubmitCodeMutation').replaceAll('__KIND__','mutation');
+  const argument={name:'input',get defaultValue(){throw Error('Private code was inspected');}};
+  const doc={params:{id:'25017097917894476',name:'useAuthPlatformSubmitCodeMutation',operationKind:'mutation'},
+    operation:{argumentDefinitions:[argument],selections:[{kind:'LinkedField',name:'synthetic_verification'}]}};
+  const result=JSON.parse(JSON.stringify(vm.runInNewContext(script,{require:()=>doc})));
+  assert.deepEqual(result.arguments,['input']);assert.deepEqual(result.rootFields,['synthetic_verification']);assert.equal(result.kind,'mutation');
+  doc.params.id='123';assert.equal(vm.runInNewContext(script,{require:()=>doc}).available,false);
 });
 test('partial schema coverage stays explicit and bounded',()=>{
   const doc={params:{id:'34414353874878894',name:'AuthPlatformCodeEntryViewQuery',operationKind:'query'},

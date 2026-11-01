@@ -13,6 +13,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     private val blockedDocuments = linkedMapOf<String, WebDocumentFacts>()
     private var securitySchema: JSONObject?=null
     private var securityView: JSONObject?=null
+    private val verificationSchemas = linkedMapOf<String, JSONObject>()
     private val startedAt = clock()
     private var documentsStarted = 0
     private var documentsFinished = 0
@@ -46,6 +47,12 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
         blockedDocuments[facts.json().toString()]=facts
     } }
     @Synchronized fun securitySchema(raw: String) {if(active){securitySchema=AuthPlatformCodeEntry.schema(raw);flush()}}
+    @Synchronized internal fun verificationSchema(operation: AuthPlatformVerification.Operation, raw: String) {
+        if (active) {
+            verificationSchemas[operation.name] = AuthPlatformSchema.inspect(raw, operation.document, operation.name, "mutation")
+            flush()
+        }
+    }
     @Synchronized fun securityView(status: Int,parsed: Boolean,validData: Boolean,applied: Boolean?) {if(active){
         require(status in 100..599)
         securityView=JSONObject().put("status",status).put("jsonParsed",parsed).put("validData",validData).put("cookiesApplied",applied ?: JSONObject.NULL)
@@ -62,6 +69,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
             .put("blockedDocuments",org.json.JSONArray(blockedDocuments.values.map {it.json()}))
             .put("securitySchema",securitySchema ?: JSONObject.NULL)
             .put("securityView",securityView ?: JSONObject.NULL)
+            .put("verificationSchemas", JSONObject(verificationSchemas as Map<*, *>))
             .put("authentication", authentication?.json() ?: JSONObject.NULL)
         check(preferences.edit().putString("report", report.toString()).commit())
     }
@@ -73,6 +81,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     }
     companion object {
         fun read(context: Context): String? = context.getSharedPreferences("login_page_trace", Context.MODE_PRIVATE)
-            .getString("report", null)?.also { require(it.length <= 8192); JSONObject(it) }
+            // Four bounded document facts now include 16 one-level input names each, plus two verification schemas.
+            .getString("report", null)?.also { require(it.length <= 32768); JSONObject(it) }
     }
 }
