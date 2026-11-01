@@ -1,6 +1,10 @@
-# InstagramTracker Windows 0.2.25
+# InstagramTracker Windows 0.2.26
 
-`artifacts/InstagramTracker-Desktop-0.2.25/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+Profil ekleme penceresinde en az iki karakter yazıp 650 ms duraklamak Instagram aramasını sıraya alır. Kayıtlı eşleşmeler hemen görünür; mevcut 12–18 saniyelik aralık ve istek bütçesi dolmadıysa yalnız son sorgu gönderilir. Bekleme geri sayımla gösterilir. Yakın altı sorgu aynı pencere içinde 60 saniye bellekte kullanılabilir; hata otomatik tekrar gönderilmez. Arama alanı ağ isteği sırasında açık kalır ve geç gelen başka sorgunun yanıtı sonuçları değiştirmez.
+
+Fotoğraflar metin sonuçlarını bekletmez. Özel yerel pipe üzerinden yalnız mevcut sonuç belirteci ve ID ile istenir; URL seçimi renderer'a açılmaz. İşçi içinde iki CDN indirmesi ve en fazla 20 bekleyen/çalışan iş vardır; iptal eski işleri durdurur. Oturum/çerez kullanılmaz, yönlendirme izlenmez, mevcut resim boyutu/çözünürlük sınırları uygulanır. Pencere kapanınca geçici sorgu önbelleği bırakılır ve görsel işleri iptal edilir.
+
+`artifacts/InstagramTracker-Desktop-0.2.26/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Dört yerel uygulama dili
 

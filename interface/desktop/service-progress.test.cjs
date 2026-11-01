@@ -44,3 +44,13 @@ test('Specific worker failure survives the following generic process exit',async
   assert.equal((await backend.command('state')).error.message,'Specific encrypted-storage failure');
   assert.equal(events.length,1);
 });
+
+test('Thumbnail controls can finish independently without clearing a running account operation',async()=>{
+  const backend=new Backend({onEvent:()=>{}}),writes=[];
+  backend.ready=true;backend.busy=true;
+  backend.child={stdin:{write(line,_encoding,callback){writes.push(JSON.parse(line));callback();}}};
+  const result=backend.command('search_avatar',{token:'qa-token',id:'200'});
+  assert.equal(writes.length,1);
+  backend.message({type:'control',id:writes[0].id,ok:true,avatar:null});
+  assert.equal((await result).avatar,null);assert.equal(backend.busy,true);
+});

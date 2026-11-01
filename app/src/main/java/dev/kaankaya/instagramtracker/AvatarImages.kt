@@ -106,7 +106,8 @@ class AvatarCache(context: Context, slot: String = "avatars") {
 }
 
 /** Activity-owned image work: two downloads, bounded queue, reusable rows and cancellable visibility. */
-class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAvatarFetcher(), slot: String = "avatars") : AutoCloseable {
+class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAvatarFetcher(), slot: String = "avatars",
+    private val transient: Boolean = false) : AutoCloseable {
     companion object {
         // TLS socket close can write close_notify. Lifecycle callers must never run it on the UI thread.
         private val cleanup = java.util.concurrent.Executors.newSingleThreadExecutor { task ->
@@ -115,7 +116,7 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
     }
     private val main = Handler(Looper.getMainLooper())
     private val executor = ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(20))
-    private val cache = AvatarCache(context, slot)
+    private val cache = if(transient)null else AvatarCache(context, slot)
     private val archiveContext=context.applicationContext
     private val previewArchive=slot.startsWith("preview")
     private val memory = object : LruCache<String, Bitmap>(2 * 1024 * 1024) {
@@ -139,16 +140,16 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
                 if (!active()) return
                 var bitmap = memory.get(source.key)
                 if (bitmap == null) {
-                    bitmap = cache.read(source.key)?.let(::decode)
+                    bitmap = cache?.read(source.key)?.let(::decode)
                     if (bitmap == null && active() && failures.get(source.key) != true) {
                         val exchange = fetcher.open(AvatarPolicy.url(source.url) ?: return)
                         download = exchange
                         if (!active()) { exchange.cancel(); return }
                         bitmap = exchange.read()?.let(::decode)
-                        if (bitmap != null && active()) {
+                        if (bitmap != null && active() && !transient) {
                             val output = java.io.ByteArrayOutputStream()
                             bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
-                            cache.write(source.key, output.toByteArray(), ::active)
+                            cache?.write(source.key, output.toByteArray(), ::active)
                         }
                     }
                 }
@@ -156,7 +157,7 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
                 if (active()) {
                     // Only an already-selected public thumbnail of the current observation.
                     // No extra request and no archive record for an untracked list member.
-                    try {
+                    if(!transient)try {
                         val archiveVault=SessionVault(archiveContext,if(previewArchive)"previewaccount" else "account",if(previewArchive)null else source.owner)
                         val saved = if (archiveVault.visual.exists()) archiveVault.read()?.takeIf { it.session.userId == source.owner } else null
                         val profile = saved?.let { if (it.profile.userId == source.target) it.profile else it.people.firstOrNull { p -> p.latest.userId == source.target }?.latest }
@@ -194,7 +195,7 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
         val prefix = owner?.let { AvatarPolicy.prefix(it, target) }
         memory.snapshot().keys.filter { prefix == null || it.startsWith(prefix) }.forEach { memory.remove(it) }
         failures.snapshot().keys.filter { prefix == null || it.startsWith(prefix) }.forEach { failures.remove(it) }
-        cache.clear(owner, target)
+        cache?.clear(owner, target)
     }
     override fun close() {
         if (closed) return

@@ -1,7 +1,7 @@
 """Profile input and read-only search response boundary; no account selection by guesswork."""
 import re
 from urllib.parse import urlsplit
-from network import AppFailure, parse_page
+from network import AppFailure, parse_page, avatar_url
 
 RESERVED = {'accounts', 'explore', 'reels', 'reel', 'stories', 'direct', 'p'}
 
@@ -37,4 +37,6 @@ def query(value):
 def results(payload):
     # The same owner validates identities and display names for lists and search.
     members=parse_page(payload).members
-    return list(members.values())[:20]
+    pictures={str(user.get('pk')):user.get('profile_pic_url') for user in payload['users']}
+    return [dict(person,avatarUrl=pictures.get(identity) if avatar_url(pictures.get(identity)) else None)
+            for identity,person in list(members.items())[:20]]

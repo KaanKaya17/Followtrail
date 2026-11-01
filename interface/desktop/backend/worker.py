@@ -11,6 +11,7 @@ import uuid
 from accounts import Accounts
 import localization
 from network import AppFailure, failure
+from search_images import SearchImages
 
 logging.disable(logging.CRITICAL)
 sys.stdin.reconfigure(encoding='utf-8')
@@ -37,6 +38,7 @@ def main():
         emit({'type': 'fatal', 'code': 'storage', 'message': 'Şifreli depo açılamadı. Dosyalar korundu; otomatik sıfırlanmadı.'})
         return 2
     emit({'type': 'ready', 'state': engine.snapshot()})
+    images = SearchImages(emit)
 
     def execute(request):
         group_id = uuid.uuid4().hex
@@ -60,7 +62,12 @@ def main():
             if not isinstance(request, dict) or not isinstance(request.get('id'), int):
                 raise ValueError()
             operation = request.get('operation')
-            if operation == 'cancel':
+            if operation == 'search_avatar':
+                images.request(request, engine.search_results, engine.search_pictures, offline=args.offline)
+            elif operation == 'cancel_search_images':
+                images.cancel()
+                emit({'type': 'control', 'id': request['id'], 'ok': True})
+            elif operation == 'cancel':
                 engine.cancel.set()
                 emit({'type': 'control', 'id': request['id'], 'ok': True})
             elif operation == 'code':
@@ -76,6 +83,7 @@ def main():
             emit({'type': 'control', 'id': request.get('id') if isinstance(request, dict) else None,
                   'ok': False, 'error': localization.error(failure(exc), engine.data['settings']['language'])})
     engine.cancel.set()
+    images.close()
     active.acquire(timeout=28)
     return 0
 

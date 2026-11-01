@@ -55,6 +55,16 @@ async function check(name, work) {
 }
 try {
   await launch();
+  await check('Thumbnail pipe controls cannot choose a URL and offline mode preserves the request gate',async()=>{
+    const before=await page.evaluate(()=>window.TrackerDesktop.command('state'));
+    const result=await page.evaluate(()=>window.TrackerDesktop.command('search_avatar',{token:'forged',id:'200'}));
+    assert.equal(result.ok,true);assert.equal(result.avatar,null);
+    assert.equal((await page.evaluate(()=>window.TrackerDesktop.command('cancel_search_images'))).ok,true);
+    const rejected=await page.evaluate(async()=>{try {await window.TrackerDesktop.command('search_avatar',{token:'forged',id:'200',url:'https://example.com/'});return false;}catch{return true;}});
+    assert.equal(rejected,true);
+    const after=await page.evaluate(()=>window.TrackerDesktop.command('state'));
+    assert.deepEqual(after.state.gate,before.state.gate);
+  });
   await check('Partial saved search accepts @, shared URLs, multiple words and Turkish spelling without requests',async()=>{
     await page.locator('.sidebar nav a[href="#people"]').click();
     for(const query of ['@qa.den','QA den','arkadas','https://instagram.com/qa.deniz/?igsh=abc']) {

@@ -36,6 +36,18 @@ class ProfileSearchTests(unittest.TestCase):
         self.assertEqual(client.calls[0][0],'users/200/info/')
         self.assertEqual(self.e.data['people']['200']['username'],'renamed.person')
 
+    def test_search_thumbnail_sources_stay_private_and_use_only_meta_cdn(self):
+        payload=page(['200','201'])
+        payload['users'][0]['profile_pic_url']='https://scontent.cdninstagram.com/avatar.jpg'
+        payload['users'][1]['profile_pic_url']='https://cdninstagram.com.evil.test/avatar.jpg'
+        with patch.object(self.e,'client',return_value=PacedClient(self.e,[payload])):
+            state=self.e.run('search_people',{'query':'deniz'})
+        self.assertEqual(self.e.search_pictures['200'],'https://scontent.cdninstagram.com/avatar.jpg')
+        self.assertIsNone(self.e.search_pictures['201'])
+        self.assertNotIn('avatar.jpg',str(state))
+        self.assertEqual(len(state['searchResults']['token']),32)
+        self.assertNotIn('search_pictures',self.e.vault.load())
+
     def test_catalog_projects_search_results_only_for_the_active_context(self):
         account=Accounts(self.home.name,clock=lambda:self.now[0],request_delay=lambda:15)
         account.cancel=ClockWait(self.now)

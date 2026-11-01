@@ -1118,9 +1118,10 @@ class MainActivity : LocalizedActivity() {
         personSearch?.close()
         val reader=PreviewMode.api(gate,preview)
         personSearch=ProfileSearchDialog(this,
-            saved.people.map {ProfileCandidate(it.latest.userId,it.latest.username,it.latest.name.orEmpty())},
+            saved.people.map {ProfileCandidate(it.latest.userId,it.latest.username,it.latest.name.orEmpty(),it.latest.details?.pictureUrl?.value)},
             search={q->if(preview)throw ApiFailure(ApiFailure.Kind.CONNECTION) else reader.search(saved.session,q)},
             cancel=reader::cancel,
+            gate=gate,owner=saved.session.userId,
             select={candidate->if(account?.session==saved.session)readPerson(userId=candidate.id)},
             direct={username->if(account?.session==saved.session)readPerson(username=username)},
             dismissed={personSearch=null;needsConnection=gate.requiresConnection();if(visible && !isDestroyed && !isFinishing)render()}).also {it.show()}

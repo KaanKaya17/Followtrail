@@ -78,6 +78,7 @@ class Engine:
         self.scan_progress = None
         self.wayback_id = None
         self.search_results = None
+        self.search_pictures = {}
         self.recover_interrupted()
 
     def recover_interrupted(self):
@@ -136,7 +137,7 @@ class Engine:
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.25'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.26'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -406,7 +407,9 @@ class Engine:
             self.progress('profile')
             payload=client.private_request('users/search/',params={'query':query,'count':20})
             self.check_cancel()
-            self.search_results={'query':query,'users':profile_search.results(payload)}
+            users=profile_search.results(payload)
+            self.search_pictures={user['id']:user.pop('avatarUrl') for user in users}
+            self.search_results={'query':query,'token':uuid.uuid4().hex,'users':users}
             self.data['session']=client.get_settings()
             self.save()
         finally:
@@ -765,6 +768,7 @@ class Engine:
     def run(self, operation, args, *, group_id=None, project=True):
         self.operation = operation
         self.search_results = None
+        self.search_pictures = {}
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()
