@@ -82,7 +82,6 @@
   "Bildirim için seçili": "Seleccionado para notificación",
   "Bildirim kaydı artık saklanan geçmişte yok.": "El registro de notificación ya no está en el historial almacenado.",
   "Bildirim kayıtları": "Registros de notificación",
-  "Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.": "No se pudo preparar el acceso directo a las notificaciones; Verifique la configuración de notificaciones de Windows.",
   "Bildirim tercihi için kayıtlı bir hesap seç.": "Seleccione una cuenta registrada para preferencia de notificación.",
   "Bildirim tercihleri": "Preferencias de notificación",
   "Bildirim tercihleri geçersiz.": "Las preferencias de notificación no son válidas.",
@@ -1067,5 +1066,6 @@
   "bir kontrol sonucunu kaydediyoruz.": "guardamos el resultado de una comprobación.",
   "Son profil kontrolü": "Verificación final del perfil",
   "Kontrol edilenler": "Comprobado",
-  "Örnek kontrol kayıtları": "Registros de control de muestras"
+  "Örnek kontrol kayıtları": "Registros de control de muestras",
+  "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "No se pudo crear el acceso directo; puedes abrir la aplicación desde su carpeta."
 }

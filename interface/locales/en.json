@@ -82,7 +82,6 @@
   "Bildirim için seçili": "Selected for notification",
   "Bildirim kaydı artık saklanan geçmişte yok.": "This notification is no longer in the retained history.",
   "Bildirim kayıtları": "Notification log",
-  "Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.": "The notification shortcut could not be prepared; check Windows notification settings.",
   "Bildirim tercihi için kayıtlı bir hesap seç.": "Choose a saved account for notification preferences.",
   "Bildirim tercihleri": "Notification preferences",
   "Bildirim tercihleri geçersiz.": "Invalid notification preferences.",
@@ -1067,5 +1066,6 @@
   "bir kontrol sonucunu kaydediyoruz.": "we save the result of a check.",
   "Son profil kontrolü": "Last profile check",
   "Kontrol edilenler": "Checked",
-  "Örnek kontrol kayıtları": "Sample check records"
+  "Örnek kontrol kayıtları": "Sample check records",
+  "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "The app shortcut could not be prepared; you can open the app from its folder."
 }

@@ -149,12 +149,12 @@ function send(event) {
     window?.setBackgroundColor(themeBackgrounds[mode === 'oled' ? 'oled' : nativeTheme.shouldUseDarkColors ? 'dark' : 'light']);
   }
   background?.update();
-  if (event.type === "ready" && event.state?.settings.notifications) {
+  if (event.type === "ready" && (app.isPackaged || testHome || event.state?.settings.notifications)) {
     try {
       ensureShortcut({ app, shell, testHome, dataDir, language: backend.state?.settings.language || "tr" });
     } catch {
       event.notificationWarning =
-        t("Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.");
+        t("Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.");
     }
   }
   rendererUpdates.send(event);
@@ -167,6 +167,7 @@ function open() {
     minHeight: 680,
     backgroundColor: themeBackgrounds[nativeTheme.shouldUseDarkColors ? 'dark' : 'light'],
     title: "InstagramTracker",
+    icon: path.join(__dirname, '..', ...(app.isPackaged ? ['desktop'] : ['.cache']), 'app-icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),

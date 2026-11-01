@@ -59,6 +59,8 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
     description: t("InstagramTracker — yerel hesap gözlemleri"),
     appUserModelId: APP_ID,
     toastActivatorClsid: TOAST_ID,
+    icon: process.execPath,
+    iconIndex: 0,
   };
   fs.mkdirSync(path.dirname(shortcut), { recursive: true });
   if (fs.existsSync(shortcut)) {
@@ -68,6 +70,10 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
     if (
       previous.target === options.target &&
       previous.args === options.args &&
+      previous.cwd === options.cwd &&
+      previous.description === options.description &&
+      previous.icon === options.icon &&
+      previous.iconIndex === options.iconIndex &&
       previous.toastActivatorClsid?.toUpperCase() === TOAST_ID.toUpperCase()
     )
       return;

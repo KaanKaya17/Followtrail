@@ -90,7 +90,6 @@
     "Bildirim için seçili": "Selected for notification",
     "Bildirim kaydı artık saklanan geçmişte yok.": "This notification is no longer in the retained history.",
     "Bildirim kayıtları": "Notification log",
-    "Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.": "The notification shortcut could not be prepared; check Windows notification settings.",
     "Bildirim tercihi için kayıtlı bir hesap seç.": "Choose a saved account for notification preferences.",
     "Bildirim tercihleri": "Notification preferences",
     "Bildirim tercihleri geçersiz.": "Invalid notification preferences.",
@@ -1075,7 +1074,8 @@
     "bir kontrol sonucunu kaydediyoruz.": "we save the result of a check.",
     "Son profil kontrolü": "Last profile check",
     "Kontrol edilenler": "Checked",
-    "Örnek kontrol kayıtları": "Sample check records"
+    "Örnek kontrol kayıtları": "Sample check records",
+    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "The app shortcut could not be prepared; you can open the app from its folder."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -1161,7 +1161,6 @@
     "Bildirim için seçili": "Seleccionado para notificación",
     "Bildirim kaydı artık saklanan geçmişte yok.": "El registro de notificación ya no está en el historial almacenado.",
     "Bildirim kayıtları": "Registros de notificación",
-    "Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.": "No se pudo preparar el acceso directo a las notificaciones; Verifique la configuración de notificaciones de Windows.",
     "Bildirim tercihi için kayıtlı bir hesap seç.": "Seleccione una cuenta registrada para preferencia de notificación.",
     "Bildirim tercihleri": "Preferencias de notificación",
     "Bildirim tercihleri geçersiz.": "Las preferencias de notificación no son válidas.",
@@ -2146,7 +2145,8 @@
     "bir kontrol sonucunu kaydediyoruz.": "guardamos el resultado de una comprobación.",
     "Son profil kontrolü": "Verificación final del perfil",
     "Kontrol edilenler": "Comprobado",
-    "Örnek kontrol kayıtları": "Registros de control de muestras"
+    "Örnek kontrol kayıtları": "Registros de control de muestras",
+    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "No se pudo crear el acceso directo; puedes abrir la aplicación desde su carpeta."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -2232,7 +2232,6 @@
     "Bildirim için seçili": "Selecionado para notificação",
     "Bildirim kaydı artık saklanan geçmişte yok.": "O registro de notificação não está mais no histórico armazenado.",
     "Bildirim kayıtları": "Registros de notificação",
-    "Bildirim kısayolu hazırlanamadı; Windows bildirimi ayarlarını kontrol et.": "Falha ao preparar atalho de notificação; Verifique as configurações de notificação do Windows.",
     "Bildirim tercihi için kayıtlı bir hesap seç.": "Selecione uma conta registrada para preferência de notificação.",
     "Bildirim tercihleri": "Preferências de notificação",
     "Bildirim tercihleri geçersiz.": "As preferências de notificação são inválidas.",
@@ -3217,7 +3216,8 @@
     "bir kontrol sonucunu kaydediyoruz.": "salvamos o resultado de uma verificação.",
     "Son profil kontrolü": "Verificação final do perfil",
     "Kontrol edilenler": "Verificado",
-    "Örnek kontrol kayıtları": "Registros de controle de amostra"
+    "Örnek kontrol kayıtları": "Registros de controle de amostra",
+    "Uygulama kısayolu hazırlanamadı; uygulamayı kendi klasöründen açabilirsin.": "Não foi possível criar o atalho; você pode abrir o aplicativo pela pasta dele."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

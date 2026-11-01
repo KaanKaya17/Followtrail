@@ -1,6 +1,6 @@
-# InstagramTracker Windows 0.2.24
+# InstagramTracker Windows 0.2.25
 
-`artifacts/InstagramTracker-Desktop-0.2.24/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.25/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Dört yerel uygulama dili
 
@@ -92,7 +92,7 @@ Arşiv DPAPI ile şifreli yerel depodadır ve oturumsuz `.trackerbackup` yedekle
 7. **Zaman çizelgesi:** profil farkları, liste kayıtları, başarılı kontroller ve hatalar; eski/yeni değerler ve kayıt zamanı. Kayıt zamanı değişikliğin Instagram'da gerçekleştiği kesin zaman değildir.
 8. **Ayarlar:** kompakt görünüm, Windows bildirimleri ve isteğe bağlı otomatik profil kontrolü. 1/5/15/30/60/180/360 dakika seçenekleri her profile ayrı uygulanır; kendi hesabın ve izlediğin kişiler, kendi süreleri dolduğunda 12–18 saniyelik rastgele istek aralığı rezervasyonuyla sırayla kontrol edilir. X ile pencereyi kapatınca sistem tepsisinde çalışmaya devam eder. Tepsi simgesine tıkla → pencere açılır; sağ tık → otomatik kontrol aç/kapat veya Tamamen çık. Tamamen çıkınca kontrol durur. Bilgisayar kapalı/uykuda veya internet yokken kontrol yapılamaz. Normal profil kontrolü tam liste taramaz; aşağıdaki isteğe bağlı kaybolan takipçi incelemesi bu konuda ek tarama yapabilir. Otomatik yeniden giriş yapılmaz. Sınırlama/doğrulama sonrası otomatik okumalar durur; önce elle başarılı profil kontrolü gerekir.
 
-Windows bildirimini açmak, yalnız bu uygulamaya ait Başlat menüsü kısayolunu AppUserModelID ve ToastActivatorCLSID ile oluşturur/günceller. Farklı sahibin kısayolu üzerine yazılmaz; değişen eski kendi kısayolunun önceki kopyası veri klasöründe korunur. İşlem, [Electron'un Windows bildirim gereksinimine](https://www.electronjs.org/docs/latest/tutorial/notifications#platform-considerations) dayanır. Windows/odaklanma ayarları teslimi etkileyebilir; başarısız bildirim veri okuma hizmetini kapatmaz, değişiklik zaman çizelgesinde kalır.
+Paketli uygulama açılışta, bildirimler kapalı olsa da yalnız kendisine ait Başlat menüsü kısayolunu oluşturur/günceller. Kısayol güncel EXE'yi, gömülü Tracker logosunu, AppUserModelID ve ToastActivatorCLSID değerlerini kullanır. Farklı sahibin kısayolu üzerine yazılmaz; değişen eski kendi kısayolunun önceki kopyası veri klasöründe korunur. İşlem, [Electron'un Windows bildirim gereksinimini](https://www.electronjs.org/docs/latest/tutorial/notifications#platform-considerations) de karşılar; kısayol oluşturmak bildirim tercihini açmaz. Windows/odaklanma ayarları teslimi etkileyebilir; başarısız bildirim veri okuma hizmetini kapatmaz, değişiklik zaman çizelgesinde kalır.
 
 ## Gizlilik ve yerel kayıt
 
@@ -109,6 +109,8 @@ Yerel kapasite: 200 kişi, profil başına son 366 gözlem, 2.000 olay, her hesa
 ## Geliştirme ve doğrulama
 
 Electron 45.0.0 ve Playwright Core 1.64.1 `package-lock.json` ile sabittir. Worker Python 3.12.14 / instagrapi 3.2.0 ile bu makinede derlendi; runtime bağımlılıkları `desktop/backend/requirements.lock.txt`, paketleme bağımlılıkları `build-requirements.lock.txt` ile sabittir. Proje sanal ortamında kilitli dosyalarla kur; sistem Python veya eski prototip ortamını güncelleme.
+
+Windows paketlemesi `resedit` 3.1.0 geliştirme bağımlılığıyla yalnız çıktı EXE'sinin ürün adı, sürümü ve 16–256 piksel boyutlarındaki gömülü logosunu düzenler; Node/Electron kurulumu değiştirilmez. Aynı yerel marka işaretinden pencere ve tepsi görselleri üretilir. Kaynak yöntem: [Electron Packager'ın kaynak düzenleme akışı](https://github.com/electron/packager/blob/main/src/resedit.ts). `node scripts/check-branding-desktop.mjs` paket metadatasını/logosunu ve geçici QA klasöründeki gerçek Windows kısayolunun sahiplik, yedekleme ve tekrar çalıştırma davranışını sınar. Windows aramasının önbelleği veya daha önce sabitlenmiş eski bir kısayol ayrıca yenilenmeyi gerektirebilir; test işletim sisteminin arama dizinini sıfırlamaz.
 
 Interface klasöründe `npm ci`, gerekirse `node node_modules/electron/install.js`; özel worker derleme ortamında:
 
