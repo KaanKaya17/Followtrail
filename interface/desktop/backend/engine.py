@@ -136,7 +136,7 @@ class Engine:
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.23'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.24'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -470,7 +470,7 @@ class Engine:
                 digest = hashlib.sha256(next_cursor.encode()).hexdigest() if next_cursor else None
                 if next_cursor and (digest in draft['seenCursors'] or not members):
                     raise AppFailure('pagination', 'Liste sayfalaması ilerlemiyor. Döngü durduruldu; kısmi kayıt korundu.')
-                draft['nextCursor'] = next_cursor
+                draft['nextCursor'] = next_cursor or None
                 if digest:
                     draft['seenCursors'].append(digest)
                 if not next_cursor:

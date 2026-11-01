@@ -11,6 +11,12 @@ PLAN_VERSION = 2
 
 def initialize(data):
     data['settings'].setdefault('automaticLists', bool(data['settings'].get('automatic')))
+    # Older scans persisted the wire parser's empty end marker in partial
+    # drafts. The vault owns absence as None, including after a count mismatch.
+    for record in data['lists'].values():
+        draft = record.get('draft') if isinstance(record, dict) else None
+        if isinstance(draft, dict) and draft.get('nextCursor') == '':
+            draft['nextCursor'] = None
 
 
 def resumable(draft, now):

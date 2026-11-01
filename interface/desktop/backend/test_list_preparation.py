@@ -156,6 +156,27 @@ class ListPreparationTests(unittest.TestCase):
         self.assertEqual([d['count'] for d in state['listPreparation']['directions']],[0,0])
         self.assertIsNone(state['lists']['100:followers']['comparison'])
 
+    def test_legacy_empty_end_cursor_reopens_without_losing_partial_list_or_gate(self):
+        self.linked()
+        with self.assertRaises(AppFailure):
+            self.work(profile(followers=3),page(['200','201']))
+        key='100:followers'
+        expected=copy.deepcopy(self.e.data['lists'][key])
+        gate=copy.deepcopy(self.e.data['gate'])
+        legacy=copy.deepcopy(self.e.data)
+        legacy['lists'][key]['draft']['nextCursor']=''
+        self.e.vault.save(legacy)
+        with patch('requests.Session.send') as send:
+            reopened=Accounts(self.home.name,clock=lambda:self.now[0])
+        send.assert_not_called()
+        self.assertEqual(reopened.data['lists'][key],expected)
+        self.assertEqual(reopened.data['gate'],gate)
+        self.assertIsNone(reopened.snapshot()['lists'][key]['comparison'])
+        malformed=copy.deepcopy(legacy)
+        malformed['lists'][key]['draft']['nextCursor']=42
+        self.e.vault.save(malformed)
+        with self.assertRaises(ValueError):Accounts(self.home.name,clock=lambda:self.now[0])
+
     def watched(self):
         self.e.record_profile(parse_profile(profile('200',followers=1,following=1)))
         self.e.run('save_person',{'id':'200','watching':True})
@@ -276,12 +297,17 @@ class ListPreparationTests(unittest.TestCase):
                 self.assertEqual(len(record['draft']['members']),76)
                 self.assertEqual(record['draft']['expected'],82)
                 self.assertFalse(record['draft']['complete'])
-                self.assertIsNone(record['draft']['nextCursor'] or None)
+                self.assertIsNone(record['draft']['nextCursor'])
                 self.assertEqual(record['schedule']['error'],'list_count')
                 self.assertEqual(record['schedule']['after'],self.now[0]+1800)
                 self.assertIsNone(self.e.snapshot()['lists'][key]['comparison'])
                 # Incomplete reads never claim the six missing identities left.
                 self.assertFalse(any(c['category']=='lists' for entry in self.e.data['notificationLog'] for c in entry['changes']))
+                # Reopening a count-mismatched scan must retain the baseline,
+                # partial members and retry deadline without another request.
+                self.e=Accounts(self.home.name,clock=lambda:self.now[0],request_delay=lambda:15)
+                self.e.cancel=ClockWait(self.now)
+                self.assertEqual(self.e.data['lists'][key],record)
                 self.now[0]+=1800
                 # The next complete scan owns a fresh snapshot, not a union of
                 # identities observed during incompatible partial attempts.

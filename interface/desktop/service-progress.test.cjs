@@ -35,3 +35,12 @@ test('Fatal worker failure clears stale countdown from subsequent state and resu
   assert.equal(result.progress,null);
   assert.equal(result.ok,false);
 });
+
+test('Specific worker failure survives the following generic process exit',async()=>{
+  const events=[];
+  const backend=new Backend({onEvent:event=>events.push(event)});
+  backend.message({type:'fatal',message:'Specific encrypted-storage failure'});
+  backend.fail('Generic worker exit');
+  assert.equal((await backend.command('state')).error.message,'Specific encrypted-storage failure');
+  assert.equal(events.length,1);
+});
