@@ -76,6 +76,7 @@ const allowed = new Set([
   "refresh",
   "scan",
   "add_person",
+  "search_people",
   "save_person",
   "remove_person",
   "settings",
@@ -114,7 +115,8 @@ function validate(operation, args) {
     import_counter: [],
     refresh: ["id"],
     scan: ["id", "direction"],
-    add_person: ["username"],
+    add_person: ["username", "id"],
+    search_people: ["query"],
     save_person: ["id", "favorite", "watching", "group", "note"],
     remove_person: ["id"],
     settings: [

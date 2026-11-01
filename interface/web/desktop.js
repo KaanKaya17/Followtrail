@@ -216,7 +216,7 @@
       `<span class="dialog-symbol peach">${icon("info")}</span><h2 id="dialog-title">${t("İşlem tamamlanamadı")}</h2><p>${esc(userError(message))}</p>${message && typeof message === 'object' ? `<details><summary>${t("Teknik ayrıntılar")}</summary><p>${esc(message.code)}</p><p>${esc(message.message)}</p></details>` : ''}${data?.gate.blockedUntil > Date.now() / 1000 ? `<p class="dialog-note">${t("En erken {0} yeniden deneyebilirsin. Instagram daha uzun beklemeni isteyebilir.", esc(date(data.gate.blockedUntil)))}</p>` : ""}<div class="dialog-buttons">${button(t("İstek bilgileri"), "requests", "info")}${button(t("Tamam"), "close", null, "primary")}</div>`,
     );
   }
-  async function command(operation, args = {}, success = "") {
+  async function command(operation, args = {}, success = "", showErrors = true) {
     if (busy && !["cancel", "code", "state"].includes(operation)) {
       toast(t("Önce devam eden işlemi bitir veya iptal et."));
       return null;
@@ -235,7 +235,7 @@
         progress = null;
         render();
       }
-      if (!result.ok)
+      if (!result.ok && showErrors)
         errorDialog(result.error || t("İşlem tamamlanamadı."));
       else if (success) toast(success);
       return result;
@@ -471,19 +471,30 @@
           .join("") ||
         `<p>${t("Kaydedilen Profiller bölümünde yıldızladığın hesaplar burada görünür.")}</p>`}</section></aside></div>`;
   }
-  function filteredPeople() {
-    const q = ui.query.trim().toLocaleLowerCase(i18n.locale(language));
-    return data.people
-      .filter(
-        (p) =>
-          (ui.filter !== "favorites" || p.favorite) &&
-          (ui.filter !== "watching" || p.watching) &&
-          `${p.name || ""} ${p.username} ${p.group || ""}`
-            .toLocaleLowerCase(i18n.locale(language))
-            .includes(q),
-      )
-      .sort((a, b) => Number(!!b.favorite) - Number(!!a.favorite));
+  function profileChoices(users,label) {
+    return `<h3>${esc(label)}</h3>${users.length ? users.slice(0,20).map(p=>`<button type="button" class="person-row" data-action="choose-profile" ${idattr(p.id)} data-username="${esc(p.username)}"><span class="person-ident"><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span>${icon('plus')}</button>`).join('') : `<p class="field-hint">${t("Eşleşen profil bulunamadı.")}</p>`}`;
   }
+  function localProfileChoices(query) {
+    return data.people.filter(p=>window.TrackerProfileSearch.matches((p.name || '')+' '+p.username,query));
+  }
+  function addPersonDialog(query='',users=null,error='') {
+    dialog(`<span class="dialog-symbol lavender">${icon('search')}</span><h2 id="dialog-title">${t("Bir profil ekle.")}</h2><form id="add-person-form"><label class="form-label" for="new-username">${t("Ad, kullanıcı adı veya profil bağlantısı")}</label><input id="new-username" name="username" required maxlength="256" value="${esc(query)}" autocomplete="off"><div class="drawer-actions"><button class="button primary" type="submit">${t("Instagram’da ara")}</button>${button(t("Kullanıcı adıyla ekle"),'direct-add-person','plus')}</div></form>${error ? `<p role="status" class="notice warning">${esc(error)}</p>` : ''}<div id="profile-search-results">${profileChoices(users || localProfileChoices(query),users ? t("Instagram sonuçları") : t("Kayıtlı eşleşmeler"))}</div>`);
+    document.getElementById('new-username')?.focus();
+  }
+  async function addByInput() {
+    const field=document.getElementById('new-username');
+    const username=window.TrackerProfileSearch.username(field.value);
+    if(!username) {field.setCustomValidity(t("Geçerli bir Instagram kullanıcı adı gir."));field.reportValidity();return;}
+    closeDialog();await command('add_person',{username},t("Profil kaydedildi."));
+  }
+  function filteredPeople() {
+    return data.people.filter(p =>
+      (ui.filter !== 'favorites' || p.favorite) &&
+      (ui.filter !== 'watching' || p.watching) &&
+      window.TrackerProfileSearch.matches([p.name,p.username,p.group].filter(Boolean).join(' '),ui.query)
+    ).sort((a,b)=>Number(!!b.favorite)-Number(!!a.favorite));
+  }
+
   function personCard(p) {
     return `<article class="person-card card"><div class="person-card-top"><button class="avatar-button" data-action="person" ${idattr(p.id)} aria-label="${t("{0} kaydını aç", esc(p.name || p.username))}">${avatar(p, true)}</button><button class="icon-button star-button ${p.favorite ? "is-favorite" : ""}" data-action="star" ${idattr(p.id)} aria-label="${t("{0} favori durumunu değiştir", esc(p.username))}" aria-pressed="${!!p.favorite}" ${busy ? "disabled" : ""}>${icon("star")}</button></div><button class="person-title" data-action="person" ${idattr(p.id)}><h2>${esc(p.name || p.username)}</h2><p>@${esc(p.username)}</p></button><p class="person-bio">${esc(p.bio || t("Henüz kayıtlı biyografi yok."))}</p><div class="person-stats"><span><strong>${num(p.followers)}</strong><small>${t("takipçi")}</small></span><span><strong>${num(p.following)}</strong><small>${t("takip edilen")}</small></span></div><div class="person-card-bottom"><span class="group-label">${esc(p.group || t("Grupsuz"))}</span><span class="watch-label ${p.watching ? "on" : ""}">${icon(p.watching ? "bell" : "clock")}${p.watching ? t("İzlenen") : t("Kayıtlı")}</span></div></article>`;
   }
@@ -1143,9 +1154,15 @@
         render();
         break;
       case "add-person":
-        dialog(
-          `<span class="dialog-symbol lavender">${icon("plus")}</span><h2 id="dialog-title">${t("Bir profil ekle.")}</h2><p>${t("Kullanıcı adıyla Instagram’dan profil bilgisi okunur. Bu işlem takip etme isteği göndermez.")}</p><form id="add-person-form"><label class="form-label" for="new-username">${t("Instagram kullanıcı adı")}</label><input id="new-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" placeholder="${t("kullanici.adi")}" autocomplete="off"><button class="button primary full-width" type="submit">${t("Profili oku ve kaydet")}</button></form>`,
-        );
+        addPersonDialog();
+        break;
+      case "direct-add-person":
+        await addByInput();
+        break;
+      case "choose-profile":
+        closeDialog();
+        if(data.account?.id===id || data.people.some(p=>p.id===id))personDialog(id);
+        else await command('add_person',{id,username:target.dataset.username},t("Profil kaydedildi."));
         break;
       case "setting":
         await command(
@@ -1245,12 +1262,21 @@
       closeDialog();
       await command("code", { code });
     } else {
-      const username = String(values.get("username"));
-      closeDialog();
-      await command("add_person", { username }, t("Profil kaydedildi."));
+      const field=document.getElementById('new-username'), raw=String(values.get('username')).trim();
+      const query=raw.startsWith('@') || raw.startsWith('https://') ? window.TrackerProfileSearch.username(raw) : raw;
+      if(!query || query.length<2 || query.length>100) {field.setCustomValidity(t("Arama için 2–100 karakter yaz."));field.reportValidity();return;}
+      const modal=form.closest('dialog'), owner=data.activeAccountId;
+      form.querySelectorAll('button,input').forEach(node=>node.disabled=true);
+      document.getElementById('profile-search-results').textContent=t("Profiller aranıyor…");
+      const result=await command('search_people',{query},'',false);
+      if(modal.open && data.activeAccountId===owner)addPersonDialog(raw,result?.ok ? data.searchResults?.users || [] : [],result?.ok ? '' : userError(result?.error));
     }
   });
   document.addEventListener("input", (event) => {
+    if(event.target.id==='new-username') {
+      event.target.setCustomValidity('');
+      document.getElementById('profile-search-results').innerHTML=profileChoices(localProfileChoices(event.target.value),t("Kayıtlı eşleşmeler"));
+    }
     if (event.target.id === "people-search") {
       ui.query = event.target.value;
       document.getElementById("people-grid").innerHTML =

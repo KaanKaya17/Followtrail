@@ -113,8 +113,6 @@
         <item quantity="other">"Esta versão armazena até %1$d pessoas. Você pode remover alguém primeiro."</item>
         <item quantity="many">"Esta versão armazena até %1$d pessoas. Você pode remover alguém primeiro."</item>
     </plurals>
-    <string name="ui_username_or_profile_link">"@username ou link do perfil"</string>
-    <string name="ui_the_profile_is_queried_once_you_control">"O perfil é consultado uma vez. Você controla as atualizações subsequentes."</string>
     <string name="ui_load_profile">"Carregar perfil"</string>
     <string name="ui_enter_a_valid_username_or_instagram_profile">"Insira um nome de usuário válido ou link de perfil do Instagram."</string>
     <string name="ui_reconnect_your_account_first">"Reconecte sua conta primeiro."</string>

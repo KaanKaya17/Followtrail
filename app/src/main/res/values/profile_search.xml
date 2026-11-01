@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_people_hint">Ad, kullanıcı adı veya profil bağlantısı</string>
+    <string name="search_instagram">Instagram’da ara</string>
+    <string name="search_direct">Kullanıcı adıyla ekle</string>
+    <string name="search_local">Kayıtlı eşleşmeler</string>
+    <string name="search_results">Instagram sonuçları</string>
+    <string name="search_loading">Profiller aranıyor…</string>
+    <string name="search_none">Eşleşen profil bulunamadı.</string>
+    <string name="search_query_invalid">Arama için 2–100 karakter yaz.</string>
+    <string name="search_saved_hint">Ad, @kullanıcı adı veya grup ara</string>
+</resources>

@@ -14,6 +14,7 @@ object AccountCodec {
         .put("follower_count", p.followers).put("following_count", p.following).put("observedAt", p.observedAt)
         .apply {
             p.posts?.let { put("media_count", it) }
+            p.name?.let { put("full_name", it) }
             if (p.details != ProfileDetails()) put("detailsRef", details.getValue(p.details))
         }
     private fun profile(json: JSONObject, details: List<ProfileDetails> = emptyList()): Profile {

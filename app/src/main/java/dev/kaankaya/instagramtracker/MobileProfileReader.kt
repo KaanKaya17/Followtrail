@@ -23,6 +23,13 @@ class MobileProfileReader(gate: RequestGate, sessions: MobileSessions,
         }
     }
     fun cancel() = transport.cancel()
+    fun search(reference: Session,query: String): List<ProfileCandidate> = transport.read(reference,request = {state,now->
+        val url="https://i.instagram.com/api/v1/users/search/".toHttpUrl().newBuilder()
+            .addQueryParameter("query",ProfileSearch.query(query)).addQueryParameter("count","20").build()
+        Request.Builder().url(url).get().header("Accept","application/json").apply {
+            state.requestHeaders(now).forEach {(name,value)->header(name,value)}
+        }.build()
+    }) {body,_->ProfileSearch.parse(body)}
     fun read(reference: Session, userId: String?, username: String?, connectionTest: Boolean = false): Profile =
         transport.read(reference, connectionTest, request = { state, now -> request(state, userId, username, now) }) { body, time ->
             if (userId != null) ProfileParser.fromBody(body, userId, time)

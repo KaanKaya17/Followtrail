@@ -1,4 +1,13 @@
 {
+  "Ad, kullanıcı adı veya profil bağlantısı": "Name, username or profile link",
+  "Instagram’da ara": "Search Instagram",
+  "Kullanıcı adıyla ekle": "Add by username",
+  "Kayıtlı eşleşmeler": "Saved matches",
+  "Instagram sonuçları": "Instagram results",
+  "Profiller aranıyor…": "Searching profiles…",
+  "Eşleşen profil bulunamadı.": "No matching profile found.",
+  "Arama için 2–100 karakter yaz.": "Enter 2–100 characters to search.",
+  "Ad, @kullanıcı adı veya grup ara": "Search name, @username or group",
   "Bu eski kayıtta kişi adları saklanmamış.": "Names were not saved in this older record.",
   "ve {0} hesap daha": "and {0} more accounts",
   "Değişen hesapları gör": "View changed accounts",

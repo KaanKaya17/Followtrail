@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_people_hint">Nome, usuário ou link do perfil</string>
+    <string name="search_instagram">Pesquisar no Instagram</string>
+    <string name="search_direct">Adicionar por usuário</string>
+    <string name="search_local">Correspondências salvas</string>
+    <string name="search_results">Resultados do Instagram</string>
+    <string name="search_loading">Pesquisando perfis…</string>
+    <string name="search_none">Nenhum perfil correspondente encontrado.</string>
+    <string name="search_query_invalid">Digite de 2 a 100 caracteres para pesquisar.</string>
+    <string name="search_saved_hint">Pesquisar nome, @usuário ou grupo</string>
+</resources>

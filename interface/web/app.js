@@ -357,18 +357,13 @@
       </aside></div>`;
   }
   function filteredPeople() {
-    const query = state.peopleSearch.toLocaleLowerCase(i18n.locale(language));
-    return state.people
-      .filter(
-        (p) =>
-          (state.peopleFilter !== "favorites" || p.favorite) &&
-          (state.peopleFilter !== "watching" || p.watching) &&
-          `${p.name} ${p.username} ${p.group}`
-            .toLocaleLowerCase(i18n.locale(language))
-            .includes(query),
-      )
-      .sort((a, b) => Number(b.favorite) - Number(a.favorite));
+    return state.people.filter(p =>
+      (state.peopleFilter !== 'favorites' || p.favorite) &&
+      (state.peopleFilter !== 'watching' || p.watching) &&
+      window.TrackerProfileSearch.matches([p.name,p.username,p.group].filter(Boolean).join(' '),state.peopleSearch)
+    ).sort((a,b)=>Number(!!b.favorite)-Number(!!a.favorite));
   }
+
   function personCard(p) {
     return `<article class="person-card card"><div class="person-card-top"><button class="avatar-button" data-action="person" data-id="${p.id}" aria-label="${t("{0} kaydını aç", esc(p.name))}">${avatar(p, true)}</button><button class="icon-button star-button ${p.favorite ? "is-favorite" : ""}" data-action="star" data-id="${p.id}" aria-label="${esc(p.name)} ${p.favorite ? t("favorilerden çıkar") : t("favorilere ekle")}" aria-pressed="${p.favorite}">${icon("star")}</button></div><button class="person-title" data-action="person" data-id="${p.id}"><h2>${esc(p.name)}</h2><p>@${esc(p.username)}</p></button><p class="person-bio">${esc(p.bio)}</p><div class="person-stats"><span><strong>${number(p.followers)}</strong><small>${t("takipçi")}</small></span><span><strong>${number(p.following)}</strong><small>${t("takip edilen")}</small></span></div><div class="person-card-bottom"><span class="group-label">${esc(p.group)}</span><span class="watch-label ${p.watching ? "on" : ""}">${icon(p.watching ? "bell" : "clock")}${p.watching ? t("İzleme örneği") : t("Kayıtlı")}</span></div></article>`;
   }

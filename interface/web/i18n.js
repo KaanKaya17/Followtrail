@@ -7,6 +7,15 @@
   'use strict';
   const catalogs = {
   "en": {
+    "Ad, kullanıcı adı veya profil bağlantısı": "Name, username or profile link",
+    "Instagram’da ara": "Search Instagram",
+    "Kullanıcı adıyla ekle": "Add by username",
+    "Kayıtlı eşleşmeler": "Saved matches",
+    "Instagram sonuçları": "Instagram results",
+    "Profiller aranıyor…": "Searching profiles…",
+    "Eşleşen profil bulunamadı.": "No matching profile found.",
+    "Arama için 2–100 karakter yaz.": "Enter 2–100 characters to search.",
+    "Ad, @kullanıcı adı veya grup ara": "Search name, @username or group",
     "Bu eski kayıtta kişi adları saklanmamış.": "Names were not saved in this older record.",
     "ve {0} hesap daha": "and {0} more accounts",
     "Değişen hesapları gör": "View changed accounts",
@@ -1069,6 +1078,15 @@
     "Örnek kontrol kayıtları": "Sample check records"
   },
   "es": {
+    "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
+    "Instagram’da ara": "Buscar en Instagram",
+    "Kullanıcı adıyla ekle": "Añadir por usuario",
+    "Kayıtlı eşleşmeler": "Coincidencias guardadas",
+    "Instagram sonuçları": "Resultados de Instagram",
+    "Profiller aranıyor…": "Buscando perfiles…",
+    "Eşleşen profil bulunamadı.": "No se encontraron perfiles coincidentes.",
+    "Arama için 2–100 karakter yaz.": "Escribe entre 2 y 100 caracteres para buscar.",
+    "Ad, @kullanıcı adı veya grup ara": "Buscar nombre, @usuario o grupo",
     "Bu eski kayıtta kişi adları saklanmamış.": "No se guardaron nombres en este registro anterior.",
     "ve {0} hesap daha": "y {0} cuentas más",
     "Değişen hesapları gör": "Ver cuentas que cambiaron",
@@ -2131,6 +2149,15 @@
     "Örnek kontrol kayıtları": "Registros de control de muestras"
   },
   "pt-BR": {
+    "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
+    "Instagram’da ara": "Pesquisar no Instagram",
+    "Kullanıcı adıyla ekle": "Adicionar por usuário",
+    "Kayıtlı eşleşmeler": "Correspondências salvas",
+    "Instagram sonuçları": "Resultados do Instagram",
+    "Profiller aranıyor…": "Pesquisando perfis…",
+    "Eşleşen profil bulunamadı.": "Nenhum perfil correspondente encontrado.",
+    "Arama için 2–100 karakter yaz.": "Digite de 2 a 100 caracteres para pesquisar.",
+    "Ad, @kullanıcı adı veya grup ara": "Pesquisar nome, @usuário ou grupo",
     "Bu eski kayıtta kişi adları saklanmamış.": "Os nomes não foram salvos neste registro antigo.",
     "ve {0} hesap daha": "e mais {0} contas",
     "Değişen hesapları gör": "Ver contas alteradas",

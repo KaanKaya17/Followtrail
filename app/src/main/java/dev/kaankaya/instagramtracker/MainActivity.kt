@@ -92,6 +92,8 @@ class MainActivity : LocalizedActivity() {
     private var loginPageEpoch = 0L
     private val inspectPage = Runnable { inspectLoginPage() }
     private var peopleScreen = false
+    private var peopleQuery = ""
+    private var personSearch: ProfileSearchDialog? = null
     private var selectedPersonId: String? = null
     private var visiblePeople = 20
     private var rangeDays = 0
@@ -132,6 +134,7 @@ class MainActivity : LocalizedActivity() {
         }
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         peopleScreen = savedInstanceState?.getBoolean("people") ?: false
+        peopleQuery = savedInstanceState?.getString("peopleQuery").orEmpty()
         selectedPersonId = savedInstanceState?.getString("person")
         if(localAccountView) {peopleScreen=false;selectedPersonId=null}
         visiblePeople = (savedInstanceState?.getInt("visiblePeople", 20) ?: 20).coerceIn(20, PeoplePolicy.MAX_PEOPLE)
@@ -958,14 +961,21 @@ class MainActivity : LocalizedActivity() {
                 empty.addView(button(getString(R.string.navigation_own_followers), false) { openLists(saved.profile) })
                 page.addView(empty)
             }
-            for ((index, entry) in PeoplePolicy.favoritesFirst(saved.people).take(visiblePeople).withIndex()) {
+            val filter=input(getString(R.string.search_saved_hint),256).apply {setSingleLine(true);setText(peopleQuery);tag="saved-profile-search"}
+            page.addView(filter);page.gap(12)
+            val results=stack();page.addView(results)
+            fun populate() {
+                profileStatuses.clear();results.removeAllViews()
+                val matches=PeoplePolicy.favoritesFirst(saved.people).filter {ProfileSearch.matches(it.latest.username+" "+it.latest.name.orEmpty()+" "+it.group,peopleQuery)}
+                if(matches.isEmpty() && saved.people.isNotEmpty())results.addView(text(getString(R.string.search_none),14f,muted))
+            for ((index, entry) in matches.take(visiblePeople).withIndex()) {
                 val p = entry.latest
                 val card = stack().apply { background = AppUi.cardSurface(this@MainActivity); setPadding(dp(18), dp(18), dp(18), dp(16)) }
                 val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
                 identity.addView(avatar(p, 46, if (index % 2 == 0) AppUi.violetSoft else AppUi.peach, if (index % 2 == 0) accent else AppUi.coral))
                 val name = stack().apply { setPadding(dp(12), 0, 0, 0) }
                 name.addView(text("@${p.username}", 17f, ink, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END })
-                name.gap(5); name.addView(text(entry.group.ifBlank { getString(R.string.ui_saved_profile) }, 12f, muted))
+                name.gap(5); name.addView(text(listOfNotNull(p.name?.takeIf {it.isNotBlank()},entry.group.takeIf {it.isNotBlank()}).joinToString(" · ").ifBlank {getString(R.string.ui_saved_profile)},12f,muted))
                 identity.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
                 identity.addView(favoriteButton(entry), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginStart = dp(8) })
                 identity.addView(AppUi.iconButton(this, "trash", getString(R.string.person_remove_description, p.username)) { removePerson(saved.session, p) }
@@ -977,11 +987,19 @@ class MainActivity : LocalizedActivity() {
                 card.gap(10); card.addView(profileStatuses.view(saved.session, p.userId))
                 card.gap(16)
                 card.addView(button(getString(R.string.ui_open_analysis, p.username), false) { selectedPersonId = p.userId; rangeDays = 0; message = null; render() }, LinearLayout.LayoutParams(-1, -2))
-                page.addView(card); page.gap(14)
+                results.addView(card); results.gap(14)
             }
-            if (saved.people.size > visiblePeople) page.addView(button(getString(R.string.people_more), false) {
-                visiblePeople = (visiblePeople + 20).coerceAtMost(PeoplePolicy.MAX_PEOPLE); render()
+            if (matches.size > visiblePeople) results.addView(button(getString(R.string.people_more), false) {
+                visiblePeople = (visiblePeople + 20).coerceAtMost(PeoplePolicy.MAX_PEOPLE); populate()
             })
+            }
+            val update=Runnable {if(filter.isAttachedToWindow)populate()}
+            filter.addTextChangedListener(object:android.text.TextWatcher {
+                override fun beforeTextChanged(s:CharSequence?,start:Int,count:Int,after:Int) {}
+                override fun onTextChanged(s:CharSequence?,start:Int,before:Int,count:Int) {peopleQuery=s.toString();visiblePeople=20;main.removeCallbacks(update);main.postDelayed(update,120)}
+                override fun afterTextChanged(s:android.text.Editable?) {}
+            })
+            populate()
             return
         }
         val p = person.latest
@@ -1097,30 +1115,24 @@ class MainActivity : LocalizedActivity() {
     private fun addPerson() {
         val saved = account ?: return
         if (saved.people.size >= PeoplePolicy.MAX_PEOPLE) { message = resources.getQuantityString(R.plurals.ui_this_version_stores_up_to_people_you, PeoplePolicy.MAX_PEOPLE, PeoplePolicy.MAX_PEOPLE); render(); return }
-        val field = input(getString(R.string.ui_username_or_profile_link), 256).apply { setSingleLine(true) }
-        val box = stack().apply { setPadding(dp(24), dp(10), dp(24), 0); addView(field) }
-        val dialog = AlertDialog.Builder(this).setTitle(getString(R.string.ui_add_person))
-            .setMessage(getString(R.string.ui_the_profile_is_queried_once_you_control))
-            .setView(box).setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_load_profile), null).create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val username = ProfileInput.username(field.text.toString())
-                if (username == null) { field.error = getString(R.string.ui_enter_a_valid_username_or_instagram_profile); return@setOnClickListener }
-                val existing = saved.people.firstOrNull { it.latest.username.equals(username, ignoreCase = true) }
-                dialog.dismiss()
-                if (existing != null) { selectedPersonId = existing.latest.userId; render() }
-                else readPerson(username = username)
-            }
-        }
-        dialog.show()
+        personSearch?.close()
+        val reader=PreviewMode.api(gate,preview)
+        personSearch=ProfileSearchDialog(this,
+            saved.people.map {ProfileCandidate(it.latest.userId,it.latest.username,it.latest.name.orEmpty())},
+            search={q->if(preview)throw ApiFailure(ApiFailure.Kind.CONNECTION) else reader.search(saved.session,q)},
+            cancel=reader::cancel,
+            select={candidate->if(account?.session==saved.session)readPerson(userId=candidate.id)},
+            direct={username->if(account?.session==saved.session)readPerson(username=username)},
+            dismissed={personSearch=null;needsConnection=gate.requiresConnection();if(visible && !isDestroyed && !isFinishing)render()}).also {it.show()}
     }
-    private fun readPerson(username: String? = null, person: TrackedPerson? = null) {
+
+    private fun readPerson(username: String? = null, person: TrackedPerson? = null, userId: String? = null) {
         val saved = account ?: return
         if (loading) return
         if (needsConnection) { message = getString(R.string.ui_reconnect_your_account_first); render(); return }
         if (person != null && !PeoplePolicy.needsRefresh(person.latest, System.currentTimeMillis())) return
         if (gate.nextAllowedAt() > System.currentTimeMillis()) {
-            if (queueRead { readPerson(username, person) }) return
+            if (queueRead { readPerson(username, person, userId) }) return
             message = ApiFailure(ApiFailure.Kind.TOO_SOON).userMessage(this@MainActivity); render(); return
         }
         loading = true; message = null; render()
@@ -1131,10 +1143,10 @@ class MainActivity : LocalizedActivity() {
                 val latest = vault.read()?.takeIf { it.session == saved.session } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 val cached = if (person != null) latest.people.firstOrNull { it.latest.userId == person.latest.userId }?.latest
                     ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
-                    else latest.people.firstOrNull { it.latest.username.equals(username, true) }?.latest
+                    else latest.people.firstOrNull { if(userId!=null)it.latest.userId==userId else it.latest.username.equals(username, true) }?.latest
                 Result.success(if (cached != null && !PeoplePolicy.needsRefresh(cached, System.currentTimeMillis())) ProfileRead(cached, false)
                     else { startedAt = System.currentTimeMillis(); ProfileRead(if (person != null) api.readId(saved.session, person.latest.userId)
-                        else api.readUsername(saved.session, requireNotNull(username)), true, startedAt) })
+                        else if(userId!=null)api.readId(saved.session,userId) else api.readUsername(saved.session, requireNotNull(username)), true, startedAt) })
             } catch (failure: ApiFailure) {
                 if (person != null) vault.recordFailure(saved.session, person.latest.userId, startedAt, failure)
                 Result.failure(failure)
@@ -1145,6 +1157,7 @@ class MainActivity : LocalizedActivity() {
                 loading = false
                 result.onSuccess { read ->
                     try {
+                        if(read.profile.userId==saved.session.userId) {peopleScreen=false;selectedPersonId=null;account=vault.read();return@onSuccess}
                         if (read.fetched) {
                             val committed = Observations.person(vault, saved.session, read.profile, existingRequired = person != null, startedAt = read.startedAt)
                             account = committed.account; syncMonitoring()
@@ -1922,6 +1935,7 @@ class MainActivity : LocalizedActivity() {
         outState.putString("pendingQuickTarget", pendingQuickTarget)
         outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
         outState.putInt("visiblePeople", visiblePeople)
+        outState.putString("peopleQuery",peopleQuery)
         outState.putString("pendingWatch", pendingWatchId); outState.putString("pendingOwner", pendingWatchOwner); outState.putInt("pendingMinutes", pendingWatchMinutes)
         outState.putString("pendingAutomationOwner", pendingAutomationOwner)
         pendingAutomationTargets?.let { outState.putStringArrayList("pendingAutomationTargets", ArrayList(it)) }
@@ -1952,6 +1966,7 @@ class MainActivity : LocalizedActivity() {
         super.onDestroy()
     }
     override fun onPause() {
+        personSearch?.close();personSearch=null
         visible = false
         loginRelay?.cancel()
         main.removeCallbacks(inspectPage)
