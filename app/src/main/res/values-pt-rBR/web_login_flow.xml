@@ -25,4 +25,6 @@
     <string name="web_login_show_challenge">Mostrar verificação do Instagram</string>
     <string name="web_login_challenge_privacy">Isso abre a página de segurança do Instagram. O quadro CAPTCHA da Meta e o Google reCAPTCHA podem carregar e receber seu endereço IP e informações do navegador. O aplicativo não encaminha sua senha ou sessão do Instagram para esses domínios. Conclua a verificação você mesmo; o cancelamento deixa esses recursos bloqueados.</string>
     <string name="web_login_complete_challenge">Conclua a etapa de segurança do Instagram nesta página. Após sucesso, seu perfil será verificado. Se a página não continuar, conclua a verificação e toque em Verificar conta uma vez.</string>
+    <string name="web_login_submitting_code">Enviando seu código de verificação ao Instagram; aguardando uma resposta…</string>
+    <string name="web_login_verification_code_ready">Digite seu código na página do Instagram e envie uma única vez. Esta versão não verifica automaticamente a aprovação em outro dispositivo; use a opção de código por e-mail ou SMS, se disponível. Não compartilhe seu código no chat.</string>
 </resources>

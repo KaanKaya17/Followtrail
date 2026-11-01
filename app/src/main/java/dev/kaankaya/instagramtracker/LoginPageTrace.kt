@@ -13,6 +13,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     private val blockedDocuments = linkedMapOf<String, WebDocumentFacts>()
     private var securitySchema: JSONObject?=null
     private var securityView: JSONObject?=null
+    private var codeSubmission: JSONObject?=null
     private val verificationSchemas = linkedMapOf<String, JSONObject>()
     private val startedAt = clock()
     private var documentsStarted = 0
@@ -58,6 +59,11 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
         securityView=JSONObject().put("status",status).put("jsonParsed",parsed).put("validData",validData).put("cookiesApplied",applied ?: JSONObject.NULL)
         flush()
     }}
+    @Synchronized fun codeSubmission(status: Int, parsed: Boolean, validData: Boolean, applied: Boolean?) { if(active) {
+        require(status in 100..599)
+        codeSubmission=JSONObject().put("status",status).put("jsonParsed",parsed).put("validData",validData).put("cookiesApplied",applied ?: JSONObject.NULL)
+        flush()
+    } }
     @Synchronized fun flush() {
         if (!active) return
         val report = JSONObject().put("format", 3).put("startedAt", startedAt)
@@ -69,6 +75,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
             .put("blockedDocuments",org.json.JSONArray(blockedDocuments.values.map {it.json()}))
             .put("securitySchema",securitySchema ?: JSONObject.NULL)
             .put("securityView",securityView ?: JSONObject.NULL)
+            .put("codeSubmission",codeSubmission ?: JSONObject.NULL)
             .put("verificationSchemas", JSONObject(verificationSchemas as Map<*, *>))
             .put("authentication", authentication?.json() ?: JSONObject.NULL)
         check(preferences.edit().putString("report", report.toString()).commit())

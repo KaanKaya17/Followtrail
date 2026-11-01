@@ -1581,9 +1581,16 @@ class MainActivity : LocalizedActivity() {
         }, securityCompleted={
             if(web===browser) {
                 loginAuthenticating=false;autoVerifyLogin=!webComparison
-                loginFeedback(R.string.web_login_step_code,R.string.web_login_two_factor)
+                loginFeedback(R.string.web_login_step_code,R.string.web_login_verification_code_ready)
                 updateLoginCompletion();scheduleGateWake();continueAuthenticatedLogin()
                 main.removeCallbacks(inspectPage);main.postDelayed(inspectPage,500)
+            }
+        }, codeStarted={
+            if(web===browser) {
+                loginAuthenticating=true
+                completionButton?.visibility=View.GONE
+                loginFeedback(R.string.web_login_step_waiting,R.string.web_login_submitting_code,true)
+                updateLoginCompletion()
             }
         }).also { if (!it.install()) { loginRelayIssue = true; loginFeedback(R.string.web_login_step_attention, R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
