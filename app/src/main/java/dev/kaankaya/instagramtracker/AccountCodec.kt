@@ -47,7 +47,7 @@ object AccountCodec {
         text(body.getJSONObject("pictureId"), texts), text(body.getJSONObject("pictureUrl"), texts),
         if (body.has("anonymous")) body.get("anonymous").also { require(it is Boolean) } as Boolean else null,
         if (!body.has("links")) emptyList() else body.getJSONArray("links").let { items ->
-            require(items.length() <= 5)
+            require(items.length() <= ProfileLinks.MAX_LINKS)
             (0 until items.length()).map { ProfileSite(items.get(it) as String) }.also { require(it.distinct().size == it.size) }
         })
     fun encode(account: SavedAccount): String {

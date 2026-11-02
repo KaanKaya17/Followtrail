@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.34 / Android 0.1.74 — 2026-11-02 (Instagram Threads rozeti)
+
+- Threads bağlantısı yalnız biyografi linklerinden aranıyordu. Instagram'ın ayrı Threads rozeti gözden kaçtığı için rozetli profilde düğme görünmüyordu. Etkin rozetin bildirdiği geçerli kullanıcı adı artık profil bağlantılarına eklenir; sırf Instagram kullanıcı adıyla hesap varsayılmaz. Açık Threads adresi varsa önceliklidir ve aynen korunur.
+- Beş web sitesi bağlantısına ek Threads bağlantısı, şifreli kayıt/geri yükleme ve arayüz boyunca korunur. Gizli/eksik rozet, bozuk etiket ve geçersiz adreslerden bağlantı oluşturulmaz. Web/Windows ve Android aynı HTTPS/alan adı/port kurallarını uygular.
+- Bildirilen profilin gerçek Windows okumasında biyografi linkleri boş, Threads rozeti açık ve etiket mevcut görüldü. Düzeltmeden sonraki tek normal profil okuması Threads bağlantısını şifreli kayda ekledi. Parola/çerez dışarı alınmadı; Threads'e doğrulama isteği gönderilmedi. Android'in mevcut giriş/profil molası değiştirilmedi.
+- 201 Python, 47 Node, 132 Android JVM, 10 renderer ve paketli Windows EXE üzerinde 36 kontrol geçti. Beş site + Threads düğmesinin görünürlüğü ve doğrudan açılması sınandı. Android release/lint (0 hata / 21 uyarı) ve imzalı APK paket kontrolü başarılı. Yeni Android ayrıştırması gerçek telefonda ayrıca sınanmadı.
+
 ## Android 0.1.73 — 2026-11-02 (Bağlantı hatasını parola reddinden ayırma)
 
 - Giriş taşıyıcısında bağlantı/depolama hatası olursa Instagram formu kapatılır ve uygulamanın gerçek hata açıklaması gösterilir. Yerel köprünün reddi nedeniyle formun yanıltıcı parola hatası göstermesi önlenir; otomatik tekrar gönderilmez.

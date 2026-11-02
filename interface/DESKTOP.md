@@ -1,10 +1,10 @@
-# InstagramTracker Windows 0.2.33
+# InstagramTracker Windows 0.2.34
 
 Biyografi satır sonları masaüstü ve ortak web panelinde korunur; Instagram’da alt alta yazılan metin aynı satır düzeniyle gösterilir. Bu bir sunum düzeltmesidir; kayıtlı biyografi yeniden yazılmaz. Android metin bileşeni zaten bu düzeni korur.
 
 Profilin web siteleri, yanıltıcı **Profil bağlantısı** satırı yerine yerel logo ve site adıyla gösterilir; tam adres fareyle üzerine gelince ve klavye erişilebilirlik açıklamasında bulunur. Tanınmayan sitelerde alan adı/globe simgesi kullanılır. Hiçbir favicon/başlık servisi çağrılmaz. Instagram’da aç düğmesi kişinin gözlenen kullanıcı adıyla normal tarayıcıyı açar. Site bağlantıları yalnız kullanıcı tıklayınca açılır; uygulama içine uzak sayfa yüklenmez.
 
-**Threads’te aç**, yalnız Instagram profil verisinde açık bir Threads profil bağlantısı olduğunda gösterilir. Kaynakta gözlenen adres korunur; aynı kullanıcı adından adres türetilmez. Düğme normal tarayıcıyı doğrudan açar; kontrol, giriş, yokluk/varlık yorumu veya ek Threads isteği yoktur. Bağlantı alınmamış eski profillerde sonraki normal profil okuması adres sağlayabilir; ek okuma zorlanmaz. Android 0.1.71 aynı davranışı kullanır. Biyografi satır sonu düzeltmesi korunur.
+**Threads’te aç**, açık bir Threads profil adresi veya Instagram'ın etkin Threads rozetinde geçerli kullanıcı adı geldiğinde gösterilir. Açık adres varsa korunur ve önceliklidir. Rozet bağlantısı yalnız `show_text_post_app_badge=true` ve geçerli `text_post_app_badge_label` ile hazırlanır; sırf Instagram kullanıcı adı var diye oluşturulmaz. Beş site bağlantısına ek bir Threads bağlantısı korunur. Düğme normal tarayıcıyı doğrudan açar; ayrı Threads doğrulaması, giriş veya ek istek yoktur. Eski kayıt yeni bilgiye sonraki normal profil okumasıyla ulaşır. Android 0.1.74 aynı ayrıştırmayı kullanır; giriş/profil 429 araştırması ayrıdır.
 
 Listeden açılan sağ panel, satırdaki küçük resmi doğrudan kullanır; indirme sürüyorsa aynı işi paylaşır. Eksik/eski profil bilgileri için panel açıkken tek sayısal ID profil okuması sıraya girer. Takipçi, takip edilen, gönderi ve gizlilik alanları yalnız geçerli yanıtla gösterilir; bilinmeyen/boş satırlar gizlenir, gerçek sıfır değerleri korunur. Yanıt yalnız bilgi bölümünü günceller, yazılmakta olan notu veya odağı değiştirmez. Paneli kapatmak henüz gönderilmemiş okumayı kaldırır; gönderilmiş işlemin geç yanıtı paneli yeniden açmaz.
 

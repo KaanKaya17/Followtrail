@@ -50,7 +50,7 @@ Kullanıcıyla daha önce konuşulan kalıcı günlük özetler henüz eklenmedi
 
 ## Threads otomatik doğrulama — ertelendi (2026-11-02)
 
-Şimdilik yalnız Instagram profilinde açıkça gelen Threads bağlantısı gösterilir. İleride özel API `pk`/Instagram kimliği ilişkisi, resmî API uygulama kapsamlı kimliklerinden ayrı doğrulanmalı. 2023 tarihli [özgün araştırma](https://github.com/m1guelpf/threads-re) ortak ID kullanımını belgeliyor; mevcut hesapta canlı kimlik eşleşmesi kanıtlanmadı. Çerezsiz profil sayfası girişe yönlendi; tek profil JSON GET denemesi HTTP 429 verdi ve tekrar yapılmadı. Ayrı Threads girişinin kesin gerekli olduğu henüz sonucuna varılmamalı; mevcut Instagram profil yanıtındaki açık ilişki alanları önce incelenmeli.
+Şimdilik Instagram profilindeki açık Threads adresi veya etkin Threads rozetinde bildirilen kullanıcı adı gösterilir. 0.2.34/0.1.74'te rozet desteği, gerçek Instagram profil yanıtında `show_text_post_app_badge=true` ve kullanıcı adı etiketinin geldiği doğrulandıktan sonra eklendi; ek Threads isteği yoktur. İleride özel API `pk`/Instagram kimliği ilişkisi, resmî API uygulama kapsamlı kimliklerinden ayrı doğrulanmalı. 2023 tarihli [özgün araştırma](https://github.com/m1guelpf/threads-re) ortak ID kullanımını belgeliyor; mevcut hesapta canlı kimlik eşleşmesi kanıtlanmadı. Çerezsiz profil sayfası girişe yönlendi; tek profil JSON GET denemesi HTTP 429 verdi ve tekrar yapılmadı. Ayrı Threads girişinin kesin gerekli olduğu henüz sonucuna varılmamalı.
 
 ## Paylaşım profili ve video analizi — ertelendi (2026-11-02)
 
