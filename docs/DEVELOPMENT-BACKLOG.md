@@ -44,3 +44,8 @@ Sonraki geliştirmeler:
 ## Uzun dönem sayaç analizi
 
 Kullanıcıyla daha önce konuşulan kalıcı günlük özetler henüz eklenmedi. Windows'ta 366 gözlem, 5 dakikalık aralıkta yaklaşık 30,5 saat kapsar. Haftalık/aylık analiz için dönen ayrıntılardan bağımsız günlük özetler gerekir. Profil zaman tüneli biyografi/fotoğraf değişikliklerini ayrı saklar; bu sayaç sorununu çözmez.
+
+
+## Threads otomatik doğrulama — ertelendi (2026-11-02)
+
+Şimdilik yalnız Instagram profilinde açıkça gelen Threads bağlantısı gösterilir. İleride özel API `pk`/Instagram kimliği ilişkisi, resmî API uygulama kapsamlı kimliklerinden ayrı doğrulanmalı. 2023 tarihli [özgün araştırma](https://github.com/m1guelpf/threads-re) ortak ID kullanımını belgeliyor; mevcut hesapta canlı kimlik eşleşmesi kanıtlanmadı. Çerezsiz profil sayfası girişe yönlendi; tek profil JSON GET denemesi HTTP 429 verdi ve tekrar yapılmadı. Ayrı Threads girişinin kesin gerekli olduğu henüz sonucuna varılmamalı; mevcut Instagram profil yanıtındaki açık ilişki alanları önce incelenmeli.

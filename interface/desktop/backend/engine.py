@@ -19,7 +19,6 @@ import request_budget
 import list_preparation
 import profile_search
 import profile_links
-import threads_profile
 import hashlib
 from login_identity import LoginIdentity, device_settings
 
@@ -92,8 +91,6 @@ class Engine:
         self.search_results = None
         self.search_pictures = {}
         self.profile_detail_result = None
-        self.threads_result = None
-        self.threads_cache = {}
         self.recover_interrupted()
 
     def recover_interrupted(self):
@@ -152,9 +149,8 @@ class Engine:
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
                 'profileDetail': self.profile_detail_result,
-                'threadsProfile': self.threads_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.32'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.33'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -402,18 +398,6 @@ class Engine:
             self.profile_detail_result={'accountId':owner,'profile':public_person(profile)}
         finally:
             close_client(client)
-
-    def check_threads(self,args):
-        owner=(self.data['account'] or {}).get('id');identity=args.get('id');url=args.get('url')
-        if args.get('accountId')!=owner or not isinstance(identity,str) or not (identity==owner or self.known_person(identity)) or not threads_profile.username(url):
-            raise AppFailure('input','Profil kaydı bulunamadı.')
-        name=threads_profile.username(url).lower();cached=self.threads_cache.get(name)
-        if cached and 0<=self.clock()-cached['checkedAt']<300:result=cached
-        else:
-            result=threads_profile.probe(self,url)
-            self.threads_cache.pop(name,None);self.threads_cache[name]=result
-            while len(self.threads_cache)>20:self.threads_cache.pop(next(iter(self.threads_cache)))
-        self.threads_result={'accountId':owner,'id':identity,**result}
 
     def configure_wayback(self, args):
         identity = str(args.get('id') or '')
@@ -846,15 +830,14 @@ class Engine:
         self.search_results = None
         self.search_pictures = {}
         self.profile_detail_result = None
-        self.threads_result = None
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()
         try:
-            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'profile_detail', 'check_threads', 'automatic', 'check_access'):
+            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'profile_detail', 'automatic', 'check_access'):
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
             handlers = {'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
-                        'refresh': lambda: self.refresh(args), 'profile_detail': lambda: self.profile_detail(args), 'check_threads': lambda: self.check_threads(args), 'add_person': lambda: self.add_person(args),
+                        'refresh': lambda: self.refresh(args), 'profile_detail': lambda: self.profile_detail(args), 'add_person': lambda: self.add_person(args),
                         'scan': lambda: self.scan(args, resume=True), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
                         'check_access': lambda: self.check_access(args),

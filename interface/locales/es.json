@@ -1086,13 +1086,6 @@
   "{0} bağlantısını aç": "Abrir enlace de {0}",
   "Instagram’da aç": "Abrir Instagram",
   "Threads’te aç": "Abrir Threads",
-  "Threads’i kontrol et": "Comprobar Threads",
-  "Bu kullanıcı adındaki Threads profilini kontrol et: {0}": "Comprobar el perfil de Threads con este nombre de usuario: {0}",
   "Bağlantı açılamadı.": "No se pudo abrir el enlace.",
-  "Threads profili kontrol ediliyor…": "Comprobando el perfil de Threads…",
-  "Bu kullanıcı adındaki Threads profili bulundu.": "Se encontró un perfil de Threads con este nombre de usuario.",
-  "Bu kullanıcı adıyla Threads profili bulunamadı.": "No se encontró un perfil de Threads con este nombre de usuario.",
-  "Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.": "No se pudo verificar el perfil de Threads. Puedes comprobarlo en tu navegador.",
-  "Tarayıcıda aç": "Abrir en el navegador",
   "Web sitesi": "Sitio web"
 }

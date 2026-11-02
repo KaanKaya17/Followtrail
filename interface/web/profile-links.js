@@ -27,9 +27,8 @@
    seen.add(item.url);websites.push(item);
   }
   const linked=websites.find(item=>threadsName(item.url));
-  const name=linked ? threadsName(linked.url) : /^[A-Za-z0-9._]{1,30}$/.test(profile.username || '') ? profile.username : null;
   return {websites:websites.filter(item=>item!==linked),instagram:/^[A-Za-z0-9._]{1,30}$/.test(profile.username || '') ? 'https://www.instagram.com/'+profile.username+'/' : null,
-   threads:name ? 'https://www.threads.com/@'+name : null};
+   threads:linked?.url || null};
  }
  root.TrackerProfileLinks=Object.freeze({webUrl,describe,threadsName,links});
  if(typeof module==='object')module.exports=root.TrackerProfileLinks;

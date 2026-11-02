@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="profile_threads_open">Open Threads</string>
-    <string name="profile_threads_check">Check Threads</string>
-    <string name="profile_threads_loading">Checking the Threads profile…</string>
-    <string name="profile_threads_found">A Threads profile with this username was found.</string>
-    <string name="profile_threads_missing">No Threads profile was found with this username.</string>
-    <string name="profile_threads_unknown">The Threads profile could not be verified. You can check it in your browser.</string>
-    <string name="profile_browser_open">Open in browser</string>
 </resources>
