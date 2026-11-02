@@ -39,10 +39,13 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private var securitySubmitted=false
     private var codeSubmitted=false
     private var schemaInspected=false
+    var sessionClaim: String = "0"
+        private set
     private val inspectedVerification = hashSetOf<String>()
     @Volatile private var active: Pending? = null
     private class Pending(val id: String, val reply: JavaScriptReplyProxy, val lease: AutoCloseable, val securityRequest: Boolean,
         val codeSubmission: Boolean) {
+        val stage get() = if (codeSubmission) "CODE_SUBMISSION" else if (securityRequest) "SECURITY_VIEW" else "AUTH"
         @Volatile var call: Call? = null
         var future: Future<*>? = null
     }
@@ -228,8 +231,10 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 }
                 if(pending.securityRequest && !validSecurityData)throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val cookies = cookieLines.filterIndexed { index, _ -> parsedCookies[index] != null }
+                val claim = response.header("X-IG-Set-WWW-Claim")?.let(WebSessionCodec::header)
                 val result = JSONObject().put("status", response.code).put("body", text)
-                    .put("headers", JSONObject().put("content-type", response.header("Content-Type") ?: "application/json"))
+                    .put("headers", JSONObject().put("content-type", response.header("Content-Type") ?: "application/json")
+                        .apply { if (claim != null) put("x-ig-set-www-claim", claim) })
                 main.post {
                     if (closed || active !== pending) return@post
                     fun finish() {
@@ -239,6 +244,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                         catch (problem: ApiFailure) {
                             active = null; reply(pending.reply, pending.id, JSONObject().put("error", true)); failure(problem, null); return
                         }
+                        if (claim != null) sessionClaim = claim
                         active = null; reply(pending.reply, pending.id, result)
                         if(finalFacts!=null)completed(finalFacts, assessment?.challenge)else securityCompleted()
                     }
@@ -263,6 +269,8 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
             val problem = error as? ApiFailure ?: ApiFailure(ApiFailure.Kind.CONNECTION)
             main.post {
                 if (!closed && active === pending) {
+                    try { trace.exchangeFailure(pending.stage, problem.kind, error) }
+                    catch (_: Exception) { }
                     active = null; reply(pending.reply, pending.id, JSONObject().put("error", true)); failure(problem, status)
                 }
             }
@@ -273,6 +281,8 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private fun cancel(replyToPage: Boolean) {
         val pending = active ?: return
         active = null; pending.call?.cancel(); pending.future?.cancel(true); pending.lease.close()
+        try { trace.exchangeFailure(pending.stage, ApiFailure.Kind.CANCELLED, ApiFailure(ApiFailure.Kind.CANCELLED)) }
+        catch (_: Exception) { }
         if(replyToPage) reply(pending.reply, pending.id, JSONObject().put("error", true))
         if (!closed) failure(ApiFailure(ApiFailure.Kind.CANCELLED), null)
     }

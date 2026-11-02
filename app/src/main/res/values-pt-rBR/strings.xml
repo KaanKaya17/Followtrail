@@ -153,4 +153,9 @@
     <string name="security_budget_info">Orçamento do dispositivo local: %1$d solicitações contadas por hora e %2$d por 24 horas. Esta não é uma cota Meta; excluir ou fazer login novamente não o reinicia.</string>
     <string name="security_budget_next">Próximo período de orçamento disponível: %1$s</string>
     <string name="security_remove_local">A cópia da sessão neste dispositivo é removida; a sessão no servidor do Instagram não é revogada. Revise a atividade de login no aplicativo oficial do Instagram se um login parecer suspeito.</string>
+    <string name="web_pending_title">Última etapa: conecte sua conta</string>
+    <string name="web_pending_body">Você entrou no Instagram. Ainda precisamos ler seu perfil para concluir a conexão. Sua sessão é armazenada com criptografia neste dispositivo; não é necessário inserir a senha ou o código novamente. Continue quando o período de espera terminar, se houver. Suas contas salvas são preservadas.</string>
+    <string name="web_pending_missing">Não há nenhuma conexão pendente. Feche esta tela para iniciar a conexão de uma conta novamente.</string>
+    <string name="web_pending_forget">Excluir conexão pendente</string>
+    <string name="web_pending_forget_body">Somente a sessão deste login incompleto será removida deste dispositivo. As contas salvas e o período de espera serão preservados. Você precisará entrar novamente para continuar.</string>
 </resources>

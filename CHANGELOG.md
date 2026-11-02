@@ -1,5 +1,18 @@
 # Değişiklikler
 
+## Android 0.1.73 — 2026-11-02 (Bağlantı hatasını parola reddinden ayırma)
+
+- Giriş taşıyıcısında bağlantı/depolama hatası olursa Instagram formu kapatılır ve uygulamanın gerçek hata açıklaması gösterilir. Yerel köprünün reddi nedeniyle formun yanıltıcı parola hatası göstermesi önlenir; otomatik tekrar gönderilmez.
+- Giriş, kod ekranı ve kod gönderimi için ayrı son aktarım hatası tanısı eklendi. Yalnız sabit aşama/hata sınıfı, taşıyıcı aşaması ve varsa SDK'nın sayısal ağ hata kodu tutulur. İptal ayrı belirtilir; istisna mesajı, URL, parola, kod ve çerez değeri saklanmaz. Mevcut mola/bütçe korunur.
+- Doğrulama: 130 JVM, 30 JavaScript kontrolü, dört dilde 664 kaynak ve lint (0 hata / 21 uyarı) geçti. API 36 emülatöründe bekleyen oturum, kod gönderimi/claim, iptal/429 ve hata ekranları sınandı; iki test beklentisi/zamanlaması düzeltilip yeniden doğrulandı. Gerçek telefonda son giriş yanıtı oturum vermedi; uçtan uca canlı hesap bağlantısı henüz doğrulanmadı.
+
+## Android 0.1.72 — 2026-11-02 (Girişten sonra bağlantıya devam)
+
+- Giriş/kod aşamasından sonra profil kontrolü beklemeye, bağlantı hatasına veya yerel bütçeye takılırsa yeni oturum artık silinmez. Mevcut şifreli bekleyen oturum deposu kullanılır; hesap doğrulanmadan kayıtlı hesaplara eklenmez. Ana ekrandaki “Bağlantıyı tamamla” ile yalnız profil okuması tekrar yapılabilir; parola/kod yeniden gönderilmez.
+- Devam ekranı bekleme saatini gösterir, mola sırasında isteği kapatır ve yalnız kullanıcı eylemiyle ilerler. Bekleyen bağlantıyı silme işlemi kayıtlı hesapları veya bekleme kayıtlarını etkilemez. Yeni web girişi bekleyen oturumu sessizce değiştiremez. Geçersiz/süresi dolmuş oturumda yeniden giriş gerekir.
+- Onaylanmış giriş/doğrulama yanıtında gelen `X-IG-Set-WWW-Claim`, aynı giriş sayfasına ve ardından şifreli oturuma aktarılır; profil okuyucusu bu değeri kullanır. Değer tanı kaydına yazılmaz. Bu başlığın önceki 429'un nedeni olduğu doğrulanmış değildir.
+- Türkçe, İngilizce, İspanyolca ve Brezilya Portekizcesi metinleri eklendi. Android sürümü artar; Windows 0.2.33 değişmedi. Canlı uçtan uca sonuç aşağıdaki giriş araştırması kaydında ayrıca belirtilir.
+
 ## Windows 0.2.33 / Android 0.1.71 — 2026-11-02 (Yalnız açık Threads bağlantısı)
 
 - Threads düğmesi yalnız Instagram profilinden alınan açık bir Threads profil bağlantısı varsa gösterilir. Kaynak adres, kullanıcı adı farklı olsa veya eski `threads.net` alanını kullansa da korunur. Kullanıcı adından tahmini adres oluşturulmaz; bağlantı yoksa düğme gizlenir, hesap yokluğu sonucu çıkarılmaz.

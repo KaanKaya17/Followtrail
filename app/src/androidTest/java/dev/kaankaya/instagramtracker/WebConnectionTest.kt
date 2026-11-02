@@ -114,7 +114,55 @@ class WebConnectionTest {
         val saved = SavedAccount(oldReference, Profile("123", "synthetic", 0, 7, 999)); vault.write(saved)
         fails(ApiFailure.Kind.LIMITED) { WebConnectionAttempt(context, gate(), sessions, vault, Transport(429, "{}"))
             .connect(state(), oldReference) }
-        assertEquals(saved, vault.read()); assertEquals(old, sessions.read(oldReference)); assertNull(sessions.pending())
+        assertEquals(saved, vault.read()); assertEquals(old, sessions.read(oldReference)); assertNotNull(sessions.pending())
+    }
+    @Test fun limitedConnectionResumesFromEncryptedSessionAfterRestartWithoutAnotherLogin() {
+        val initial = state().copy(claim = "synthetic-login-claim"); val transport = Transport(429, "{}")
+        fails(ApiFailure.Kind.LIMITED) { WebConnectionAttempt(context, gate(), sessions, vault, transport).connect(initial, null) }
+        val reopened = WebSessions(context, "webtest")
+        assertEquals(initial.reference(), reopened.pending()); assertEquals(initial, reopened.read(initial.reference()))
+        assertNull(vault.read())
+        fails(ApiFailure.Kind.LIMITED) { WebConnectionAttempt(context, gate(), reopened, vault, transport).resume(initial.reference(), null) }
+        assertEquals(1, transport.calls)
+        clock.set(gate().nextPrototypeAt() + 1)
+        transport.status = 200; transport.body = profileBody
+        val linked = WebConnectionAttempt(context, gate(), reopened, vault, transport).resume(initial.reference(), null)
+        assertEquals(initial.reference(), linked.session); assertEquals(linked, vault.read()); assertNull(reopened.pending())
+        assertEquals(initial, reopened.read(linked.session)); assertEquals(2, transport.calls)
+        assertEquals("GET", transport.last!!.method)
+        assertEquals(initial.claim, transport.last!!.header("X-IG-WWW-Claim"))
+    }
+    @Test fun pendingConnectionCannotBeSilentlyReplacedOrResumedAfterExplicitDeletion() {
+        val initial = state(); val reference = sessions.stage(initial); val transport = Transport(body = profileBody)
+        fails(ApiFailure.Kind.POLICY) { WebConnectionAttempt(context, gate(), sessions, vault, transport).connect(state(), null) }
+        assertEquals(reference, sessions.pending()); assertEquals(initial, sessions.read(reference)); assertEquals(0, transport.calls)
+        sessions.discardPending(reference)
+        fails(ApiFailure.Kind.CANCELLED) { WebConnectionAttempt(context, gate(), sessions, vault, transport).resume(reference, null) }
+        assertEquals(0, transport.calls); assertNull(vault.read())
+    }
+    @Test fun busyReaderRetainsPendingSessionWithoutSendingAndExpiredSessionIsDiscarded() {
+        val reference = sessions.stage(state()); val transport = Transport(401, "{}")
+        gate().claim().use {
+            fails(ApiFailure.Kind.TOO_SOON) { WebConnectionAttempt(context, gate(), sessions, vault, transport).resume(reference, null) }
+            assertEquals(reference, sessions.pending()); assertEquals(0, transport.calls)
+        }
+        fails(ApiFailure.Kind.SESSION_EXPIRED) { WebConnectionAttempt(context, gate(), sessions, vault, transport).resume(reference, null) }
+        assertNull(sessions.pending()); assertNull(vault.read()); assertEquals(1, transport.calls)
+    }
+    @Test fun cancellingResumeRetainsPendingSessionAndPreviousAccount() {
+        val old = state(); val oldReference = sessions.stage(old)
+        val saved = SavedAccount(oldReference, Profile("123", "synthetic", 0, 7, 999)); vault.write(saved)
+        val reference = sessions.stage(state())
+        val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        val transport = Transport(body = profileBody, entered = entered, release = release)
+        val attempt = WebConnectionAttempt(context, gate(), sessions, vault, transport)
+        val executor = Executors.newSingleThreadExecutor()
+        try {
+            val future = executor.submit<ApiFailure.Kind?> { try { attempt.resume(reference, oldReference); null } catch (e: ApiFailure) { e.kind } }
+            assertTrue(entered.await(5, TimeUnit.SECONDS)); attempt.cancel(); release.countDown()
+            assertEquals(ApiFailure.Kind.CANCELLED, future.get(5, TimeUnit.SECONDS))
+            assertEquals(saved, vault.read()); assertEquals(reference, sessions.pending())
+        } finally { release.countDown(); executor.shutdownNow() }
     }
     @Test fun cancellationDuringLateResponseCannotCommitOrRotateCredentials() {
         val old = state(); val oldReference = sessions.stage(old)
@@ -128,7 +176,7 @@ class WebConnectionTest {
             val future = executor.submit<ApiFailure.Kind?> { try { attempt.connect(state(), oldReference); null } catch (e: ApiFailure) { e.kind } }
             assertTrue(entered.await(5, TimeUnit.SECONDS)); attempt.cancel(); release.countDown()
             assertEquals(ApiFailure.Kind.CANCELLED, future.get(5, TimeUnit.SECONDS))
-            assertEquals(saved, vault.read()); assertEquals(old, sessions.read(oldReference)); assertNull(sessions.pending())
+            assertEquals(saved, vault.read()); assertEquals(old, sessions.read(oldReference)); assertNotNull(sessions.pending())
         } finally { release.countDown(); executor.shutdownNow() }
     }
     private class Transport(var status: Int = 200, var body: String = "{}", var headers: Map<String, String> = emptyMap(),

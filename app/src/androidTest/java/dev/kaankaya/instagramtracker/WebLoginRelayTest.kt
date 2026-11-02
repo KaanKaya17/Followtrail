@@ -97,7 +97,10 @@ class WebLoginRelayTest {
         response={request->
             val code=request.tag(WebCodeSubmissionAuthorization::class.java)!=null
             Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture").apply {
-                if(code)addHeader("Set-Cookie","sessionid=synthetic-completed-session; Path=/; Secure; HttpOnly")
+                if(code) {
+                    addHeader("Set-Cookie","sessionid=synthetic-completed-session; Path=/; Secure; HttpOnly")
+                    addHeader("X-IG-Set-WWW-Claim", "synthetic-claim")
+                }
             }.body((if(code)"""{"data":{"xfb_auth_platform_submit_code":{}}}"""
                 else """{"data":{"xfb_auth_platform_enter_code_content":{}}}""").toResponseBody()).build()
         }
@@ -106,14 +109,16 @@ class WebLoginRelayTest {
         until("window.__viewReady===true","true");now+=15001
         val body=JSONObject.quote("doc_id=25017097917894476&fb_api_req_friendly_name=useAuthPlatformSubmitCodeMutation&variables="+
             java.net.URLEncoder.encode("""{"input":{"actor_id":"0","client_mutation_id":"1","code":"123456","device_id":null,"encrypted_ap_context":"synthetic-apc"}}""","UTF-8"))
-        js("fetch('/graphql/query/',{method:'POST',body:$body}).then(r=>r.json()).then(()=>window.__codeSent=true)")
+        js("fetch('/graphql/query/',{method:'POST',body:$body}).then(r=>{window.__claim=r.headers.get('x-ig-set-www-claim');return r.json()}).then(()=>window.__codeSent=true)")
         until("window.__codeSent===true","true")
+        until("window.__claim", "\"synthetic-claim\"")
+        assertEquals("synthetic-claim", relay.sessionClaim)
         assertEquals(2,calls.get());assertEquals(3L,gate.attempts());assertEquals(authenticationAt,gate.nextWebAuthenticationAt())
         assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").contains("synthetic-completed-session"))
         val report=LoginPageTrace.read(context)!!
         assertTrue(JSONObject(report).getJSONObject("codeSubmission").getBoolean("validData"))
         assertTrue(JSONObject(report).getJSONObject("codeSubmission").getBoolean("cookiesApplied"))
-        assertFalse(report.contains("123456"));assertFalse(report.contains("synthetic-apc"))
+        assertFalse(report.contains("123456"));assertFalse(report.contains("synthetic-apc"));assertFalse(report.contains("synthetic-claim"))
         js("fetch('/graphql/query/',{method:'POST',body:$body}).catch(()=>window.__codeRepeatRejected=true)")
         until("window.__codeRepeatRejected===true","true");assertEquals(2,calls.get())
     }

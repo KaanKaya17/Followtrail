@@ -19,27 +19,50 @@ class WebConnectionAttempt(context: Context, private val gate: RequestGate,
         try {
             current()
             proof?.consume(gate,state)
-            sessions.discardPending()
-            current(); val reference = sessions.stage(state); staged = reference
-            current()
-            val profile = reader.read(reference, connectionTest = proof == null, resumeAutomation = false,
-                request = { fresh, _ -> WebRequests.profile(fresh, reference.userId) }) { body, time ->
-                ProfileParser.fromBody(body, reference.userId, time)
-            }
-            synchronized(lock) {
+            val reference = synchronized(AccountCatalog.lock) {
                 current()
+                if (sessions.pending() != null) throw ApiFailure(ApiFailure.Kind.POLICY)
+                sessions.stage(state).also { staged = it }
+            }
+            return verify(reference, expected, proof == null)
+        } catch (failure: ApiFailure) {
+            if (!recoverable(failure.kind)) staged?.let(::discard)
+            throw failure
+        }
+        catch (_: Exception) { current(); throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    }
+    /** Borrow the existing encrypted pending session; never repeat the password/code exchange. */
+    fun resume(reference: Session, expected: Session?): SavedAccount {
+        try { return verify(reference, expected, true) }
+        catch (failure: ApiFailure) {
+            if (!recoverable(failure.kind)) discard(reference)
+            throw failure
+        } catch (_: Exception) { current(); throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    }
+    private fun verify(reference: Session, expected: Session?, connectionTest: Boolean): SavedAccount {
+        synchronized(AccountCatalog.lock) {
+            current()
+            if (sessions.pending() != reference) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        }
+        val profile = reader.read(reference, connectionTest = connectionTest, resumeAutomation = false,
+            request = { fresh, _ -> WebRequests.profile(fresh, reference.userId) }) { body, time ->
+            ProfileParser.fromBody(body, reference.userId, time)
+        }
+        synchronized(lock) {
+            current()
+            synchronized(AccountCatalog.lock) {
+                if (sessions.pending() != reference) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 if (gate.blockedUntil() > gate.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
                 val linked = vault.linkIfUnchanged(expected, reference, profile) { cancelled || Thread.currentThread().isInterrupted }
-                gate.forAccount(state.owner).succeeded()
+                gate.forAccount(reference.userId).succeeded()
+                // Once committed, cleanup only removes the pending pointer, never the linked bank.
+                discard(reference)
                 return linked
-            }
-        } catch (failure: ApiFailure) { throw failure }
-        catch (_: Exception) { current(); throw ApiFailure(ApiFailure.Kind.STORAGE) }
-        finally {
-            staged?.let { reference ->
-                // Failure leaves an encrypted pending record owned by WebSessions for retry/cleanup.
-                try { sessions.discardPending(reference) } catch (_: Exception) { }
             }
         }
     }
+    private fun discard(reference: Session) { try { sessions.discardPending(reference) } catch (_: Exception) { /* Store retains cleanup ownership. */ } }
+    private fun recoverable(kind: ApiFailure.Kind) = kind in setOf(ApiFailure.Kind.LIMITED,
+        ApiFailure.Kind.TOO_SOON, ApiFailure.Kind.BUDGET, ApiFailure.Kind.CONNECTION, ApiFailure.Kind.STORAGE,
+        ApiFailure.Kind.CANCELLED, ApiFailure.Kind.CAPACITY)
 }

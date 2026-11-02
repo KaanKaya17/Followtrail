@@ -100,6 +100,7 @@ class MainActivity : LocalizedActivity() {
     private var chartFollowers = true
     private var preview = false
     private var pendingMobile = false
+    private var pendingWeb = false
     private var pendingWatchId: String? = null
     private var pendingWatchOwner: String? = null
     private var pendingWatchMinutes = 15
@@ -174,9 +175,10 @@ class MainActivity : LocalizedActivity() {
                 null
             }
             val pendingConnection = try { !preview && MobileSessions(this).pending() != null } catch (_: Exception) { false }
+            val pendingWebConnection = try { !preview && WebSessions(this).pending() != null } catch (_: Exception) { false }
             main.post {
                 if (isDestroyed) return@post
-                account = saved; pendingMobile = pendingConnection; loading = false; needsConnection = needsConnection || gate.requiresConnection()
+                account = saved; pendingMobile = pendingConnection; pendingWeb = pendingWebConnection; loading = false; needsConnection = needsConnection || gate.requiresConnection()
                 if (saved != null) { quickWatch.restore(savedInstanceState, saved); if (visible) quickWatch.resume() }
                 openNotification(saved); syncMonitoring(); render()
                 // An outstanding pause is restored without issuing a network request.
@@ -194,7 +196,7 @@ class MainActivity : LocalizedActivity() {
         if (recreatingForInterface) return
         if (!::gate.isInitialized || web != null || loading) return
         val previousOwner=account?.session?.userId
-        try { account = vault.read(); pendingMobile = !preview && MobileSessions(this).pending() != null; needsConnection = gate.requiresConnection() }
+        try { account = vault.read(); pendingMobile = !preview && MobileSessions(this).pending() != null; pendingWeb = !preview && WebSessions(this).pending() != null; needsConnection = gate.requiresConnection() }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity); needsConnection = true }
         if(!preview && previousOwner!=null && previousOwner!=account?.session?.userId) {intent.putExtra("local_account_switch",true);recreate();return}
         if (::quickWatch.isInitialized) quickWatch.resume()
@@ -291,9 +293,15 @@ class MainActivity : LocalizedActivity() {
         message?.takeIf { it != pause }?.let {
             page.addView(text(it, 14f, accent).apply { background = shape(AppUi.violetSoft, 16); setPadding(dp(16), dp(14), dp(16), dp(14)) }); page.gap(14)
         }
+        if (pendingWeb) {
+            page.addView(button(getString(R.string.ui_complete_connection)) {
+                startActivity(Intent(this, WebPendingConnectionActivity::class.java))
+            }, LinearLayout.LayoutParams(-1, -2))
+        }
         if (saved == null || needsConnection) {
-            page.addView(button(if (needsConnection) getString(R.string.ui_reconnect_account) else if (pendingMobile) getString(R.string.ui_complete_connection) else getString(R.string.ui_connect_account)) {
-                if (pendingMobile && !needsConnection) startActivity(Intent(this, DesktopLinkActivity::class.java)) else connectionOptions()
+            if (!pendingWeb) page.addView(button(if (needsConnection) getString(R.string.ui_reconnect_account) else if (pendingMobile) getString(R.string.ui_complete_connection) else getString(R.string.ui_connect_account)) {
+                if (pendingWeb) startActivity(Intent(this, WebPendingConnectionActivity::class.java))
+                else if (pendingMobile && !needsConnection) startActivity(Intent(this, DesktopLinkActivity::class.java)) else connectionOptions()
             }, LinearLayout.LayoutParams(-1, -2))
         } else if (!peopleScreen) {
             val allowed = maxOf(gate.nextAllowedAt(), saved.profile.observedAt + PeoplePolicy.FRESH_MS)
@@ -1479,6 +1487,11 @@ class MainActivity : LocalizedActivity() {
     private fun startLogin(compare: Boolean = false) {
         if (preview) { message = getString(R.string.ui_real_account_connections_are_unavailable_in_demo); render(); return }
         if (loading || web != null) return
+        try {
+            if (WebSessions(this).pending() != null) {
+                startActivity(Intent(this, WebPendingConnectionActivity::class.java)); return
+            }
+        } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); return }
         if (gate.nextWebAuthenticationAt() > System.currentTimeMillis()) { message = getString(R.string.ui_next_connection_attempt, clock(gate.nextWebAuthenticationAt())); render(); return }
         try { gate.pauseAutomatic(); if(compare)WebConnectionJournal(this).reset(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -1538,7 +1551,7 @@ class MainActivity : LocalizedActivity() {
                 loginRelayIssue = true
                 loginProgress?.visibility = View.GONE
                 loginHeading?.setText(R.string.web_login_step_attention)
-                if (problem.kind == ApiFailure.Kind.LIMITED) webLoginFailed(problem, status)
+                if (problem.kind in setOf(ApiFailure.Kind.LIMITED, ApiFailure.Kind.CONNECTION, ApiFailure.Kind.STORAGE)) webLoginFailed(problem, status)
                 else if (problem.kind == ApiFailure.Kind.TOO_SOON) endRejectedLogin(R.string.web_login_not_sent)
                 else loginStatus?.text = when (problem.kind) {
                     ApiFailure.Kind.POLICY -> getString(R.string.web_relay_blocked)
@@ -1793,6 +1806,7 @@ class MainActivity : LocalizedActivity() {
     }
     private fun readLoginSession(browser: WebView): WebSession? = try {
         WebSessionCodec.fromHeader(CookieManager.getInstance().getCookie("https://www.instagram.com/"),browser.settings.userAgentString)
+            .copy(claim = loginRelay?.sessionClaim ?: "0")
     } catch (_: Exception) {null}
 
     private fun startBrowserComparison(browser: WebView, state: WebSession) {
@@ -1878,15 +1892,20 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun webLoginFailed(failure: ApiFailure, status: Int?) {
+        pendingWeb = try { WebSessions(this).pending() != null } catch (_: Exception) { false }
         val details = listOfNotNull(failure.userMessage(this),
             status?.let { getString(R.string.ui_last_http_response, it.toString()) },
             if (failure.kind in setOf(ApiFailure.Kind.LIMITED, ApiFailure.Kind.TOO_SOON)) pauseMessage() else null,
             getString(R.string.web_connection_failed_scope)).joinToString("\n\n")
-        message = getString(R.string.web_connection_failed) + "\n\n" + details
+        val title = if (pendingWeb) R.string.web_pending_title else R.string.web_connection_failed
+        val explanation = if (pendingWeb) getString(R.string.web_pending_body) + "\n\n" + failure.userMessage(this) else details
+        message = getString(title) + "\n\n" + explanation
         leaveLogin()
-        AlertDialog.Builder(this).setTitle(R.string.web_connection_failed).setMessage(details)
+        AlertDialog.Builder(this).setTitle(title).setMessage(explanation)
             .setNeutralButton(R.string.ui_request_information) { _, _ -> requestInfo() }
-            .setPositiveButton(R.string.ui_close, null).show()
+            .setPositiveButton(if (pendingWeb) R.string.ui_complete_connection else R.string.ui_close) { _, _ ->
+                if (pendingWeb) startActivity(Intent(this, WebPendingConnectionActivity::class.java))
+            }.show()
     }
 
     private fun leaveLogin(rendererGone: Boolean = false) {

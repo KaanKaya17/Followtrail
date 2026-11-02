@@ -2,7 +2,9 @@
 
 Yerel Android uygulaması: kayıtlı profil ve liste gözlemlerini karşılaştırır. İki okumada yeni görülen/görünmeyen hesapları ve sayısal/profil farklarını gösterir; kesin takipten çıkış tespiti veya kesin olay saati vaat etmez.
 
-**Güncel önizlemeler: Android 0.1.71, Windows 0.2.33.**
+**Güncel önizlemeler: Android 0.1.73, Windows 0.2.33.**
+
+Android'de girişten sonra profil doğrulaması geçici hataya veya molaya takılırsa oturum şifreli bekletilir. **Bağlantıyı tamamla** yalnız profil okumasını yeniden dener; tekrar parola/kod göndermez ve bekleme süresini aşmaz. Ağ hatası, sunucunun giriş sonucu ve doğrulama adımları ayrı gösterilir. Son canlı testte aynı giriş bilgileri normal Instagram'da da reddedildi; yeni hesapla uçtan uca telefon bağlantısı henüz doğrulanmadı.
 
 Profil siteleri yerel logo/site adıyla gösterilir; üzerine gelince veya telefonda uzun basınca tam adres görünür. Instagram’da aç düğmesi bulunur. Threads yalnız profil verisinde açık bir profil bağlantısı varsa gösterilir ve doğrudan tarayıcıda açılır; kullanıcı adından adres üretilmez ve ayrı doğrulama isteği gönderilmez. Yeni favicon/telemetri servisi yoktur.
 

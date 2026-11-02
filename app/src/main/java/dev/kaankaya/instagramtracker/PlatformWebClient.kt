@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.http.HttpEngine
 import android.net.http.HttpException
+import android.net.http.NetworkException
 import android.net.http.UploadDataProvider
 import android.net.http.UploadDataSink
 import android.net.http.UrlRequest
@@ -97,7 +98,7 @@ internal class PlatformWebClient(context: Context) : Call.Factory, AutoCloseable
                 }
             } catch(failure: IOException) {listeners.forEach {it.callFailed(this,failure)};throw failure}
             catch (_: Exception) {
-                val failure=IOException("Platform web exchange could not start")
+                val failure=WebTransportFailure(WebTransportFailure.Reason.START)
                 listeners.forEach {it.callFailed(this,failure)};throw failure
             }
         }
@@ -152,7 +153,8 @@ internal class PlatformWebClient(context: Context) : Call.Factory, AutoCloseable
                 }
                 override fun onFailed(request: UrlRequest, info: UrlResponseInfo?, exception: HttpException) {
                     // Do not retain SDK exception text, which may include URLs or request context.
-                    val failure=IOException("Platform web exchange failed")
+                    val failure=WebTransportFailure(WebTransportFailure.Reason.NETWORK,
+                        (exception as? NetworkException)?.errorCode)
                     if(info!=null) finish(response(info,FailedPlatformBody(failure))) else finish(failure=failure)
                     release()
                 }
@@ -178,7 +180,7 @@ internal class PlatformWebClient(context: Context) : Call.Factory, AutoCloseable
                 val waitNanos=(deadline-System.nanoTime()).coerceAtLeast(0)
                 if(!terminal.await(waitNanos,TimeUnit.NANOSECONDS)) {
                     completed.set(true);call.cancel()
-                    val failure=InterruptedIOException("Platform web timeout")
+                    val failure=WebTransportFailure(WebTransportFailure.Reason.TIMEOUT)
                     observedInfo.get()?.let {return response(it,FailedPlatformBody(failure))}
                     throw failure
                 }

@@ -20,6 +20,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     private var documentsFinished = 0
     private var formVisible: Boolean? = null
     private var authentication: WebLoginResponseFacts? = null
+    private val exchangeFailures = linkedMapOf<String, JSONObject>()
     private var active = true
     @Synchronized fun resource(method: String, decision: LoginBrowserPolicy.ResourceDecision) {
         if (!active) return
@@ -44,6 +45,15 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     }
     @Synchronized fun form(visible: Boolean?) { if (active) { formVisible = visible; flush() } }
     @Synchronized fun authentication(facts: WebLoginResponseFacts) { if (active) { authentication = facts; flush() } }
+    @Synchronized internal fun exchangeFailure(stage: String, kind: ApiFailure.Kind, error: Exception) {
+        require(stage in setOf("AUTH", "SECURITY_VIEW", "CODE_SUBMISSION"))
+        if (!active) return
+        val transport = error as? WebTransportFailure
+        exchangeFailures[stage] = JSONObject().put("kind", kind.name)
+            .put("transport", transport?.reason?.name ?: JSONObject.NULL)
+            .put("networkCode", transport?.networkCode ?: JSONObject.NULL)
+        flush()
+    }
     @Synchronized fun blockedDocument(facts: WebDocumentFacts) { if(active && blockedDocuments.size<4) {
         blockedDocuments[facts.json().toString()]=facts
     } }
@@ -78,6 +88,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
             .put("codeSubmission",codeSubmission ?: JSONObject.NULL)
             .put("verificationSchemas", JSONObject(verificationSchemas as Map<*, *>))
             .put("authentication", authentication?.json() ?: JSONObject.NULL)
+            .put("exchangeFailures", JSONObject(exchangeFailures as Map<*, *>))
         check(preferences.edit().putString("report", report.toString()).commit())
     }
     @Synchronized fun close() { if (active) { try { flush() } finally { active = false } } }
