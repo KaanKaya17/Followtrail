@@ -8,6 +8,18 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class LoginPageTraceTest {
+    @Test fun exchangeFailuresRetainOnlyFiniteFactsAndNeverExceptionMessagesOrCauses() {
+        val trace = LoginPageTrace(context) { 1234 }
+        trace.exchangeFailure("AUTH", ApiFailure.Kind.CONNECTION, java.io.IOException("https://private.invalid/?password=secret"))
+        trace.exchangeFailure("CODE_SUBMISSION", ApiFailure.Kind.CONNECTION, WebTransportFailure(WebTransportFailure.Reason.NETWORK, 6))
+        val raw = LoginPageTrace.read(context)!!
+        assertFalse(raw.contains("private.invalid")); assertFalse(raw.contains("password")); assertFalse(raw.contains("secret"))
+        val facts = report().getJSONObject("exchangeFailures")
+        assertEquals("CONNECTION", facts.getJSONObject("AUTH").getString("kind"))
+        assertTrue(facts.getJSONObject("AUTH").isNull("transport"))
+        assertEquals(6, facts.getJSONObject("CODE_SUBMISSION").getInt("networkCode"))
+        trace.close()
+    }
     @org.junit.Test fun navigationFactsContainOnlyFiniteRouteAndAuthorityLabels() {
         val trace=LoginPageTrace(context) {1234}
         trace.started(WebLoginChallenge.Companion.Route.BLANK)

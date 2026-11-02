@@ -65,11 +65,12 @@ class WebLoginScreenTest {
             .filterIsInstance<TextView>().joinToString(" | ") { it.text.toString() } }
         fail("Offline UI condition not reached: $visible")
     }
-    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false, rejected: Boolean = false, unsupportedCaptcha: Boolean = false, code: Boolean = false, authPlatform: Boolean = false) {
+    private fun open(status: Int = 200, bootstrap: Boolean = false, offline: Boolean = true, auth: Boolean = false, captcha: Boolean = false, rejected: Boolean = false, unsupportedCaptcha: Boolean = false, code: Boolean = false, authPlatform: Boolean = false, transportFailure: Boolean = false) {
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java)
             .putExtra("offline_web_login", offline).putExtra("web_login_status", status).putExtra("web_bootstrap_fixture", bootstrap)
             .putExtra("web_auth_fixture", auth).putExtra("web_captcha_fixture", captcha).putExtra("web_rejected_fixture", rejected)
-            .putExtra("web_unsupported_captcha_fixture",unsupportedCaptcha).putExtra("web_code_fixture",code).putExtra("web_auth_platform_fixture",authPlatform))
+            .putExtra("web_unsupported_captcha_fixture",unsupportedCaptcha).putExtra("web_code_fixture",code).putExtra("web_auth_platform_fixture",authPlatform)
+            .putExtra("web_transport_fixture", transportFailure))
         until { a -> all(a.window.decorView).filterIsInstance<Button>().any { it.text == a.getString(R.string.ui_connect_account) } }
         scenario!!.onActivity { a -> all(a.window.decorView).filterIsInstance<Button>().single { it.text == a.getString(R.string.ui_connect_account) }.performClick() }
         instrumentation.waitForIdleSync()
@@ -106,6 +107,17 @@ class WebLoginScreenTest {
         assertEquals(2L,RequestGate(context).attempts())
         assertNotNull(SessionVault(context).read()!!.session.webBinding)
         Thread.sleep(400);assertEquals(2L,RequestGate(context).attempts())
+    }
+    @Test fun transportFailureClosesTheFormWithoutInventingAWrongPasswordOrHttpResponse() {
+        open(auth = true, transportFailure = true); submitSyntheticLogin()
+        failureDialog { ApiFailure(ApiFailure.Kind.CONNECTION).userMessage(it) }
+        assertNull(RequestGate(context).lastHttpStatus()); assertEquals(1L, RequestGate(context).attempts())
+        assertNull(SessionVault(context).read()); assertNull(WebSessions(context).pending())
+        val report = JSONObject(LoginPageTrace.read(context)!!)
+        assertTrue(report.isNull("authentication"))
+        val failure = report.getJSONObject("exchangeFailures").getJSONObject("AUTH")
+        assertEquals("CONNECTION", failure.getString("kind")); assertEquals("NETWORK", failure.getString("transport"))
+        assertEquals(6, failure.getInt("networkCode"))
     }
     @Test fun captchaIsShownAsUserActionAndExternalResourcesStayBlockedUntilConsent() {
         open(auth=true,captcha=true);submitSyntheticLogin()
@@ -199,6 +211,8 @@ class WebLoginScreenTest {
         scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<Button>().single {it.text==a.getString(R.string.web_login_show_challenge)}.performClick()}
         instrumentation.runOnMainSync {WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>().single {it.id==android.R.id.button1}.performClick()}
         until {a->all(a.window.decorView).filterIsInstance<WebView>().single().url?.contains("/auth_platform/")==true}
+        // URL changes before the new document's relay exists; send from the loaded code page.
+        until { JSONObject(LoginPageTrace.read(context)!!).optJSONObject("navigation")?.optInt("FINISHED:AUTH_PLATFORM", 0)?.let { it > 0 } == true }
         scenario!!.onActivity {a->all(a.window.decorView).filterIsInstance<WebView>().single().evaluateJavascript(
             "fetch('/graphql/query/',{method:'POST',body:'doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables='+encodeURIComponent(JSON.stringify({apc:'synthetic-apc',device_id:null}))}).catch(()=>{});",null)}
         until(23000) {JSONObject(LoginPageTrace.read(context)!!).optJSONObject("securityView")?.optBoolean("validData")==true}
@@ -378,12 +392,14 @@ class WebLoginScreenTest {
             WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>().any {
                 it.text.toString().contains(expected(a)) && it.text.toString().contains(a.getString(R.string.web_connection_failed_scope)) } }
     }
-    @Test fun api429ClosesBrowserShowsFailureAndKeepsCooldownAfterRecreation() {
+    @Test fun api429ClosesBrowserKeepsEncryptedPendingLoginAndCooldownAfterRecreation() {
         open(429); cookies(); verify()
-        failureDialog { it.getString(R.string.ui_last_http_response, "429") }
+        until { a -> all(a.window.decorView).none { it is WebView } &&
+            WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>()
+                .any { it.text.toString().contains(a.getString(R.string.web_pending_body)) } }
         val blocked = RequestGate(context).blockedUntil()
         assertTrue(blocked > System.currentTimeMillis())
-        assertNull(SessionVault(context).read()); assertNull(WebSessions(context).pending())
+        assertNull(SessionVault(context).read()); val pending = WebSessions(context).pending(); assertNotNull(pending)
         assertEquals(1L, RequestGate(context).attempts())
         until { CookieManager.getInstance().getCookie("https://www.instagram.com/").isNullOrBlank() }
         scenario!!.onActivity { a ->
@@ -395,7 +411,9 @@ class WebLoginScreenTest {
             it.text.toString().contains(a.getString(R.string.web_compare_last_counted_http, "429")) } }
         assertEquals(1L, RequestGate(context).attempts())
         scenario!!.recreate()
-        until { a -> all(a.window.decorView).none { it is WebView } }
+        until { a -> all(a.window.decorView).none { it is WebView } && all(a.window.decorView)
+            .filterIsInstance<Button>().any { it.text==a.getString(R.string.ui_complete_connection) } }
+        assertEquals(pending, WebSessions(context).pending())
         assertEquals(blocked, RequestGate(context).blockedUntil()); assertEquals(1L, RequestGate(context).attempts())
     }
     @Test fun expiredOlderCooldownDoesNotHideCurrentVerificationError() {

@@ -132,4 +132,9 @@
     <string name="security_budget_info">Local device budget: %1$d counted requests per hour and %2$d per 24 hours. This is not a Meta quota; deletion or signing in again does not reset it.</string>
     <string name="security_budget_next">Next available budget time: %1$s</string>
     <string name="security_remove_local">The session copy on this device is removed; the session on Instagram’s server is not revoked. Review login activity in the official Instagram app if a login looks suspicious.</string>
+    <string name="web_pending_title">Last step: connect your account</string>
+    <string name="web_pending_body">You are signed in to Instagram. We still need to read your profile to finish connecting. Your session is encrypted on this device; you do not need to enter your password or code again. Continue when any waiting period ends. Your saved accounts are preserved.</string>
+    <string name="web_pending_missing">There is no connection waiting to be completed. Close this screen to start connecting an account again.</string>
+    <string name="web_pending_forget">Delete pending connection</string>
+    <string name="web_pending_forget_body">Only this unfinished login session is removed from this device. Saved accounts and the waiting period are preserved. You will need to sign in again to continue.</string>
 </resources>

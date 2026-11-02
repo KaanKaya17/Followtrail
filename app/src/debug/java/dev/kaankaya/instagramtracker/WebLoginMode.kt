@@ -17,6 +17,8 @@ object WebLoginMode {
         if (!enabled || !activity.intent.getBooleanExtra("web_auth_fixture", false)) return WebRequestClients.create(activity)
         return Call.Factory { request -> object : Call by PrivateReadTransport.client().newCall(request) {
             override fun execute(): Response {
+                if (activity.intent.getBooleanExtra("web_transport_fixture", false))
+                    throw WebTransportFailure(WebTransportFailure.Reason.NETWORK, 6)
                 val captcha = activity.intent.getBooleanExtra("web_captcha_fixture", false)
                 val builder = Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture")
                 if(request.tag(WebSecurityViewAuthorization::class.java)!=null)return builder.body(
