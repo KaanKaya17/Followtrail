@@ -35,7 +35,7 @@ try {
    if(operation==='profile_detail') {
     if(window.qaDelayProfile)await new Promise(resolve=>window.qaProfileResolver=resolve);
     state.profileDetail={accountId:args.accountId,profile:{id:args.id,username:'qa.'+args.id,name:'QA '+args.id,
-     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:null,url:'https://youtube.com/@qa',links:[{url:'https://youtube.com/@qa'},{url:'https://portfolio.example/projects?q=1'}],observedAt:Date.now()/1000}};
+     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:'First line\nSecond line\nThird line <img src=x onerror=window.qaBioInjected=true>',url:'https://youtube.com/@qa',links:[{url:'https://youtube.com/@qa'},{url:'https://portfolio.example/projects?q=1'}],observedAt:Date.now()/1000}};
    }
    if(operation==='check_threads')state.threadsProfile={accountId:args.accountId,id:args.id,url:args.url,status:window.qaThreadStatus || 'unknown'};
    if(operation==='add_person') {
@@ -108,6 +108,15 @@ try {
  assert.deepEqual(await page.locator('#person-profile-info .drawer-counts strong').allTextContents(),['42','0']);
  assert.match(await page.locator('#person-profile-info').innerText(),/Gizlilik\s+Açık\s+Gönderi\s+0/);
  assert.equal(await page.locator('#person-note').inputValue(),'Keep this unsaved note');
+ const lines=await page.locator('.drawer-bio').evaluate(node=>{
+  const text=node.firstChild;
+  return ['First line','Second line','Third line'].map(word=>{
+   const range=document.createRange(),start=text.textContent.indexOf(word);range.setStart(text,start);range.setEnd(text,start+word.length);return range.getBoundingClientRect().top;
+  });
+ });
+ assert.ok(lines[0]<lines[1] && lines[1]<lines[2],'Biography line breaks must appear on separate visual lines');
+ assert.equal(await page.evaluate(()=>window.qaBioInjected),undefined);
+ await page.screenshot({path:path.join(output,'profile-bio-lines.png')});
  assert.equal(await page.locator('#person-note').evaluate(node=>node===document.activeElement),true);
  assert.equal(await page.locator('#person-profile-info .avatar img').getAttribute('src'),image);
  assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='add_person'&&c.args.id==='449').length),0);
@@ -116,7 +125,7 @@ try {
  assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='profile_detail'&&c.args.id==='449').length),1);
  await page.screenshot({path:path.join(output,'list-profile-drawer.png')});
  await page.keyboard.press('Escape');
- checks.push('Drawer carries the list photo, reads one scoped profile, shows zero counts and public privacy, preserves typed notes and reuses fresh data');
+ checks.push('Drawer carries the photo, reads one scoped profile, preserves biography line breaks/typed notes and reuses fresh data');
  await page.locator('#list-rows .list-person').click();
  const site=page.locator('.profile-site-link[data-url="https://youtube.com/@qa"]');
  await site.waitFor();assert.equal(await site.count(),1);assert.equal(await site.getAttribute('title'),'https://youtube.com/@qa');
