@@ -1081,7 +1081,9 @@
       "one": "The latest search will run in {0} second.",
       "other": "The latest search will run in {0} seconds."
     },
-    "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes."
+    "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes.",
+    "Taramaya devam et": "Continue scan",
+    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Showing {0} accounts from the previous partial list; this will update when the new scan finishes."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2158,7 +2160,9 @@
       "one": "La última búsqueda se realizará en {0} segundo.",
       "other": "La última búsqueda se realizará en {0} segundos."
     },
-    "Diğer işlem tamamlanınca aranacak.": "La búsqueda comenzará cuando termine la otra operación."
+    "Diğer işlem tamamlanınca aranacak.": "La búsqueda comenzará cuando termine la otra operación.",
+    "Taramaya devam et": "Continuar escaneo",
+    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Se muestran {0} cuentas de la lista parcial anterior; se actualizará cuando finalice el nuevo escaneo."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3235,7 +3239,9 @@
       "one": "A última busca será feita em {0} segundo.",
       "other": "A última busca será feita em {0} segundos."
     },
-    "Diğer işlem tamamlanınca aranacak.": "A busca começará quando a outra operação terminar."
+    "Diğer işlem tamamlanınca aranacak.": "A busca começará quando a outra operação terminar.",
+    "Taramaya devam et": "Continuar verificação",
+    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Exibindo {0} contas da lista parcial anterior; a lista será atualizada quando a nova verificação terminar."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

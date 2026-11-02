@@ -3,10 +3,10 @@ import math
 
 DIRECTIONS = ('followers', 'following')
 DAY = 86400
-MIN_RESCAN = 900
+MIN_RESCAN = 60
 RESUME_AGE = 86400
 ATTENTION = {'capacity', 'pagination', 'list_coverage', 'network_policy'}
-PLAN_VERSION = 2
+PLAN_VERSION = 3
 
 
 def initialize(data):

@@ -51,6 +51,11 @@ def main():
             'draft':{'id':'unfinished','ownerId':'100','direction':'followers','members':{'204':members['204']},
                 'startedAt':now,'finishedAt':now,'complete':False,'status':'running','pages':1,'expected':3}}
         e.data['lists']['100:following']={'snapshots':[dict(scan('following',['201','204'],now),direction='following')]}
+        partial={'id':'qa-retained-partial','ownerId':'200','direction':'followers','startedAt':now-60,'finishedAt':now-30,
+                 'complete':False,'status':'partial','pages':2,'expected':82,
+                 'members':{str(i):{'id':str(i),'username':'qa.'+str(i),'name':'QA '+str(i)} for i in range(501,577)}}
+        e.data['lists']['200:followers']={'snapshots':[], 'retainedPartial':partial,
+            'draft':{**partial,'id':'qa-restarted-partial','members':{},'startedAt':now,'finishedAt':now,'pages':0,'nextCursor':None,'seenCursors':[]}}
         case=access_checks.ensure_case(e.data,e.data['people']['200'],now)
         case.update(absence=access_checks.absence_evidence(e.data,'200'),alertRecorded=True)
         case['checks']=[{'status':'suspected','reason':'missing_and_unavailable','ownHTTP':200,

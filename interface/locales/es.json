@@ -1073,5 +1073,7 @@
     "one": "La última búsqueda se realizará en {0} segundo.",
     "other": "La última búsqueda se realizará en {0} segundos."
   },
-  "Diğer işlem tamamlanınca aranacak.": "La búsqueda comenzará cuando termine la otra operación."
+  "Diğer işlem tamamlanınca aranacak.": "La búsqueda comenzará cuando termine la otra operación.",
+  "Taramaya devam et": "Continuar escaneo",
+  "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Se muestran {0} cuentas de la lista parcial anterior; se actualizará cuando finalice el nuevo escaneo."
 }

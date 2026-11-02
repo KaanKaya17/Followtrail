@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows-web 0.2.27 — 2026-11-02 (Kısmi listeyi koruma ve daha kısa istek aralığı)
+
+- Elle yeniden kontrol, geçerli devam bilgisi olan kısmi taramayı kaldığı yerden sürdürür; düğme Taramaya devam et olur. Baştan okumak gerekiyorsa ve henüz tam liste yoksa önceki dolu kısmi liste ayrı tutulup tarihiyle gösterilir. Tekrarlanan başarısız başlangıçlar bu kaydı boş sayfayla değiştirmez; yeni tam liste bitince ayrı kayıt kaldırılır. Tam listeler korunur, kısmi üyeler birleştirilmez ve kısmi kayıttan fark/takipten çıkış üretilmez. Daha önce üzerine yazılmış kayıtları geri getirme garantisi yoktur.
+- Windows normal hesap okumalarında rastgele aralık 12–18 saniyeden 6–10 saniyeye çekildi. Mevcut rezervasyonlar, saatlik/günlük bütçeler ve 429/doğrulama molaları korunur; bu aralık doğrulanmış Instagram kotası değildir. Android 0.1.69 değiştirilmedi.
+- Profilde takipçi/takip edilen sayısının artması veya azalması ilgili listeyi öne alır. Otomatik tam taramalar arasındaki asgari aralık 15 dakikadan 1 dakikaya çekildi; sayı değişmese de günlük doğrulama korunur. Eski çoklu hesap takvimleri yeni plan sürümüyle yerel olarak yeniden hesaplanır.
+- Doğrulama: 186 Python ve 38 Node testi, tema/dil/kaynak kontrolü (dört dilde 1.027 metin), iki Windows marka/kısayol kontrolü, eski kısmi kayıtla paketli başlangıç ve paketli EXE üzerinde 36 çevrimdışı kontrol geçti. Yeni kontroller kaldığı yerden sürdürme, art arda başarısız başlangıçlarda eski üyeleri koruma, yeniden açılış, sahiplik, tam sonucu atomik değiştirme, sayı artışı/azalışı ve değişmeyen sayılarda günlük taramayı kapsar. 76 kişilik önceki kısmi kaydın boş yeni tarama sırasında ekranda kalması paketli uygulamada doğrulandı. Yeni 6–10 saniyelik aralığın canlı Instagram sınırlama eşiği doğrulanmadı.
+
 ## Android 0.1.69 / Windows-web 0.2.26 — 2026-11-01 (Canlı profil arama ve fotoğraflar)
 
 - Profil ekle penceresi en az iki karakter yazıldıktan ve yazmaya 650 ms ara verildikten sonra Instagram aramasını sıraya alır. Kayıtlı eşleşmeler hemen filtrelenir. Mevcut istek aralığı/bütçesi korunur; beklerken yalnız son sorgu tutulur ve kısa geri sayım gösterilir. Ağ isteği sırasında alan yazılabilir kalır, geç gelen başka sorgunun yanıtı sonuçları değiştirmez. Aynı pencerenin son altı sorgusu 60 saniye bellekte yeniden kullanılabilir; sınırlama yanıtı otomatik aramayı durdurur. Elle arama ve kullanıcı adıyla doğrudan ekleme korunur.
