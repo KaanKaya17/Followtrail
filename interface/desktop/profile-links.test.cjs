@@ -14,4 +14,10 @@ test('explicit Threads link takes precedence over the Instagram username, websit
  assert.equal(links.links({username:'ig.name',url:'https://threads.com/@linked?source=profile'}).threads,'https://threads.com/@linked?source=profile');
  assert.equal(links.threadsName('https://threads.com.evil.example/@name'),null);
  assert.equal(links.threadsName('https://threads.com/@name/post/abc'),null);
+ assert.equal(links.threadsName('http://threads.com/@name'),null);
+ assert.equal(links.threadsName('https://threads.com:9443/@name'),null);
+});
+test('a profile-provided Threads badge link remains visible after five websites',()=>{
+ const view=links.links({username:'ig.name',links:[...Array.from({length:5},(_,i)=>({url:`https://example.com/${i}`})),{url:'https://www.threads.com/@badge.name'}]});
+ assert.equal(view.threads,'https://www.threads.com/@badge.name');assert.equal(view.websites.length,5);
 });

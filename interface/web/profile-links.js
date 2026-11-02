@@ -17,12 +17,12 @@
  }
  function threadsName(value) {
   const url=webUrl(value);if(!url)return null;const parsed=new URL(url);
-  if(!['threads.com','www.threads.com','threads.net','www.threads.net'].includes(parsed.hostname))return null;
+  if(parsed.protocol!=='https:' || !['','443'].includes(parsed.port) || !['threads.com','www.threads.com','threads.net','www.threads.net'].includes(parsed.hostname))return null;
   return /^\/@([A-Za-z0-9._]{1,30})\/?$/.exec(parsed.pathname)?.[1] || null;
  }
  function links(profile) {
   const websites=[],seen=new Set();
-  for(const raw of [...(Array.isArray(profile.links)?profile.links.slice(0,5):[]),{url:profile.url}]) {
+  for(const raw of [...(Array.isArray(profile.links)?profile.links.slice(0,6):[]),{url:profile.url}]) {
    const item=describe(raw?.url);if(!item || seen.has(item.url))continue;
    seen.add(item.url);websites.push(item);
   }

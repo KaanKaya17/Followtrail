@@ -35,7 +35,7 @@ try {
    if(operation==='profile_detail') {
     if(window.qaDelayProfile)await new Promise(resolve=>window.qaProfileResolver=resolve);
     state.profileDetail={accountId:args.accountId,profile:{id:args.id,username:'qa.'+args.id,name:'QA '+args.id,
-     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:'First line\nSecond line\nThird line <img src=x onerror=window.qaBioInjected=true>',url:'https://youtube.com/@qa',links:[{url:'https://youtube.com/@qa'},{url:'https://portfolio.example/projects?q=1'},...(args.id==='449' ? [{url:'https://www.threads.com/@linked.account?source=profile'}] : [])],observedAt:Date.now()/1000}};
+     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:'First line\nSecond line\nThird line <img src=x onerror=window.qaBioInjected=true>',url:'https://youtube.com/@qa',links:[{url:'https://youtube.com/@qa'},{url:'https://portfolio.example/projects?q=1'},...(args.id==='449' ? [{url:'https://example.com/1'},{url:'https://example.com/2'},{url:'https://example.com/3'},{url:'https://www.threads.com/@linked.account?source=profile'}] : [])],observedAt:Date.now()/1000}};
    }
    if(operation==='add_person') {
     state.people.push({id:args.id,username:args.username,name:'İpek Kaya',followers:1,following:1,observedAt:1800000000,watching:false});
@@ -128,6 +128,7 @@ try {
  await page.locator('#list-rows .list-person').click();
  const site=page.locator('.profile-site-link[data-url="https://youtube.com/@qa"]');
  await site.waitFor();assert.equal(await site.count(),1);assert.equal(await site.getAttribute('title'),'https://youtube.com/@qa');
+ assert.equal(await page.locator('#person-profile-info .profile-site-link').count(),7); // Five sites plus Instagram and Threads.
  assert.equal(await site.locator('svg').count(),2);
  assert.equal(await page.locator('#person-profile-info').getByText('Profil bağlantısı',{exact:true}).count(),0);
  await site.click();assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://youtube.com/@qa');
