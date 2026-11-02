@@ -31,7 +31,7 @@
     username: "Kullanıcı adı",
     name: "Görünen ad",
     bio: "Biyografi",
-    url: "Bağlantı",
+    url: "Web sitesi",
     private: "Gizli hesap",
     verified: "Doğrulanmış hesap",
     followers: "Takipçi",
@@ -900,8 +900,38 @@
     if(Number.isFinite(p.observedAt))facts.push([t("Son kontrol"),date(p.observedAt)]);
     if(typeof p.private==='boolean')facts.push([t("Gizlilik"),p.private?t("Gizli"):t("Açık")]);
     if(Number.isFinite(p.posts) && p.posts>=0)facts.push([t("Gönderi"),num(p.posts)]);
-    if(typeof p.url==='string' && p.url.trim())facts.push([t("Profil bağlantısı"),p.url]);
-    return `<div class="drawer-heading">${avatar(view.avatar ? {...p,avatar:view.avatar} : p,true)}</div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p>${typeof p.bio==='string' && p.bio.trim() ? `<p class="drawer-bio">${esc(p.bio)}</p>` : ''}${counts.length ? `<div class="drawer-counts">${counts.map(([key,label])=>`<div><strong>${num(p[key])}</strong><span>${t(label)}</span></div>`).join('')}</div>` : ''}${facts.length ? `<section class="drawer-section">${facts.map(([label,value])=>`<div class="detail-pair"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</section>` : ''}`;
+    return `<div class="drawer-heading">${avatar(view.avatar ? {...p,avatar:view.avatar} : p,true)}</div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p>${typeof p.bio==='string' && p.bio.trim() ? `<p class="drawer-bio">${esc(p.bio)}</p>` : ''}${personLinks(view)}${counts.length ? `<div class="drawer-counts">${counts.map(([key,label])=>`<div><strong>${num(p[key])}</strong><span>${t(label)}</span></div>`).join('')}</div>` : ''}${facts.length ? `<section class="drawer-section">${facts.map(([label,value])=>`<div class="detail-pair"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</section>` : ''}`;
+  }
+  function personLink(url,label,brand,action='open-profile-link',hint=url) {
+    return `<button type="button" class="profile-site-link" data-action="${action}" data-url="${esc(url)}" title="${esc(hint)}" aria-label="${esc(t("{0} bağlantısını aç",label))}">${window.TrackerLinkIcon(brand)}<span>${esc(label)}</span>${icon('arrow')}</button>`;
+  }
+  function personLinks(view) {
+    const links=window.TrackerProfileLinks.links(view.profile),result=view.threadsResult;
+    const checked=result?.url?.toLowerCase()===links.threads?.toLowerCase();
+    const sites=links.websites.map(link=>personLink(link.url,link.name,link.icon)).join('');
+    const social=(links.instagram ? personLink(links.instagram,t("Instagram’da aç"),'instagram') : '')+
+      (links.threads ? personLink(links.threads,checked && result.status==='visible' ? t("Threads’te aç") : t("Threads’i kontrol et"),'threads',checked && result.status==='visible' ? 'open-profile-link' : 'check-threads',t("Bu kullanıcı adındaki Threads profilini kontrol et: {0}",links.threads)) : '');
+    const message=checked ? result.status==='visible' ? t("Bu kullanıcı adındaki Threads profili bulundu.") : result.status==='not_found' ? t("Bu kullanıcı adıyla Threads profili bulunamadı.") : t("Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.") : view.threadMessage || '';
+    return `<div class="profile-links">${sites}${social}</div><div id="person-link-status" class="field-hint" role="status">${esc(message)}${checked && result.status==='unknown' ? personLink(links.threads,t("Tarayıcıda aç"),'threads') : ''}</div>`;
+  }
+  async function openProfileLink(url) {
+    if(!window.TrackerProfileLinks.webUrl(url))return;
+    try {await api.openLink(url);}catch{toast(t("Bağlantı açılamadı."));}
+  }
+  async function checkThreads(url) {
+    const view=personView;if(!view || !window.TrackerProfileLinks.threadsName(url))return;
+    if(busy){toast(t("Önce devam eden işlemi bitir veya iptal et."));return;}
+    view.threadsResult=null;view.threadMessage=t("Threads profili kontrol ediliyor…");
+    document.getElementById('person-profile-info').innerHTML=personInformation(view);
+    const response=await command('check_threads',{accountId:view.accountId,id:view.id,url},'',false);
+    if(personView!==view || window.TrackerProfileLinks.links(view.profile).threads!==url)return;
+    const result=response?.state?.threadsProfile;
+    if(!response?.ok || result?.id!==view.id || result.accountId!==view.accountId) {
+      view.threadMessage=userError(response?.error);document.getElementById('person-profile-info').innerHTML=personInformation(view);return;
+    }
+    view.threadsResult=result;
+    view.threadMessage='';document.getElementById('person-profile-info').innerHTML=personInformation(view);
+    if(result.status==='visible' && windowVisible)await openProfileLink(result.url);
   }
   function receivePersonPhoto(source,image) {
     const view=personView;
@@ -1201,6 +1231,8 @@
         profileDetails.retry();
         break;
       }
+      case 'open-profile-link': await openProfileLink(target.dataset.url);break;
+      case 'check-threads': await checkThreads(target.dataset.url);break;
       case "remove-person":
         dialog(
           `<h2 id="dialog-title">${t("Bu kişi kaldırılsın mı?")}</h2><p>${t("Favori, not ve izleme tercihi silinir. Eski gözlem geçmişi ve liste kayıtları korunur.")}</p><div class="dialog-buttons">${button(t("Vazgeç"), "close")}${button(t("Kişiyi kaldır"), "remove-confirm", "close", "primary", idattr(id))}</div>`,

@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.31 / Android 0.1.70 — 2026-11-02 (Profil siteleri ve sosyal bağlantılar)
+
+- Kişinin web sitesi artık **Profil bağlantısı** diye gösterilmez. Yerel site logosu/adı, bilinmeyen sitede alan adı/genel simge, fareyle üzerine gelince veya telefonda uzun basınca tam adres gösterilir. Birden fazla biyografi bağlantısı en fazla beş adresle desteklenir; eski kayıtlar korunur. İkonlar tek yerel kaynaktan üretilir; dış favicon/site başlığı hizmeti kullanılmaz.
+- Instagram’da aç düğmesi eklendi. Site/Instagram adresleri kullanıcı eylemiyle normal tarayıcıda açılır. Electron renderer'ında uzak gezinme açılmadı; ayrı IPC geçerli HTTP(S) adresleri kabul eder, dosya/JavaScript/kimlik bilgili URL'leri reddeder.
+- Threads’i kontrol et, açık Threads biyografi bağlantısını veya aynı kullanıcı adını çerezsiz tek GET ile kontrol eder. Profil verisi istenen ad/URL ile eşleşirse açılır; HTTP 404/410 bulunamadı, giriş/yönlendirme/erişim engeli veya tanınmayan yanıt doğrulanamadı olarak gösterilir. Bilinmeyen sonuçta tarayıcıda açma seçeneği vardır. Instagram ve Threads sahipliği birleştirilmez. Ortak aralık, bütçe ve 429 molası korunur. Windows sonucu 20 kayıt/beş dakika bellekte kullanır; hesap geçişi temizler. Android ekrandan ayrılınca çağrıyı iptal eder.
+- Doğrulama: 201 Python, 46 Node, 131 Android birim testi, 10 sentetik arama/liste/panel ekran kontrolü; dört dilde 665 Android kaynağı ve 1.042 masaüstü mesajı eşleşti. Android release derlemesi ve lint geçti (0 hata, 21 uyarı). Threads'in bilinen herkese açık profiliyle iki oturumsuz canlı deneme HTTP 302 ile giriş sayfasına yöneldi; bu, yokluk olarak sunulmaz. Canlı başarılı profil varlığı/404 sonucu ve Android'in yeni ekranı fiziksel cihazda doğrulanmadı. Paketli EXE üzerinde 36 kontrol ve imzalı APK manifest/imza doğrulaması geçti.
+
 ## Windows 0.2.30 — 2026-11-02 (Listeden profil ayrıntılarına geçiş)
 
 - Liste satırındaki fotoğraf sağ profil paneline taşınır; devam eden küçük resim indirmesi panelle paylaşılır, ikinci indirme gerekmez. Bilgi yanıtı fotoğrafı veya yazılmakta olan notu/odağı silmez.

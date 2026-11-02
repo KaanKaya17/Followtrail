@@ -21,6 +21,7 @@ const { Background } = require("./background.cjs");
 const { RendererUpdates } = require("./renderer-updates.cjs");
 const themeBackgrounds = require('./theme.cjs');
 const i18n = require('../web/i18n.js');
+const profileLinks = require('../web/profile-links.js');
 const t = (message, ...values) => i18n.translate(message, values, backend?.state?.settings.language || 'tr');
 const {
   APP_ID,
@@ -81,6 +82,7 @@ const allowed = new Set([
   "cancel_search_images",
   "list_avatar",
   "profile_detail",
+  "check_threads",
   "cancel_list_images",
   "save_person",
   "remove_person",
@@ -126,6 +128,7 @@ function validate(operation, args) {
     cancel_search_images: [],
     list_avatar: ["accountId", "ownerId", "direction", "scanId", "id"],
     profile_detail: ["accountId", "id"],
+    check_threads: ["accountId", "id", "url"],
     cancel_list_images: [],
     save_person: ["id", "favorite", "watching", "group", "note"],
     remove_person: ["id"],
@@ -272,6 +275,13 @@ else
         }
       }
       return backend.command(operation, args);
+    });
+    ipcMain.handle('tracker:open-link',async(event,value)=>{
+      if(!senderValid(event))throw new Error('Untrusted sender');
+      const url=profileLinks.webUrl(value);
+      if(!url)throw new Error('Invalid web link');
+      if(testHome)return {ok:true,url,opened:false};
+      await shell.openExternal(url);return {ok:true};
     });
     ipcMain.handle("tracker:file", async (event, action, args = {}) => {
       const fileFields =

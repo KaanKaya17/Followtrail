@@ -13,6 +13,7 @@ from instagrapi.exceptions import TwoFactorRequired
 from instagrapi.transports import create_curl_h2_adapter
 import requests
 import request_policy
+import profile_links
 from PIL import Image
 
 
@@ -153,6 +154,7 @@ def parse_profile(payload, expected_id=None):
     profile['picture'] = ('anonymous' if user.get('has_anonymous_profile_picture') is True else
                           'id:' + str(picture_id) if type(picture_id) in (str, int) and 0 < len(str(picture_id)) <= 128 else None)
     profile['avatarUrl'] = user.get('profile_pic_url') if isinstance(user.get('profile_pic_url'), str) else None
+    profile['links'] = profile_links.parse(user)
     return profile
 
 

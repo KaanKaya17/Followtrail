@@ -74,6 +74,8 @@ for (const name of [
   "profile-search.js",
   "list-photos.js",
   "profile-details.js",
+  "profile-links.js",
+  "link-icons.js",
   "command-palette.js",
   "operation-progress.js",
   "desktop.css",

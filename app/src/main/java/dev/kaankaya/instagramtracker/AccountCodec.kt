@@ -41,10 +41,15 @@ object AccountCodec {
     private fun encodeDetails(value: ProfileDetails, texts: Map<String, Int>) = JSONObject().put("biography", text(value.biography, texts))
         .put("pictureId", text(value.pictureId, texts)).put("pictureUrl", text(value.pictureUrl, texts)).apply {
             value.anonymousPicture?.let { put("anonymous", it) }
+            if (value.links.isNotEmpty()) put("links", JSONArray(value.links.map { it.url }))
         }
     private fun decodeDetails(body: JSONObject, texts: List<String>) = ProfileDetails(text(body.getJSONObject("biography"), texts),
         text(body.getJSONObject("pictureId"), texts), text(body.getJSONObject("pictureUrl"), texts),
-        if (body.has("anonymous")) body.get("anonymous").also { require(it is Boolean) } as Boolean else null)
+        if (body.has("anonymous")) body.get("anonymous").also { require(it is Boolean) } as Boolean else null,
+        if (!body.has("links")) emptyList() else body.getJSONArray("links").let { items ->
+            require(items.length() <= 5)
+            (0 until items.length()).map { ProfileSite(items.get(it) as String) }.also { require(it.distinct().size == it.size) }
+        })
     fun encode(account: SavedAccount): String {
         val details = (listOf(account.profile) + account.people.flatMap { it.history }).map { it.details }
             .filter { it != ProfileDetails() }.distinct()

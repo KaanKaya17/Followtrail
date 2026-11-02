@@ -177,6 +177,8 @@ class Accounts(Engine):
             self.search_results = None
             self.search_pictures = {}
             self.profile_detail_result = None
+            self.threads_result = None
+            self.threads_cache.clear()
             self.recover_interrupted()
         except Exception:
             self.vault, self.data, self.active_id = old_vault, old_data, old_id
