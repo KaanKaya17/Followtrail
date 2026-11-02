@@ -32,5 +32,6 @@ object ProfileSummary {
             .apply { setPadding(0, AppUi.dp(context, 16), 0, 0) })
         addView(AppUi.text(context, context.getString(R.string.ui_last_record, java.text.SimpleDateFormat("d MMM · HH:mm", AppLanguage.locale(context)).format(java.util.Date(profile.observedAt))), 11f, AppUi.muted)
             .apply { setPadding(0, AppUi.dp(context, 12), 0, 0) })
+        addView(ProfileLinkViews.view(context, profile.username, profile.details.links))
     }
 }

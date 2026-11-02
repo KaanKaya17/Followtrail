@@ -1082,5 +1082,17 @@
     "other": "Los datos del perfil se consultarán en {0} segundos."
   },
   "Diğer işlem tamamlanınca profil okunacak.": "El perfil se consultará cuando termine la operación actual.",
-  "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır.": "Compara las listas de tu cuenta y de los perfiles seguidos. Los cambios en el número ponen un análisis en cola; hay al menos 1 minuto entre análisis completos. Si el número no cambia, se analizan a diario."
+  "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır.": "Compara las listas de tu cuenta y de los perfiles seguidos. Los cambios en el número ponen un análisis en cola; hay al menos 1 minuto entre análisis completos. Si el número no cambia, se analizan a diario.",
+  "{0} bağlantısını aç": "Abrir enlace de {0}",
+  "Instagram’da aç": "Abrir Instagram",
+  "Threads’te aç": "Abrir Threads",
+  "Threads’i kontrol et": "Comprobar Threads",
+  "Bu kullanıcı adındaki Threads profilini kontrol et: {0}": "Comprobar el perfil de Threads con este nombre de usuario: {0}",
+  "Bağlantı açılamadı.": "No se pudo abrir el enlace.",
+  "Threads profili kontrol ediliyor…": "Comprobando el perfil de Threads…",
+  "Bu kullanıcı adındaki Threads profili bulundu.": "Se encontró un perfil de Threads con este nombre de usuario.",
+  "Bu kullanıcı adıyla Threads profili bulunamadı.": "No se encontró un perfil de Threads con este nombre de usuario.",
+  "Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.": "No se pudo verificar el perfil de Threads. Puedes comprobarlo en tu navegador.",
+  "Tarayıcıda aç": "Abrir en el navegador",
+  "Web sitesi": "Sitio web"
 }

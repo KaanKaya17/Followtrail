@@ -146,10 +146,7 @@ class MemberProfileActivity : LocalizedActivity() {
                 startActivity(Intent(this, FollowListActivity::class.java).putExtra("target_id", member.id).putExtra("offline_preview", preview))
             }); page.gap(12)
         }
-        page.addView(AppUi.button(this, getString(R.string.ui_open_in_instagram), false, ProfileLinks.url(username) != null) {
-            try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(ProfileLinks.url(username))).addCategory(Intent.CATEGORY_BROWSABLE)) }
-            catch (_: android.content.ActivityNotFoundException) { android.widget.Toast.makeText(this, R.string.profile_link_unavailable, android.widget.Toast.LENGTH_SHORT).show() }
-        })
+        if (shown == null) page.addView(ProfileLinkViews.view(this, username, emptyList()))
         main.removeCallbacks(wake)
         val next = maxOf(gate.nextAllowedAt(), shown?.observedAt?.plus(PeoplePolicy.FRESH_MS) ?: 0)
         if (next > System.currentTimeMillis()) main.postDelayed(wake, next - System.currentTimeMillis())

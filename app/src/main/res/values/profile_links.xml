@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_threads_open">Threads’te aç</string>
+    <string name="profile_threads_check">Threads’i kontrol et</string>
+    <string name="profile_threads_loading">Threads profili kontrol ediliyor…</string>
+    <string name="profile_threads_found">Bu kullanıcı adındaki Threads profili bulundu.</string>
+    <string name="profile_threads_missing">Bu kullanıcı adıyla Threads profili bulunamadı.</string>
+    <string name="profile_threads_unknown">Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.</string>
+    <string name="profile_browser_open">Tarayıcıda aç</string>
+</resources>

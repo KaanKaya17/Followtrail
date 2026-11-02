@@ -1,5 +1,13 @@
 # Veri ve ağ sınırları
 
+## Windows 0.2.31 / Android 0.1.70 site ve sosyal bağlantıları
+
+Instagram yanıtındaki en fazla beş geçerli HTTP(S) biyografi/site adresi mevcut şifreli profil kaydında tutulabilir; kullanıcı tıklayana kadar bu sitelere gidilmez. Yerel marka ikonları iki platformda aynı kaynaktan üretilir. Bilinmeyen sitede alan adı ve genel simge gösterilir; favicon, site başlığı, uzaktan logo veya analitik hizmeti kullanılmaz. Açılan web adresleri normal tarayıcı/işletim sistemine devredilir; dosya, JavaScript ve kimlik bilgili URL'ler reddedilir. Tarayıcının kendi oturumu uygulamaya aktarılmaz.
+
+Threads kontrolü yalnız açık düğme eylemiyle, sabit Threads HTTPS profil hedefinde, Instagram çerezi/Authorization olmadan tek GET yapar. Yönlendirme ve otomatik tekrar yoktur; yanıt boyutu ve süre sınırlıdır. Mevcut istek aralığı/bütçesi/mola korunur; 429 yeni bir bekleme gerektirebilir. Yanıt HTML'si diske yazılmaz. Windows sonucu en fazla 20 kayıt/beş dakika bellekte tutar ve hesap geçişinde temizler; Android görünümden ayrılınca etkin çağrıyı iptal eder. Giriş sayfası/erişim engeli yokluk kanıtı değildir. Aynı adla bulunan Threads profili, Instagram sayısal kimliğiyle eşleştirilmiş gibi sunulmaz. Profiller açılınca veya arka planda sürekli Threads yoklaması yapılmaz.
+
+Threads’in güncel web alanı [Meta’nın resmi duyurusuyla](https://about.fb.com/news/2025/04/new-features-threads-web-experience/) `threads.com` olarak doğrulandı. Resmî duyuru tek başına hesap varlığını veya iki platformdaki hesap sahipliği eşleşmesini doğrulamaz.
+
 ## Windows 0.2.30 profil ayrıntı paneli
 
 Liste üyesinin paneli açıldığında mevcut oturumla sayısal kimliğine tek profil okuması yapılabilir; son beş dakikadaki başarılı bilgi yeniden kullanılır. İstek mevcut aralık, bütçe ve molalara uyar; herhangi bir takip/beğeni/mesaj yetkisi eklenmez. Başka hesap bağlamı veya yerel kayıtlarda bulunmayan hedef reddedilir. Bu okuma liste üyesini kaydedilen profillere eklemez; ayrıntılar en fazla 20 profillik bellek önbelleğinde tutulur ve hesap geçişinde temizlenir. Kendi/kaydedilen profil için mevcut şifreli gözlem güncellenir. Panel görseli liste satırının aynı sınırlı küçük resmidir; yeni bir fotoğraf API isteği gerekmez. Yeni harici sunucu, telemetri veya dosyaya yazılan görsel önbelleği yoktur.

@@ -1,0 +1,2 @@
+<!-- Generated from design/profile-link-icons.json. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24"><path android:pathData="M22 12A10 10 0 1 1 2 12A10 10 0 0 1 22 12 M5 11L19 6L16 18L12 15L9 18V13L17 8 M5 11L9 13" android:fillColor="@android:color/transparent" android:strokeColor="#242237" android:strokeWidth="1.7" android:strokeLineCap="round" android:strokeLineJoin="round" /></vector>

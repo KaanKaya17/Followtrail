@@ -8,6 +8,8 @@ for (const file of [
   "web/profile-search.js",
   "web/list-photos.js",
   "web/profile-details.js",
+  "web/profile-links.js",
+  "web/link-icons.js",
   "web/appearance.js",
   "web/desktop.js",
   "web/wayback.js",

@@ -7,7 +7,7 @@ from network import AppFailure
 
 TYPES = {'username': 'Kullanıcı adı', 'name': 'Görünen ad', 'bio': 'Biyografi',
          'picture': 'Profil fotoğrafı', 'followers': 'Takipçi sayısı', 'following': 'Takip edilen sayısı',
-         'posts': 'Gönderi sayısı', 'url': 'Profil bağlantısı', 'private': 'Hesap gizliliği',
+         'posts': 'Gönderi sayısı', 'url': 'Web sitesi', 'private': 'Hesap gizliliği',
          'verified': 'Doğrulanma durumu', 'lists': 'Liste taraması', 'access': 'Engellenme şüphesi'}
 MAX_LOGS = 500
 

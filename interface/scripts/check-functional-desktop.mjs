@@ -72,6 +72,11 @@ try {
     assert.equal(listRejected,true);
     const after=await page.evaluate(()=>window.TrackerDesktop.command('state'));
     assert.deepEqual(after.state.gate,before.state.gate);
+    const web=await page.evaluate(()=>window.TrackerDesktop.openLink('https://www.instagram.com/qa.owner/'));
+    assert.deepEqual(web,{ok:true,url:'https://www.instagram.com/qa.owner/',opened:false});
+    for(const url of ['javascript:alert(1)','file:///C:/secret','https://u:p@example.com/']) {
+      assert.equal(await page.evaluate(async url=>{try{await window.TrackerDesktop.openLink(url);return false;}catch{return true;}},url),true);
+    }
   });
   await check('Partial saved search accepts @, shared URLs, multiple words and Turkish spelling without requests',async()=>{
     await page.locator('.sidebar nav a[href="#people"]').click();
@@ -958,6 +963,8 @@ try {
       await window.TrackerDesktop.command('profile_detail',{accountId:'100',id:'202',url:'https://example.com/'});return false;
     }catch{return true;}});
     assert.equal(detailRejected,true);
+    const threads=await page.evaluate(()=>window.TrackerDesktop.command('check_threads',{accountId:'100',id:'202',url:'https://www.threads.com/@qa.202'}));
+    assert.equal(threads.ok,false);assert.equal(threads.error.code,'offline');assert.equal(threads.state.threadsProfile,null);
     await page.setViewportSize({ width: 1100, height: 850 });
     for (const route of ['overview', 'people', 'lists', 'timeline', 'settings', 'notifications']) {
       await page.locator(`.sidebar nav a[href="#${route}"]`).click();

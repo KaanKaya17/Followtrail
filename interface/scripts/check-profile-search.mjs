@@ -20,7 +20,7 @@ try {
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!r.url().startsWith('file:')&&!r.url().startsWith('data:'))external.push(r.url());});
  await page.addInitScript(({state})=>{
   const calls=[];window.qaCalls=calls;window.qaImageResolvers=[];
-  window.TrackerDesktop={subscribe:()=>{},command:async(operation,args={})=>{
+  window.TrackerDesktop={subscribe:()=>{},openLink:async url=>{calls.push({operation:'open_link',url});return {ok:true};},command:async(operation,args={})=>{
    calls.push({operation,args});
    if(operation==='search_people') {
     if(args.query==='late')await new Promise(resolve=>window.qaResolve=resolve);
@@ -35,8 +35,9 @@ try {
    if(operation==='profile_detail') {
     if(window.qaDelayProfile)await new Promise(resolve=>window.qaProfileResolver=resolve);
     state.profileDetail={accountId:args.accountId,profile:{id:args.id,username:'qa.'+args.id,name:'QA '+args.id,
-     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:null,url:null,observedAt:Date.now()/1000}};
+     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:null,url:'https://youtube.com/@qa',links:[{url:'https://youtube.com/@qa'},{url:'https://portfolio.example/projects?q=1'}],observedAt:Date.now()/1000}};
    }
+   if(operation==='check_threads')state.threadsProfile={accountId:args.accountId,id:args.id,url:args.url,status:window.qaThreadStatus || 'unknown'};
    if(operation==='add_person') {
     state.people.push({id:args.id,username:args.username,name:'İpek Kaya',followers:1,following:1,observedAt:1800000000,watching:false});
     state.searchResults=null;
@@ -116,6 +117,23 @@ try {
  await page.screenshot({path:path.join(output,'list-profile-drawer.png')});
  await page.keyboard.press('Escape');
  checks.push('Drawer carries the list photo, reads one scoped profile, shows zero counts and public privacy, preserves typed notes and reuses fresh data');
+ await page.locator('#list-rows .list-person').click();
+ const site=page.locator('.profile-site-link[data-url="https://youtube.com/@qa"]');
+ await site.waitFor();assert.equal(await site.count(),1);assert.equal(await site.getAttribute('title'),'https://youtube.com/@qa');
+ assert.equal(await site.locator('svg').count(),2);
+ assert.equal(await page.locator('#person-profile-info').getByText('Profil bağlantısı',{exact:true}).count(),0);
+ await site.click();assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://youtube.com/@qa');
+ await page.locator('[data-url="https://www.instagram.com/qa.449/"]').click();
+ assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://www.instagram.com/qa.449/');
+ await page.evaluate(()=>window.qaThreadStatus='not_found');await page.locator('[data-action="check-threads"]').click();
+ await page.getByText('Bu kullanıcı adıyla Threads profili bulunamadı.',{exact:true}).waitFor();
+ await page.evaluate(()=>window.qaThreadStatus='unknown');await page.locator('[data-action="check-threads"]').click();
+ await page.getByText('Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.',{exact:false}).waitFor();
+ await page.evaluate(()=>window.qaThreadStatus='visible');await page.locator('[data-action="check-threads"]').click();
+ await page.getByText('Bu kullanıcı adındaki Threads profili bulundu.',{exact:true}).waitFor();
+ assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://www.threads.com/@qa.449');
+ await page.screenshot({path:path.join(output,'profile-link-actions.png')});await page.keyboard.press('Escape');
+ checks.push('Local site logos/names replace URL rows, tooltips retain destinations, Instagram opens explicitly and Threads distinguishes found/missing/unverified');
  await page.evaluate(()=>window.qaBadListImage=true);
  await page.locator('#list-search').fill('qa.447');
  await page.waitForFunction(()=>qaCalls.some(c=>c.operation==='list_avatar'&&c.args.id==='447'));
