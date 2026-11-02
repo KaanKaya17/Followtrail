@@ -11,7 +11,7 @@ import uuid
 from accounts import Accounts
 import localization
 from network import AppFailure, failure
-from search_images import SearchImages
+from thumbnails import Thumbnails
 
 logging.disable(logging.CRITICAL)
 sys.stdin.reconfigure(encoding='utf-8')
@@ -38,16 +38,20 @@ def main():
         emit({'type': 'fatal', 'code': 'storage', 'message': 'Şifreli depo açılamadı. Dosyalar korundu; otomatik sıfırlanmadı.'})
         return 2
     emit({'type': 'ready', 'state': engine.snapshot()})
-    images = SearchImages(emit)
+    images = Thumbnails(emit)
 
     def execute(request):
         group_id = uuid.uuid4().hex
+        original_owner = engine.active_id
+        def publish(message):
+            if engine.active_id != original_owner:images.cancel(clear_cache=True)
+            emit(message)
         try:
             state = engine.run(request['operation'], request.get('args') or {}, group_id=group_id)
-            emit({'type': 'result', 'id': request['id'], 'ok': True, 'state': state,
+            publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': state,
                   'notifications': engine.notifications, 'notificationGroupId': group_id})
         except Exception as exc:
-            emit({'type': 'result', 'id': request['id'], 'ok': False,
+            publish({'type': 'result', 'id': request['id'], 'ok': False,
                   'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': engine.snapshot(),
                   'notifications': engine.notifications, 'notificationGroupId': group_id})
         finally:
@@ -63,10 +67,22 @@ def main():
                 raise ValueError()
             operation = request.get('operation')
             if operation == 'search_avatar':
-                images.request(request, engine.search_results, engine.search_pictures, offline=args.offline)
+                images.request(request, engine.search_results, engine.search_pictures, namespace=engine.active_id, offline=args.offline)
             elif operation == 'cancel_search_images':
-                images.cancel()
+                images.cancel('search')
                 emit({'type': 'control', 'id': request['id'], 'ok': True})
+            elif operation == 'list_avatar':
+                source = engine.list_picture(request.get('args') or {})
+                if source:
+                    scope, identity, picture = source
+                    token = str(engine.active_id)+':'+scope
+                    normalized = {**request, 'args':{'token':token,'id':identity}}
+                    images.request(normalized, {'token':token}, {identity:picture}, namespace=engine.active_id, group='list', offline=args.offline)
+                else:
+                    emit({'type':'control','id':request['id'],'ok':True,'avatar':None})
+            elif operation == 'cancel_list_images':
+                images.cancel('list')
+                emit({'type':'control','id':request['id'],'ok':True})
             elif operation == 'cancel':
                 engine.cancel.set()
                 emit({'type': 'control', 'id': request['id'], 'ok': True})

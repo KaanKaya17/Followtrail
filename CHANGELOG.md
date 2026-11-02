@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows-web 0.2.29 — 2026-11-02 (Takip listelerinde profil fotoğrafları)
+
+- Liste yanıtında varsa izinli Meta CDN profil fotoğrafı adresi şifreli üyelik kaydında tutulur. Takipçi/takip edilen listesindeki görünür ve yakın satırlar bu adresten küçük resim yükler; kişi başına profil API sorgusu gönderilmez. Önceden adresi saklanmamış kayıtlarda baş harf kalabilir; sonraki normal taramanın aynı ID için sağladığı adres kullanılabilir. Üyelik kayıtları birleştirilmez veya değiştirilmez, ek tam tarama zorlanmaz.
+- Arama ve liste fotoğrafları tek sınırlı yükleyiciyi paylaşır: toplam iki indirme ve en fazla 20 çalışan/bekleyen iş. Mevcut çerezsiz, yönlendirmesiz, boyut/çözünürlük sınırlı CDN taşıyıcısı yeniden kullanılır. Liste adresi arayüze veya fark/bildirim üyelerine aktarılmaz; arayüz mevcut hesap/liste/tarama/kişi kimlikleriyle istekte bulunur. Keyfi URL ve başka hesap bağlamı reddedilir.
+- İşçi 64 ve arayüz 32 küçük resmi bellekte önbellekler; en çok 15 dakika boyunca yeniden kullanılabilir, diske görsel yazılmaz. Gizleme/ekran değişimi ilgili işleri iptal eder; hesap değişimi bütün görsel işlerini ve önbelleği temizler. Yerel filtreleme/sayfalama odağı korunur, geç yanıt eski ekrana yazılmaz; görsel alınamazsa baş harf gösterilir. Android 0.1.69'daki liste görsel yükleyicisi zaten bağlıdır; Android paketi değiştirilmedi.
+- Doğrulama: 193 Python, 38 Node, altı sentetik arama/liste görsel kontrolü, tema/dil/kaynak kontrolü, eski kısmi kayıtla paketli başlangıç ve paketli EXE'de 36 kontrol geçti. Bunlar kayıtlı üye/tarama/hesap kapsamı, adresin arayüz ve farklardan çıkarılması, eski kayda yeni sayfadan fotoğraf sağlama, iki indirme sınırı, hesap/URL kapsamlı önbellek, ayrı arama/liste iptali, geç yanıt, görünür satır yükleme, filtre odağı ve geçersiz görselde baş harfi korumayı sınar. Ağ yanıtları sentetiktir; yeni liste fotoğrafı akışı canlı Instagram/CDN yanıtıyla doğrulanmadı.
+
 ## Windows-web 0.2.28 — 2026-11-02 (Yerel istek bütçesini iki katına çıkarma)
 
 - Hesap başına kayan bütçe 120/saat ve 1.200/24 saatten 240/saat ve 2.400/24 saate; bütün hesapların ortak bütçesi 240/saat ve 2.400/24 saatten 480/saat ve 4.800/24 saate çıkarıldı. Bunlar uygulamanın sınırlarıdır, Instagram'ın doğrulanmış güvenli kotaları değildir. Geçmiş istekler silinmez veya yeniden tarihlenmez; 6–10 saniye aralığı, kayıtlı rezervasyonlar, 429/doğrulama molaları ve eksik liste tekrar zamanı korunur.

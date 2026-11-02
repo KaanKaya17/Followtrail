@@ -6,6 +6,7 @@ for (const file of [
   "web/app.js",
   "web/usage-notes.js",
   "web/profile-search.js",
+  "web/list-photos.js",
   "web/appearance.js",
   "web/desktop.js",
   "web/wayback.js",

@@ -72,6 +72,7 @@ for (const name of [
   "desktop.js",
   "usage-notes.js",
   "profile-search.js",
+  "list-photos.js",
   "command-palette.js",
   "operation-progress.js",
   "desktop.css",
