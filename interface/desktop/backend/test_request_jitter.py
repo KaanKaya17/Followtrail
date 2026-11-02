@@ -33,17 +33,17 @@ class RequestJitterTests(unittest.TestCase):
         e.save()
 
     def test_default_uniform_bounds_and_one_draw_per_reservation(self):
-        with patch('engine.random.uniform', side_effect=[12.0,18.0,15.375]) as draw:
+        with patch('engine.random.uniform', side_effect=[6.0,10.0,8.375]) as draw:
             e = self.engine()
-            for spacing in (12.0,18.0,15.375):
+            for spacing in (6.0,10.0,8.375):
                 e.before_request()
                 self.assertEqual(e.data['gate']['nextAt']-e.data['gate']['lastAt'],spacing)
                 e.snapshot()
             self.assertEqual(draw.call_count,3)
             self.assertTrue(all(call.args==REQUEST_SPACING for call in draw.call_args_list))
-        self.assertEqual(e.cancel.waits,[12.0,18.0])
+        self.assertEqual(e.cancel.waits,[6.0,10.0])
         self.assertEqual(Vault(self.home.name).load()['gate'],e.data['gate'])
-        self.assertEqual(e.snapshot()['requestPacing'],{'minSeconds':12,'maxSeconds':18})
+        self.assertEqual(e.snapshot()['requestPacing'],{'minSeconds':6,'maxSeconds':10})
 
     def test_restart_switch_and_local_edits_keep_the_same_shared_deadline(self):
         first = Mock(return_value=17.25)

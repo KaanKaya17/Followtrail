@@ -1073,5 +1073,7 @@
     "one": "The latest search will run in {0} second.",
     "other": "The latest search will run in {0} seconds."
   },
-  "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes."
+  "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes.",
+  "Taramaya devam et": "Continue scan",
+  "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Showing {0} accounts from the previous partial list; this will update when the new scan finishes."
 }

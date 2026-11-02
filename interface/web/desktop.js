@@ -106,7 +106,7 @@
     for (const record of Object.values(data?.lists || {})) {
       for (const scan of [...record.snapshots]
         .reverse()
-        .concat(record.draft || []))
+        .concat(record.draft || [],record.retainedPartial || []))
         if (scan.members[id]) return scan.members[id];
     }
     return data?.access?.find((c) => c.id === id) || null;
@@ -579,7 +579,7 @@
     const { current, previous, comparable } = selectedScans(),
       record = selectedRecord();
     let entries = Object.values(
-      current?.members || record.draft?.members || {},
+      current?.members || record.retainedPartial?.members || record.draft?.members || {},
     ).map((p) => ({
       ...p,
       change: previous && !previous.members[p.id] ? t("Yeni görüldü") : "",
@@ -658,7 +658,7 @@
             `<option value="${esc(s.id)}" ${s.id === selected?.id ? "selected" : ""}>${t("{0} · {1} hesap", esc(date(s.finishedAt)), num(Object.keys(s.members).length))}</option>`,
         )
         .join("");
-    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", button(current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
+    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", button(record.canResume ? t("Taramaya devam et") : current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
 
       <section class="list-account card"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${[
         data.account,
@@ -683,8 +683,8 @@
         .join(
           "",
         )}</div><label class="search-input">${icon("search")}<input id="list-search" type="search" placeholder="${t("Listede ara")}" aria-label="${t("Listede ara")}" value="${esc(ui.listQuery)}"></label></div>
-      <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(Object.keys(current.members).length) + t(" hesap") : t("Listenin tamamı henüz okunmadı")}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${record.draft ? `<div class="notice warning"><strong>${t("Liste henüz tamamlanmadı · {0} hesap kaydedildi", num(Object.keys(record.draft.members).length))}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
-      <div class="comparison-controls card"><label>${t("Önceki kontrol")}<select id="previous-scan" ${scans.length < 2 ? "disabled" : ""}>${scanOptions(previous)}</select></label><label>${t("Yeni kontrol")}<select id="current-scan" ${!scans.length ? "disabled" : ""}>${scanOptions(current)}</select></label>${button(ui.comparison ? t("Listeye dön") : t("Farkları göster"), "compare", "compare", "secondary", !ready ? "disabled" : "")}</div>
+      <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(Object.keys(current.members).length) + t(" hesap") : t("Listenin tamamı henüz okunmadı")}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${record.draft ? `<div class="notice warning"><strong>${t("Liste henüz tamamlanmadı · {0} hesap kaydedildi", num(Object.keys(record.draft.members).length))}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : record.canResume ? t("Taramaya devam et") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
+      ${!current && record.retainedPartial ? `<div class="notice"><strong>${t("Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.",num(Object.keys(record.retainedPartial.members).length))}</strong><p>${esc(date(record.retainedPartial.finishedAt || record.retainedPartial.startedAt))}</p></div>` : ""}<div class="comparison-controls card"><label>${t("Önceki kontrol")}<select id="previous-scan" ${scans.length < 2 ? "disabled" : ""}>${scanOptions(previous)}</select></label><label>${t("Yeni kontrol")}<select id="current-scan" ${!scans.length ? "disabled" : ""}>${scanOptions(current)}</select></label>${button(ui.comparison ? t("Listeye dön") : t("Farkları göster"), "compare", "compare", "secondary", !ready ? "disabled" : "")}</div>
       ${ui.comparison && ready ? `<div class="compare-summary"><div class="compare-stat mint"><strong>${num(added)}</strong><span>${ui.direction === "followers" ? t("Yeni görülen takipçiler") : t("Yeni takip edilen hesaplar")}</span></div><div class="compare-stat peach"><strong>${num(removed)}</strong><span>${t("Son kontrolde görünmeyenler")}</span></div></div>` : ""}
       <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option></select></label></div><div class="results-line"><span id="list-result-count">${t("{0} hesap · En fazla {1} satır gösteriliyor", listEntries().length, ui.pageSize)}</span></div><div class="list-table card" id="list-rows">${listRows()}</div><div id="list-pagination">${listPagination()}</div>${accessOverview()}`;
   }

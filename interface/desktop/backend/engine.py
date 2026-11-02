@@ -29,7 +29,7 @@ from network import read_avatar
 MAX_MEMBERS = 20000
 MAX_PAGES = 400
 CONTROL_INTERVALS = (1, 5, 15, 30, 60, 180, 360)
-REQUEST_SPACING = (12, 18)
+REQUEST_SPACING = (6, 10)
 PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'followers', 'following', 'posts', 'picture')
 
 
@@ -119,6 +119,8 @@ class Engine:
             snapshots = record.get('snapshots', [])
             draft = record.get('draft')
             records[key] = {'snapshots': snapshots, 'draft': {k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')} if draft else None,
+                            'canResume': list_preparation.resumable(draft, self.clock()),
+                            'retainedPartial': record.get('retainedPartial'),
                             'comparison': compare(snapshots[-2], snapshots[-1]) if len(snapshots) > 1 else None}
         return {'account': public_person(d['account']) if d['account'] else None,
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
@@ -137,7 +139,7 @@ class Engine:
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.26'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.27'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -428,6 +430,11 @@ class Engine:
         draft = record.get('draft')
         continuing = resume and list_preparation.resumable(draft, self.clock())
         if not continuing:
+            # A new partial read is independent evidence, never a union with
+            # the old page. Keep the old visible partial until a full result
+            # replaces it, including across failed/restarted fresh attempts.
+            if (not record['snapshots'] and draft and draft.get('members') and not record.get('retainedPartial')):
+                record['retainedPartial'] = {k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}
             draft = {'id': uuid.uuid4().hex, 'ownerId': identity, 'direction': direction,
                      'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
                      'status': 'running', 'pages': 0, 'expected': None, 'nextCursor': None, 'seenCursors': []}
@@ -484,6 +491,7 @@ class Engine:
                     record['snapshots'].append(copy.deepcopy({k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}))
                     del record['snapshots'][:-6]
                     record.pop('draft', None)
+                    record.pop('retainedPartial', None)
                     schedule.update(after=self.clock() + list_preparation.MIN_RESCAN, error=None)
                     diff = compare(record['snapshots'][-2], record['snapshots'][-1]) if len(record['snapshots']) > 1 else None
                     changes = {'direction': direction, 'count': len(draft['members']),
@@ -531,7 +539,7 @@ class Engine:
         if person:
             return person
         for record in self.data['lists'].values():
-            for scan in list(reversed(record.get('snapshots', []))) + ([record['draft']] if record.get('draft') else []):
+            for scan in list(reversed(record.get('snapshots', []))) + [s for s in (record.get('draft'),record.get('retainedPartial')) if s]:
                 if identity in scan['members']:
                     return scan['members'][identity]
         case = self.data['access'].get(identity)
@@ -777,7 +785,7 @@ class Engine:
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
             handlers = {'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
                         'refresh': lambda: self.refresh(args), 'add_person': lambda: self.add_person(args),
-                        'scan': lambda: self.scan(args), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
+                        'scan': lambda: self.scan(args, resume=True), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
                         'check_access': lambda: self.check_access(args),
                         'notification_rule': lambda: self.notification_rule(args),
@@ -915,7 +923,12 @@ def validate_archive(d):
             raise ValueError('list identity')
         if not isinstance(record, dict) or not isinstance(record.get('snapshots'), list) or len(record['snapshots']) > 6:
             raise ValueError('lists')
-        for snapshot in record['snapshots'] + ([record['draft']] if record.get('draft') else []):
+        retained = record.get('retainedPartial')
+        if retained is not None and (not isinstance(retained, dict) or retained.get('complete') is not False or
+                retained.get('ownerId') != owner or retained.get('direction') != direction or
+                'nextCursor' in retained or 'seenCursors' in retained):
+            raise ValueError('retained partial')
+        for snapshot in record['snapshots'] + [s for s in (record.get('draft'),retained) if s is not None]:
             if not isinstance(snapshot, dict) or not isinstance(snapshot.get('members'), dict) or len(snapshot['members']) > MAX_MEMBERS:
                 raise ValueError('members')
             if type(snapshot.get('complete')) is not bool:

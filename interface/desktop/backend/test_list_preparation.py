@@ -156,6 +156,60 @@ class ListPreparationTests(unittest.TestCase):
         self.assertEqual([d['count'] for d in state['listPreparation']['directions']],[0,0])
         self.assertIsNone(state['lists']['100:followers']['comparison'])
 
+    def test_manual_recheck_resumes_current_pages_instead_of_erasing_them(self):
+        self.linked();self.work(profile(followers=3,following=1),page(['200','201'],'cursor-one'))
+        original=self.e.data['lists']['100:followers']['draft']['id']
+        self.assertTrue(self.e.snapshot()['lists']['100:followers']['canResume'])
+        client=PacedClient(self.e,[page(['202'])])
+        with patch.object(self.e,'client',return_value=client):self.e.run('scan',{'direction':'followers'})
+        self.assertEqual(client.calls[0][1]['params']['max_id'],'cursor-one')
+        self.assertEqual(len(client.calls),1)
+        completed=self.e.data['lists']['100:followers']['snapshots'][-1]
+        self.assertEqual(completed['id'],original);self.assertEqual(len(completed['members']),3)
+
+    def test_fresh_failed_scans_keep_prior_partial_visible_until_full_completion(self):
+        self.linked()
+        with self.assertRaises(AppFailure):self.work(profile(followers=3),page(['200','201']))
+        key='100:followers';partial=copy.deepcopy(self.e.data['lists'][key]['draft'])
+        self.now[0]+=1800
+        client=PacedClient(self.e,[AppFailure('network','Synthetic failure')])
+        with patch.object(self.e,'client',return_value=client),self.assertRaises(AppFailure):self.e.run('scan',{'direction':'followers'})
+        state=self.e.snapshot()['lists'][key]
+        self.assertEqual(state['retainedPartial']['members'],partial['members'])
+        self.assertEqual(state['draft']['members'],{})
+        self.assertNotIn('nextCursor',state['retainedPartial'])
+        reopened=Accounts(self.home.name,clock=lambda:self.now[0],request_delay=lambda:15)
+        self.assertEqual(reopened.snapshot()['lists'][key]['retainedPartial'],state['retainedPartial'])
+        client=PacedClient(self.e,[AppFailure('network','Another synthetic failure')])
+        with patch.object(self.e,'client',return_value=client),self.assertRaises(AppFailure):self.e.run('scan',{'direction':'followers'})
+        self.assertEqual(self.e.snapshot()['lists'][key]['retainedPartial'],state['retainedPartial'])
+        from engine import validate_archive
+        malformed=copy.deepcopy(self.e.data)
+        malformed['lists'][key]['retainedPartial']['ownerId']='999'
+        with self.assertRaises(ValueError):validate_archive(malformed)
+        client=PacedClient(self.e,[profile(followers=3),page(['200','202','203'])])
+        with patch.object(self.e,'client',return_value=client):self.e.run('scan',{'direction':'followers'})
+        record=self.e.data['lists'][key]
+        self.assertNotIn('retainedPartial',record)
+        self.assertEqual(set(record['snapshots'][-1]['members']),{'200','202','203'})
+        self.assertIsNone(self.e.snapshot()['lists'][key]['comparison'])
+
+    def test_profile_count_changes_in_both_directions_queue_scan_but_unchanged_counts_keep_daily_check(self):
+        self.linked()
+        self.work(profile(followers=3,following=1),page(['200','201','202']))
+        self.work(profile(followers=3,following=1),page(['300']))
+        self.now[0]+=61
+        def plan():return list_preparation.plan(self.e.data,self.now[0])
+        original=plan()
+        self.assertTrue(all(p['dueAt']>self.now[0] for p in original))
+        self.e.data['account']['followers']=4
+        self.e.data['account']['observedAt']=self.now[0]
+        changed=plan();self.assertLessEqual(changed[0]['dueAt'],self.now[0]);self.assertGreater(changed[1]['dueAt'],self.now[0])
+        self.e.data['account']['followers']=2
+        self.assertLessEqual(plan()[0]['dueAt'],self.now[0])
+        self.e.data['account']['followers']=3
+        self.assertEqual(plan(),original)
+
     def test_legacy_empty_end_cursor_reopens_without_losing_partial_list_or_gate(self):
         self.linked()
         with self.assertRaises(AppFailure):
