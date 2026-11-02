@@ -64,7 +64,8 @@ class Accounts(Engine):
         selected_id = self.active_id
         try:
             for identity, entry in list(self.catalog['accounts'].items()):
-                if entry['monitor'].get('listPlanVersion') != list_preparation.PLAN_VERSION:
+                if (entry['monitor'].get('listPlanVersion') != list_preparation.PLAN_VERSION or
+                        entry['monitor'].get('budgetPolicy') != request_budget.policy()):
                     self.activate(identity)
                     self.update_entry()
             self.persist_catalog()

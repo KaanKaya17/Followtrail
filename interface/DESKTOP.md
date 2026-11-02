@@ -1,4 +1,6 @@
-# InstagramTracker Windows 0.2.27
+# InstagramTracker Windows 0.2.28
+
+Bu sürüm yerel bütçeleri iki katına çıkarır: hesap başına 240/saat ve 2.400/24 saat, bütün hesaplarda 480/saat ve 4.800/24 saat. Önceki istek geçmişi aynen değerlendirilir; eski bütçeye göre önbelleğe alınmış çoklu hesap takvimi yeni politika ile yeniden hesaplanır. Bu işlem sunucu/429 molasını, giriş beklemesini veya eksik liste için ayrılmış tekrar zamanını kaldırmaz. Eski sürümün günlük kayıt sınırını aşan geçmişi eski EXE okuyamayabilir; güncellemeden sonra eski sürümle aynı kasayı açma.
 
 Listeyi yeniden kontrol et, geçerli devam bilgisi olan yarım taramayı aynı kayıttan sürdürür ve düğme Taramaya devam et olur. Devam bilgisi yoksa/süresi geçtiyse baştan okunur; önceki tamamlanmış liste korunur. Tam liste yoksa önceki dolu kısmi kayıt ayrıca korunup yeni tam liste bitene kadar tarihiyle gösterilir. Yeni ve eski kısmi üyeler birleştirilmez; bunlardan fark veya takipten çıkış çıkarılmaz. Bu koruma güncellemeden sonraki tekrarlar içindir; eski sürümün daha önce üzerine yazdığı kayıtların kurtarılması garantisi değildir.
 
@@ -8,7 +10,7 @@ Profil ekleme penceresinde en az iki karakter yazıp 650 ms duraklamak Instagram
 
 Fotoğraflar metin sonuçlarını bekletmez. Özel yerel pipe üzerinden yalnız mevcut sonuç belirteci ve ID ile istenir; URL seçimi renderer'a açılmaz. İşçi içinde iki CDN indirmesi ve en fazla 20 bekleyen/çalışan iş vardır; iptal eski işleri durdurur. Oturum/çerez kullanılmaz, yönlendirme izlenmez, mevcut resim boyutu/çözünürlük sınırları uygulanır. Pencere kapanınca geçici sorgu önbelleği bırakılır ve görsel işleri iptal edilir.
 
-`artifacts/InstagramTracker-Desktop-0.2.27/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.28/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Dört yerel uygulama dili
 
@@ -28,7 +30,7 @@ Sayaçlar eşit genişlikli rakamlar kullanır. Düğme, ikon ve hesap seçicile
 
 ## Hesap güvenliği sınırları
 
-Okuyucu, yöntem ve kesin yol sözleşmesi dışındaki işlemleri gönderimden önce reddeder. Giriş/cihaz kaydı istisnaları yalnız giriş süresince açıktır; başarısız girişte cihaz bağlamı DPAPI ile korunur. Ortam proxy'leri kullanılmaz. Hesap başına 120/saat, 1200/24 saat; bütün hesaplarda 240/saat, 2400/24 saat kayan yerel bütçe uygulanır. Meta'nın güvenli kotası değildir. Yoğun kontrolde veya büyük listelerde hedef süre uzayabilir; İstek bilgileri sonraki bütçe zamanını gösterir. Yerel hesap silme, yeniden açılış ve hesap geçişi bütçeyi sıfırlamaz. Bağlantıyı kaldırmak sunucu oturumunu kapatmaz. [Testler ve sınırlar](../docs/ACCOUNT-SAFETY-TEST.md).
+Okuyucu, yöntem ve kesin yol sözleşmesi dışındaki işlemleri gönderimden önce reddeder. Giriş/cihaz kaydı istisnaları yalnız giriş süresince açıktır; başarısız girişte cihaz bağlamı DPAPI ile korunur. Ortam proxy'leri kullanılmaz. Hesap başına 240/saat, 2400/24 saat; bütün hesaplarda 480/saat, 4800/24 saat kayan yerel bütçe uygulanır. Meta'nın güvenli kotası değildir. Yoğun kontrolde veya büyük listelerde hedef süre uzayabilir; İstek bilgileri sonraki bütçe zamanını gösterir. Yerel hesap silme, yeniden açılış ve hesap geçişi bütçeyi sıfırlamaz. Bağlantıyı kaldırmak sunucu oturumunu kapatmaz. [Testler ve sınırlar](../docs/ACCOUNT-SAFETY-TEST.md).
 
 ## Rastgele istek aralığı
 

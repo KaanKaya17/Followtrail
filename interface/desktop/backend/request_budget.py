@@ -1,8 +1,13 @@
 """Bounded rolling local budgets, not claimed Instagram quotas."""
 import math
 
-SHARED = (240, 2400)
-ACCOUNT = (120, 1200)
+SHARED = (480, 4800)
+ACCOUNT = (240, 2400)
+
+
+def policy():
+    return {'sharedHourly': SHARED[0], 'sharedDaily': SHARED[1],
+            'accountHourly': ACCOUNT[0], 'accountDaily': ACCOUNT[1]}
 
 
 def validate(times, maximum):

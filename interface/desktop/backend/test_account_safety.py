@@ -140,9 +140,9 @@ class AccountSafetyTests(unittest.TestCase):
 
     def test_budget_deadlines_rolling_day_clock_rollback_and_pruning(self):
         now=self.now[0]
-        self.assertEqual(request_budget.available_at([now-7200]*1200,now,request_budget.ACCOUNT),now-7200+86400)
-        self.assertEqual(request_budget.available_at([now]*120,now-1,request_budget.ACCOUNT),now+3600)
-        self.assertEqual(request_budget.available_at([now-3600]*120,now,request_budget.ACCOUNT),0)
+        self.assertEqual(request_budget.available_at([now-7200]*2400,now,request_budget.ACCOUNT),now-7200+86400)
+        self.assertEqual(request_budget.available_at([now]*240,now-1,request_budget.ACCOUNT),now+3600)
+        self.assertEqual(request_budget.available_at([now-3600]*240,now,request_budget.ACCOUNT),0)
         gate={'requestTimes':[now-86400],'accountRequestTimes':{'100':[now-86400]}}
         request_budget.record(gate,'300',now)
         self.assertEqual(gate,{'requestTimes':[now],'accountRequestTimes':{'300':[now]}})
@@ -154,6 +154,38 @@ class AccountSafetyTests(unittest.TestCase):
         self.assertEqual(self.e.data['gate'],before)
         self.assertFalse(self.e.catalog['limitedHold'])
         self.assertEqual(self.e.data['gate'].get('attempts',0),0)
+
+    def test_doubled_budget_reuses_old_history_and_keeps_server_pause(self):
+        p=parse_profile(profile());self.e.select_connection_account(p);self.e.record_profile(p,own=True)
+        self.e.data['gate'].update(requestTimes=[self.now[0]]*120,accountRequestTimes={'100':[self.now[0]]*120},
+                                   blockedUntil=self.now[0]+1800,nextAt=self.now[0]+17,attempts=120)
+        self.e.save()
+        reopened=Accounts(self.home.name,clock=lambda:self.now[0])
+        self.assertEqual(reopened.budget_available_at(),0)
+        self.assertEqual(len(reopened.data['gate']['accountRequestTimes']['100']),120)
+        before=copy.deepcopy(reopened.data['gate'])
+        with self.assertRaises(AppFailure) as caught:reopened.before_request()
+        self.assertEqual(caught.exception.code,'cooldown')
+        self.assertEqual(reopened.data['gate'],before)
+        reopened.data['gate']['accountRequestTimes']['100'] += [self.now[0]]*120
+        self.assertEqual(reopened.budget_available_at(),self.now[0]+3600)
+
+    def test_changed_budget_recalculates_cached_account_deadlines_without_resetting_counts(self):
+        p=parse_profile(profile());self.e.select_connection_account(p);self.e.record_profile(p,own=True)
+        self.e.data['session']={'cookies':{'ds_user_id':'100','sessionid':'SYNTHETIC'}}
+        self.e.data['settings'].update(automatic=True,automaticLists=False,interval=1)
+        self.e.data['gate'].update(requestTimes=[self.now[0]]*120,accountRequestTimes={'100':[self.now[0]]*120})
+        self.e.save()
+        self.e.catalog['accounts']['100']['monitor'].update(nextAt=self.now[0]+3600,
+            budgetPolicy={'sharedHourly':240,'sharedDaily':2400,'accountHourly':120,'accountDaily':1200})
+        self.e.persist_catalog()
+        counts=copy.deepcopy(self.e.data['gate'])
+        with patch('requests.Session.send') as send:
+            reopened=Accounts(self.home.name,clock=lambda:self.now[0]+61)
+        send.assert_not_called()
+        self.assertEqual(reopened.data['gate'],counts)
+        self.assertEqual(reopened.catalog['accounts']['100']['monitor']['budgetPolicy'],request_budget.policy())
+        self.assertLessEqual(reopened.background_status()['nextAt'],self.now[0]+61)
 
 
 if __name__=='__main__':unittest.main()

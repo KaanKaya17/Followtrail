@@ -127,9 +127,7 @@ class Engine:
                 'history': d['history'], 'lists': records, 'events': d['events'],
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
-                'requestBudget': {'sharedHourly':request_budget.SHARED[0], 'sharedDaily':request_budget.SHARED[1],
-                                  'accountHourly':request_budget.ACCOUNT[0], 'accountDaily':request_budget.ACCOUNT[1],
-                                  'nextAt':self.budget_available_at()},
+                'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
                 'monitor': self.monitor_status(),
                 'listPreparation': list_preparation.view(d, self.clock()),
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],
@@ -139,7 +137,7 @@ class Engine:
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.27'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.28'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -681,7 +679,7 @@ class Engine:
         reason = ('disabled' if not d['settings']['automatic'] else 'session' if not d['session'] else
                   'restricted' if d['gate'].get('manualOnly') else None)
         return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason, 'listPlanVersion': list_preparation.PLAN_VERSION,
-                'profileCount': len(profiles), 'intervalSeconds': interval,
+                'budgetPolicy': request_budget.policy(), 'profileCount': len(profiles), 'intervalSeconds': interval,
                 'estimatedCycleSeconds': max(interval, sum(REQUEST_SPACING) / 2 * len(profiles)),
                 'accessPending': len(pending), 'followerScanPending': bool(investigation and investigation[0] == 'followers_scan'),
                 'nextAt': None if reason or not deadlines else max(min(deadlines), self.budget_available_at(),
