@@ -59,6 +59,8 @@ Bu hedefler mevcut istek sırası ve beklemelerle uygulanır. Bir dakikalık pro
 
 ## Arama ve fotoğraflar
 
-Liste içindeki arama, yüklenmiş üyeleri filtreler; henüz okunmamış üyeleri kendiliğinden bulmaz. Fotoğraflar ayrı yüklenir. Görselin gelmemesi üyenin listede bulunmadığı anlamına gelmez.
+Windows'ta liste kaydırıldıkça sonraki 100 kişilik bölüm cihazdaki kayıttan yüklenir; “Daha fazla göster” düğmesine basmanız gerekmez. Bu işlem yeni Instagram liste isteği göndermez.
+
+Liste içindeki arama, cihazda kaydedilmiş listenin tamamında çalışır; ekranda henüz gösterilmeyen üyeleri de bulur. Instagram'dan henüz okunup kaydedilmemiş üyeleri kendiliğinden bulmaz. Fotoğraflar ayrı yüklenir. Görselin gelmemesi üyenin listede bulunmadığı anlamına gelmez.
 
 Liste üyesini özel takibe almak için kaydetme/izleme eylemini ayrıca kullanın. Panelin açılması bu tercihi otomatik değiştirmez.

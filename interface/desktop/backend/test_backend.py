@@ -1,4 +1,5 @@
 """Offline production-boundary tests. Never use a real account or session."""
+from test_list_pages import query as list_page
 import copy
 import contextlib
 import io
@@ -250,7 +251,7 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(len(record['snapshots']),1)
         self.assertEqual(record['draft']['status'],'partial')
         self.assertEqual(set(record['draft']['members']),{'200'})
-        self.assertIsNone(e.snapshot()['lists']['100:followers']['comparison'])
+        self.assertNotIn('comparison',e.snapshot()['lists']['100:followers'])
 
     def test_count_mismatch_is_partial(self):
         e=self.connected()
@@ -270,9 +271,9 @@ class BackendTests(unittest.TestCase):
         e=self.connected()
         self.scan([profile(),page(['200','201'])])
         self.scan([profile(),page(['201','202'])])
-        diff=e.snapshot()['lists']['100:followers']['comparison']
-        self.assertEqual(diff['added'],['202'])
-        self.assertEqual(diff['removed'],['200'])
+        diff=list_page(e, comparison=True)
+        self.assertEqual([(p['id'],p['change']) for p in diff['items']],[('202','added'),('200','removed')])
+        self.assertEqual(diff['removed'],1)
         self.assertIsNone(compare({'complete':False},{'complete':True}))
 
     def test_cancel_keeps_draft(self):

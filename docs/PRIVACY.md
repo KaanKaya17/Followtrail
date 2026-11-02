@@ -2,6 +2,10 @@
 
 Güncel kullanıcı açıklaması: [Gizlilik ve veriler](wiki/Gizlilik-ve-Veriler.md). Aşağıdaki sürümlü bölümler teknik davranış ve gelişim geçmişini kaydeder.
 
+## Windows 0.2.35 yerel liste sayfalama
+
+Ana durum mesajı liste üyeleri yerine sayıları ve kayıt bilgilerini içerir. Listeyi kaydırma, arama ve filtreleme en fazla 100 üyelik yerel sayfalar getirir; Instagram istemcisi açmaz ve istek bütçesini değiştirmez. Hesap ve görünüm revizyonu doğrulanır. Tam kayıt şifreli kasada kalır; CSV yalnız açık dışa aktarma işleminde tam kayıttan oluşturulur. Görünür profil görsellerinin mevcut CDN yüklemesi ayrı devam eder.
+
 ## Windows 0.2.34 / Android 0.1.74 site ve sosyal bağlantıları
 
 Instagram yanıtındaki en fazla beş geçerli HTTP(S) biyografi/site adresi ve bunlara ek bir Threads bağlantısı mevcut şifreli profil kaydında tutulabilir; kullanıcı tıklayana kadar bu sitelere gidilmez. Yerel marka ikonları iki platformda aynı kaynaktan üretilir. Bilinmeyen sitede alan adı ve genel simge gösterilir; favicon, site başlığı, uzaktan logo veya analitik hizmeti kullanılmaz. Açılan web adresleri normal tarayıcı/işletim sistemine devredilir; dosya, JavaScript ve kimlik bilgili URL'ler reddedilir. Tarayıcının kendi oturumu uygulamaya aktarılmaz.

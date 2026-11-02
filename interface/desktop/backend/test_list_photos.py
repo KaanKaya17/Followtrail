@@ -1,3 +1,4 @@
+from test_list_pages import query as list_page
 import json
 import tempfile
 import unittest
@@ -36,7 +37,7 @@ class ListPhotoTests(unittest.TestCase):
         with patch.object(self.engine,'client',return_value=PacedClient(self.engine,[profile(followers=1),changed])):
             after=self.engine.run('scan',{'direction':'followers'})
         self.assertNotIn(url,json.dumps(after))
-        self.assertEqual(after['lists']['100:followers']['comparison']['removed'],['200'])
+        self.assertEqual(list_page(self.engine,comparison=True)['removed'],1)
 
     def test_missing_or_untrusted_optional_picture_never_discards_valid_member(self):
         for value in [None,{},123,'http://cdninstagram.com/a.jpg','https://cdninstagram.com.evil.test/a.jpg',
@@ -57,6 +58,6 @@ class ListPhotoTests(unittest.TestCase):
         self.assertEqual(self.engine.list_picture(args)[2],url)
         self.assertIsNone(self.engine.list_picture({**args,'id':'201'}))
         self.assertNotIn('pictureUrl',old['members']['200'])
-        self.assertEqual(len(self.engine.snapshot()['lists']['100:followers']['retainedPartial']['members']),1)
+        self.assertEqual(self.engine.snapshot()['lists']['100:followers']['retainedPartial']['count'],1)
 
 if __name__=='__main__':unittest.main()

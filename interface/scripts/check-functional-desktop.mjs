@@ -48,6 +48,7 @@ async function launch(language = 'tr') {
   });
   await page.getByRole("heading", { name: language === 'en' ? 'What is happening in your circle?' : "Çevrende neler oluyor?" }).waitFor();
 }
+async function listReady() { await page.waitForFunction(()=>document.getElementById("list-rows")?.getAttribute("aria-busy")==="false"); }
 async function check(name, work) {
   await work();
   checks.push(name);
@@ -212,12 +213,12 @@ try {
   });
   await check("Resuming a code wait or failed service restores actionable UI", async () => {
     const state = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
-    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', state, busy: true, progress: { phase: 'code' }, error: null }), state);
+    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', visible:true, state, busy: true, progress: { phase: 'code' }, error: null }), state);
     await page.locator('#code-form').waitFor();
-    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', state, busy: false, progress: null, error: { message: 'Synthetic service failure' } }), state);
+    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', visible:true, state, busy: false, progress: null, error: { message: 'Synthetic service failure' } }), state);
     await page.waitForFunction(() => !document.querySelector('#code-form')?.closest('dialog')?.open);
     await page.getByText('Synthetic service failure', { exact: true }).waitFor();
-    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', state, busy: false, progress: null, error: null }), state);
+    await desktop.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('tracker:event', { type: 'resume', visible:true, state, busy: false, progress: null, error: null }), state);
   });
   await check("Renderer isolation and no Node access", async () => {
     const prefs = await desktop.evaluate(({ BrowserWindow }) => {
@@ -289,6 +290,7 @@ try {
     async () => {
       await page.locator('.sidebar a[href="#lists"]').click();
       await page.locator('#list-owner').selectOption('100');
+      await listReady();
       await page
         .getByText("Tamamlanan kayıt: 3 hesap", { exact: true })
         .waitFor();
@@ -309,11 +311,13 @@ try {
   );
   await check('Restarting a partial watched list keeps the previous 76 rows visible without producing a comparison',async()=>{
     await page.locator('#list-owner').selectOption('200');
+      await listReady();
     assert.equal(await page.locator('#list-rows .list-row').count(),76);
     await page.getByText('Önceki yarım listeden 76 hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('button',{name:'Farkları göster',exact:true}).isDisabled(),true);
     assert.equal(await page.locator('#list-rows .badge').count(),0);
     await page.locator('#list-owner').selectOption('100');
+      await listReady();
   });
   await check(
     "Snapshot comparison uses identities and names both directions",
@@ -358,11 +362,15 @@ try {
     "Two-direction relationship filters and local search",
     async () => {
       await page.locator("#relation-filter").selectOption("mutual");
+      await listReady();
       assert.equal(await page.locator("#list-rows .list-row").count(), 1);
       await page.locator("#relation-filter").selectOption("oneway");
+      await listReady();
       assert.equal(await page.locator("#list-rows .list-row").count(), 2);
       await page.locator("#relation-filter").selectOption("all");
+      await listReady();
       await page.locator("#list-search").fill("qa.203");
+      await listReady();
       assert.equal(await page.locator("#list-rows .list-row").count(), 1);
     },
   );
@@ -370,9 +378,12 @@ try {
     "List pagination follows search results after clearing a narrow query",
     async () => {
       await page.locator("#list-owner").selectOption("300");
+      await listReady();
       await page.locator("#list-search").fill("");
+      await listReady();
       assert.equal(await page.locator("#list-rows .list-row").count(), 100);
       await page.locator("#list-search").fill("qa.301");
+      await listReady();
       assert.equal(await page.locator("#list-rows .list-row").count(), 1);
       assert.equal(
         await page
@@ -381,11 +392,12 @@ try {
         0,
       );
       await page.locator("#list-search").fill("");
-      await page
-        .getByRole("button", { name: "Daha fazla göster", exact: true })
-        .click();
+      await listReady();
+      await page.locator("#list-pagination").scrollIntoViewIfNeeded();
+      await page.waitForFunction(()=>document.querySelectorAll("#list-rows .list-row").length===150);
       assert.equal(await page.locator("#list-rows .list-row").count(), 150);
       await page.locator("#list-owner").selectOption("100");
+      await listReady();
     },
   );
   await check("Persistent notes and group; text is escaped", async () => {
@@ -775,6 +787,7 @@ try {
     async () => {
       await page.locator('.sidebar nav a[href="#lists"]').click();
       await page.locator("#list-owner").selectOption("100");
+      await listReady();
       await page
         .getByRole("button", { name: "Takipçiler", exact: true })
         .click();

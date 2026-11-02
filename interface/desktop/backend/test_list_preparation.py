@@ -1,4 +1,5 @@
 """Automatic baseline, encrypted resume and fail-closed comparisons; offline only."""
+from test_list_pages import query as list_page
 import copy
 import json
 import tempfile
@@ -47,7 +48,7 @@ class ListPreparationTests(unittest.TestCase):
         self.assertEqual(len(self.e.data['lists']['100:followers']['snapshots']),1)
         self.work(profile(followers=3,following=1),page(['300']))
         self.assertTrue(self.e.snapshot()['listPreparation']['ready'])
-        self.assertIsNone(self.e.snapshot()['lists']['100:followers']['comparison'])
+        self.assertNotIn('comparison',self.e.snapshot()['lists']['100:followers'])
         self.assertEqual(self.e.data['access'],{})
 
     def test_rescan_same_count_waits_day_and_does_not_starve_profile(self):
@@ -154,7 +155,7 @@ class ListPreparationTests(unittest.TestCase):
         state=self.e.snapshot()
         self.assertTrue(state['listPreparation']['ready'])
         self.assertEqual([d['count'] for d in state['listPreparation']['directions']],[0,0])
-        self.assertIsNone(state['lists']['100:followers']['comparison'])
+        self.assertNotIn('comparison',state['lists']['100:followers'])
 
     def test_manual_recheck_resumes_current_pages_instead_of_erasing_them(self):
         self.linked();self.work(profile(followers=3,following=1),page(['200','201'],'cursor-one'))
@@ -175,8 +176,9 @@ class ListPreparationTests(unittest.TestCase):
         client=PacedClient(self.e,[AppFailure('network','Synthetic failure')])
         with patch.object(self.e,'client',return_value=client),self.assertRaises(AppFailure):self.e.run('scan',{'direction':'followers'})
         state=self.e.snapshot()['lists'][key]
-        self.assertEqual(state['retainedPartial']['members'],partial['members'])
-        self.assertEqual(state['draft']['members'],{})
+        self.assertEqual(state['retainedPartial']['count'],len(partial['members']))
+        self.assertEqual(self.e.data['lists'][key]['retainedPartial']['members'],partial['members'])
+        self.assertEqual(state['draft']['count'],0)
         self.assertNotIn('nextCursor',state['retainedPartial'])
         reopened=Accounts(self.home.name,clock=lambda:self.now[0],request_delay=lambda:15)
         self.assertEqual(reopened.snapshot()['lists'][key]['retainedPartial'],state['retainedPartial'])
@@ -192,7 +194,7 @@ class ListPreparationTests(unittest.TestCase):
         record=self.e.data['lists'][key]
         self.assertNotIn('retainedPartial',record)
         self.assertEqual(set(record['snapshots'][-1]['members']),{'200','202','203'})
-        self.assertIsNone(self.e.snapshot()['lists'][key]['comparison'])
+        self.assertNotIn('comparison',self.e.snapshot()['lists'][key])
 
     def test_profile_count_changes_in_both_directions_queue_scan_but_unchanged_counts_keep_daily_check(self):
         self.linked()
@@ -225,7 +227,7 @@ class ListPreparationTests(unittest.TestCase):
         send.assert_not_called()
         self.assertEqual(reopened.data['lists'][key],expected)
         self.assertEqual(reopened.data['gate'],gate)
-        self.assertIsNone(reopened.snapshot()['lists'][key]['comparison'])
+        self.assertNotIn('comparison',reopened.snapshot()['lists'][key])
         malformed=copy.deepcopy(legacy)
         malformed['lists'][key]['draft']['nextCursor']=42
         self.e.vault.save(malformed)
@@ -354,7 +356,7 @@ class ListPreparationTests(unittest.TestCase):
                 self.assertIsNone(record['draft']['nextCursor'])
                 self.assertEqual(record['schedule']['error'],'list_count')
                 self.assertEqual(record['schedule']['after'],self.now[0]+1800)
-                self.assertIsNone(self.e.snapshot()['lists'][key]['comparison'])
+                self.assertNotIn('comparison',self.e.snapshot()['lists'][key])
                 # Incomplete reads never claim the six missing identities left.
                 self.assertFalse(any(c['category']=='lists' for entry in self.e.data['notificationLog'] for c in entry['changes']))
                 # Reopening a count-mismatched scan must retain the baseline,
@@ -368,7 +370,7 @@ class ListPreparationTests(unittest.TestCase):
                 scan(profile(identity,followers=82),page(ids[:76],'qa-last'),page(ids[76:]))
                 self.assertNotIn('draft',self.e.data['lists'][key])
                 self.assertEqual(len(self.e.data['lists'][key]['snapshots'][-1]['members']),82)
-                self.assertEqual(self.e.snapshot()['lists'][key]['comparison']['removed'],[])
+                self.assertEqual(list_page(self.e,ownerId=identity,comparison=True)['removed'],0)
 
     def test_cancel_during_single_page_response_keeps_partial_and_stops_automatic_lists(self):
         self.linked()
