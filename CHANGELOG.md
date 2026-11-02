@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows-web 0.2.32 — 2026-11-02 (Biyografi satır sonları)
+
+- Profil biyografisinde sunucudan gelen satır sonları ve boşluklar masaüstü/web panelinde korunur. Önceki normal HTML akışı alt alta yazılmış metni yan yana gösteriyordu. Uzun sözcükler panel sınırında kırılır; kullanıcı metni HTML olarak çalıştırılmaz.
+- Android TextView biyografi satır sonlarını zaten korur; Android 0.1.70 paketi değişmedi. Veri okuma, liste/hesap kayıtları, istek aralığı ve molalarda değişiklik yoktur.
+- Ekran doğrulaması: üç ayrı biyografi satırının görsel dikey konumu ve HTML benzeri metnin düz metin kalması mevcut sentetik profil paneli kontrolüne eklendi; 10 kontrol geçti. Threads'in bildirilen profili, temiz ve çerez göndermeyen gerçek tarayıcıda HTTP 302 ile giriş sayfasına yönlendi. Bu durum profil yokluğu değildir; mevcut tarayıcının oturumu uygulamaya alınmadı ve ayrı Threads giriş akışı eklenmedi.
+
 ## Windows 0.2.31 / Android 0.1.70 — 2026-11-02 (Profil siteleri ve sosyal bağlantılar)
 
 - Kişinin web sitesi artık **Profil bağlantısı** diye gösterilmez. Yerel site logosu/adı, bilinmeyen sitede alan adı/genel simge, fareyle üzerine gelince veya telefonda uzun basınca tam adres gösterilir. Birden fazla biyografi bağlantısı en fazla beş adresle desteklenir; eski kayıtlar korunur. İkonlar tek yerel kaynaktan üretilir; dış favicon/site başlığı hizmeti kullanılmaz.

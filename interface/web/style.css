@@ -1867,6 +1867,8 @@ dialog::backdrop {
   font-size: 12px;
   line-height: 1.8;
   margin-top: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .drawer-counts {
   display: flex;

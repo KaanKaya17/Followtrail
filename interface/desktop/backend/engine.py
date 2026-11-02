@@ -154,7 +154,7 @@ class Engine:
                 'profileDetail': self.profile_detail_result,
                 'threadsProfile': self.threads_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.31'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.32'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}

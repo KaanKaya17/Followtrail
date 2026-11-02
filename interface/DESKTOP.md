@@ -1,4 +1,6 @@
-# InstagramTracker Windows 0.2.31
+# InstagramTracker Windows 0.2.32
+
+Biyografi satır sonları masaüstü ve ortak web panelinde korunur; Instagram’da alt alta yazılan metin aynı satır düzeniyle gösterilir. Bu bir sunum düzeltmesidir; kayıtlı biyografi yeniden yazılmaz. Android metin bileşeni zaten bu düzeni korur.
 
 Profilin web siteleri, yanıltıcı **Profil bağlantısı** satırı yerine yerel logo ve site adıyla gösterilir; tam adres fareyle üzerine gelince ve klavye erişilebilirlik açıklamasında bulunur. Tanınmayan sitelerde alan adı/globe simgesi kullanılır. Hiçbir favicon/başlık servisi çağrılmaz. Instagram’da aç düğmesi kişinin gözlenen kullanıcı adıyla normal tarayıcıyı açar. Site bağlantıları yalnız kullanıcı tıklayınca açılır; uygulama içine uzak sayfa yüklenmez.
 
@@ -22,7 +24,7 @@ Profil ekleme penceresinde en az iki karakter yazıp 650 ms duraklamak Instagram
 
 Fotoğraflar metin sonuçlarını bekletmez. Özel yerel pipe üzerinden yalnız mevcut sonuç belirteci ve ID ile istenir; URL seçimi renderer'a açılmaz. İşçi içinde iki CDN indirmesi ve en fazla 20 bekleyen/çalışan iş vardır; iptal eski işleri durdurur. Oturum/çerez kullanılmaz, yönlendirme izlenmez, mevcut resim boyutu/çözünürlük sınırları uygulanır. Pencere kapanınca geçici sorgu önbelleği bırakılır ve görsel işleri iptal edilir.
 
-`artifacts/InstagramTracker-Desktop-0.2.31/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.32/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Dört yerel uygulama dili
 
