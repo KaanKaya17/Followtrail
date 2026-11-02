@@ -24,7 +24,7 @@ Profil ekleme penceresinde en az iki karakter yazıp 650 ms duraklamak Instagram
 
 Fotoğraflar metin sonuçlarını bekletmez. Özel yerel pipe üzerinden yalnız mevcut sonuç belirteci ve ID ile istenir; URL seçimi renderer'a açılmaz. İşçi içinde iki CDN indirmesi ve en fazla 20 bekleyen/çalışan iş vardır; iptal eski işleri durdurur. Oturum/çerez kullanılmaz, yönlendirme izlenmez, mevcut resim boyutu/çözünürlük sınırları uygulanır. Pencere kapanınca geçici sorgu önbelleği bırakılır ve görsel işleri iptal edilir.
 
-`artifacts/InstagramTracker-Desktop-0.2.33/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.34/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur. [Kullanıcı kurulum rehberi](../docs/wiki/Kurulum.md).
 
 ## Dört yerel uygulama dili
 
@@ -48,9 +48,9 @@ Okuyucu, yöntem ve kesin yol sözleşmesi dışındaki işlemleri gönderimden 
 
 ## Rastgele istek aralığı
 
-Windows 0.2.14, sayaçlı Instagram API ve oturumsuz profil isteklerinde sabit 15 saniye yerine **6–10 saniye arasında eşit olasılıklı süre** seçer. Süre her giden istek için bir kez seçilir; mutlak sonraki istek zamanı şifreli ortak kapıya kaydedilir. Hesap değişimi, yeniden açılış, yerel ayar değişikliği ve ekrandaki geri sayım yeni süre seçmez. Önceden ayrılmış daha uzun beklemeler kısaltılmaz.
+Windows 0.2.27 ve sonraki sürümler, sayaçlı Instagram API ve oturumsuz profil isteklerinde **6–10 saniye arasında eşit olasılıklı süre** seçer. Süre her giden istek için bir kez seçilir; mutlak sonraki istek zamanı şifreli ortak kapıya kaydedilir. Hesap değişimi, yeniden açılış, yerel ayar değişikliği ve ekrandaki geri sayım yeni süre seçmez. Önceden ayrılmış daha uzun beklemeler kısaltılmaz.
 
-Bu değerlerin beklenen ortalaması 15 saniyedir; kısa örnekte veya gerçek ağda tam 15 saniye garanti edilmez. Beş dakikalık profil kontrol ayarı değişmez. Uzun yanıtlar, diğer hesapların işleri ve arka plan zamanlayıcısının 5 saniyelik değerlendirmesi gerçek aralığı uzatabilir. 429/Retry-After, yerel mola, 15 dakikalık parola giriş aralığı ve otomatik tekrar yapmama kuralları korunur. Bu, bot tespitinden veya 429’dan korunma garantisi değildir. Android’in zamanlayıcısı bu sürümde değiştirilmedi. [Doğrulama](../docs/REQUEST-JITTER-TEST.md).
+Bu dağılımın beklenen ortalaması 8 saniyedir; ağ ve kuyruk nedeniyle gerçek başlangıç aralığı daha uzun olabilir. Profil kontrol ayarı değişmez. Uzun yanıtlar, diğer hesapların işleri ve arka plan zamanlayıcısının 5 saniyelik değerlendirmesi gerçek aralığı uzatabilir. 429/Retry-After, yerel mola, 15 dakikalık parola giriş aralığı ve otomatik tekrar yapmama kuralları korunur. Bu, bot tespitinden veya 429’dan korunma garantisi değildir. Android’in zamanlayıcısı bu Windows ayarıyla değiştirilmez. [İlk 12–18 saniyelik uygulamanın tarihsel doğrulaması](../docs/REQUEST-JITTER-TEST.md).
 
 ## Çoklu hesap
 
