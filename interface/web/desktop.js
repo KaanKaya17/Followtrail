@@ -76,6 +76,7 @@
   };
   function acceptState(next) {
     if (data && next.activeAccountId !== data.activeAccountId) {
+      listPhotos.clear(true);
       closeDialog();
       document.querySelector('.command-palette')?.close();
       Object.assign(ui, {page:'overview', query:'', filter:'all', owner:'', listQuery:'',
@@ -99,6 +100,14 @@
   });
   const idattr = (id) => `data-id="${esc(id)}"`;
   const netDisabled = () => (busy || !data?.connected ? "disabled" : "");
+  const listPhotos=window.TrackerListPhotos.create({
+    request:args=>api.command('list_avatar',args),
+    cancel:()=>api.command('cancel_list_images'),
+  });
+  function refreshListPhotos() {
+    listPhotos.mount(windowVisible && ui.page==='lists' ? document.getElementById('list-rows') : null,
+      {accountId:data?.activeAccountId,ownerId:ui.owner || data?.account?.id,direction:ui.direction});
+  }
   function person(id) {
     if (data?.account?.id === id) return data.account;
     const p = data?.people.find((p) => p.id === id);
@@ -578,20 +587,22 @@
   function listEntries() {
     const { current, previous, comparable } = selectedScans(),
       record = selectedRecord();
+    const shown=current || record.retainedPartial || record.draft;
     let entries = Object.values(
-      current?.members || record.retainedPartial?.members || record.draft?.members || {},
+      shown?.members || {},
     ).map((p) => ({
       ...p,
+      photoScan:shown.id,
       change: previous && !previous.members[p.id] ? t("Yeni görüldü") : "",
     }));
     if (ui.comparison && comparable) {
       entries = [
         ...Object.values(current.members)
           .filter((p) => !previous.members[p.id])
-          .map((p) => ({ ...p, change: t("Yeni görüldü") })),
+          .map((p) => ({ ...p, photoScan:current.id, change: t("Yeni görüldü") })),
         ...Object.values(previous.members)
           .filter((p) => !current.members[p.id])
-          .map((p) => ({ ...p, change: t("Son kayıtta yok") })),
+          .map((p) => ({ ...p, photoScan:previous.id, change: t("Son kayıtta yok") })),
       ];
     }
     const other =
@@ -616,7 +627,7 @@
           .slice(0, ui.pageSize)
           .map((p) => {
             const saved = data.people.find((x) => x.id === p.id);
-            return `<div class="list-row"><button class="list-person" data-action="person" ${idattr(p.id)}>${avatar(p)}<span><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span></button><span class="list-followers">${num(saved?.followers)}<small> ${t("takipçi")}</small></span><span class="list-state">${p.change ? `<span class="badge ${p.change === t("Son kayıtta yok") ? "peach" : "mint"}">${p.change}</span>` : `<span class="subtle-status">${t("Kayıtlı")}</span>`}</span><button class="icon-button star-button ${saved?.favorite ? "is-favorite" : ""}" data-action="star" ${idattr(p.id)} aria-label="${t("{0} favori durumunu değiştir", esc(p.username))}" aria-pressed="${!!saved?.favorite}" ${busy ? "disabled" : ""}>${icon("star")}</button></div>`;
+            return `<div class="list-row"><button class="list-person" data-action="person" ${idattr(p.id)} data-photo-scan="${esc(p.photoScan)}">${avatar(saved?.avatar ? {...p,avatar:saved.avatar} : p)}<span><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span></button><span class="list-followers">${num(saved?.followers)}<small> ${t("takipçi")}</small></span><span class="list-state">${p.change ? `<span class="badge ${p.change === t("Son kayıtta yok") ? "peach" : "mint"}">${p.change}</span>` : `<span class="subtle-status">${t("Kayıtlı")}</span>`}</span><button class="icon-button star-button ${saved?.favorite ? "is-favorite" : ""}" data-action="star" ${idattr(p.id)} aria-label="${t("{0} favori durumunu değiştir", esc(p.username))}" aria-pressed="${!!saved?.favorite}" ${busy ? "disabled" : ""}>${icon("star")}</button></div>`;
           })
           .join("")
       : empty(t("Bir liste taraması başlat veya arama ve filtrelerini değiştir."));
@@ -846,6 +857,7 @@
     document.title = `${t(pages[ui.page][0])} — Tracker`;
     document.getElementById("app").innerHTML =
       `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`;
+    refreshListPhotos();
     operationPanel();
   }
   function accountsDialog() {
@@ -1329,6 +1341,7 @@
       document.getElementById("list-result-count").textContent =
         t("{0} hesap · En fazla {1} satır gösteriliyor", listEntries().length, ui.pageSize);
       document.getElementById("list-pagination").innerHTML = listPagination();
+      refreshListPhotos();
     }
   });
   document.addEventListener("change", async (event) => {
@@ -1405,6 +1418,7 @@
   api.subscribe((event) => {
     if (event.type === "visibility") {
       windowVisible = event.visible;
+      refreshListPhotos();
       operationPanel();
       return;
     }

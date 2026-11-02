@@ -1,5 +1,11 @@
 # Veri ve ağ sınırları
 
+## Windows 0.2.29 liste küçük resimleri
+
+Liste yanıtında varsa doğrulanmış HTTPS Meta CDN fotoğraf adresi şifreli liste kaydına eklenir. Ham adres arayüze veya liste farkı/bildirim üyelerine aktarılmaz; profil aramasının geçici aday adresleri yine kasaya yazılmaz. Arayüz görsel için keyfi URL gönderemez: mevcut hesaptaki belirli bir liste/tarama/üye kaydına referans verir. Eski listede adres yoksa aynı üyenin daha yeni bir liste sayfasındaki adresi kullanılabilir; kişiler veya liste üyeliği birleştirilmez ve ek profil sorgusu yapılmaz.
+
+Arama ve liste görselleri toplam iki eşzamanlı, oturum/çerez taşımayan mevcut CDN taşıyıcısını paylaşır. Kaynak adresler yalnız izinli Meta CDN alanlarında HTTPS olabilir; yönlendirme izlenmez, mevcut veri/çözünürlük sınırları uygulanır. Liste ekranından ayrılınca/gizlenince liste görsel işleri iptal edilir. Görsel içeriği diske yazılmayan, süre ve adet sınırı olan bellek önbelleğinde tutulur (işçi 64, arayüz 32; en çok 15 dakika boyunca yeniden kullanılabilir); hesap değiştirilince temizlenir. Daha eski sürümlerde fotoğraf adresi saklanmamış listeler yeni bir normal tarama adres sağlayana kadar baş harfle gösterilebilir.
+
 ## Android 0.1.69 / Windows 0.2.26 profil arama
 
 Kayıtlı profillerde ad/kullanıcı adı/grup araması cihazdaki kayıtlarda yapılır. Profil ekleme penceresinde en az iki karakter yazıldıktan ve yazmaya 650 ms ara verildikten sonra son sorgu Instagram'a gönderilebilir. Mevcut istek aralığı, bütçe ve güvenlik molası korunur; bekleme sırasında değişen sorgulardan yalnız sonuncusu aranır. Aynı pencerede en fazla altı yakın sorgu 60 saniye boyunca bellekte yeniden kullanılabilir. Sınırlama yanıtı otomatik aramayı durdurur. En fazla 20 aday gösterilir; adaylar seçilmeden kayıtlı profil oluşturulmaz. Seçilen hesabın sayısal kimliği doğrulanarak profil okunur. Aday sonuçları dosyaya yazılmayan geçici yanıtlardır; hesap geçişinde veya pencere kapanınca yeni bağlama taşınmaz. Okunan görünen ad şifreli profil kaydına eklenir. Takip etme, takipten çıkma, beğeni veya mesaj gönderme yetkisi açılmaz.

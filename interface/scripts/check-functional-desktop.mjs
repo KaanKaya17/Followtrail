@@ -59,9 +59,17 @@ try {
     const before=await page.evaluate(()=>window.TrackerDesktop.command('state'));
     const result=await page.evaluate(()=>window.TrackerDesktop.command('search_avatar',{token:'forged',id:'200'}));
     assert.equal(result.ok,true);assert.equal(result.avatar,null);
+    const listImage=await page.evaluate(()=>window.TrackerDesktop.command('list_avatar',{accountId:'100',ownerId:'100',direction:'followers',scanId:'after',id:'201'}));
+    assert.equal(listImage.ok,true);assert.equal(listImage.avatar,null);
+    assert.equal((await page.evaluate(()=>window.TrackerDesktop.command('cancel_list_images'))).ok,true);
     assert.equal((await page.evaluate(()=>window.TrackerDesktop.command('cancel_search_images'))).ok,true);
     const rejected=await page.evaluate(async()=>{try {await window.TrackerDesktop.command('search_avatar',{token:'forged',id:'200',url:'https://example.com/'});return false;}catch{return true;}});
     assert.equal(rejected,true);
+    const listRejected=await page.evaluate(async()=>{try {
+      await window.TrackerDesktop.command('list_avatar',{accountId:'100',ownerId:'100',direction:'followers',scanId:'after',id:'201',url:'https://example.com/'});
+      return false;
+    }catch{return true;}});
+    assert.equal(listRejected,true);
     const after=await page.evaluate(()=>window.TrackerDesktop.command('state'));
     assert.deepEqual(after.state.gate,before.state.gate);
   });

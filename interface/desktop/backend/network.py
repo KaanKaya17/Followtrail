@@ -157,6 +157,8 @@ def parse_profile(payload, expected_id=None):
 
 
 def avatar_url(value):
+    if not isinstance(value, str) or len(value) > 8192:
+        return False
     try:
         url = urlsplit(value or '')
         return bool(url.scheme == 'https' and url.port in (None, 443) and not url.username and not url.password
@@ -228,6 +230,9 @@ def parse_page(payload):
         identity = str(identity)
         members[identity] = {'id': identity, 'username': username,
                              'name': user.get('full_name') if isinstance(user.get('full_name'), str) else username}
+        picture = user.get('profile_pic_url')
+        if avatar_url(picture):
+            members[identity]['pictureUrl'] = picture
     cursor = payload.get('next_max_id')
     if cursor is not None and (type(cursor) not in (str, int) or len(str(cursor)) > 2048):
         raise AppFailure('list', 'Liste sayfalama bilgisi geçersiz.')

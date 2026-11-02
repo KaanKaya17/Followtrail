@@ -24,7 +24,7 @@ from login_identity import LoginIdentity, device_settings
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
 from network import (AppFailure, new_client, close_client, parse_profile,
                      parse_page, failure, deadline)
-from network import read_avatar
+from network import read_avatar, avatar_url
 
 MAX_MEMBERS = 20000
 MAX_PAGES = 400
@@ -58,6 +58,16 @@ def public_person(value):
     keys = ('id', 'username', 'name', 'followers', 'following', 'posts', 'bio', 'url',
             'private', 'verified', 'observedAt', 'favorite', 'watching', 'group', 'note', 'avatar', 'picture')
     return {key: value.get(key) for key in keys}
+
+
+def public_member(value):
+    return {key:value.get(key) for key in ('id','username','name')}
+
+
+def public_scan(scan):
+    if not scan:return None
+    return {**{k:v for k,v in scan.items() if k not in ('nextCursor','seenCursors','members')},
+            'members':{identity:public_member(p) for identity,p in scan['members'].items()}}
 
 
 class Engine:
@@ -116,11 +126,11 @@ class Engine:
         d = self.data
         records = {}
         for key, record in d['lists'].items():
-            snapshots = record.get('snapshots', [])
+            snapshots = [public_scan(scan) for scan in record.get('snapshots', [])]
             draft = record.get('draft')
-            records[key] = {'snapshots': snapshots, 'draft': {k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')} if draft else None,
+            records[key] = {'snapshots': snapshots, 'draft': public_scan(draft),
                             'canResume': list_preparation.resumable(draft, self.clock()),
-                            'retainedPartial': record.get('retainedPartial'),
+                            'retainedPartial': public_scan(record.get('retainedPartial')),
                             'comparison': compare(snapshots[-2], snapshots[-1]) if len(snapshots) > 1 else None}
         return {'account': public_person(d['account']) if d['account'] else None,
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
@@ -137,7 +147,7 @@ class Engine:
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.28'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.29'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -408,12 +418,32 @@ class Engine:
             payload=client.private_request('users/search/',params={'query':query,'count':20})
             self.check_cancel()
             users=profile_search.results(payload)
-            self.search_pictures={user['id']:user.pop('avatarUrl') for user in users}
+            self.search_pictures={user['id']:user.pop('pictureUrl',None) for user in users}
             self.search_results={'query':query,'token':uuid.uuid4().hex,'users':users}
             self.data['session']=client.get_settings()
             self.save()
         finally:
             close_client(client)
+
+    def list_picture(self, args):
+        if args.get('accountId') != (self.data.get('account') or {}).get('id'):return None
+        owner, direction, scan_id, identity = (args.get(k) for k in ('ownerId','direction','scanId','id'))
+        if (not all(isinstance(v,str) for v in (owner,direction,scan_id,identity)) or
+                direction not in list_preparation.DIRECTIONS):return None
+        record = self.data['lists'].get(owner+':'+direction, {})
+        scans = record.get('snapshots',[]) + [s for s in (record.get('draft'),record.get('retainedPartial')) if s]
+        scan = next((s for s in scans if s.get('id') == scan_id),None)
+        member = scan.get('members',{}).get(identity) if scan else None
+        if not member:return None
+        picture = member.get('pictureUrl')
+        if not avatar_url(picture):
+            # Old visible lists may predate thumbnail retention. The same ID's
+            # newer page can supply its photo without rewriting membership.
+            candidates = [s for s in (record.get('draft'),*reversed(record.get('snapshots',[])),record.get('retainedPartial')) if s]
+            picture = next((p['pictureUrl'] for s in candidates for p in [s.get('members',{}).get(identity,{})]
+                            if avatar_url(p.get('pictureUrl'))),None)
+        if not avatar_url(picture):return None
+        return owner+':'+direction+':'+scan_id, identity, picture
 
     def scan(self, args, *, one_page=False, resume=False):
         direction = args.get('direction')
@@ -499,8 +529,8 @@ class Engine:
                         # Freeze observed identities and names, not current profile
                         # lookups. Evidence survives the six-snapshot rotation.
                         changes.update(previousAt=before['finishedAt'], ownerUsername=owner['username'],
-                                       membersAdded=[copy.deepcopy(draft['members'][key]) for key in diff['added']],
-                                       membersRemoved=[copy.deepcopy(before['members'][key]) for key in diff['removed']])
+                                       membersAdded=[public_member(draft['members'][key]) for key in diff['added']],
+                                       membersRemoved=[public_member(before['members'][key]) for key in diff['removed']])
                     self.event('list', f"@{owner['username']} · {direction} listesi kaydedildi", identity, None, changes)
                     if identity == self.data['account']['id'] and direction == 'followers':
                         access_checks.discover(self.data, record, self.clock())
@@ -870,6 +900,8 @@ def validate_archive(d):
                 or type(p.get('username')) is not str or not re.fullmatch(r'[A-Za-z0-9._]{1,30}', p['username'])
                 or (p.get('name') is not None and type(p['name']) is not str)):
             raise ValueError('identity')
+        if p.get('pictureUrl') is not None and not avatar_url(p['pictureUrl']):
+            raise ValueError('member picture')
     def list_details(value):
         if not isinstance(value, dict) or not {'membersAdded', 'membersRemoved'} & value.keys():
             return  # Older summaries did not retain identity details.
