@@ -18,7 +18,6 @@
   "Yeni: {0}": "Novas: {0}",
   "Listede yok: {0}": "Não estão mais na lista: {0}",
   "Otomatik liste karşılaştırması": "Comparação automática de listas",
-  "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compare as listas da sua conta e dos perfis monitorados. Mudanças na contagem colocam uma leitura na fila; há pelo menos 15 minutos entre leituras completas. Se a contagem não mudar, a leitura é diária.",
   "Kullanım notları": "Notas de uso",
   "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Os resultados mostram diferenças entre verificações salvas. Por si só, não determinam o momento exato de uma mudança nem comprovam que alguém deixou de seguir você.",
   "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "A primeira lista completa é o registro inicial. Depois, as listas completas são comparadas. Listas parciais não permitem estabelecer um resultado definitivo; a busca abrange apenas os registros no dispositivo.",
@@ -1075,5 +1074,13 @@
   },
   "Diğer işlem tamamlanınca aranacak.": "A busca começará quando a outra operação terminar.",
   "Taramaya devam et": "Continuar verificação",
-  "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Exibindo {0} contas da lista parcial anterior; a lista será atualizada quando a nova verificação terminar."
+  "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Exibindo {0} contas da lista parcial anterior; a lista será atualizada quando a nova verificação terminar.",
+  "Profil bilgileri getiriliyor…": "Carregando os dados do perfil…",
+  "Profil bilgileri {0} saniye sonra okunacak.": {
+    "count": 0,
+    "one": "Os dados do perfil serão consultados em {0} segundo.",
+    "other": "Os dados do perfil serão consultados em {0} segundos."
+  },
+  "Diğer işlem tamamlanınca profil okunacak.": "O perfil será consultado quando a operação atual terminar.",
+  "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır.": "Compare as listas da sua conta e dos perfis monitorados. Mudanças na contagem colocam uma leitura na fila; há pelo menos 1 minuto entre leituras completas. Se a contagem não mudar, a leitura é diária."
 }

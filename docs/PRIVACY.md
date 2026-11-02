@@ -1,5 +1,9 @@
 # Veri ve ağ sınırları
 
+## Windows 0.2.30 profil ayrıntı paneli
+
+Liste üyesinin paneli açıldığında mevcut oturumla sayısal kimliğine tek profil okuması yapılabilir; son beş dakikadaki başarılı bilgi yeniden kullanılır. İstek mevcut aralık, bütçe ve molalara uyar; herhangi bir takip/beğeni/mesaj yetkisi eklenmez. Başka hesap bağlamı veya yerel kayıtlarda bulunmayan hedef reddedilir. Bu okuma liste üyesini kaydedilen profillere eklemez; ayrıntılar en fazla 20 profillik bellek önbelleğinde tutulur ve hesap geçişinde temizlenir. Kendi/kaydedilen profil için mevcut şifreli gözlem güncellenir. Panel görseli liste satırının aynı sınırlı küçük resmidir; yeni bir fotoğraf API isteği gerekmez. Yeni harici sunucu, telemetri veya dosyaya yazılan görsel önbelleği yoktur.
+
 ## Windows 0.2.29 liste küçük resimleri
 
 Liste yanıtında varsa doğrulanmış HTTPS Meta CDN fotoğraf adresi şifreli liste kaydına eklenir. Ham adres arayüze veya liste farkı/bildirim üyelerine aktarılmaz; profil aramasının geçici aday adresleri yine kasaya yazılmaz. Arayüz görsel için keyfi URL gönderemez: mevcut hesaptaki belirli bir liste/tarama/üye kaydına referans verir. Eski listede adres yoksa aynı üyenin daha yeni bir liste sayfasındaki adresi kullanılabilir; kişiler veya liste üyeliği birleştirilmez ve ek profil sorgusu yapılmaz.

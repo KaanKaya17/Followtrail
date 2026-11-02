@@ -32,6 +32,11 @@ try {
     if(window.qaDelayListImages)return new Promise(resolve=>window.qaImageResolvers.push(resolve));
     return {ok:true,avatar:window.qaBadListImage ? 'https://example.com/not-allowed.jpg' : state.people.find(p=>p.avatar)?.avatar || null};
    }
+   if(operation==='profile_detail') {
+    if(window.qaDelayProfile)await new Promise(resolve=>window.qaProfileResolver=resolve);
+    state.profileDetail={accountId:args.accountId,profile:{id:args.id,username:'qa.'+args.id,name:'QA '+args.id,
+     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:null,url:null,observedAt:Date.now()/1000}};
+   }
    if(operation==='add_person') {
     state.people.push({id:args.id,username:args.username,name:'İpek Kaya',followers:1,following:1,observedAt:1800000000,watching:false});
     state.searchResults=null;
@@ -88,6 +93,29 @@ try {
  assert.equal(await page.locator('#list-search').evaluate(node=>node===document.activeElement),true);
  await page.screenshot({path:path.join(output,'list-avatar.png')});
  checks.push('List photos load only for visible rows, follow local filtering and use observation IDs instead of URLs');
+ const image=await page.locator('#list-rows .avatar img').getAttribute('src');
+ await page.evaluate(()=>window.qaDelayProfile=true);
+ await page.locator('#list-rows .list-person').click();
+ assert.equal(await page.locator('#person-profile-info .avatar img').getAttribute('src'),image);
+ await page.waitForFunction(()=>typeof qaProfileResolver==='function');
+ assert.equal(await page.locator('#person-profile-info .drawer-counts').count(),0);
+ assert.equal((await page.locator('#person-profile-info').innerText()).includes('Bilinmiyor'),false);
+ assert.equal(await page.locator('#person-detail-status').innerText(),'Profil bilgileri getiriliyor…');
+ await page.locator('#person-note').fill('Keep this unsaved note');
+ await page.evaluate(()=>{window.qaDelayProfile=false;qaProfileResolver()});
+ await page.waitForFunction(()=>document.querySelector('#person-profile-info .drawer-counts strong')?.textContent==='42');
+ assert.deepEqual(await page.locator('#person-profile-info .drawer-counts strong').allTextContents(),['42','0']);
+ assert.match(await page.locator('#person-profile-info').innerText(),/Gizlilik\s+Açık\s+Gönderi\s+0/);
+ assert.equal(await page.locator('#person-note').inputValue(),'Keep this unsaved note');
+ assert.equal(await page.locator('#person-note').evaluate(node=>node===document.activeElement),true);
+ assert.equal(await page.locator('#person-profile-info .avatar img').getAttribute('src'),image);
+ assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='add_person'&&c.args.id==='449').length),0);
+ await page.keyboard.press('Escape');await page.locator('#list-rows .list-person').click();
+ await page.locator('#person-profile-info .drawer-counts').waitFor();
+ assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='profile_detail'&&c.args.id==='449').length),1);
+ await page.screenshot({path:path.join(output,'list-profile-drawer.png')});
+ await page.keyboard.press('Escape');
+ checks.push('Drawer carries the list photo, reads one scoped profile, shows zero counts and public privacy, preserves typed notes and reuses fresh data');
  await page.evaluate(()=>window.qaBadListImage=true);
  await page.locator('#list-search').fill('qa.447');
  await page.waitForFunction(()=>qaCalls.some(c=>c.operation==='list_avatar'&&c.args.id==='447'));
@@ -101,6 +129,28 @@ try {
  await page.waitForFunction(()=>qaCalls.some(c=>c.operation==='cancel_list_images'));
  assert.equal(await page.evaluate(()=>!!qaOldAvatar.querySelector('img')),false);
  checks.push('Untrusted image sources keep initials and leaving the list ignores late thumbnail replies');
+ await page.locator('.sidebar a[href="#lists"]').click();
+ await page.locator('#list-owner').selectOption('300');await page.locator('#list-search').fill('qa.446');
+ await page.evaluate(()=>{window.qaDelayProfile=true;window.qaProfileResolver=null});
+ await page.locator('#list-rows .list-person').click();await page.waitForFunction(()=>typeof qaProfileResolver==='function');
+ await page.keyboard.press('Escape');await page.evaluate(()=>{window.qaDelayProfile=false;qaProfileResolver()});
+ await page.waitForFunction(()=>document.querySelector('[data-action="add-person"]')?.disabled!==true);
+ assert.equal(await page.getByRole('dialog').count(),0);
+ checks.push('Closing a drawer while its profile is loading ignores the late reply without reopening it');
+ await page.locator('#list-search').fill('qa.445');
+ await page.evaluate(()=>{window.qaDelayListImages=true;window.qaImageResolvers=[];window.qaMissingFacts=true});
+ // Filtering mounted the row before the delay flag; use a fresh identity.
+ await page.locator('#list-search').fill('qa.444');
+ await page.waitForFunction(()=>qaImageResolvers.length>0);
+ await page.locator('#list-rows .list-person').click();
+ await page.waitForFunction(()=>document.querySelector('#person-profile-info .drawer-counts strong')?.textContent==='42');
+ assert.equal(await page.locator('#person-profile-info .detail-pair').count(),1,'Only the known observation time is shown');
+ assert.equal((await page.locator('#person-profile-info').innerText()).includes('Bilinmiyor'),false);
+ await page.evaluate(()=>{for(const resolve of qaImageResolvers)resolve({ok:true,avatar:'data:image/jpeg;base64,QA=='});window.qaDelayListImages=false});
+ await page.locator('#person-profile-info .avatar img').waitFor();
+ assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='list_avatar'&&c.args.id==='444').length),1);
+ await page.keyboard.press('Escape');
+ checks.push('Opening before the list image finishes shares its download; omitted post/privacy fields stay hidden after the profile reply');
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
  await writeFile(path.join(output,'checks.json'),JSON.stringify({checks,errors,external,syntheticApi:true,liveInstagram:false},null,2));
  console.log(`${checks.length} profile search renderer checks passed; synthetic API, no external requests.`);

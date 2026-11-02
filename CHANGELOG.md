@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.30 — 2026-11-02 (Listeden profil ayrıntılarına geçiş)
+
+- Liste satırındaki fotoğraf sağ profil paneline taşınır; devam eden küçük resim indirmesi panelle paylaşılır, ikinci indirme gerekmez. Bilgi yanıtı fotoğrafı veya yazılmakta olan notu/odağı silmez.
+- Panel açıldığında eksik/eski takipçi, takip edilen, gönderi ve gizlilik bilgileri için tek sayısal ID profil okuması mevcut ortak sıraya girer. Son beş dakikadaki başarılı bilgiler yeniden kullanılır; en fazla 20 geçici profil tutulur. Panel kapanınca henüz gönderilmemiş iş kaldırılır; geç yanıt paneli açmaz. Hesap değişimi geçici önbelleği temizler.
+- Liste üyesi bu okumayla kaydedilen profillere eklenmez. Eksik alanlar gizlenir; gerçek sıfır sayıları ve açık/gizli değerleri korunur. Kendi/kaydedilen profilin mevcut şifreli gözlemi güncellenebilir. Otomatik panel okuması durdurulmuş otomasyonu açmaz; açık yenileme eski davranışı korur. 6–10 saniyelik sıra, bütçe ve 429 molası değişmez. Ayarlar'daki eski 15 dakikalık liste aralığı açıklaması mevcut bir dakikalık alt sınırla eşitlendi. Android 0.1.69 değişmedi.
+- Doğrulama: 197 Python, 44 Node testi, dokuz sentetik arama/liste/panel ekran kontrolü, tema/dil/kaynak kontrolü ve paketli EXE üzerinde 36 kontrol. Kapsam: tek okuma, hesap/ID doğrulaması, eksik alanlar, sıfır değerleri, görüntü paylaşımı, not/odak korunması, beş dakikalık tazelik, geç yanıt, mola/429'da tekrar göndermeme ve paketli çevrimdışı sınır. Yeni profil paneli akışı canlı Instagram yanıtıyla henüz doğrulanmadı.
+
 ## Windows-web 0.2.29 — 2026-11-02 (Takip listelerinde profil fotoğrafları)
 
 - Liste yanıtında varsa izinli Meta CDN profil fotoğrafı adresi şifreli üyelik kaydında tutulur. Takipçi/takip edilen listesindeki görünür ve yakın satırlar bu adresten küçük resim yükler; kişi başına profil API sorgusu gönderilmez. Önceden adresi saklanmamış kayıtlarda baş harf kalabilir; sonraki normal taramanın aynı ID için sağladığı adres kullanılabilir. Üyelik kayıtları birleştirilmez veya değiştirilmez, ek tam tarama zorlanmaz.

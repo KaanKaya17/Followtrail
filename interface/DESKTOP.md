@@ -1,4 +1,8 @@
-# InstagramTracker Windows 0.2.29
+# InstagramTracker Windows 0.2.30
+
+Listeden açılan sağ panel, satırdaki küçük resmi doğrudan kullanır; indirme sürüyorsa aynı işi paylaşır. Eksik/eski profil bilgileri için panel açıkken tek sayısal ID profil okuması sıraya girer. Takipçi, takip edilen, gönderi ve gizlilik alanları yalnız geçerli yanıtla gösterilir; bilinmeyen/boş satırlar gizlenir, gerçek sıfır değerleri korunur. Yanıt yalnız bilgi bölümünü günceller, yazılmakta olan notu veya odağı değiştirmez. Paneli kapatmak henüz gönderilmemiş okumayı kaldırır; gönderilmiş işlemin geç yanıtı paneli yeniden açmaz.
+
+Son beş dakikadaki başarılı bilgiler yeniden kullanılır; liste üyesi panel açıldığı için kaydedilen profillere eklenmez. Geçici ayrıntılar en fazla 20 profil için süreç belleğinde tutulur, hesap değişiminde temizlenir. Kendi/kaydedilmiş profilin okuması mevcut şifreli gözlem kaydını günceller. Profil okuması 6–10 saniyelik ortak sıraya, bütçeye ve mevcut güvenlik molasına uyar; otomatik panel okuması durdurulmuş otomasyonu açmaz. **Profili kontrol et** açık yenileme yapar. Instagram'ın göndermediği veri tamamlanmış gibi sunulmaz. Bu değişiklik Windows içindir; Android 0.1.69 paketi değişmedi.
 
 Takip listelerinin görünür satırları, liste yanıtında sağlanan fotoğraf adresinden küçük resim yükleyebilir; kişi başına profil API sorgusu gönderilmez. Adresler şifreli liste kaydında tutulur, arayüze veya bildirim farklarına aktarılmaz. Arayüz yalnız hesap/liste yönü/tarama kimliği ve kişi ID'siyle görsel isteyebilir; kayıtlı üyelik bu isteğin kapsamını doğrular. Eski kayıtta adres yoksa aynı ID'nin daha yeni bir sayfada alınmış fotoğrafı kullanılabilir; üyelik kaydı değiştirilmez. Hiç adres yoksa sonraki normal taramaya kadar baş harf gösterilir. Ayrı bir tam tarama otomatik zorlanmaz.
 
@@ -14,7 +18,7 @@ Profil ekleme penceresinde en az iki karakter yazıp 650 ms duraklamak Instagram
 
 Fotoğraflar metin sonuçlarını bekletmez. Özel yerel pipe üzerinden yalnız mevcut sonuç belirteci ve ID ile istenir; URL seçimi renderer'a açılmaz. İşçi içinde iki CDN indirmesi ve en fazla 20 bekleyen/çalışan iş vardır; iptal eski işleri durdurur. Oturum/çerez kullanılmaz, yönlendirme izlenmez, mevcut resim boyutu/çözünürlük sınırları uygulanır. Pencere kapanınca geçici sorgu önbelleği bırakılır ve görsel işleri iptal edilir.
 
-`artifacts/InstagramTracker-Desktop-0.2.29/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
+`artifacts/InstagramTracker-Desktop-0.2.30/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur.
 
 ## Dört yerel uygulama dili
 

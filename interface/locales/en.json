@@ -18,7 +18,6 @@
   "Yeni: {0}": "New: {0}",
   "Listede yok: {0}": "Missing from list: {0}",
   "Otomatik liste karşılaştırması": "Automatic list comparisons",
-  "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compare lists for your own account and watched profiles. Count changes queue a scan; complete scans are at least 15 minutes apart. Unchanged counts are scanned daily.",
   "Kullanım notları": "Usage notes",
   "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Results show differences between saved checks. They do not establish the exact time of a change or prove an unfollow on their own.",
   "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "The first complete list is your starting record. Later complete lists are compared. Partial lists cannot establish a definitive result; search only covers records on your device.",
@@ -1075,5 +1074,13 @@
   },
   "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes.",
   "Taramaya devam et": "Continue scan",
-  "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Showing {0} accounts from the previous partial list; this will update when the new scan finishes."
+  "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Showing {0} accounts from the previous partial list; this will update when the new scan finishes.",
+  "Profil bilgileri getiriliyor…": "Loading profile details…",
+  "Profil bilgileri {0} saniye sonra okunacak.": {
+    "count": 0,
+    "one": "Profile details will be read in {0} second.",
+    "other": "Profile details will be read in {0} seconds."
+  },
+  "Diğer işlem tamamlanınca profil okunacak.": "The profile will be read when the current operation finishes.",
+  "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır.": "Compare lists for your own account and watched profiles. Count changes queue a scan; complete scans are at least 1 minute apart. Unchanged counts are scanned daily."
 }

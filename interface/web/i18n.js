@@ -26,7 +26,6 @@
     "Yeni: {0}": "New: {0}",
     "Listede yok: {0}": "Missing from list: {0}",
     "Otomatik liste karşılaştırması": "Automatic list comparisons",
-    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compare lists for your own account and watched profiles. Count changes queue a scan; complete scans are at least 15 minutes apart. Unchanged counts are scanned daily.",
     "Kullanım notları": "Usage notes",
     "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Results show differences between saved checks. They do not establish the exact time of a change or prove an unfollow on their own.",
     "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "The first complete list is your starting record. Later complete lists are compared. Partial lists cannot establish a definitive result; search only covers records on your device.",
@@ -1083,7 +1082,15 @@
     },
     "Diğer işlem tamamlanınca aranacak.": "Search will start when the other operation finishes.",
     "Taramaya devam et": "Continue scan",
-    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Showing {0} accounts from the previous partial list; this will update when the new scan finishes."
+    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Showing {0} accounts from the previous partial list; this will update when the new scan finishes.",
+    "Profil bilgileri getiriliyor…": "Loading profile details…",
+    "Profil bilgileri {0} saniye sonra okunacak.": {
+      "count": 0,
+      "one": "Profile details will be read in {0} second.",
+      "other": "Profile details will be read in {0} seconds."
+    },
+    "Diğer işlem tamamlanınca profil okunacak.": "The profile will be read when the current operation finishes.",
+    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır.": "Compare lists for your own account and watched profiles. Count changes queue a scan; complete scans are at least 1 minute apart. Unchanged counts are scanned daily."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -1105,7 +1112,6 @@
     "Yeni: {0}": "Nuevas: {0}",
     "Listede yok: {0}": "Ya no aparecen: {0}",
     "Otomatik liste karşılaştırması": "Comparación automática de listas",
-    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compara las listas de tu cuenta y de los perfiles seguidos. Los cambios en el número ponen un análisis en cola; hay al menos 15 minutos entre análisis completos. Si el número no cambia, se analizan a diario.",
     "Kullanım notları": "Notas de uso",
     "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Los resultados muestran diferencias entre comprobaciones guardadas. Por sí solos no determinan el momento exacto de un cambio ni demuestran que alguien haya dejado de seguirte.",
     "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "La primera lista completa es el registro inicial. Después se comparan las listas completas. Las listas parciales no permiten establecer un resultado definitivo; la búsqueda solo abarca los registros del dispositivo.",
@@ -2162,7 +2168,15 @@
     },
     "Diğer işlem tamamlanınca aranacak.": "La búsqueda comenzará cuando termine la otra operación.",
     "Taramaya devam et": "Continuar escaneo",
-    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Se muestran {0} cuentas de la lista parcial anterior; se actualizará cuando finalice el nuevo escaneo."
+    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Se muestran {0} cuentas de la lista parcial anterior; se actualizará cuando finalice el nuevo escaneo.",
+    "Profil bilgileri getiriliyor…": "Cargando los datos del perfil…",
+    "Profil bilgileri {0} saniye sonra okunacak.": {
+      "count": 0,
+      "one": "Los datos del perfil se consultarán en {0} segundo.",
+      "other": "Los datos del perfil se consultarán en {0} segundos."
+    },
+    "Diğer işlem tamamlanınca profil okunacak.": "El perfil se consultará cuando termine la operación actual.",
+    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır.": "Compara las listas de tu cuenta y de los perfiles seguidos. Los cambios en el número ponen un análisis en cola; hay al menos 1 minuto entre análisis completos. Si el número no cambia, se analizan a diario."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -2184,7 +2198,6 @@
     "Yeni: {0}": "Novas: {0}",
     "Listede yok: {0}": "Não estão mais na lista: {0}",
     "Otomatik liste karşılaştırması": "Comparação automática de listas",
-    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır.": "Compare as listas da sua conta e dos perfis monitorados. Mudanças na contagem colocam uma leitura na fila; há pelo menos 15 minutos entre leituras completas. Se a contagem não mudar, a leitura é diária.",
     "Kullanım notları": "Notas de uso",
     "Sonuçlar, kaydedilen kontroller arasındaki farkları gösterir. Değişikliğin kesin zamanı veya tek başına takipten çıkış kanıtı değildir.": "Os resultados mostram diferenças entre verificações salvas. Por si só, não determinam o momento exato de uma mudança nem comprovam que alguém deixou de seguir você.",
     "İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.": "A primeira lista completa é o registro inicial. Depois, as listas completas são comparadas. Listas parciais não permitem estabelecer um resultado definitivo; a busca abrange apenas os registros no dispositivo.",
@@ -3241,7 +3254,15 @@
     },
     "Diğer işlem tamamlanınca aranacak.": "A busca começará quando a outra operação terminar.",
     "Taramaya devam et": "Continuar verificação",
-    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Exibindo {0} contas da lista parcial anterior; a lista será atualizada quando a nova verificação terminar."
+    "Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.": "Exibindo {0} contas da lista parcial anterior; a lista será atualizada quando a nova verificação terminar.",
+    "Profil bilgileri getiriliyor…": "Carregando os dados do perfil…",
+    "Profil bilgileri {0} saniye sonra okunacak.": {
+      "count": 0,
+      "one": "Os dados do perfil serão consultados em {0} segundo.",
+      "other": "Os dados do perfil serão consultados em {0} segundos."
+    },
+    "Diğer işlem tamamlanınca profil okunacak.": "O perfil será consultado quando a operação atual terminar.",
+    "Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır.": "Compare as listas da sua conta e dos perfis monitorados. Mudanças na contagem colocam uma leitura na fila; há pelo menos 1 minuto entre leituras completas. Se a contagem não mudar, a leitura é diária."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

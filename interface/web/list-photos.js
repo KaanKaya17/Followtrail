@@ -1,14 +1,34 @@
 (function(root) {
   'use strict';
   const valid=value=>typeof value==='string' && value.length<=100000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(value);
-  function create({request,cancel}) {
+  function create({request,cancel,onImage=()=>{}}) {
     let observer=null,epoch=0,scope=null,owner=null,active=0,queue=[];
-    const cache=new Map();
+    const cache=new Map(),pending=new Map();let cacheEpoch=0;
+    const keyOf=context=>[context.accountId,context.ownerId,context.direction,context.scanId,context.id].join(':');
+    function peek(context) {
+      const saved=cache.get(keyOf(context));
+      return saved && Date.now()-saved.at<(saved.avatar ? 900000 : 60000) ? saved.avatar : null;
+    }
+    function get(context) {
+      if(owner!==context.accountId){clear(true);owner=context.accountId;}
+      const key=keyOf(context),saved=cache.get(key),ticket=cacheEpoch,listTicket=epoch;
+      if(saved && Date.now()-saved.at<(saved.avatar ? 900000 : 60000))return Promise.resolve({ok:true,avatar:saved.avatar});
+      if(pending.has(key))return pending.get(key);
+      const work=request(context).catch(()=>null).then(response=>{
+        if(ticket===cacheEpoch && owner===context.accountId && response?.ok && (valid(response.avatar) || listTicket===epoch)) {
+          cache.delete(key);cache.set(key,{avatar:valid(response.avatar)?response.avatar:null,at:Date.now()});
+          while(cache.size>32)cache.delete(cache.keys().next().value);
+          if(valid(response.avatar))onImage(context,response.avatar);
+        }
+        return response;
+      }).finally(()=>{if(pending.get(key)===work)pending.delete(key);});
+      pending.set(key,work);return work;
+    }
     function clear(reset=false) {
       epoch++;observer?.disconnect();observer=null;queue=[];
       if(scope!==null)Promise.resolve(cancel()).catch(()=>{});
       scope=null;
-      if(reset){cache.clear();owner=null;}
+      if(reset){cacheEpoch++;cache.clear();pending.clear();owner=null;}
     }
     function mount(container,context) {
       if(!container){clear();return;}
@@ -23,14 +43,7 @@
         node.querySelector('.avatar')?.replaceChildren(image);
       }
       async function load(node) {
-        const key=[context.accountId,context.ownerId,context.direction,node.dataset.photoScan,node.dataset.id].join(':');
-        const saved=cache.get(key);
-        if(saved && Date.now()-saved.at<(saved.avatar ? 900000 : 60000)){paint(node,saved.avatar);return;}
-        const response=await request({accountId:context.accountId,ownerId:context.ownerId,direction:context.direction,scanId:node.dataset.photoScan,id:node.dataset.id}).catch(()=>null);
-        if(owner===context.accountId && response?.ok && (valid(response.avatar) || ticket===epoch)) {
-          cache.delete(key);cache.set(key,{avatar:valid(response?.avatar)?response.avatar:null,at:Date.now()});
-          while(cache.size>32)cache.delete(cache.keys().next().value);
-        }
+        const response=await get({accountId:context.accountId,ownerId:context.ownerId,direction:context.direction,scanId:node.dataset.photoScan,id:node.dataset.id});
         paint(node,response?.avatar);
       }
       function pump() {
@@ -60,7 +73,7 @@
         if(!node.querySelector('.avatar img'))observer.observe(node);
     }
     let refresh=()=>{};
-    return {mount,clear};
+    return {mount,clear,peek,get};
   }
   root.TrackerListPhotos=Object.freeze({create});
 })(typeof window==='object'?window:globalThis);
