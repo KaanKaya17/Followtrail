@@ -6,13 +6,13 @@
 
 ## Windows
 
-**Güncel önizleme: 0.2.34 · kaynak etiketi: `desktop-v0.2.34`**
+**Güncel önizleme: 0.2.35 · kaynak etiketi: `desktop-v0.2.35`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Paket: `InstagramTracker-Desktop-0.2.34.zip`; çıkarılan klasörde `InstagramTracker.exe` çalıştırılır.
+- Paket: `InstagramTracker-Desktop-0.2.35.zip`; çıkarılan klasörde `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
-- Son sürümde 201 Python, 47 Node, 10 arayüz kontrolü ve paketli EXE üzerinde 36 kontrol geçmiştir. Bu testlerin büyük bölümü sentetik veri kullanır.
+- Son sürümde 208 Python, 51 Node, 10 arayüz kontrolü ve paketli EXE üzerinde 36 genel ve 4 büyük liste kontrolü geçmiştir. Bu testlerin büyük bölümü sentetik veri kullanır.
 
 ## Android
 

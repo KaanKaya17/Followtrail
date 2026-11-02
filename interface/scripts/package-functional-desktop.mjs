@@ -73,6 +73,7 @@ for (const name of [
   "usage-notes.js",
   "profile-search.js",
   "list-photos.js",
+  "list-pages.js",
   "profile-details.js",
   "profile-links.js",
   "link-icons.js",

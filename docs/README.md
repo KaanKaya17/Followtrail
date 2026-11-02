@@ -25,6 +25,7 @@ Bu dizindeki teknik belgeler araştırma, uygulama ve test geçmişini korur. Do
 ## Veri ve arayüz doğrulamaları
 
 - [Liste okuma](FOLLOW-LISTS-TEST.md)
+- [Kaydırdıkça yerel liste yükleme](LOCAL-LIST-PAGING-TEST.md)
 - [Otomatik ilk hazırlık](AUTOMATIC-PREPARATION-TEST.md)
 - [Otomatik kontroller](AUTOMATION-TEST.md)
 - [Profil zaman tüneli](VISUAL-HISTORY-TEST.md)

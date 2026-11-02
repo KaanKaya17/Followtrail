@@ -81,6 +81,7 @@ const allowed = new Set([
   "search_avatar",
   "cancel_search_images",
   "list_avatar",
+  "list_page",
   "profile_detail",
   "cancel_list_images",
   "save_person",
@@ -125,6 +126,7 @@ function validate(operation, args) {
     search_people: ["query"],
     search_avatar: ["token", "id"],
     cancel_search_images: [],
+    list_page: ["accountId","revision","ownerId","direction","scanId","previousScanId","comparison","relation","query","offset"],
     list_avatar: ["accountId", "ownerId", "direction", "scanId", "id"],
     profile_detail: ["accountId", "id"],
     cancel_list_images: [],
@@ -363,26 +365,7 @@ else
           ok: false,
           error: { message: t("Önce tamamlanmış bir liste kaydı oluştur.") },
         };
-      const csv = (value) => {
-        let text = String(value ?? "");
-        if (/^[=+\-@\t\r\n]/.test(text)) text = "'" + text;
-        return '"' + text.replaceAll('"', '""') + '"';
-      };
-      const rows = [
-        ["account_id", "username", "name", "observed_at"],
-        ...Object.values(latest.members).map((p) => [
-          p.id,
-          p.username,
-          p.name,
-          new Date(latest.finishedAt * 1000).toISOString(),
-        ]),
-      ];
-      await fs.writeFile(
-        selection.filePath,
-        "\ufeff" + rows.map((row) => row.map(csv).join(",")).join("\r\n"),
-        { encoding: "utf8" },
-      );
-      return { ok: true };
+      return backend.command('export_list', {...args, snapshotId:latest.id, accountId:fileAccountId, path:selection.filePath});
     });
     backend.onNotifications = (entries) => {
       for (const entry of entries) {

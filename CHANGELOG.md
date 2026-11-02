@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.35 — 2026-11-02 (Kaydırdıkça yerel liste yükleme)
+
+- Takip Listeleri, alt sınıra yaklaşınca sonraki 100 üyeyi otomatik yükler; normal sayfalama düğmesi kaldırıldı. Yeni satırlar mevcut satırları yeniden oluşturmadan eklenir.
+- Arayüze bütün liste arşivleri yerine sayılar ve tarama bilgileri gönderilir. Arama, ilişki filtresi ve eski/yeni liste karşılaştırması cihazdaki tam kayıt üzerinde çalışır; yalnız sonuç sayfası aktarılır. Bu yol Instagram istemcisi açmaz, kota tüketmez veya kasayı yazmaz.
+- Hesap, arama veya tarama değişince gecikmiş sayfa yanıtları kullanılmaz. Eksik/önceki liste, fotoğraf kaynakları, arka planda çalışan tarama ve bütün üyeleri içeren CSV korunur. Hatalı sayfa kendiliğinden tekrar denenmez.
+- Android 0.1.74 ve mevcut giriş araştırması değişmedi. Doğrulama ve ölçüm kapsamı: [yerel liste sayfalama notu](docs/LOCAL-LIST-PAGING-TEST.md).
+
 ## Windows 0.2.34 / Android 0.1.74 — 2026-11-02 (Instagram Threads rozeti)
 
 - Threads bağlantısı yalnız biyografi linklerinden aranıyordu. Instagram'ın ayrı Threads rozeti gözden kaçtığı için rozetli profilde düğme görünmüyordu. Etkin rozetin bildirdiği geçerli kullanıcı adı artık profil bağlantılarına eklenir; sırf Instagram kullanıcı adıyla hesap varsayılmaz. Açık Threads adresi varsa önceliklidir ve aynen korunur.

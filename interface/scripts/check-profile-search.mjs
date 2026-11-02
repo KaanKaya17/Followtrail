@@ -1,3 +1,4 @@
+import {localListFixture} from './local-list-fixture.mjs';
 import {chromium} from 'playwright-core';
 import {execFileSync} from 'node:child_process';
 import {mkdtemp,mkdir,writeFile} from 'node:fs/promises';
@@ -10,18 +11,21 @@ const backend=path.join(root,'interface/desktop/backend');
 const python=path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe');
 const home=await mkdtemp(path.join(os.tmpdir(),'TrackerQA-'));
 execFileSync(python,[path.join(backend,'seed_qa.py'),'--home',home]);
-const state=JSON.parse(execFileSync(python,['-c','import json,sys;from engine import Engine;print(json.dumps(Engine(sys.argv[1]).snapshot()))',home],{cwd:backend,encoding:'utf8'}));
+const fixture=await localListFixture(python,backend,home);
+const state=fixture.state;
 state.gate={...state.gate,blockedUntil:0,manualOnly:false};state.activeAccountId='100';state.connected=true;
 const output=path.join(root,'artifacts/profile-search-ui');await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
 const errors=[],external=[],checks=[];
 try {
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ await page.exposeFunction('qaLocalList',args=>fixture.request(args));
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!r.url().startsWith('file:')&&!r.url().startsWith('data:'))external.push(r.url());});
  await page.addInitScript(({state})=>{
   const calls=[];window.qaCalls=calls;window.qaImageResolvers=[];
   window.TrackerDesktop={subscribe:()=>{},openLink:async url=>{calls.push({operation:'open_link',url});return {ok:true};},command:async(operation,args={})=>{
    calls.push({operation,args});
+   if(operation==='list_page')return window.qaLocalList(args);
    if(operation==='search_people') {
     if(args.query==='late')await new Promise(resolve=>window.qaResolve=resolve);
     if(args.query==='rate limit')return {ok:false,state,error:{code:'limited',message:'Instagram isteği sınırladı. Otomatik tekrar durduruldu; mola bilgisini kontrol et.'}};
@@ -178,4 +182,4 @@ try {
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
  await writeFile(path.join(output,'checks.json'),JSON.stringify({checks,errors,external,syntheticApi:true,liveInstagram:false},null,2));
  console.log(`${checks.length} profile search renderer checks passed; synthetic API, no external requests.`);
-} finally {await browser.close();}
+} finally {await browser.close();await fixture.close();}

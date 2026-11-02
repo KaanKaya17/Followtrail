@@ -54,3 +54,15 @@ test('Thumbnail controls can finish independently without clearing a running acc
   backend.message({type:'control',id:writes[0].id,ok:true,avatar:null});
   assert.equal((await result).avatar,null);assert.equal(backend.busy,true);
 });
+
+
+test('Local list pages finish without clearing an active scan or its progress',async()=>{
+  const backend=new Backend({onEvent:()=>{}}),writes=[];
+  backend.ready=true;backend.busy=true;backend.progress={phase:'waiting',until:123};
+  backend.child={stdin:{write(line,_encoding,callback){writes.push(JSON.parse(line));callback();}}};
+  const pending=backend.command('list_page',{accountId:'100'});
+  assert.equal(writes.length,1);
+  backend.message({type:'control',id:writes[0].id,ok:true,page:{items:[]}});
+  assert.deepEqual((await pending).page,{items:[]});
+  assert.equal(backend.busy,true);assert.equal(backend.progress.phase,'waiting');
+});

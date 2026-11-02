@@ -1087,5 +1087,10 @@
   "Instagram’da aç": "Open Instagram",
   "Threads’te aç": "Open Threads",
   "Bağlantı açılamadı.": "Could not open the link.",
-  "Web sitesi": "Website"
+  "Web sitesi": "Website",
+  "{0} / {1} hesap gösteriliyor": "Showing {0} / {1} accounts",
+  "Liste yüklenemedi.": "Could not load the list.",
+  "Tekrar dene": "Try again",
+  "Hesaplar yükleniyor…": "Loading accounts…",
+  "Devamı için kaydırın": "Scroll for more"
 }

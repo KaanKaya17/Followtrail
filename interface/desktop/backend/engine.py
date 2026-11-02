@@ -1,5 +1,8 @@
 """Local observations, paging, comparison and guarded account operations."""
 import copy
+import csv
+import list_pages
+from list_pages import public_member
 import json
 import math
 import os
@@ -61,14 +64,6 @@ def public_person(value):
     return {key: value.get(key) for key in keys}
 
 
-def public_member(value):
-    return {key:value.get(key) for key in ('id','username','name')}
-
-
-def public_scan(scan):
-    if not scan:return None
-    return {**{k:v for k,v in scan.items() if k not in ('nextCursor','seenCursors','members')},
-            'members':{identity:public_member(p) for identity,p in scan['members'].items()}}
 
 
 class Engine:
@@ -91,6 +86,7 @@ class Engine:
         self.search_results = None
         self.search_pictures = {}
         self.profile_detail_result = None
+        self.list_pages = list_pages.ListPages()
         self.recover_interrupted()
 
     def recover_interrupted(self):
@@ -126,17 +122,15 @@ class Engine:
 
     def snapshot(self):
         d = self.data
-        records = {}
-        for key, record in d['lists'].items():
-            snapshots = [public_scan(scan) for scan in record.get('snapshots', [])]
-            draft = record.get('draft')
-            records[key] = {'snapshots': snapshots, 'draft': public_scan(draft),
-                            'canResume': list_preparation.resumable(draft, self.clock()),
-                            'retainedPartial': public_scan(record.get('retainedPartial')),
-                            'comparison': compare(snapshots[-2], snapshots[-1]) if len(snapshots) > 1 else None}
+        published = self.list_pages.publish(d)
+        records = {key: {'snapshots': [list_pages.metadata(s) for s in record.get('snapshots', [])],
+                         'draft': list_pages.metadata(record.get('draft')),
+                         'retainedPartial': list_pages.metadata(record.get('retainedPartial')),
+                         'canResume': list_preparation.resumable(record.get('draft'), self.clock())}
+                   for key, record in published['records'].items()}
         return {'account': public_person(d['account']) if d['account'] else None,
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
-                'history': d['history'], 'lists': records, 'events': d['events'],
+                'history': d['history'], 'lists': records, 'listsRevision': published['revision'], 'events': d['events'],
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
                 'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
@@ -150,7 +144,7 @@ class Engine:
                 'searchResults': self.search_results,
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.34'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.35'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -820,6 +814,23 @@ class Engine:
         self.data = restored
         self.save()
 
+    def export_list(self, args):
+        if args.get('accountId') != (self.data['account'] or {}).get('id'):
+            raise AppFailure('input', 'Dosya seçimi sırasında hesap değişti. İlgili hesabı seçip yeniden dene.')
+        record = self.data['lists'].get(str(args.get('id', '')) + ':' + str(args.get('direction', '')), {})
+        scan = next((s for s in record.get('snapshots', []) if s['id'] == args.get('snapshotId')), None)
+        if scan is None:
+            raise AppFailure('input', 'Önce tamamlanmış bir liste kaydı oluştur.')
+        from datetime import datetime, timezone
+        observed = datetime.fromtimestamp(scan['finishedAt'], timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
+        def cell(value):
+            value = str(value or '')
+            return "'" + value if value.startswith(('=','+','-','@','\t','\r','\n')) else value
+        with open(args['path'], 'w', encoding='utf-8-sig', newline='') as stream:
+            writer = csv.writer(stream, quoting=csv.QUOTE_ALL)
+            writer.writerow(['account_id','username','name','observed_at'])
+            writer.writerows([cell(p.get(k)) for k in ('id','username','name')] + [observed] for p in scan['members'].values())
+
     def prepare_restore(self, restored):
         if (self.data['account'] and
                 self.data['account']['id'] != (restored['account'] or {}).get('id')):
@@ -843,6 +854,7 @@ class Engine:
                         'check_access': lambda: self.check_access(args),
                         'notification_rule': lambda: self.notification_rule(args),
                         'read_notification': lambda: self.read_notification(args),
+                        'export_list': lambda: self.export_list(args),
                         'export_backup': lambda: self.export_backup(args['path']),
                         'import_backup': lambda: self.import_backup(args['path'])}
             if operation == 'state':

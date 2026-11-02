@@ -1095,7 +1095,12 @@
     "Instagram’da aç": "Open Instagram",
     "Threads’te aç": "Open Threads",
     "Bağlantı açılamadı.": "Could not open the link.",
-    "Web sitesi": "Website"
+    "Web sitesi": "Website",
+    "{0} / {1} hesap gösteriliyor": "Showing {0} / {1} accounts",
+    "Liste yüklenemedi.": "Could not load the list.",
+    "Tekrar dene": "Try again",
+    "Hesaplar yükleniyor…": "Loading accounts…",
+    "Devamı için kaydırın": "Scroll for more"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2186,7 +2191,12 @@
     "Instagram’da aç": "Abrir Instagram",
     "Threads’te aç": "Abrir Threads",
     "Bağlantı açılamadı.": "No se pudo abrir el enlace.",
-    "Web sitesi": "Sitio web"
+    "Web sitesi": "Sitio web",
+    "{0} / {1} hesap gösteriliyor": "Mostrando {0} / {1} cuentas",
+    "Liste yüklenemedi.": "No se pudo cargar la lista.",
+    "Tekrar dene": "Reintentar",
+    "Hesaplar yükleniyor…": "Cargando cuentas…",
+    "Devamı için kaydırın": "Desplázate para ver más"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3277,7 +3287,12 @@
     "Instagram’da aç": "Abrir Instagram",
     "Threads’te aç": "Abrir Threads",
     "Bağlantı açılamadı.": "Não foi possível abrir o link.",
-    "Web sitesi": "Site"
+    "Web sitesi": "Site",
+    "{0} / {1} hesap gösteriliyor": "Exibindo {0} / {1} contas",
+    "Liste yüklenemedi.": "Não foi possível carregar a lista.",
+    "Tekrar dene": "Tentar novamente",
+    "Hesaplar yükleniyor…": "Carregando contas…",
+    "Devamı için kaydırın": "Role para ver mais"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };
