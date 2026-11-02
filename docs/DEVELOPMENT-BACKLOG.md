@@ -4,9 +4,11 @@
 
 Kullanıcı bu konuya daha sonra dönülmesini istedi; ZIP içe aktarma veya resmî veri taşıma entegrasyonu henüz geliştirilmedi. Seçili takipçi/takip edilen JSON dosyalarını yerel okuyup arşivler arasında karşılaştırma değerlendirilecek. Kendi hesabının dışa aktarımı, izlenen başka kişilerin bütün listelerini sağlamaz. Arşivlerde sayısal kimlik ve tarih anlamları gerçek dosyadan doğrulanmalı; mevcut API kimlikleriyle kullanıcı adına bakarak sessizce birleştirilmemeli. Meta Data Portability için uygulama/onay süreci var; takipçi/takip edilen kapsamı ile tamamen cihazda çalışma uyumluluğu doğrulanmadı. Kaynak: https://developers.facebook.com/docs/data-portability .
 
-## Android girişine mola sonrasında devam — 1 Kasım 2026
+## Android bağlantısı — 2 Kasım 2026 güncel durum
 
-E-posta kodu gönderimi 0.1.66 canlı testinde HTTP 200 ve geçerli yanıt verdi; ardından profil okuması HTTP 429 aldı. Bağlantı tamamlanmış sayılmıyor. Geçici oturum şu anda kapanışta temizleniyor. Sonraki çalışma: henüz doğrulanmamış oturumu etkin hesaplardan ayrı ve şifreli saklayıp, mevcut mola bittikten sonra açık kullanıcı işlemiyle yalnız profil kontrolünü sürdürmek. Eski hesap, istek sınırları ve oturum kimliği korunmalı; geçersiz oturumda yeni giriş istenmeli. Bu değişiklik henüz uygulanmadı; ayrıntılar CAPTCHA-FLOW-INVESTIGATION.md'de.
+0.1.73'te bekleyen web oturumunu etkin hesaplardan ayrı ve şifreli koruma, açık devam/silme ekranı, geçersiz oturum temizliği ve aktarım hatalarını ayırma uygulandı; kaynak ve sürüm etiketi GitHub'dadır. 2 Kasım canlı telefon testinde kod sonrası profil aşamasına geçildiği, profil GET'inin HTTP 429 aldığı ve bekleyen oturumun silinmeden devam ekranında kaldığı doğrulandı. Önceki “bu değişiklik henüz uygulanmadı” notu artık geçerli değildir. Tam hesap bağlantısı ve canlı liste okumaları başarılı sayılmaz.
+
+Kalan işler: profil GET'inin adres/başlık/oturum aktarımını incelemek ve 429'un nedenini ayırmak; kayıtlı mola bittikten sonra saklanan oturumla yalnız tek profil kontrolü yapmak; bu başarılı olursa kendi profil/liste okumaları, izlenen profil ve çoklu hesap geçişini gerçek Android akışında doğrulamak. Telefonun gösterdiği sonraki zaman 3 Kasım 19:21; sunucu kabulü garantisi değildir. Güncel kaynak incelemesinde girişin sayfadan gelen uygulama kimliğini aktarabildiği, profil okuyucusunun ise sabit bir uygulama kimliği kullandığı görüldü; gerçek değerlerin farklı olduğu veya bunun 429'u açıkladığı doğrulanmadı. Mola kaldırılmaz ve başarısız istekten sonra alternatif uç/taşıyıcıyla tekrar yapılmaz. Ayrıntılar CAPTCHA-FLOW-INVESTIGATION.md'de.
 
 ## Threads / Facebook genişlemesi — 29 Ekim 2026
 
