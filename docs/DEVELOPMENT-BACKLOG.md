@@ -49,3 +49,7 @@ Kullanıcıyla daha önce konuşulan kalıcı günlük özetler henüz eklenmedi
 ## Threads otomatik doğrulama — ertelendi (2026-11-02)
 
 Şimdilik yalnız Instagram profilinde açıkça gelen Threads bağlantısı gösterilir. İleride özel API `pk`/Instagram kimliği ilişkisi, resmî API uygulama kapsamlı kimliklerinden ayrı doğrulanmalı. 2023 tarihli [özgün araştırma](https://github.com/m1guelpf/threads-re) ortak ID kullanımını belgeliyor; mevcut hesapta canlı kimlik eşleşmesi kanıtlanmadı. Çerezsiz profil sayfası girişe yönlendi; tek profil JSON GET denemesi HTTP 429 verdi ve tekrar yapılmadı. Ayrı Threads girişinin kesin gerekli olduğu henüz sonucuna varılmamalı; mevcut Instagram profil yanıtındaki açık ilişki alanları önce incelenmeli.
+
+## Paylaşım profili ve video analizi — ertelendi (2026-11-02)
+
+Kullanıcı Reels/repost ve erişilebilir Threads paylaşımlarından ilgi alanları, içerik türleri ve gözlenen anlatım tarzını özetleyen bir özelliğe daha sonra dönmek istiyor. Her yorumun içerik dayanağı, tarih aralığı ve incelenen örnek sayısı gösterilmeli; repostun benimseme anlamına geldiği veya sabit kişilik/sağlık özelliği kanıtladığı varsayılmamalı. Kullanıcı verisinin dışarı gönderilmemesi şartı korunarak yerel model seçeneği değerlendirilmeli. Uygulamada henüz medya okuyucu veya AI analiz entegrasyonu yok; bağlantısı kullanıcı tarafından verilen tek herkese açık Reels'te oturumsuz tarayıcıdan üç video karesi okunabildi, ses ve repost yapan hesap tespiti sınanmadı. Öncelik Android girişinin tamamlanmasıdır.
