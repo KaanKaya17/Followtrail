@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.33 / Android 0.1.71 — 2026-11-02 (Yalnız açık Threads bağlantısı)
+
+- Threads düğmesi yalnız Instagram profilinden alınan açık bir Threads profil bağlantısı varsa gösterilir. Kaynak adres, kullanıcı adı farklı olsa veya eski `threads.net` alanını kullansa da korunur. Kullanıcı adından tahmini adres oluşturulmaz; bağlantı yoksa düğme gizlenir, hesap yokluğu sonucu çıkarılmaz.
+- Düğme doğrudan normal tarayıcıyı açar. Threads kontrol isteği, IPC komutu, sunucu/Android okuyucuları, önbellek ve doğrulanamadı mesajları kaldırıldı. Ek Threads isteği veya giriş yoktur. Otomatik doğrulama araştırması geliştirme listesinde ertelendi; eski uygulama Git geçmişinde durur.
+- Web sitesi kartları, Instagram bağlantısı, şifreli kayıtlar ve biyografi satır sonu düzeltmesi korunur. Eski bağlantısız kayıtlar açılabilir; yeni bağlantı ancak sonraki normal profil okumasında gelirse görünür.
+- Doğrulama: 199 Python, 46 Node ve 130 Android birim testi, 10 sentetik profil/liste ekran kontrolü, paketli EXE üzerinde 36 kontrol ve tema/dil/yerel ikon kaynak kontrolü geçti. Android release derlemesi, lint (0 hata, 21 uyarı), imza ve APK manifest kontrolü geçti. Yeni Android ekranı fiziksel cihazda sınanmadı; Threads’e yeni canlı istek gönderilmedi.
+
 ## Windows-web 0.2.32 — 2026-11-02 (Biyografi satır sonları)
 
 - Profil biyografisinde sunucudan gelen satır sonları ve boşluklar masaüstü/web panelinde korunur. Önceki normal HTML akışı alt alta yazılmış metni yan yana gösteriyordu. Uzun sözcükler panel sınırında kırılır; kullanıcı metni HTML olarak çalıştırılmaz.

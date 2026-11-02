@@ -963,8 +963,9 @@ try {
       await window.TrackerDesktop.command('profile_detail',{accountId:'100',id:'202',url:'https://example.com/'});return false;
     }catch{return true;}});
     assert.equal(detailRejected,true);
-    const threads=await page.evaluate(()=>window.TrackerDesktop.command('check_threads',{accountId:'100',id:'202',url:'https://www.threads.com/@qa.202'}));
-    assert.equal(threads.ok,false);assert.equal(threads.error.code,'offline');assert.equal(threads.state.threadsProfile,null);
+    const removed=await page.evaluate(async()=>{try {await window.TrackerDesktop.command('check_threads',{accountId:'100',id:'202',url:'https://www.threads.com/@qa.202'});return false;}catch{return true;}});
+    assert.equal(removed,true);
+
     await page.setViewportSize({ width: 1100, height: 850 });
     for (const route of ['overview', 'people', 'lists', 'timeline', 'settings', 'notifications']) {
       await page.locator(`.sidebar nav a[href="#${route}"]`).click();

@@ -1094,14 +1094,7 @@
     "{0} bağlantısını aç": "Open {0} link",
     "Instagram’da aç": "Open Instagram",
     "Threads’te aç": "Open Threads",
-    "Threads’i kontrol et": "Check Threads",
-    "Bu kullanıcı adındaki Threads profilini kontrol et: {0}": "Check the Threads profile with this username: {0}",
     "Bağlantı açılamadı.": "Could not open the link.",
-    "Threads profili kontrol ediliyor…": "Checking the Threads profile…",
-    "Bu kullanıcı adındaki Threads profili bulundu.": "A Threads profile with this username was found.",
-    "Bu kullanıcı adıyla Threads profili bulunamadı.": "No Threads profile was found with this username.",
-    "Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.": "The Threads profile could not be verified. You can check it in your browser.",
-    "Tarayıcıda aç": "Open in browser",
     "Web sitesi": "Website"
   },
   "es": {
@@ -2192,14 +2185,7 @@
     "{0} bağlantısını aç": "Abrir enlace de {0}",
     "Instagram’da aç": "Abrir Instagram",
     "Threads’te aç": "Abrir Threads",
-    "Threads’i kontrol et": "Comprobar Threads",
-    "Bu kullanıcı adındaki Threads profilini kontrol et: {0}": "Comprobar el perfil de Threads con este nombre de usuario: {0}",
     "Bağlantı açılamadı.": "No se pudo abrir el enlace.",
-    "Threads profili kontrol ediliyor…": "Comprobando el perfil de Threads…",
-    "Bu kullanıcı adındaki Threads profili bulundu.": "Se encontró un perfil de Threads con este nombre de usuario.",
-    "Bu kullanıcı adıyla Threads profili bulunamadı.": "No se encontró un perfil de Threads con este nombre de usuario.",
-    "Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.": "No se pudo verificar el perfil de Threads. Puedes comprobarlo en tu navegador.",
-    "Tarayıcıda aç": "Abrir en el navegador",
     "Web sitesi": "Sitio web"
   },
   "pt-BR": {
@@ -3290,14 +3276,7 @@
     "{0} bağlantısını aç": "Abrir link de {0}",
     "Instagram’da aç": "Abrir Instagram",
     "Threads’te aç": "Abrir Threads",
-    "Threads’i kontrol et": "Verificar Threads",
-    "Bu kullanıcı adındaki Threads profilini kontrol et: {0}": "Verificar o perfil do Threads com este nome de usuário: {0}",
     "Bağlantı açılamadı.": "Não foi possível abrir o link.",
-    "Threads profili kontrol ediliyor…": "Verificando o perfil do Threads…",
-    "Bu kullanıcı adındaki Threads profili bulundu.": "Foi encontrado um perfil do Threads com este nome de usuário.",
-    "Bu kullanıcı adıyla Threads profili bulunamadı.": "Nenhum perfil do Threads foi encontrado com este nome de usuário.",
-    "Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.": "Não foi possível verificar o perfil do Threads. Você pode conferir no navegador.",
-    "Tarayıcıda aç": "Abrir no navegador",
     "Web sitesi": "Site"
   }
 };

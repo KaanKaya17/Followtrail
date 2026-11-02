@@ -35,9 +35,8 @@ try {
    if(operation==='profile_detail') {
     if(window.qaDelayProfile)await new Promise(resolve=>window.qaProfileResolver=resolve);
     state.profileDetail={accountId:args.accountId,profile:{id:args.id,username:'qa.'+args.id,name:'QA '+args.id,
-     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:'First line\nSecond line\nThird line <img src=x onerror=window.qaBioInjected=true>',url:'https://youtube.com/@qa',links:[{url:'https://youtube.com/@qa'},{url:'https://portfolio.example/projects?q=1'}],observedAt:Date.now()/1000}};
+     followers:42,following:0,posts:window.qaMissingFacts?null:0,private:window.qaMissingFacts?null:false,bio:'First line\nSecond line\nThird line <img src=x onerror=window.qaBioInjected=true>',url:'https://youtube.com/@qa',links:[{url:'https://youtube.com/@qa'},{url:'https://portfolio.example/projects?q=1'},...(args.id==='449' ? [{url:'https://www.threads.com/@linked.account?source=profile'}] : [])],observedAt:Date.now()/1000}};
    }
-   if(operation==='check_threads')state.threadsProfile={accountId:args.accountId,id:args.id,url:args.url,status:window.qaThreadStatus || 'unknown'};
    if(operation==='add_person') {
     state.people.push({id:args.id,username:args.username,name:'İpek Kaya',followers:1,following:1,observedAt:1800000000,watching:false});
     state.searchResults=null;
@@ -134,15 +133,11 @@ try {
  await site.click();assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://youtube.com/@qa');
  await page.locator('[data-url="https://www.instagram.com/qa.449/"]').click();
  assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://www.instagram.com/qa.449/');
- await page.evaluate(()=>window.qaThreadStatus='not_found');await page.locator('[data-action="check-threads"]').click();
- await page.getByText('Bu kullanıcı adıyla Threads profili bulunamadı.',{exact:true}).waitFor();
- await page.evaluate(()=>window.qaThreadStatus='unknown');await page.locator('[data-action="check-threads"]').click();
- await page.getByText('Threads profili doğrulanamadı. Tarayıcıda kontrol edebilirsin.',{exact:false}).waitFor();
- await page.evaluate(()=>window.qaThreadStatus='visible');await page.locator('[data-action="check-threads"]').click();
- await page.getByText('Bu kullanıcı adındaki Threads profili bulundu.',{exact:true}).waitFor();
- assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://www.threads.com/@qa.449');
+ await page.locator('[data-url="https://www.threads.com/@linked.account?source=profile"]').click();
+ assert.equal(await page.evaluate(()=>qaCalls.at(-1).url),'https://www.threads.com/@linked.account?source=profile');
+ assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='check_threads').length),0);
  await page.screenshot({path:path.join(output,'profile-link-actions.png')});await page.keyboard.press('Escape');
- checks.push('Local site logos/names replace URL rows, tooltips retain destinations, Instagram opens explicitly and Threads distinguishes found/missing/unverified');
+ checks.push('Local site logos/names replace URL rows, tooltips retain destinations, Instagram and an explicit Threads link open directly without a verification request');
  await page.evaluate(()=>window.qaBadListImage=true);
  await page.locator('#list-search').fill('qa.447');
  await page.waitForFunction(()=>qaCalls.some(c=>c.operation==='list_avatar'&&c.args.id==='447'));
@@ -176,6 +171,7 @@ try {
  await page.evaluate(()=>{for(const resolve of qaImageResolvers)resolve({ok:true,avatar:'data:image/jpeg;base64,QA=='});window.qaDelayListImages=false});
  await page.locator('#person-profile-info .avatar img').waitFor();
  assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='list_avatar'&&c.args.id==='444').length),1);
+ assert.equal(await page.locator('.profile-site-link[data-url*="threads"]').count(),0);
  await page.keyboard.press('Escape');
  checks.push('Opening before the list image finishes shares its download; omitted post/privacy fields stay hidden after the profile reply');
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);

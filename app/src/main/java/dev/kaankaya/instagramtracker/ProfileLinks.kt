@@ -12,8 +12,7 @@ object ProfileLinks {
         if (uri.scheme != "https" || uri.host !in listOf("threads.com", "www.threads.com", "threads.net", "www.threads.net") || uri.port !in listOf(-1, 443)) null
         else Regex("/@([A-Za-z0-9._]{1,30})/?").matchEntire(uri.path)?.groupValues?.get(1)
     } catch (_: Exception) { null }
-    fun threads(username: String?, links: List<ProfileSite>): String? =
-        (links.firstNotNullOfOrNull { threadsName(it.url) } ?: username?.takeIf(ProfileInput::validUsername))?.let { "https://www.threads.com/@$it" }
+    fun threads(links: List<ProfileSite>): String? = links.firstOrNull { threadsName(it.url) != null }?.url
     fun parse(body: org.json.JSONObject): List<ProfileSite> {
         val array = body.optJSONArray("bio_links")
         val values = (0 until minOf(array?.length() ?: 0, 5)).mapNotNull { array?.optJSONObject(it)?.opt("url") as? String } + listOfNotNull(body.opt("external_url") as? String)

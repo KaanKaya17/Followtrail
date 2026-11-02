@@ -10,7 +10,9 @@ class ProfileLinksTest {
         assertEquals("YouTube" to "youtube", ProfileLinks.brand("https://www.youtube.com/@demo"))
         assertEquals("youtube.com.evil.example" to "globe", ProfileLinks.brand("https://youtube.com.evil.example/"))
         assertNull(ProfileLinks.threadsName("https://threads.com.evil.example/@demo"))
-        assertEquals("https://www.threads.com/@linked", ProfileLinks.threads("original", listOf(ProfileSite("https://threads.net/@linked"))))
+        assertNull(ProfileLinks.threads(emptyList()))
+        assertEquals("https://threads.com/@linked?from=ig", ProfileLinks.threads(listOf(ProfileSite("https://threads.com/@linked?from=ig"))))
+        assertEquals("https://threads.net/@linked", ProfileLinks.threads(listOf(ProfileSite("https://threads.net/@linked"))))
     }
     @Test fun parserKeepsSafeLinksDeduplicatesAndOldAccountsStillDecode() {
         val body = JSONObject("""{"pk":"123","username":"qa.owner","follower_count":2,"following_count":1,"external_url":"https://site.example/","bio_links":[{"url":"javascript:bad"},{"url":"https://youtube.com/@qa"},{"url":"https://site.example/"}]}""")
@@ -22,11 +24,5 @@ class ProfileLinksTest {
         assertTrue(AccountCodec.decode(AccountCodec.encode(old)).profile.details.links.isEmpty())
         body.put("bio_links", "invalid"); body.remove("external_url"); assertTrue(ProfileDetailsParser.parse(body).links.isEmpty())
     }
-    @Test fun threadsRequiresMatchingStructuredProfileAndCannotMistakeLoginOrRecommendationsForAbsence() {
-        val json = """{"@type":"ProfilePage","mainEntity":{"@type":"Person","alternateName":"@qa","url":"https://www.threads.com/@qa"}}"""
-        assertTrue(ThreadsProfile.parse("<script type='application/ld+json'>$json</script>", "qa"))
-        assertFalse(ThreadsProfile.parse("<script type='application/ld+json'>$json</script>", "other"))
-        assertFalse(ThreadsProfile.parse("<html>Log in to Threads</html>", "qa"))
-        assertFalse(ThreadsProfile.parse("<script type='application/json'>{\"recommendations\":[{\"username\":\"qa\"}]}</script>", "qa"))
-    }
+
 }

@@ -8,9 +8,10 @@ test('profile websites use exact brands, preserve destinations and reject active
 });
 test('explicit Threads link takes precedence over the Instagram username, website links deduplicate',()=>{
  const view=links.links({username:'ig.name',url:'https://youtube.com/@demo',links:[{url:'https://youtube.com/@demo'},{url:'https://threads.net/@other.name'}]});
- assert.equal(view.instagram,'https://www.instagram.com/ig.name/');assert.equal(view.threads,'https://www.threads.com/@other.name');
+ assert.equal(view.instagram,'https://www.instagram.com/ig.name/');assert.equal(view.threads,'https://threads.net/@other.name');
  assert.equal(view.websites.length,1);
- assert.equal(links.links({username:'ig.name'}).threads,'https://www.threads.com/@ig.name');
+ assert.equal(links.links({username:'ig.name'}).threads,null);
+ assert.equal(links.links({username:'ig.name',url:'https://threads.com/@linked?source=profile'}).threads,'https://threads.com/@linked?source=profile');
  assert.equal(links.threadsName('https://threads.com.evil.example/@name'),null);
  assert.equal(links.threadsName('https://threads.com/@name/post/abc'),null);
 });
