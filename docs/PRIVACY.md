@@ -1,10 +1,12 @@
 # Veri ve ağ sınırları
 
-## Windows 0.2.33 / Android 0.1.71 site ve sosyal bağlantıları
+Güncel kullanıcı açıklaması: [Gizlilik ve veriler](wiki/Gizlilik-ve-Veriler.md). Aşağıdaki sürümlü bölümler teknik davranış ve gelişim geçmişini kaydeder.
 
-Instagram yanıtındaki en fazla beş geçerli HTTP(S) biyografi/site adresi mevcut şifreli profil kaydında tutulabilir; kullanıcı tıklayana kadar bu sitelere gidilmez. Yerel marka ikonları iki platformda aynı kaynaktan üretilir. Bilinmeyen sitede alan adı ve genel simge gösterilir; favicon, site başlığı, uzaktan logo veya analitik hizmeti kullanılmaz. Açılan web adresleri normal tarayıcı/işletim sistemine devredilir; dosya, JavaScript ve kimlik bilgili URL'ler reddedilir. Tarayıcının kendi oturumu uygulamaya aktarılmaz.
+## Windows 0.2.34 / Android 0.1.74 site ve sosyal bağlantıları
 
-Threads düğmesi yalnız profilin sağladığı açık Threads profil bağlantısı için gösterilir. Gözlenen kaynak adres doğrudan açılır. Aynı kullanıcı adıyla hesap tahmini yapılmaz; profili açmak veya düğmeye basmak uygulama içinde Threads doğrulama isteği göndermez. Önceki kontrol uç noktası, okuyucular ve geçici doğrulama önbelleği kaldırıldı. Threads oturumu eklenmedi ve başka tarayıcıdan çerez alınmadı. Bağlantının bulunmaması, Threads hesabının olmadığı şeklinde yorumlanmaz.
+Instagram yanıtındaki en fazla beş geçerli HTTP(S) biyografi/site adresi ve bunlara ek bir Threads bağlantısı mevcut şifreli profil kaydında tutulabilir; kullanıcı tıklayana kadar bu sitelere gidilmez. Yerel marka ikonları iki platformda aynı kaynaktan üretilir. Bilinmeyen sitede alan adı ve genel simge gösterilir; favicon, site başlığı, uzaktan logo veya analitik hizmeti kullanılmaz. Açılan web adresleri normal tarayıcı/işletim sistemine devredilir; dosya, JavaScript ve kimlik bilgili URL'ler reddedilir. Tarayıcının kendi oturumu uygulamaya aktarılmaz.
+
+Threads düğmesi açık bir Threads profil bağlantısı veya Instagram'ın etkin Threads rozetinde geçerli kullanıcı adı sağlandığında gösterilir. Açık adres korunur ve önceliklidir; rozet adresi yalnız rozette bildirilen adla hazırlanır. Tek başına Instagram kullanıcı adıyla hesap tahmini yapılmaz; profili açmak veya düğmeye basmak uygulama içinde Threads doğrulama isteği göndermez. Önceki kontrol uç noktası, okuyucular ve geçici doğrulama önbelleği kaldırıldı. Threads oturumu eklenmedi ve başka tarayıcıdan çerez alınmadı. Bağlantının bulunmaması, Threads hesabının olmadığı şeklinde yorumlanmaz.
 
 ## Windows 0.2.30 profil ayrıntı paneli
 
