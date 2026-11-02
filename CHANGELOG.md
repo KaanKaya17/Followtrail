@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows-web 0.2.28 — 2026-11-02 (Yerel istek bütçesini iki katına çıkarma)
+
+- Hesap başına kayan bütçe 120/saat ve 1.200/24 saatten 240/saat ve 2.400/24 saate; bütün hesapların ortak bütçesi 240/saat ve 2.400/24 saatten 480/saat ve 4.800/24 saate çıkarıldı. Bunlar uygulamanın sınırlarıdır, Instagram'ın doğrulanmış güvenli kotaları değildir. Geçmiş istekler silinmez veya yeniden tarihlenmez; 6–10 saniye aralığı, kayıtlı rezervasyonlar, 429/doğrulama molaları ve eksik liste tekrar zamanı korunur.
+- Bütçe bilgisi tek üreticiden arayüze ve takvim önbelleğine aktarılır. Politika değiştiğinde seçili olmayanlar dahil hesap takvimleri kendi kasalarından yeniden hesaplanır; eski bütçenin takvimde bıraktığı bekleme kaldırılabilir, gerçek sunucu molası kaldırılamaz. Güncelleme kendi başına Instagram isteği göndermez; açık otomatik kontrol normal işleyişinde sürebilir.
+- Doğrulama: 188 Python ve 38 Node testi, tema/dil/kaynak kontrolü, paketli EXE üzerinde 11 ilerleme/bütçe kontrolü ve 36 genel kontrol geçti. Gerçek DPAPI ile eski 120 istekli geçmişin korunması, yeni sınırın uygulanması, saatlik/günlük kayan pencere, yeniden açılış, çoklu hesap takvimi, değişmeyen sunucu molası ve TR/EN yeni kota gösterimi sınandı. Bu testler Instagram'a istek göndermez; yeni kotanın canlı hesapta sınırlama etkisi doğrulanmadı. Android 0.1.69 değiştirilmedi.
+
 ## Windows-web 0.2.27 — 2026-11-02 (Kısmi listeyi koruma ve daha kısa istek aralığı)
 
 - Elle yeniden kontrol, geçerli devam bilgisi olan kısmi taramayı kaldığı yerden sürdürür; düğme Taramaya devam et olur. Baştan okumak gerekiyorsa ve henüz tam liste yoksa önceki dolu kısmi liste ayrı tutulup tarihiyle gösterilir. Tekrarlanan başarısız başlangıçlar bu kaydı boş sayfayla değiştirmez; yeni tam liste bitince ayrı kayıt kaldırılır. Tam listeler korunur, kısmi üyeler birleştirilmez ve kısmi kayıttan fark/takipten çıkış üretilmez. Daha önce üzerine yazılmış kayıtları geri getirme garantisi yoktur.

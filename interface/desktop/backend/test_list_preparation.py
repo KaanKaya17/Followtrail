@@ -67,7 +67,7 @@ class ListPreparationTests(unittest.TestCase):
 
     def test_budget_and_rate_limit_preserve_pages_without_early_retry(self):
         self.linked();self.work(profile(followers=3,following=1),page(['200'],'cursor-one'))
-        self.e.data['gate']['requestTimes']=[self.now[0]]*240;self.e.save()
+        self.e.data['gate']['requestTimes']=[self.now[0]]*480;self.e.save()
         with patch.object(self.e,'client') as client:self.e.run('automatic',{})
         client.assert_not_called()
         self.assertEqual(self.e.data['lists']['100:followers']['draft']['pages'],1)

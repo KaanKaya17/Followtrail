@@ -129,7 +129,7 @@ try {
  assert.equal(await page.locator('#operation-root progress').count(),0);
  await page.locator('#operation-root [data-action="requests"]').click();
  await page.locator('#overlay-root dialog').waitFor();
- assert.match(await page.locator('#overlay-root dialog').innerText(),/12–18 saniyelik rastgele/);
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/6–10 saniyelik rastgele/);
  assert.match(await page.locator('#overlay-root dialog').innerText(),/en az 15 dakika/);
  await page.keyboard.press('Escape');
  await page.screenshot({path:path.join(output,'cooldown-tr.png')});
@@ -150,12 +150,12 @@ try {
  await result();
  checks.push('English and minimum window width render correctly; non-list operations carry no stale scan counts');
  await page.locator('main [data-action="requests"]').first().click();
- assert.match(await page.locator('#overlay-root dialog').innerText(),/random 12–18 second spacing/);
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/random 6–10 second spacing/);
  assert.match(await page.locator('#overlay-root dialog').innerText(),/at least 15 minutes/);
- assert.match(await page.locator('#overlay-root dialog').innerText(),/this account 120\/hour and 1,200\/24 hours; all accounts 240\/hour and 2,400\/24 hours/);
+ assert.match(await page.locator('#overlay-root dialog').innerText(),/this account 240\/hour and 2,400\/24 hours; all accounts 480\/hour and 4,800\/24 hours/);
  assert.match(await page.locator('#overlay-root dialog').innerText(),/not Meta quotas/);
  await page.keyboard.press('Escape');
- checks.push('TR/EN request information shows backend-owned 12–18 second pacing; countdown bars accept both bounds and login spacing stays 15 minutes');
+ checks.push('TR/EN request information shows backend-owned 6–10 second pacing and doubled budgets; login spacing stays 15 minutes');
  const beforeBudget=await counts();
  await app.evaluate((_,nextAt)=>{
    const b=globalThis.qaBackend;
