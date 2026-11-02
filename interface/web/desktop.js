@@ -54,6 +54,7 @@
     serviceError = null,
     windowVisible = true,
     drawerId = null,
+    personView = null,
     profileSearch = null,
     toastTimer;
   const ui = {
@@ -77,6 +78,7 @@
   function acceptState(next) {
     if (data && next.activeAccountId !== data.activeAccountId) {
       listPhotos.clear(true);
+      profileDetails.reset();
       closeDialog();
       document.querySelector('.command-palette')?.close();
       Object.assign(ui, {page:'overview', query:'', filter:'all', owner:'', listQuery:'',
@@ -103,6 +105,18 @@
   const listPhotos=window.TrackerListPhotos.create({
     request:args=>api.command('list_avatar',args),
     cancel:()=>api.command('cancel_list_images'),
+    onImage:(source,image)=>receivePersonPhoto(source,image),
+  });
+  const profileDetails=window.TrackerProfileDetails.create({
+    availability:()=>({busy,wait:Math.max(0,(data?.gate.nextAt || 0)*1000-Date.now()),
+      stop:!data?.connected ? {code:'connection'} : (data.gate.blockedUntil || 0)*1000>Date.now() ? {code:'cooldown'} :
+        (data.requestBudget.nextAt || 0)*1000>Date.now() ? {code:'budget'} : null}),
+    load:async ({manual,...args})=>{
+      const refresh=manual && (args.id===data.account?.id || data.people.some(p=>p.id===args.id));
+      const response=await command(refresh?'refresh':'profile_detail',refresh?{id:args.id}:args,'',false);
+      const detail=refresh ? {accountId:response?.state?.activeAccountId,profile:response?.state?.account?.id===args.id ? response.state.account : response?.state?.people.find(p=>p.id===args.id)} : response?.state?.profileDetail;
+      return {...response,accountId:detail?.accountId,profile:detail?.profile};
+    },
   });
   function refreshListPhotos() {
     listPhotos.mount(windowVisible && ui.page==='lists' ? document.getElementById('list-rows') : null,
@@ -112,6 +126,7 @@
     if (data?.account?.id === id) return data.account;
     const p = data?.people.find((p) => p.id === id);
     if (p) return p;
+    if(personView?.id===id && personView.accountId===data?.activeAccountId)return personView.profile;
     for (const record of Object.values(data?.lists || {})) {
       for (const scan of [...record.snapshots]
         .reverse()
@@ -150,6 +165,7 @@
     window.scrollTo(0, 0);
   }
   function closeDialog() {
+    profileDetails.close();personView=null;
     profileSearch?.close();profileSearch=null;
     document.querySelector("#overlay-root dialog")?.close();
     drawerId = null;
@@ -185,6 +201,7 @@
     const modal = document.querySelector('#overlay-root dialog[open]');
     if (modal && (!modal.classList.contains('drawer') || !drawerId)) { toast(t("Profili yenilemek için önce açık pencereyi kapat.")); return; }
     const id = modal && drawerId ? drawerId : ui.page === 'lists' ? ui.owner || data.account?.id : ui.page === 'overview' ? data.account?.id : null;
+    if(modal?.classList.contains('drawer') && drawerId) {profileDetails.retry();return;}
     if (!id) { toast(t("Yenilemek için bir profil aç veya Özet ekranına geç.")); return; }
     if (!data.connected) { toast(t("Profil yenilemek için önce hesabını bağla.")); return; }
     if (data.gate.blockedUntil > Date.now()/1000) { toast(t("Kontroller için mola sürüyor. Yeniden deneme saatini İstek bilgileri bölümünden görebilirsin.")); return; }
@@ -825,7 +842,7 @@
     return `<div class="notice monitor-summary"><strong>${esc(status)}</strong><p>${t("Her profil kendi son kontrolünden yaklaşık {0} dakika sonra yeniden kontrol edilir. {1} profil izleniyor; profil sayısı seçilen aralıkla çarpılmaz. İstekler arasında {2}–{3} saniyelik rastgele aralık ayrılır. Çok sayıda profil, uzun liste taraması, internet ve mola beklemesi süreyi uzatabilir.", num(monitor.intervalSeconds / 60), num(monitor.profileCount), ...requestSpacing())}</p><p>${t("Normal profil sırasına ek olarak {0} erişim incelemesi bekliyor. {1}Kaybolan takipçi incelemesi açıksa liste/erişim işleri sıraya girer; diğer tam liste taramaları elle başlatılır.", num(monitor.accessPending || 0), monitor.followerScanPending ? t("Takipçi listesi incelemesi de sırada. ") : "")}</p></div>`;
   }
   function settings() {
-    return `${title(t("SANA GÖRE"), t("Küçük ayarlar, daha rahat bir deneyim."), t("Görünümü, bildirimleri ve yerel kayıtlarını yönet."))}<div class="settings-layout"><div><section class="settings-section card"><h2>${t("Görünüm ve kontroller")}</h2>${window.TrackerAppearance.control({t,disabled:busy})}<p>${t("Pencereyi X ile kapatınca Tracker sistem tepsisinde çalışmaya devam eder. Tamamen kapatmak için tepsi simgesine sağ tıkla → Tamamen çık.")}</p>${toggle(t("Kompakt görünüm"), t("Kart ve satır aralıklarını daralt."), "compact")}${toggle(t("Windows bildirimleri"), t("Yeni değişiklikler için Windows bildirimi göster."), "notifications")}${toggle(t("Kaybolan kayıtlı takipçileri incele"), t("Takipçi sayısı düşünce tamamlanmış başlangıç kaydı üzerinden liste taraması ve eksilen kayıtlı kişiler için erişim kontrolü sıraya alınır. Ek istekler ve bekleme gerektirir; sonuç yalnız engellenme şüphesidir. Hedef bulunamazsa son bilinen kullanıcı adına ek bir oturumsuz sayfa isteği yapılır."), "investigateMissing")}<div class="setting-row"><div><strong>${t("Uygulama dili")}</strong><p>${t("Bu ayar yalnız arayüz dilini değiştirir. Hesap ve kontrol ayarların korunur.")}</p></div><select id="app-language" aria-label="${t("Dil seçimi")}" ${busy ? "disabled" : ""}><option value="tr" ${language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${language === "en" ? "selected" : ""}>English</option><option value="es" ${language === "es" ? "selected" : ""}>Español</option><option value="pt-BR" ${language === "pt-BR" ? "selected" : ""}>Português (Brasil)</option></select></div>${toggle(t("Otomatik profil kontrolü"), t("Sistem tepsisinde de çalışır; kendi hesabın ve izlediğin her profil seçilen aralıkla kontrol edilir. Kaybolan takipçi incelemesi ayrıca açılır."), "automatic")}<div class="setting-row"><div><strong>${t("Kontrol aralığı")}</strong><p>${t("Aralık her profil için ayrıdır. Örneğin 3 profil ve 5 dakika seçildiğinde her profil yaklaşık 5 dakikada bir kontrol edilir. Sınırlama ve doğrulama sonrası otomatik kontrol durur.")}</p></div><select id="auto-interval" aria-label="${t("Kontrol aralığı")}" ${busy ? "disabled" : ""}>${[1, 5, 15, 30, 60, 180, 360].map((v) => `<option value="${v}" ${data.settings.interval === v ? "selected" : ""}>${t("{0} dakika", v)}</option>`).join("")}</select></div>${toggle(t("Otomatik liste karşılaştırması"), t("Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 15 dakika vardır. Sayı aynıysa günlük taranır."), "automaticLists")}${monitorSummary()}</section><section class="settings-section card"><h2>${t("Hesap ve istekler")}</h2>${data.account
+    return `${title(t("SANA GÖRE"), t("Küçük ayarlar, daha rahat bir deneyim."), t("Görünümü, bildirimleri ve yerel kayıtlarını yönet."))}<div class="settings-layout"><div><section class="settings-section card"><h2>${t("Görünüm ve kontroller")}</h2>${window.TrackerAppearance.control({t,disabled:busy})}<p>${t("Pencereyi X ile kapatınca Tracker sistem tepsisinde çalışmaya devam eder. Tamamen kapatmak için tepsi simgesine sağ tıkla → Tamamen çık.")}</p>${toggle(t("Kompakt görünüm"), t("Kart ve satır aralıklarını daralt."), "compact")}${toggle(t("Windows bildirimleri"), t("Yeni değişiklikler için Windows bildirimi göster."), "notifications")}${toggle(t("Kaybolan kayıtlı takipçileri incele"), t("Takipçi sayısı düşünce tamamlanmış başlangıç kaydı üzerinden liste taraması ve eksilen kayıtlı kişiler için erişim kontrolü sıraya alınır. Ek istekler ve bekleme gerektirir; sonuç yalnız engellenme şüphesidir. Hedef bulunamazsa son bilinen kullanıcı adına ek bir oturumsuz sayfa isteği yapılır."), "investigateMissing")}<div class="setting-row"><div><strong>${t("Uygulama dili")}</strong><p>${t("Bu ayar yalnız arayüz dilini değiştirir. Hesap ve kontrol ayarların korunur.")}</p></div><select id="app-language" aria-label="${t("Dil seçimi")}" ${busy ? "disabled" : ""}><option value="tr" ${language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${language === "en" ? "selected" : ""}>English</option><option value="es" ${language === "es" ? "selected" : ""}>Español</option><option value="pt-BR" ${language === "pt-BR" ? "selected" : ""}>Português (Brasil)</option></select></div>${toggle(t("Otomatik profil kontrolü"), t("Sistem tepsisinde de çalışır; kendi hesabın ve izlediğin her profil seçilen aralıkla kontrol edilir. Kaybolan takipçi incelemesi ayrıca açılır."), "automatic")}<div class="setting-row"><div><strong>${t("Kontrol aralığı")}</strong><p>${t("Aralık her profil için ayrıdır. Örneğin 3 profil ve 5 dakika seçildiğinde her profil yaklaşık 5 dakikada bir kontrol edilir. Sınırlama ve doğrulama sonrası otomatik kontrol durur.")}</p></div><select id="auto-interval" aria-label="${t("Kontrol aralığı")}" ${busy ? "disabled" : ""}>${[1, 5, 15, 30, 60, 180, 360].map((v) => `<option value="${v}" ${data.settings.interval === v ? "selected" : ""}>${t("{0} dakika", v)}</option>`).join("")}</select></div>${toggle(t("Otomatik liste karşılaştırması"), t("Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır."), "automaticLists")}${monitorSummary()}</section><section class="settings-section card"><h2>${t("Hesap ve istekler")}</h2>${data.account
         ? `<div class="setting-row"><div><strong>${t("Hesaba göre bildirim türleri")}</strong><p>${t("Kendi hesabın ve her kayıtlı kişi için ayrı tercihler. Kişi ayrıntısından da açabilirsin.")}</p></div><select id="notification-account" aria-label="${t("Bildirim hesabı")}">${[
             data.account,
             ...data.people,
@@ -877,18 +894,42 @@
       `<span class="dialog-symbol lavender">${icon("info")}</span><h2 id="dialog-title">${t("İstek bilgileri")}</h2><p class="dialog-note">${t("Yerel istek bütçesi: bu hesap saatte {0}, 24 saatte {1}; bütün hesaplar saatte {2}, 24 saatte {3}. Bunlar Meta kotası değildir.", num(budget.accountHourly), num(budget.accountDaily), num(budget.sharedHourly), num(budget.sharedDaily))}</p>${budget.nextAt > Date.now()/1000 ? `<p>${t("Bütçe için sonraki uygun zaman: {0}", esc(date(budget.nextAt)))}</p>` : ""}<div class="detail-pair"><span>${t("Son HTTP")}</span><strong>${g.status || t("Bilinmiyor")}</strong></div>${data.lastError ? `<details><summary>${t("Son hatanın teknik ayrıntıları")}</summary><p>${esc(data.lastError.code)}</p><p>${esc(data.lastError.message)}</p></details>` : ""}<div class="detail-pair"><span>${t("İstek sayısı")}</span><strong>${num(g.attempts || 0)}</strong></div><div class="detail-pair"><span>${t("Son istek")}</span><strong>${esc(date(g.lastAt))}</strong></div><div class="detail-pair"><span>${t("Yerel mola bitişi")}</span><strong>${esc(date(g.blockedUntil))}</strong></div><div class="detail-pair"><span>${t("Sunucunun Retry-After zamanı")}</span><strong>${g.serverRetryAt ? esc(date(g.serverRetryAt)) : t("Belirtilmedi")}</strong></div><div class="detail-pair"><span>${t("Sonraki parola girişi")}</span><strong>${esc(date(g.loginAfter))}</strong></div><p class="dialog-note">${t("İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Parola girişleri arasında en az 15 dakika beklenir. HTTP 429 sonrası yerel mola 1–24 saattir; sunucunun daha uzun bekleme süresi korunur. Mola bitişi erişim garantisi değildir.", ...requestSpacing())}</p><p>${t("Otomatik kontrol: {0}", g.manualOnly ? t("Duraklatıldı; önce elle başarılı bir profil kontrolü gerekli.") : data.settings.automatic ? t("Açık.") : t("Kapalı."))}</p>`,
     );
   }
-  function personDialog(id) {
-    const p = person(id);
-    if (!p) return;
-    const own = p.id === data.account?.id,
-      saved = data.people.find((x) => x.id === id) || p;
-    dialog(
-      `<div class="drawer-heading">${avatar(p, true)}<span class="badge neutral">${p.observedAt ? t("Profil kontrolü") : t("Liste üyesi · profil okunmadı")}</span></div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p><p class="drawer-bio">${esc(p.bio ?? t("Biyografi henüz okunmadı."))}</p><div class="drawer-counts"><div><strong>${num(p.followers)}</strong><span>${t("takipçi")}</span></div><div><strong>${num(p.following)}</strong><span>${t("takip edilen")}</span></div></div><div class="drawer-actions">${button(t("Profili kontrol et"), "refresh-person", "refresh", "primary", `${idattr(id)} ${netDisabled()}`)}${button(t("Geçmiş"), "history", "clock", "secondary", idattr(id))}${button(t("Bildirim tercihleri"), "notification-rules", "bell", "secondary", idattr(id))}${button(t("Takip listelerini aç"), "person-lists", "list", "secondary", idattr(id))}${!own ? button(t("Profil açılabiliyor mu?"), "check-access", "shield", "secondary", `${idattr(id)} ${netDisabled()}`) : ""}</div>${!own ? accessPanel(id) : ""}<section class="drawer-section"><h3>${t("Son kontrol")}</h3><div class="detail-pair"><span>${t("Son kontrol")}</span><strong>${esc(date(p.observedAt))}</strong></div><div class="detail-pair"><span>${t("Gizlilik")}</span><strong>${p.private === true ? t("Gizli") : p.private === false ? t("Açık") : t("Bilinmiyor")}</strong></div><div class="detail-pair"><span>${t("Gönderi")}</span><strong>${num(p.posts)}</strong></div><div class="detail-pair"><span>${t("Profil bağlantısı")}</span><span>${esc(p.url || t("Henüz kontrol edilmedi"))}</span></div></section>${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite ? t("Favoriden çıkar") : t("Favorilere ekle"), "drawer-star", "star", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${button(saved.watching ? t("İzlemeyi kapat") : t("İzlemeye al"), "watch", "bell", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}</div><p class="field-hint">${t("İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.")}</p><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(saved.group || "")}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(saved.note || "")}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"), "save-note", "check", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`)}${data.people.some((x) => x.id === id) ? button(t("Kayıtlı profillerden kaldır"), "remove-person", "close", "secondary", `${idattr(id)} ${busy ? "disabled" : ""}`) : ""}</section>` : ""}`,
-      false,
-      true,
-    );
-    drawerId = id;
-    if (own || data.people.some(p => p.id === id)) document.querySelector('dialog .drawer-actions')?.insertAdjacentHTML('beforeend', button(t("Profil zaman tüneli"), "wayback", "photo", "secondary", idattr(id)));
+  function personInformation(view) {
+    const p=view.profile,counts=[['followers','takipçi'],['following','takip edilen']].filter(([key])=>Number.isFinite(p[key]) && p[key]>=0);
+    const facts=[];
+    if(Number.isFinite(p.observedAt))facts.push([t("Son kontrol"),date(p.observedAt)]);
+    if(typeof p.private==='boolean')facts.push([t("Gizlilik"),p.private?t("Gizli"):t("Açık")]);
+    if(Number.isFinite(p.posts) && p.posts>=0)facts.push([t("Gönderi"),num(p.posts)]);
+    if(typeof p.url==='string' && p.url.trim())facts.push([t("Profil bağlantısı"),p.url]);
+    return `<div class="drawer-heading">${avatar(view.avatar ? {...p,avatar:view.avatar} : p,true)}</div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p>${typeof p.bio==='string' && p.bio.trim() ? `<p class="drawer-bio">${esc(p.bio)}</p>` : ''}${counts.length ? `<div class="drawer-counts">${counts.map(([key,label])=>`<div><strong>${num(p[key])}</strong><span>${t(label)}</span></div>`).join('')}</div>` : ''}${facts.length ? `<section class="drawer-section">${facts.map(([label,value])=>`<div class="detail-pair"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</section>` : ''}`;
+  }
+  function receivePersonPhoto(source,image) {
+    const view=personView;
+    if(!view?.source || !['accountId','ownerId','direction','scanId','id'].every(key=>view.source[key]===source[key]))return;
+    view.avatar=image;
+    const node=document.querySelector('#person-profile-info .avatar');
+    if(node)node.outerHTML=avatar({...view.profile,avatar:image},true);
+  }
+  function personDialog(id,carry={}) {
+    const p=person(id);if(!p)return;
+    const previous=personView?.id===id && personView.accountId===data.activeAccountId ? personView : null;
+    const source=carry.source || previous?.source || null;
+    const view={id,accountId:data.activeAccountId,profile:p,source,avatar:carry.avatar || previous?.avatar || (source ? listPhotos.peek(source) : null)};
+    const own=id===data.account?.id,saved=data.people.find(person=>person.id===id) || p;
+    dialog(`<div id="person-profile-info">${personInformation(view)}</div><p id="person-detail-status" class="field-hint" role="status"></p><div class="drawer-actions">${button(t("Profili kontrol et"),"refresh-person","refresh","primary",`${idattr(id)} ${netDisabled()}`)}${button(t("Geçmiş"),"history","clock","secondary",idattr(id))}${button(t("Bildirim tercihleri"),"notification-rules","bell","secondary",idattr(id))}${button(t("Takip listelerini aç"),"person-lists","list","secondary",idattr(id))}${!own ? button(t("Profil açılabiliyor mu?"),"check-access","shield","secondary",`${idattr(id)} ${netDisabled()}`) : ''}</div>${!own ? accessPanel(id) : ''}${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite?t("Favoriden çıkar"):t("Favorilere ekle"),"drawer-star","star","secondary",`${idattr(id)} ${busy?'disabled':''}`)}${button(saved.watching?t("İzlemeyi kapat"):t("İzlemeye al"),"watch","bell","secondary",`${idattr(id)} ${busy?'disabled':''}`)}</div><p class="field-hint">${t("İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.")}</p><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(saved.group || '')}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(saved.note || '')}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"),"save-note","check","secondary",`${idattr(id)} ${busy?'disabled':''}`)}${data.people.some(p=>p.id===id)?button(t("Kayıtlı profillerden kaldır"),"remove-person","close","secondary",`${idattr(id)} ${busy?'disabled':''}`):''}</section>`:''}`,false,true);
+    drawerId=id;personView=view;
+    if(own || data.people.some(p=>p.id===id))document.querySelector('dialog .drawer-actions')?.insertAdjacentHTML('beforeend',button(t("Profil zaman tüneli"),"wayback","photo","secondary",idattr(id)));
+    if(source && !view.avatar)listPhotos.get(source).then(result=>{if(personView===view && result?.avatar)receivePersonPhoto(source,result.avatar);});
+    profileDetails.open({id,accountId:view.accountId,known:p},state=>{
+      if(personView!==view)return;
+      if(state.profile) {
+        view.profile=state.profile;
+        document.getElementById('person-profile-info').innerHTML=personInformation(view);
+      }
+      const note=document.getElementById('person-detail-status');
+      note.textContent=state.phase==='loading' ? t("Profil bilgileri getiriliyor…") : state.phase==='waiting' ? t("Profil bilgileri {0} saniye sonra okunacak.",state.seconds) : state.phase==='busy' ? t("Diğer işlem tamamlanınca profil okunacak.") : state.phase==='error' ? userError(state.error) || t("İşlem tamamlanamadı.") : '';
+      note.classList.toggle('warning',state.phase==='error');
+    });
   }
   function historyDialog(id) {
     const p = person(id),
@@ -1097,7 +1138,8 @@
         });
         break;
       case "person":
-        personDialog(id);
+        personDialog(id,{avatar:target.querySelector('.avatar img')?.getAttribute('src'),source:target.dataset.photoScan ?
+          {accountId:data.activeAccountId,ownerId:ui.owner || data.account?.id,direction:ui.direction,scanId:target.dataset.photoScan,id} : null});
         break;
       case "wayback":
         await waybackDialog(id);
@@ -1156,16 +1198,7 @@
         break;
       }
       case "refresh-person": {
-        const p = person(id);
-        closeDialog();
-        const saved =
-          id === data.account?.id || data.people.some((p) => p.id === id);
-        const r = await command(
-          saved ? "refresh" : "add_person",
-          saved ? { id } : { username: p.username },
-          t("Profil kontrol edildi."),
-        );
-        if (r?.ok) personDialog(id);
+        profileDetails.retry();
         break;
       }
       case "remove-person":

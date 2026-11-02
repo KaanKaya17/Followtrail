@@ -89,6 +89,7 @@ class Engine:
         self.wayback_id = None
         self.search_results = None
         self.search_pictures = {}
+        self.profile_detail_result = None
         self.recover_interrupted()
 
     def recover_interrupted(self):
@@ -146,8 +147,9 @@ class Engine:
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
                 'searchResults': self.search_results,
+                'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.29'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.30'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -372,6 +374,27 @@ class Engine:
             self.data['session'] = client.get_settings()
             self.data['gate']['manualOnly'] = False
             self.save()
+        finally:
+            close_client(client)
+
+    def profile_detail(self, args):
+        identity=args.get('id')
+        owner=(self.data['account'] or {}).get('id')
+        if args.get('accountId') != owner or not isinstance(identity,str) or not (identity==owner or self.known_person(identity)):
+            raise AppFailure('input','Profil kaydı bulunamadı.')
+        client=self.client()
+        try:
+            profile=self.read_profile(client,identity,avatar=False)
+            self.check_cancel()
+            profile.pop('avatarUrl',None)
+            if identity==owner or identity in self.data['people']:
+                self.record_profile(profile,own=identity==owner)
+                profile=self.data['account'] if identity==owner else self.data['people'][identity]
+            else:
+                profile['observedAt']=self.clock()
+            self.data['session']=client.get_settings()
+            self.save()
+            self.profile_detail_result={'accountId':owner,'profile':public_person(profile)}
         finally:
             close_client(client)
 
@@ -805,14 +828,15 @@ class Engine:
         self.operation = operation
         self.search_results = None
         self.search_pictures = {}
+        self.profile_detail_result = None
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()
         try:
-            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'automatic', 'check_access'):
+            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'profile_detail', 'automatic', 'check_access'):
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
             handlers = {'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
-                        'refresh': lambda: self.refresh(args), 'add_person': lambda: self.add_person(args),
+                        'refresh': lambda: self.refresh(args), 'profile_detail': lambda: self.profile_detail(args), 'add_person': lambda: self.add_person(args),
                         'scan': lambda: self.scan(args, resume=True), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
                         'check_access': lambda: self.check_access(args),

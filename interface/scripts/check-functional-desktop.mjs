@@ -952,6 +952,12 @@ try {
     await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
     const error = await page.evaluate(() => window.TrackerDesktop.command('refresh', {}));
     assert.equal(error.error.message, 'Instagram connectivity is disabled in this isolated test window.');
+    const detail=await page.evaluate(()=>window.TrackerDesktop.command('profile_detail',{accountId:'100',id:'202'}));
+    assert.equal(detail.ok,false);assert.equal(detail.error.code,'offline');assert.equal(detail.state.profileDetail,null);
+    const detailRejected=await page.evaluate(async()=>{try {
+      await window.TrackerDesktop.command('profile_detail',{accountId:'100',id:'202',url:'https://example.com/'});return false;
+    }catch{return true;}});
+    assert.equal(detailRejected,true);
     await page.setViewportSize({ width: 1100, height: 850 });
     for (const route of ['overview', 'people', 'lists', 'timeline', 'settings', 'notifications']) {
       await page.locator(`.sidebar nav a[href="#${route}"]`).click();
