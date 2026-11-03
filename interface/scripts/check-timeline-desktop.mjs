@@ -1,0 +1,108 @@
+import {_electron as electron} from 'playwright-core';
+import {execFileSync} from 'node:child_process';
+import {mkdtemp,mkdir,readFile,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import os from 'node:os';
+import assert from 'node:assert/strict';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const python=path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe');
+const version=JSON.parse(await readFile(path.join(root,'interface/package.json'),'utf8')).version;
+const home=await mkdtemp(path.join(os.tmpdir(),'TrackerQA-'));
+for(const [script,flags] of [['interface/desktop/backend/seed_qa.py',['--accounts']],['interface/scripts/seed-timeline-qa.py',[]]])
+ execFileSync(python,[path.join(root,script),'--home',home,...flags],{stdio:'pipe'});
+const output=path.join(root,`artifacts/desktop-${version}-qa/timeline`);await mkdir(output,{recursive:true});
+const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
+let app,page;const errors=[],network=[],checks=[];
+const command=(operation,args={})=>page.evaluate(({operation,args})=>window.TrackerDesktop.command(operation,args),{operation,args});
+const row=id=>page.locator(`.timeline-event[data-id="${id}"]`);
+const filter=key=>page.locator(`[data-action="event-filter"][data-value="${key}"]`);
+const reset=()=>page.locator('[data-action="reset-events"]').click();
+try {
+ app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ page=await app.firstWindow();page.setDefaultTimeout(15000);
+ page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});
+ await page.locator('.account-switcher').waitFor();await page.locator('.sidebar nav a[href="#timeline"]').click();
+ await row('qa-followers').waitFor();await command('settings',{theme:'light'});
+ const before=(await command('state')).state;
+ const headings=await page.locator('.timeline-day-group > h2').allTextContents();
+ assert.equal(headings[0],'Bugün');assert.equal(headings[1],'Dün');assert.equal(headings.length,3);
+ assert.equal(await row('qa-followers').locator('.avatar img').getAttribute('src'),before.people.find(p=>p.id==='200').avatar);
+ assert.equal(await row('qa-followers').locator('.timeline-event-heading > strong').innerText(),'@qa.deniz');
+ assert.equal(await row('qa-followers').locator('.notification-delta').innerText(),'+1');
+ assert.deepEqual(await row('qa-followers').locator('.notification-pair > .notification-before, .notification-pair > strong').allTextContents(),['81','82']);
+ assert.equal(await row('qa-zero').locator('.notification-pair > strong').innerText(),'0');
+ assert.equal(await row('qa-unknown').locator('.notification-pair').count(),0);
+ assert.equal(await row('qa-multiple').locator('.notification-change').count(),2);
+ assert.equal(await row('qa-username').locator('img').count(),1);
+ assert.equal(await page.evaluate(()=>window.timelineInjected),undefined);
+ assert.match(await row('qa-followers').locator('time').getAttribute('datetime'),/^\d{4}-/);
+ assert.doesNotMatch(await row('qa-followers').locator('time').innerText(),/2026|2027/);
+ await page.screenshot({path:path.join(output,'timeline-light.png'),fullPage:true});
+ checks.push('Local-day headings, identity-bound avatars and localized times show numeric/text/multi-field changes, zero and unknown correctly without HTML execution');
+ assert.equal(await page.locator('.timeline-routine[open]').count(),0);
+ assert.equal(await page.locator('.timeline-routine .timeline-event').count(),100);
+ assert.equal(await row('qa-check-0').isVisible(),false);
+ await page.locator('.timeline-routine > summary').click();await row('qa-check-0').waitFor({state:'visible'});
+ await page.locator('[data-action="more-checks"]').click();
+ assert.equal(await page.locator('.timeline-routine .timeline-event').count(),120);
+ assert.equal(await row('qa-check-119').isVisible(),true);
+ assert.equal(await row('qa-followers').isVisible(),true);
+ await filter('check').click();assert.equal(await page.locator('.timeline-routine .timeline-event').count(),100);
+ assert.equal(await page.locator('.timeline-routine:not([open])').count(),0);
+ await page.locator('[data-action="more-checks"]').click();assert.equal(await page.locator('.timeline-routine .timeline-event').count(),120);
+ assert.equal(await row('qa-access').isVisible(),true);
+ await filter('access').click();assert.equal(await row('qa-access').isVisible(),true);assert.equal(await page.locator('.timeline-routine').count(),0);
+ await reset();
+ checks.push('Routine checks start collapsed, paginate independently of changes, retain expansion on updates and open directly in the Checks filter');
+ await page.locator('#timeline-person').selectOption('200');
+ assert.equal(await page.locator('.timeline-day-group > .timeline-events .timeline-event').count(),4);
+ await filter('list').click();assert.equal(await page.locator('.timeline-event').count(),1);
+ assert.match(await row('qa-list').innerText(),/@qa.new700, @qa.new701/);assert.doesNotMatch(await row('qa-list').innerText(),/@qa.new702/);
+ assert.match(await row('qa-list').innerText(),/ve 1 hesap daha/);
+ await row('qa-list').click();await page.getByRole('dialog').waitFor();
+ assert.match(await page.getByRole('dialog').innerText(),/@qa.new702/);
+ await page.keyboard.press('Escape');await reset();
+ assert.match(await row('qa-baseline').innerText(),/İlk kayıt bir başlangıçtır/);
+ assert.equal(await row('qa-baseline').locator('.notification-list-preview').count(),0);
+ await page.locator('#timeline-person').selectOption('999');assert.equal(await page.locator('.timeline-event').count(),1);
+ assert.equal(await row('qa-deleted').locator('.timeline-event-heading > strong').innerText(),'@archived.username');
+ await page.locator('#timeline-person').selectOption('general');await filter('profile').click();
+ await page.getByRole('heading',{name:'Burada henüz bir kayıt yok.',exact:true}).waitFor();
+ await reset();await filter('error').click();assert.equal(await page.locator('.timeline-event').count(),1);
+ assert.doesNotMatch(await row('qa-error').innerText(),/HTTP 429/);
+ await row('qa-error').click();await page.getByRole('dialog').locator('details > summary').click();
+ assert.match(await page.getByRole('dialog').innerText(),/HTTP 429/);assert.equal(await page.getByRole('dialog').locator('img').count(),0);
+ await page.keyboard.press('Escape');await reset();
+ checks.push('Account/type filters include archived and general records; bounded list previews open full names, baselines stay honest, reset clears empty combinations, technical errors remain in details');
+ await row('qa-followers').click();assert.match(await page.getByRole('dialog').locator('.change-values').innerText(),/81[\s\S]*82/);
+ await page.keyboard.press('Escape');
+ for(const language of ['en','es','pt-BR','tr']) {
+  await command('settings',{language});await page.waitForFunction(language=>document.documentElement.lang===language,language);
+  assert.match(await row('qa-followers').locator('.timeline-event-heading > strong').innerText(),/@qa.deniz/);
+ }
+ for(const theme of ['dark','oled']) {await command('settings',{theme});await page.screenshot({path:path.join(output,`timeline-${theme}.png`),fullPage:true});}
+ const width=await app.evaluate(({BrowserWindow})=>{const win=BrowserWindow.getAllWindows()[0];win.setSize(960,680);return win.getContentSize()[0];});
+ await page.waitForFunction(width=>innerWidth===width,width);
+ for(const language of ['pt-BR','es','en','tr']) {
+  await command('settings',{language});await page.waitForFunction(language=>document.documentElement.lang===language,language);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+ }
+ await page.screenshot({path:path.join(output,'timeline-small.png')});
+ const after=(await command('state')).state;
+ assert.deepEqual(after.events,before.events);assert.deepEqual(after.gate,before.gate);assert.deepEqual(after.notificationLog,before.notificationLog);
+ checks.push('Four languages, light/dark/OLED and a 960×680 native window retain values without overflow; local browsing leaves history, notifications and request gate unchanged');
+ await page.locator('#timeline-person').selectOption('200');await filter('profile').click();
+ await command('switch_account',{id:'400'});await page.waitForFunction(()=>location.hash==='#overview');
+ await page.locator('.sidebar nav a[href="#timeline"]').click();
+ assert.equal(await page.locator('#timeline-person').inputValue(),'');assert.equal(await filter('all').getAttribute('aria-pressed'),'true');
+ assert.equal(await row('qa-followers').count(),0);
+ await command('switch_account',{id:'100'});await page.waitForFunction(()=>location.hash==='#overview');
+ await page.locator('.sidebar nav a[href="#timeline"]').click();await row('qa-followers').waitFor();
+ assert.equal(await page.locator('.timeline-routine[open]').count(),0);
+ checks.push('Account switching clears identity/type/expansion state and never leaks another account’s history');
+ assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
+ await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,network,home},null,2));
+ console.log(JSON.stringify({checks:checks.length,errors,network,output}));
+} catch(error) {await page?.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});throw error;}
+finally {await app?.close();}

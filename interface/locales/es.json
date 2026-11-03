@@ -1196,5 +1196,15 @@
   "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Elige otro tipo o muestra todos los registros.",
   "Güncellendi": "Actualizado",
   "Tüm türler": "Todos los tipos",
-  "{0} değişiklik daha": "{0} cambios más"
+  "{0} değişiklik daha": "{0} cambios más",
+  "Hesap filtresi": "Filtro de cuenta",
+  "Tüm hesaplar": "Todas las cuentas",
+  "Genel kayıtlar": "Registros generales",
+  "Hesap · {0}": "Cuenta · {0}",
+  "Rutin kontroller": "Comprobaciones rutinarias",
+  "Profil kontrol edildi": "Perfil comprobado",
+  "Tarihi bilinmiyor": "Fecha desconocida",
+  "Filtreleri temizle": "Borrar filtros",
+  "Daha fazla kontrol göster": "Mostrar más comprobaciones",
+  "{0} hesap": "{0} cuentas"
 }

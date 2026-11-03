@@ -69,7 +69,10 @@
     previous: null,
     current: null,
     eventType: "all",
+    eventPerson: "",
     eventLimit: 100,
+    checkLimit: 100,
+    routineOpen: new Set(),
     range: "30",
     dailyRange: 30,
     dailyMetric: "followers",
@@ -87,7 +90,7 @@
       closeDialog();
       document.querySelector('.command-palette')?.close();
       Object.assign(ui, {page:'overview', query:'', filter:'all', owner:'', listQuery:'',
-        listFilter:'all', comparison:false, previous:null, current:null, eventLimit:100,
+        listFilter:'all', comparison:false, previous:null, current:null, eventType:'all', eventPerson:'', eventLimit:100, checkLimit:100, routineOpen:new Set(),
         notificationFilter:'all', notificationType:'all', notificationLimit:100});
       location.hash = '#overview';
     }
@@ -392,14 +395,13 @@
   function eventTitle(e) {
     if (e.type === "error") return t("Kontrol tamamlanamadı");
     if (e.topic === "access") return stored(e.title);
-    if (e.type === "profile")
-      return `@${person(e.personId)?.username || e.personId} · ${t(labels[Object.keys(e.new || {})[0]]) || t("Profil değişikliği")}`;
+    if (e.type === "profile") {
+      const field=labels[Object.keys(e.new || {})[0]];
+      return `${eventIdentity(e).label} · ${field ? t(field) : t("Profil değişikliği")}`;
+    }
     if (e.type === "list")
       return t("{0} listesi kaydedildi", e.new?.direction === "following" ? t("Takip edilen") : t("Takipçi"));
     return stored(e.title);
-  }
-  function eventRow(e) {
-    return `<button class="event-row" data-action="event" ${idattr(e.id)}><span class="event-icon ${e.type === "error" ? "peach" : "lavender"}">${icon(e.type === "list" ? "list" : e.type === "error" ? "info" : "clock")}</span><span class="event-copy"><strong>${esc(eventTitle(e))}</strong><small>${esc(date(e.at))}</small></span>${icon("chevron")}</button>`;
   }
   function notificationRule(id) {
     const saved = data.notificationRules?.[id];
@@ -442,7 +444,7 @@
     return (data.notificationLog || []).filter(entry=>(ui.notificationFilter!=='unread' || entry.readAt==null) &&
       (type==='all' || entry.changes.some(change=>notificationKind(change)===type)));
   }
-  function notificationPreview(change,multiple) {
+  function changePreview(change,multiple=false) {
     const kind=change.category,label=t(change.label),prefix=multiple?`<small class="notification-change-owner">@${esc(change.username)}</small>`:'';
     const before=change.before?.[kind],after=change.after?.[kind];
     let detail='';
@@ -453,7 +455,7 @@
     } else if(Number.isFinite(before) && Number.isFinite(after)) {
       const difference=after-before;
       detail=`<span class="notification-pair"><span class="notification-before">${num(before)}</span>${icon('arrow')}<strong>${num(after)}</strong>${difference?`<span class="notification-delta ${difference>0?'trend-up':'trend-down'}">${difference>0?'+':''}${num(difference)}</span>`:''}</span>`;
-    } else if(['username','name','url'].includes(kind) && typeof before==='string' && typeof after==='string') {
+    } else if(['username','name','url','bio'].includes(kind) && typeof before==='string' && typeof after==='string') {
       detail=`<span class="notification-pair notification-text-pair"><span class="notification-before" title="${esc(before)}">${esc(before)}</span>${icon('arrow')}<strong title="${esc(after)}">${esc(after)}</strong></span>`;
     } else if(kind==='private' && typeof before==='boolean' && typeof after==='boolean') {
       detail=`<span class="notification-pair"><span class="notification-before">${before?t("Gizli"):t("Açık")}</span>${icon('arrow')}<strong>${after?t("Gizli"):t("Açık")}</strong></span>`;
@@ -470,7 +472,7 @@
       return score(a)-score(b);
     });
     const unread=entry.readAt==null;
-    return `<button class="notification-log-row notification-card card ${unread?'unread':''}" data-action="notification-log" ${idattr(entry.id)}>${image}<span class="notification-log-copy"><span class="notification-card-heading"><strong>${esc(logHeading(entry))}</strong><time datetime="${new Date(entry.at*1000).toISOString()}">${esc(date(entry.at))}</time></span><span class="notification-card-state">${unread?'<span class="notification-unread-dot" aria-hidden="true"></span>':''}${unread?t("Okunmamış"):t("Okundu")}</span><span class="notification-preview">${ranked.slice(0,3).map(change=>notificationPreview(change,multiple)).join('')}</span>${ranked.length>3?`<span class="notification-more">${t("{0} değişiklik daha",num(ranked.length-3))}</span>`:''}<span class="notification-card-footer"><small>${entry.desktopEligible?t("Windows bildirimi için seçildi"):t("Yalnız uygulama kaydı")}</small><span>${t("Ayrıntıları gör")}${icon('chevron')}</span></span></span></button>`;
+    return `<button class="notification-log-row notification-card card ${unread?'unread':''}" data-action="notification-log" ${idattr(entry.id)}>${image}<span class="notification-log-copy"><span class="notification-card-heading"><strong>${esc(logHeading(entry))}</strong><time datetime="${new Date(entry.at*1000).toISOString()}">${esc(date(entry.at))}</time></span><span class="notification-card-state">${unread?'<span class="notification-unread-dot" aria-hidden="true"></span>':''}${unread?t("Okunmamış"):t("Okundu")}</span><span class="notification-preview">${ranked.slice(0,3).map(change=>changePreview(change,multiple)).join('')}</span>${ranked.length>3?`<span class="notification-more">${t("{0} değişiklik daha",num(ranked.length-3))}</span>`:''}<span class="notification-card-footer"><small>${entry.desktopEligible?t("Windows bildirimi için seçildi"):t("Yalnız uygulama kaydı")}</small><span>${t("Ayrıntıları gör")}${icon('chevron')}</span></span></span></button>`;
   }
   function notifications() {
     const rows=notificationRows(),unread=(data.notificationLog || []).filter(entry=>entry.readAt==null).length;
@@ -857,30 +859,45 @@
     }[plan.status];
     return `<section class="access-review card"><div class="section-heading"><div><h2>${t("Engellenme şüphesi ve profil görünürlüğü")}</h2><p>${t("Yalnız kayıtlara dayalı olasılık; kesin engelleme listesi değildir.")}</p></div>${button(t("Profil kontrol geçmişi"), "access-history", "shield")}</div>${message ? `<div class="notice warning">${esc(stored(message))}</div>` : ""}<p>${t("Otomatik inceleme: {0}. Tam liste karşılaştırmasında eksilen kayıtlı kişiler, kendi oturumunun sağlığı doğrulandıktan sonra hesap kimliğiyle incelenir.", data.settings.investigateMissing ? t("Açık") : t("Kapalı · Ayarlar’dan açabilirsin"))}</p><div class="access-case-list">${cases.map((c) => `<div class="access-case"><div><strong>@${esc(c.username)}</strong><p>${esc(accessLabel(c))}</p><small>${esc(date(c.checks.at(-1)?.checkedAt || c.detectedAt))}</small></div>${button(t("Kanıtları gör"), "person", "info", "secondary", `${idattr(c.id)} data-show-access="true"`)}${button(t("Profil açılabiliyor mu?"), "check-access", "shield", "secondary", `${idattr(c.id)} ${netDisabled()}`)}</div>`).join("") || `<p class="field-hint">${t("Henüz inceleme kaydı yok. İlk liste kaydı başlangıçtır; tek başına takipçi sayısının azalması engellenme sayılmaz.")}</p>`}</div><p class="field-hint">${t("İnceleme önce bağlı oturumu, sonra hedefi kontrol eder. Hedef bulunamazsa ek bir oturumsuz sayfa isteği yapılır. İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.", ...requestSpacing())}</p></section>`;
   }
+  function eventIdentity(e) {
+    const profile=person(e.personId);
+    const username=profile?.username || e.new?.ownerUsername || e.new?.username;
+    return {profile, label:username?'@'+username:e.personId?t("Hesap · {0}",e.personId):t("Genel kayıtlar")};
+  }
+  function eventRow(e) {
+    const {profile,label}=eventIdentity(e);
+    const image=e.personId?avatar(profile || {name:label}):`<span class="event-icon ${e.type==='error'?'peach':'lavender'}">${icon(e.type==='error'?'info':'clock')}</span>`;
+    const at=new Date(e.at*1000),valid=Number.isFinite(e.at) && !Number.isNaN(at.getTime());
+    let detail='';
+    if(e.topic==='access') detail=changePreview({category:'access',label:'Profil görünürlüğü',title:e.title});
+    else if(e.type==='profile') {
+      detail=Object.keys(labels).filter(key=>Object.hasOwn(e.new || {},key)).map(key=>changePreview({category:key,label:labels[key],before:e.old,after:e.new})).join('');
+      if(!detail)detail=`<span class="timeline-event-summary">${esc(eventTitle(e))}</span>`;
+    } else if(e.type==='list') {
+      const value=e.new || {},direction=value.direction==='following'?t("Takip edilen"):t("Takipçiler");
+      detail=`<span class="timeline-event-summary">${esc(direction)}${Number.isFinite(value.count)?' · '+t("{0} hesap",num(value.count)):''}</span>`+
+        (value.added==null?`<span class="timeline-event-note">${t("İlk kayıt bir başlangıçtır.")}</span>`:changePreview({category:'lists',label:'Liste değişiklikleri',after:value}));
+    } else detail=`<span class="timeline-event-summary ${e.type==='error'?'timeline-error':''}">${e.type==='error'?t("Kontrol tamamlanamadı"):e.type==='check'?t("Profil kontrol edildi"):esc(stored(e.title))}</span>`;
+    return `<button class="event-row timeline-event" data-action="event" ${idattr(e.id)}>${image}<span class="timeline-event-body"><span class="timeline-event-heading"><strong>${esc(label)}</strong><time ${valid?`datetime="${at.toISOString()}" title="${esc(date(e.at))}"`:''}>${valid?esc(at.toLocaleTimeString(i18n.locale(language),{hour:'2-digit',minute:'2-digit'})):t("Tarihi bilinmiyor")}</time></span><span class="timeline-event-preview">${detail}</span></span>${icon('chevron')}</button>`;
+  }
   function timeline() {
-    const events = data.events.filter(
-      (e) =>
-        ui.eventType === "all" ||
-        (ui.eventType === "access"
-          ? e.topic === "access"
-          : e.type === ui.eventType &&
-            (ui.eventType !== "profile" || e.topic !== "access")),
-    );
-    return `${title(t("KONTROL GEÇMİŞİ"), t("Neyin ne zaman kontrol edildiğini gör."), "")}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Olay filtresi")}">${[
-      ["all", t("Tümü")],
-      ["profile", t("Profil farkları")],
-      ["access", t("Profil görünürlüğü")],
-      ["list", "Takip Listeleri"],
-      ["check", t("Kontroller")],
-      ["error", t("Hatalar")],
-    ]
-      .map(
-        ([k, l]) =>
-          `<button data-action="event-filter" data-value="${k}" class="${ui.eventType === k ? "active" : ""}" aria-pressed="${ui.eventType === k}">${l}</button>`,
-      )
-      .join(
-        "",
-      )}</div><span>${t("{0} kayıt", num(events.length))}</span></div><div class="timeline-layout timeline-focused"><section class="timeline-main"><div class="timeline-events card">${events.slice(0, ui.eventLimit).map(eventRow).join("") || empty(t("Seçilen türde henüz kayıt yok."))}</div>${events.length > ui.eventLimit ? button(t("Daha fazla göster"), "more-events", "down") : ""}</section></div>`;
+    const events=data.events.filter(e=>(!ui.eventPerson || (ui.eventPerson==='general'?e.personId==null:e.personId===ui.eventPerson)) &&
+      (ui.eventType==='all' || (ui.eventType==='access'?e.topic==='access':e.type===ui.eventType && (ui.eventType!=='profile' || e.topic!=='access'))));
+    const identities=new Map([data.account,...data.people].filter(Boolean).map(p=>[p.id,'@'+p.username]));
+    for(const e of data.events)if(e.personId && !identities.has(e.personId))identities.set(e.personId,eventIdentity(e).label);
+    const isRoutine=e=>e.type==='check' && e.topic!=='access';
+    const changes=events.filter(e=>!isRoutine(e)),checks=events.filter(isRoutine);
+    const visible=new Set([...changes.slice(0,ui.eventLimit),...checks.slice(0,ui.checkLimit)]);
+    const days=new Map(),today=new Date(),yesterday=new Date();yesterday.setDate(today.getDate()-1);
+    const dayKey=at=>`${at.getFullYear()}-${at.getMonth()}-${at.getDate()}`;
+    for(const e of events) {
+      if(!visible.has(e))continue;
+      const at=new Date(e.at*1000),valid=Number.isFinite(e.at) && !Number.isNaN(at.getTime()),key=valid?dayKey(at):'unknown';
+      if(!days.has(key))days.set(key,{title:!valid?t("Tarihi bilinmiyor"):key===dayKey(today)?t("Bugün"):key===dayKey(yesterday)?t("Dün"):at.toLocaleDateString(i18n.locale(language),{day:'numeric',month:'long',year:'numeric'}),changes:[],checks:[]});
+      days.get(key)[isRoutine(e)?'checks':'changes'].push(e);
+    }
+    const filters=[['all',t("Tümü")],['profile',t("Profil farkları")],['access',t("Profil görünürlüğü")],['list',t("Takip Listeleri")],['check',t("Kontroller")],['error',t("Hatalar")]];
+    return `<div class="timeline-page">${title(t("KONTROL GEÇMİŞİ"),t("Zaman çizelgesi"),'')}<div class="timeline-toolbar"><div class="filter-tabs" role="group" aria-label="${t("Olay filtresi")}">${filters.map(([key,label])=>`<button data-action="event-filter" data-value="${key}" class="${ui.eventType===key?'active':''}" aria-pressed="${ui.eventType===key}">${label}</button>`).join('')}</div><label class="timeline-person-filter"><span>${t("Hesap filtresi")}</span><select id="timeline-person"><option value="">${t("Tüm hesaplar")}</option>${[...identities].map(([id,label])=>`<option value="${esc(id)}" ${id===ui.eventPerson?'selected':''}>${esc(label)}</option>`).join('')}${data.events.some(e=>e.personId==null)?`<option value="general" ${ui.eventPerson==='general'?'selected':''}>${t("Genel kayıtlar")}</option>`:''}</select></label></div><div class="results-line"><span role="status">${t("{0} kayıt",num(events.length))}</span>${ui.eventPerson || ui.eventType!=='all'?button(t("Filtreleri temizle"),'reset-events','close'):''}</div><div class="timeline-days">${[...days].map(([key,day])=>`<section class="timeline-day-group"><h2>${esc(day.title)}</h2>${day.changes.length?`<div class="timeline-events card">${day.changes.map(eventRow).join('')}</div>`:''}${day.checks.length?`<details class="timeline-routine card" data-day="${esc(key)}" ${ui.eventType==='check' || ui.routineOpen.has(key)?'open':''}><summary>${icon('check')}<span>${t("Rutin kontroller")}</span><span class="badge neutral">${num(day.checks.length)}</span>${icon('down')}</summary><div class="timeline-events">${day.checks.map(eventRow).join('')}</div></details>`:''}</section>`).join('') || empty(t("Seçilen türde henüz kayıt yok."))}</div><div class="timeline-more">${changes.length>ui.eventLimit?button(t("Daha fazla göster"),'more-events','down'):''}${checks.length>ui.checkLimit?button(t("Daha fazla kontrol göster"),'more-checks','down'):''}</div></div>`;
   }
   function toggle(label, description, key) {
     return `<div class="setting-row"><div><strong>${esc(t(label))}</strong><p>${esc(description)}</p></div><button class="switch ${data.settings[key] ? "on" : ""}" role="switch" aria-checked="${!!data.settings[key]}" aria-label="${esc(t(label))}" data-action="setting" data-value="${key}" ${busy ? "disabled" : ""}><span></span></button></div>`;
@@ -1234,15 +1251,26 @@
         break;
       case "profile-events":
         ui.eventType = "profile";
+        ui.eventPerson = "";
+        ui.eventLimit = 100;
         navigate("timeline");
         break;
       case "event-filter":
         ui.eventType = value;
         ui.eventLimit = 100;
+        ui.checkLimit = 100;
+        render();
+        break;
+      case "reset-events":
+        Object.assign(ui,{eventType:'all',eventPerson:'',eventLimit:100,checkLimit:100});
         render();
         break;
       case "more-events":
         ui.eventLimit += 100;
+        render();
+        break;
+      case "more-checks":
+        ui.checkLimit += 100;
         render();
         break;
       case "list-tab":
@@ -1293,6 +1321,8 @@
         break;
       case "access-history":
         ui.eventType = "access";
+        ui.eventPerson = "";
+        ui.eventLimit = 100;
         navigate("timeline");
         break;
       case "check-access": {
@@ -1522,8 +1552,21 @@
       mountListPage();
     }
   });
+  document.addEventListener('toggle', event => {
+    const node=event.target;
+    if(node.isConnected && node.matches?.('.timeline-routine') && ui.eventType!=='check') {
+      if(node.open)ui.routineOpen.add(node.dataset.day);
+      else ui.routineOpen.delete(node.dataset.day);
+    }
+  },true);
   document.addEventListener("change", async (event) => {
     switch (event.target.id) {
+      case "timeline-person":
+        ui.eventPerson = event.target.value;
+        ui.eventLimit = 100;
+        ui.checkLimit = 100;
+        render();
+        break;
       case "app-theme":
         if (window.TrackerAppearance.valid(event.target.value)) await command("settings", {theme:event.target.value});
         break;
