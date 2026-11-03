@@ -1119,7 +1119,11 @@
   "Günlük geçmiş görünümü değişti.": "La vista del historial diario cambió.",
   "Hikâye arşivi · Deneysel": "Archivo de historias · Experimental",
   "Hikâyeleri kontrol et": "Consultar historias",
-  "{0} hikâye kaydı": {"count": 0, "one": "{0} historia archivada", "other": "{0} historias archivadas"},
+  "{0} hikâye kaydı": {
+    "count": 0,
+    "one": "{0} historia archivada",
+    "other": "{0} historias archivadas"
+  },
   "Son kontrolde {0} erişilebilir hikâye döndü.": "La última consulta devolvió {0} historias accesibles.",
   "Desteklenmeyen içerik": "Contenido no compatible",
   "Kaydedilme zamanı": "Fecha de captura",
@@ -1146,7 +1150,24 @@
   "Hikâye takvimi": "Calendario de historias",
   "Önceki ay": "Mes anterior",
   "Sonraki ay": "Mes siguiente",
-  "{0} hikâye": {"count": 0, "one": "{0} historia", "other": "{0} historias"},
+  "{0} hikâye": {
+    "count": 0,
+    "one": "{0} historia",
+    "other": "{0} historias"
+  },
   "Bu günde kayıtlı hikâye yok.": "No hay historias archivadas para este día.",
-  "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram no devolvió datos de historias en esta consulta. Esto no significa que no se haya publicado ninguna historia. Comprueba si tu cuenta conectada puede abrirla en Instagram."
+  "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram no devolvió datos de historias en esta consulta. Esto no significa que no se haya publicado ninguna historia. Comprueba si tu cuenta conectada puede abrirla en Instagram.",
+  "Takvime dön": "Volver al calendario",
+  "Günün hikâyeleri": "Historias del día",
+  "Hikâye açılamadı.": "No se pudo abrir la historia.",
+  "Diğer işlem bitince hikâye açılacak.": "La historia se abrirá cuando termine la otra operación.",
+  "Hikâye açılıyor…": "Abriendo historia…",
+  "Hikâye bilgileri": "Detalles de la historia",
+  "Etiket bilgisi alınamadı.": "No se obtuvo información sobre menciones.",
+  "Kayıtlı etiket yok.": "No se registraron menciones.",
+  "Paylaşım kaynağı": "Origen de la publicación",
+  "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "No se pudo verificar el origen de una historia compartida en este registro.",
+  "Hikâyeleri görmek için bir gün seç.": "Selecciona un día para ver sus historias.",
+  "Yeniden dene": "Reintentar",
+  "Bağlantılar": "Enlaces"
 }

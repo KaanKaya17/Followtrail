@@ -113,6 +113,7 @@
   });
   const listPager=window.TrackerListPages.create({request:args=>api.command("list_page",args),change:paintListPage});
   const dailyChart=window.TrackerDailyChart.create({request:args=>api.command("daily_stats",args),change:paintDailyChart});
+  const storyArchive=window.TrackerStories.create({load:args=>api.command('story_media',args),availability:()=>({busy}),change:paintStoryArchive});
   const profileDetails=window.TrackerProfileDetails.create({
     availability:()=>({busy,wait:Math.max(0,(data?.gate.nextAt || 0)*1000-Date.now()),
       stop:!data?.connected ? {code:'connection'} : (data.gate.blockedUntil || 0)*1000>Date.now() ? {code:'cooldown'} :
@@ -167,6 +168,7 @@
     window.scrollTo(0, 0);
   }
   function closeDialog() {
+    storyArchive.close();
     window.TrackerStories.release();
     profileDetails.close();personView=null;
     profileSearch?.close();profileSearch=null;
@@ -885,6 +887,7 @@
     mountDailyChart();
     refreshListPhotos();
     operationPanel();
+    storyArchive.wake();
   }
   function accountsDialog() {
     dialog(`<span class="dialog-symbol lavender">${icon("people")}</span><h2 id="dialog-title">${t("Hesapların")}</h2><p>${t("Her hesabın oturumu ve gözlemleri ayrı şifreli kasada tutulur. Hesap değiştirmek Instagram isteği göndermez.")}</p><div class="saved-accounts">${(data.accounts || []).map(a => `<button class="saved-account ${a.id === data.activeAccountId ? 'selected' : ''}" data-action="switch-account" data-id="${esc(a.id)}" aria-pressed="${a.id === data.activeAccountId}" ${busy ? 'disabled' : ''}>${avatar(a)}<span><strong>@${esc(a.username)}</strong><small>${a.connected && !['session','verification'].includes(a.lastError) ? a.monitor?.enabled ? t("Arka plan takibi açık") : t("Oturum kayıtlı · Takip kapalı") : t("Yeniden bağlantı gerekli")}${a.monitor?.reason === 'restricted' ? ' · ' + t("Kontrol duraklatıldı") : ''}</small></span>${a.id === data.activeAccountId ? icon("check") : icon("arrow")}</button>`).join('')}</div>${button(t("Hesap ekle"), "add-account", "plus", "primary", busy ? 'disabled' : '')}<p class="dialog-note">${t("Arka plan takibini her hesabın Ayarlar ekranından ayrı açabilirsin. İstek sırası ve molalar bütün hesaplar için ortaktır.")}</p>`);
@@ -976,23 +979,21 @@
   async function storyDialog(id, operation='story_view') {
     const accountId=data.activeAccountId;
     const result=await command(operation,{accountId,id});
-    if(!result?.ok || data.activeAccountId!==accountId || !data.storyDetail)return;
-    dialog(`<h2 id="dialog-title">${t("Hikâye arşivi · Deneysel")}</h2><p>@${esc(person(id)?.username || '')}</p><div class="drawer-actions">${button(t("Hikâyeleri kontrol et"),'story-fetch','refresh','primary',idattr(id))}${button(t("Arşivi temizle"),'story-clear','trash','secondary',idattr(id))}</div><p class="field-hint">${t("Yalnız erişilebilir hikâyeler kaydedilir. Bu test sürümünde otomatik kontrol yoktur.")}</p><div id="story-archive-root"></div><p class="dialog-note">${t("Arşiv cihazında şifrelidir. Sınır: 200 kayıt, toplam 256 MB, dosya başına 16 MB. Hikâyeler mevcut yedeğe dahil değildir.")}</p>`,true);
-    drawStoryCalendar();
+    const archive=result?.state?.storyDetail;
+    if(!result?.ok || data.activeAccountId!==accountId || !archive)return;
+    dialog(`<header class="story-modal-heading"><div><h2 id="dialog-title">${t("Hikâye arşivi · Deneysel")}</h2><p>@${esc(person(id)?.username || '')}</p></div><div class="drawer-actions">${button(t("Hikâyeleri kontrol et"),'story-fetch','refresh','primary',idattr(id))}${button(t("Arşivi temizle"),'story-clear','trash','secondary',idattr(id))}</div></header><div id="story-archive-root"></div><details class="story-notes"><summary>${t("Kullanım notları")}</summary><p>${t("Yalnız erişilebilir hikâyeler kaydedilir. Bu test sürümünde otomatik kontrol yoktur.")}</p><p>${t("Arşiv cihazında şifrelidir. Sınır: 200 kayıt, toplam 256 MB, dosya başına 16 MB. Hikâyeler mevcut yedeğe dahil değildir.")}</p></details>`,true);
+    document.querySelector('#overlay-root dialog').classList.add('story-modal');
+    storyArchive.open(archive);
   }
-  function drawStoryCalendar(view={}) {
+  function paintStoryArchive(view,asset) {
     const root=document.getElementById('story-archive-root');
-    if(!root || data.storyDetail?.accountId!==data.activeAccountId)return;
-    window.TrackerStories.release();
-    root.innerHTML=window.TrackerStories.render(data.storyDetail,{t,esc,date,locale:i18n.locale(language)},view);
-  }
-  async function playStory(id,storyId) {
-    const accountId=data.activeAccountId;
+    if(!root || view.archive.accountId!==data.activeAccountId)return;
+    const retained=view.phase==='ready'?window.TrackerStories.retainedMedia(view.archive,view.storyId):null;
+    if(!retained)window.TrackerStories.release();
+    root.innerHTML=window.TrackerStories.render(view.archive,{t,esc,date,locale:i18n.locale(language)},view);
     const container=document.getElementById('story-player');
-    if(!container)return;
-    const result=await command('story_media',{accountId,id,storyId});
-    if(result?.ok && result.storyMedia && data.activeAccountId===accountId && document.getElementById('story-player')===container)
-      window.TrackerStories.play(result.storyMedia,container);
+    if(retained && container)container.replaceWith(retained);
+    if(asset && container)window.TrackerStories.play(asset,container);
   }
   function valueText(value) {
     if (value === null || value === undefined) return t("Bilinmiyor");
@@ -1133,13 +1134,11 @@
       case "daily-history":dailyDialog(id);break;
       case 'story-archive':await storyDialog(id);break;
       case 'story-fetch':await storyDialog(id,'story_fetch');break;
-      case 'story-play':await playStory(id,target.dataset.storyId);break;
-      case 'story-month':drawStoryCalendar({month:target.dataset.month});break;
-      case 'story-day':
-        drawStoryCalendar({month:target.dataset.day?.slice(0,7),selected:target.dataset.day});
-        document.querySelector('.story-calendar-day.is-selected')?.focus({preventScroll:true});
-        document.getElementById('story-day-detail')?.scrollIntoView({block:'nearest'});
-        break;
+      case 'story-month':storyArchive.month(target.dataset.month);break;
+      case 'story-day':storyArchive.selectDay(target.dataset.day);break;
+      case 'story-select':storyArchive.selectStory(target.dataset.storyId);break;
+      case 'story-calendar':storyArchive.calendar();break;
+      case 'story-media-retry':storyArchive.retry();break;
       case 'story-clear':
         dialog(`<h2 id="dialog-title">${t("Hikâye arşivi temizlensin mi?")}</h2><p>${t("Bu profilin kaydedilen hikâyeleri silinir. Diğer kayıtlar korunur.")}</p>${button(t("Vazgeç"),'story-archive',null,'secondary',idattr(id))}${button(t("Arşivi temizle"),'story-confirm-clear','trash','primary',idattr(id))}`);
         break;
