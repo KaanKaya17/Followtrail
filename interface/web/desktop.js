@@ -719,6 +719,7 @@
   }
   function lists() {
     const owner = ui.owner || data.account?.id || "",
+      ownerProfile = person(owner),
       { scans, current, previous } = selectedScans(),
       record = selectedRecord();
     const ready =
@@ -743,7 +744,7 @@
         .join("");
     return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", button(record.canResume ? t("Taramaya devam et") : current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
 
-      <section class="list-account card"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${[
+      <section class="list-account card"><div class="list-owner-identity">${avatar(ownerProfile)}<div class="list-owner-details"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${[
         data.account,
         ...data.people,
       ]
@@ -754,7 +755,7 @@
         )
         .join(
           "",
-        )}</select>${button(t("CSV dışa aktar"), "export-list", "note", "secondary", !current ? "disabled" : "")}</section>
+        )}</select>${ownerProfile?.name ? `<span class="list-owner-name" title="${esc(ownerProfile.name)}">${esc(ownerProfile.name)}</span>` : ""}</div></div>${button(t("CSV dışa aktar"), "export-list", "note", "secondary", !current ? "disabled" : "")}</section>
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Liste yönü")}">${[
         ["followers", t("Takipçiler")],
         ["following", t("Takip edilen")],

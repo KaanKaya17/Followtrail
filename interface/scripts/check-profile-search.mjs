@@ -13,7 +13,7 @@ const home=await mkdtemp(path.join(os.tmpdir(),'TrackerQA-'));
 execFileSync(python,[path.join(backend,'seed_qa.py'),'--home',home]);
 const fixture=await localListFixture(python,backend,home);
 const state=fixture.state;
-state.people.push({id:'449',username:'qa.449',name:'QA 449',observedAt:0,note:'',group:'Test',watching:false});
+state.people.push({id:'449',username:'qa.449',name:'Long profile name '.repeat(12)+'<img src=x onerror=window.qaOwnerInjected=true>',avatar:'https://example.com/untrusted.jpg',observedAt:0,note:'',group:'Test',watching:false});
 state.gate={...state.gate,blockedUntil:0,manualOnly:false};state.activeAccountId='100';state.connected=true;
 const output=path.join(root,'artifacts/profile-search-ui');await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
@@ -93,6 +93,32 @@ try {
  assert.equal(await page.getByRole('dialog').count(),0);
  checks.push('Closing a pending search prevents late results from reopening the dialog');
  await page.locator('.sidebar a[href="#lists"]').click();
+ assert.equal(await page.locator('#list-owner').inputValue(),'100');
+ assert.equal(await page.locator('.list-owner-name').innerText(),state.account.name);
+ assert.equal(await page.locator('.list-owner-identity > .avatar img').count(),0);
+ await page.locator('#list-owner').selectOption('449');
+ assert.equal(await page.locator('.list-owner-name').innerText(),state.people.find(p=>p.id==='449').name);
+ assert.equal(await page.locator('.list-owner-identity img').count(),0);
+ assert.equal(await page.evaluate(()=>window.qaOwnerInjected),undefined);
+ await page.setViewportSize({width:960,height:680});
+ assert.equal(await page.locator('.list-account').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
+ await page.screenshot({path:path.join(output,'list-owner-long-name.png')});
+ await page.locator('#list-owner').selectOption('200');
+ assert.equal(await page.locator('#list-owner option:checked').textContent(),'@qa.deniz');
+ assert.equal(await page.locator('.list-owner-name').innerText(),state.people.find(p=>p.id==='200').name);
+ assert.equal(await page.locator('.list-owner-identity > .avatar img').getAttribute('src'),state.people.find(p=>p.id==='200').avatar);
+ const ownerLayout=await page.locator('.list-owner-identity').evaluate(node=>{
+  const photo=node.querySelector('.avatar').getBoundingClientRect(),details=node.querySelector('.list-owner-details').getBoundingClientRect();
+  return {beside:photo.right<=details.left,aligned:photo.top<details.bottom && details.top<photo.bottom};
+ });
+ assert.deepEqual(ownerLayout,{beside:true,aligned:true});
+ for(const theme of ['light','dark','oled']) {
+  await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  await page.locator('.list-account').screenshot({path:path.join(output,`list-owner-${theme}.png`)});
+ }
+ await page.evaluate(()=>document.documentElement.dataset.theme='light');
+ await page.setViewportSize({width:1440,height:1000});
+ checks.push('List owner uses selected numeric identity for local photo/name, keeps @username selection, escapes long names and falls back safely in all themes at 960px');
  await page.locator('#list-owner').selectOption('300');
  await page.locator('#list-rows .avatar img').first().waitFor();
  const visible=await page.evaluate(()=>qaCalls.filter(c=>c.operation==='list_avatar'&&c.args.ownerId==='300'));
