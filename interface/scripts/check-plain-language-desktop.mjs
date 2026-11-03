@@ -25,7 +25,7 @@ try {
   Backend.prototype.command=function(...args){globalThis.qaLanguage=this;return original.apply(this,args);};
  });
  const initial=(await page.evaluate(()=>window.TrackerDesktop.command('state'))).state;
- assert.match(await page.locator('main').innerText(),/SON PROFİL KONTROLÜ/);
+ assert.match(await page.locator('.monitor-times').innerText(),/Son kontrol/);
  checks.push('Overview uses check language and a clear Check now action');
  const raw='Instagram HTTP 429 döndürdü. Tarama durdu; otomatik tekrar yapılmayacak.';
  async function restriction(language) {
@@ -37,7 +37,7 @@ try {
   },{initial,raw,language});
  }
  await restriction('tr');
- const notice=page.locator('main > .notice');
+ const notice=page.locator('.overview-monitor .operation-panel');
  assert.match(await notice.innerText(),/Instagram istekleri sınırladı/);
  assert.doesNotMatch(await notice.innerText(),/HTTP|429/);
  assert.doesNotMatch(await page.locator('main').innerText(),/HTTP|429/);
@@ -67,4 +67,8 @@ try {
  assert.deepEqual(errors,[]);assert.deepEqual(requests,[]);
  await writeFile(path.join(output,'checks.json'),JSON.stringify({version,checks,errors,requests,synthetic:true,liveInstagram:false},null,2));
  console.log(`${checks.length} packaged plain-language checks passed; no external requests.`);
+}catch(error){
+ if(page){await page.screenshot({path:path.join(output,'failure.png'),fullPage:true}).catch(()=>{});
+  console.log(JSON.stringify({errors,url:page.url(),text:await page.locator('main').innerText(),progress:await page.locator('#operation-root').innerText()}));}
+ throw error;
 }finally{await app?.close();}

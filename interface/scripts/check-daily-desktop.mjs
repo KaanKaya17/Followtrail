@@ -37,7 +37,7 @@ try {
   assert.ok(await page.locator('#daily-chart-root .chart-point').count()<=720);
   await page.locator('[data-action="daily-metric"][data-value="following"]').click();
   const following=await daily('100','following');assert.equal(following.daily.points.at(-1).value,399);
-  await page.waitForFunction(()=>document.querySelector('#daily-chart-root .chart-summary strong')?.textContent==='399');
+  await page.waitForFunction(()=>document.querySelector('#daily-chart-root .chart-summary strong')?.firstChild?.textContent==='399');
   checks.push('Month, year, all-history and following controls read bounded archive series without inferring missing observations');
   await page.screenshot({path:path.join(output,'daily-all.png')});
   await page.locator('[data-action="chart-source"][data-value="recent"]').click();

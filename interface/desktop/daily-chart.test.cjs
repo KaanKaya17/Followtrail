@@ -25,3 +25,12 @@ test('Observed daily gaps break the graph path and empty days are not rendered a
   assert.equal((path.match(/M/g)||[]).length,2);assert.equal((path.match(/L/g)||[]).length,1);
   assert.equal((html.match(/<circle /g)||[]).length,3);
 });
+test('Counter scales retain real zero and distinguish small changes with unique integer ticks',()=>{
+  for(const values of [[0],[0,1],[2,3],[81,82],[1000000,1000001],[0,50000000]]) {
+    const {low,high,ticks}=TrackerDailyChart.scale(values);
+    assert.ok(low>=0 && low<=Math.min(...values) && high>=Math.max(...values) && high>low);
+    assert.ok(ticks.length>=2 && ticks.length<=8);
+    assert.equal(new Set(ticks).size,ticks.length);assert.ok(ticks.every(Number.isInteger));
+  }
+  assert.ok(TrackerDailyChart.scale([81,82]).high-TrackerDailyChart.scale([81,82]).low<=5);
+});
