@@ -1187,5 +1187,7 @@
   "Son kontrole göre aynı": "Unchanged since last check",
   "Profil ayrıntıları": "Profile details",
   "SON HAREKETLER": "RECENT ACTIVITY",
-  "Seçili dönemde": "Over selected period"
+  "Seçili dönemde": "Over selected period",
+  "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "A completion pass is being used for overlapping pages.",
+  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "This list was completed with additional passes within one scan."
 }

@@ -8,6 +8,11 @@ def public_member(value):
     return {key:value.get(key) for key in ('id','username','name')}
 
 
+def visible_partial(record):
+    candidates=[scan for scan in (record.get('draft'),record.get('retainedPartial')) if scan]
+    return max(candidates,key=lambda scan:(len(scan.get('members',{})),scan.get('finishedAt') or scan.get('startedAt') or 0),default=None)
+
+
 def text(value):
     return ''.join(c for c in unicodedata.normalize('NFKD', value.casefold()) if not unicodedata.combining(c))
 

@@ -5,8 +5,10 @@ DIRECTIONS = ('followers', 'following')
 DAY = 86400
 MIN_RESCAN = 60
 RESUME_AGE = 86400
+RECOVERY_AGE = 600
+RECOVERY_PASSES = 3
 ATTENTION = {'capacity', 'pagination', 'list_coverage', 'network_policy'}
-PLAN_VERSION = 3
+PLAN_VERSION = 4
 
 
 def initialize(data):
@@ -20,9 +22,10 @@ def initialize(data):
 
 
 def resumable(draft, now):
-    return bool(draft and draft.get('nextCursor') and draft.get('status') in
+    age = RECOVERY_AGE if draft and draft.get('recoveryPass') else RESUME_AGE
+    return bool(draft and (draft.get('nextCursor') or draft.get('restartPending') is True) and draft.get('status') in
                 ('running', 'queued', 'interrupted', 'partial', 'cancelled') and
-                0 <= now - draft.get('startedAt', 0) < RESUME_AGE)
+                0 <= now - draft.get('startedAt', 0) < age)
 
 
 def targets(data):
@@ -92,6 +95,13 @@ def validate(data):
         if draft is not None and not isinstance(draft, dict):
             raise ValueError('list draft')
         if draft and 'nextCursor' in draft:
+            if (type(draft.get('recoveryPass', 0)) is not int or not 0 <= draft.get('recoveryPass', 0) <= RECOVERY_PASSES or
+                    type(draft.get('restartPending', False)) is not bool or
+                    type(draft.get('overlapRows', 0)) is not int or not 0 <= draft.get('overlapRows', 0) <= 400000 or
+                    draft.get('recoveryPass') and (draft.get('overlapRows', 0) < 1 or draft.get('pages', 0) < 1 or draft.get('expected') is None) or
+                    type(draft.get('recoveryStartCount', 0)) is not int or not 0 <= draft.get('recoveryStartCount', 0) <= 20000 or
+                    draft.get('restartPending') and (not draft.get('recoveryPass') or draft.get('nextCursor') is not None)):
+                raise ValueError('list recovery')
             if (type(draft.get('pages')) is not int or not 0 <= draft['pages'] <= 400 or
                     type(draft.get('startedAt')) not in (int, float) or not math.isfinite(draft['startedAt']) or draft['startedAt'] < 0 or
                     draft.get('expected') is not None and (type(draft['expected']) is not int or draft['expected'] < 0)):

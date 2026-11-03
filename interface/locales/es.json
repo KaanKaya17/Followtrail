@@ -1187,5 +1187,7 @@
   "Son kontrole göre aynı": "Sin cambios desde la última comprobación",
   "Profil ayrıntıları": "Detalles del perfil",
   "SON HAREKETLER": "ACTIVIDAD RECIENTE",
-  "Seçili dönemde": "En el período seleccionado"
+  "Seçili dönemde": "En el período seleccionado",
+  "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Se está usando una pasada de completado para páginas solapadas.",
+  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista se completó con pasadas adicionales dentro del mismo escaneo."
 }
