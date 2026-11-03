@@ -116,7 +116,8 @@ class Backend {
       this.pending.delete(message.id);
       resolve?.(message);
     }
-    this.onEvent(message);
+    const { storyMedia, ...event } = message;
+    this.onEvent(event);
   }
   async command(operation, args) {
     if (operation === "state")

@@ -167,6 +167,7 @@
     window.scrollTo(0, 0);
   }
   function closeDialog() {
+    window.TrackerStories.release();
     profileDetails.close();personView=null;
     profileSearch?.close();profileSearch=null;
     document.querySelector("#overlay-root dialog")?.close();
@@ -939,7 +940,7 @@
     const own=id===data.account?.id,saved=data.people.find(person=>person.id===id) || p;
     dialog(`<div id="person-profile-info">${personInformation(view)}</div><p id="person-detail-status" class="field-hint" role="status"></p><div class="drawer-actions">${button(t("Profili kontrol et"),"refresh-person","refresh","primary",`${idattr(id)} ${netDisabled()}`)}${button(t("Geçmiş"),"history","clock","secondary",idattr(id))}${button(t("Bildirim tercihleri"),"notification-rules","bell","secondary",idattr(id))}${button(t("Takip listelerini aç"),"person-lists","list","secondary",idattr(id))}${!own ? button(t("Profil açılabiliyor mu?"),"check-access","shield","secondary",`${idattr(id)} ${netDisabled()}`) : ''}</div>${!own ? accessPanel(id) : ''}${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite?t("Favoriden çıkar"):t("Favorilere ekle"),"drawer-star","star","secondary",`${idattr(id)} ${busy?'disabled':''}`)}${button(saved.watching?t("İzlemeyi kapat"):t("İzlemeye al"),"watch","bell","secondary",`${idattr(id)} ${busy?'disabled':''}`)}</div><p class="field-hint">${t("İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.")}</p><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(saved.group || '')}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(saved.note || '')}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"),"save-note","check","secondary",`${idattr(id)} ${busy?'disabled':''}`)}${data.people.some(p=>p.id===id)?button(t("Kayıtlı profillerden kaldır"),"remove-person","close","secondary",`${idattr(id)} ${busy?'disabled':''}`):''}</section>`:''}`,false,true);
     drawerId=id;personView=view;
-    if(own || data.people.some(p=>p.id===id))document.querySelector('dialog .drawer-actions')?.insertAdjacentHTML('beforeend',button(t("Profil zaman tüneli"),"wayback","photo","secondary",idattr(id)));
+    if(own || data.people.some(p=>p.id===id))document.querySelector('dialog .drawer-actions')?.insertAdjacentHTML('beforeend',button(t("Profil zaman tüneli"),"wayback","photo","secondary",idattr(id))+button(t("Hikâye arşivi · Deneysel"),"story-archive","photo","secondary",idattr(id)));
     if(source && !view.avatar)listPhotos.get(source).then(result=>{if(personView===view && result?.avatar)receivePersonPhoto(source,result.avatar);});
     profileDetails.open({id,accountId:view.accountId,known:p},state=>{
       if(personView!==view)return;
@@ -971,6 +972,21 @@
     if (!result?.ok || !data.waybackDetail) return;
     const archive = data.waybackDetail;
     dialog(`<span class="dialog-symbol lavender">${icon("clock")}</span><h2 id="dialog-title">${t("Profil zaman tüneli")}</h2><p>@${esc(person(id)?.username || "")}</p><div class="drawer-actions">${button(archive.enabled ? t("Arşivlemeyi durdur") : t("Arşivlemeyi aç"), "wayback-toggle", "clock", "primary", `${idattr(id)} data-value="${!archive.enabled}"`)}${button(t("Arşivi temizle"), "wayback-clear", "trash", "secondary", idattr(id))}</div>${window.TrackerWayback.render(archive, {t,date,esc})}<p class="dialog-note">${t("En fazla {0} değişiklik ve {1} küçük görsel. Oturum ve arşiv yerel olarak şifrelenir.", archive.maxEntries, archive.maxImages)}</p>`, true);
+  }
+  async function storyDialog(id, operation='story_view') {
+    const accountId=data.activeAccountId;
+    const result=await command(operation,{accountId,id});
+    if(!result?.ok || data.activeAccountId!==accountId || !data.storyDetail)return;
+    dialog(`<h2 id="dialog-title">${t("Hikâye arşivi · Deneysel")}</h2><p>@${esc(person(id)?.username || '')}</p><div class="drawer-actions">${button(t("Hikâyeleri kontrol et"),'story-fetch','refresh','primary',idattr(id))}${button(t("Arşivi temizle"),'story-clear','trash','secondary',idattr(id))}</div><p class="field-hint">${t("Yalnız erişilebilir hikâyeler kaydedilir. Bu test sürümünde otomatik kontrol yoktur.")}</p><div id="story-archive-root"></div><p class="dialog-note">${t("Arşiv cihazında şifrelidir. Sınır: 200 kayıt, toplam 256 MB, dosya başına 16 MB. Hikâyeler mevcut yedeğe dahil değildir.")}</p>`,true);
+    document.getElementById('story-archive-root').innerHTML=window.TrackerStories.render(data.storyDetail,{t,esc,date});
+  }
+  async function playStory(id,storyId) {
+    const accountId=data.activeAccountId;
+    const container=document.getElementById('story-player');
+    if(!container)return;
+    const result=await command('story_media',{accountId,id,storyId});
+    if(result?.ok && result.storyMedia && data.activeAccountId===accountId && document.getElementById('story-player')===container)
+      window.TrackerStories.play(result.storyMedia,container);
   }
   function valueText(value) {
     if (value === null || value === undefined) return t("Bilinmiyor");
@@ -1109,6 +1125,13 @@
       case "daily-metric":ui.dailyMetric=value;if(document.getElementById('daily-dialog-chart'))dailyDialog(dailyChart.context.id);else render();break;
       case "daily-retry":mountDailyChart(true);break;
       case "daily-history":dailyDialog(id);break;
+      case 'story-archive':await storyDialog(id);break;
+      case 'story-fetch':await storyDialog(id,'story_fetch');break;
+      case 'story-play':await playStory(id,target.dataset.storyId);break;
+      case 'story-clear':
+        dialog(`<h2 id="dialog-title">${t("Hikâye arşivi temizlensin mi?")}</h2><p>${t("Bu profilin kaydedilen hikâyeleri silinir. Diğer kayıtlar korunur.")}</p>${button(t("Vazgeç"),'story-archive',null,'secondary',idattr(id))}${button(t("Arşivi temizle"),'story-confirm-clear','trash','primary',idattr(id))}`);
+        break;
+      case 'story-confirm-clear':await storyDialog(id,'story_clear');break;
       case "clear-daily":
         dialog(`<h2 id="dialog-title">${t("Günlük geçmiş temizlensin mi?")}</h2><p>${t("Bu profilin günlük özetleri silinir. Son kontroller, listeler ve oturum korunur.")}</p>${button(t("Vazgeç"),'close')}${button(t("Günlük geçmişi temizle"),'confirm-clear-daily','close','primary',idattr(id))}`);
         break;
@@ -1403,6 +1426,12 @@
     }
   });
   document.addEventListener("change", async (event) => {
+    if(event.target.id==='story-date' && data.storyDetail) {
+      const filter=event.target.value;
+      window.TrackerStories.release();
+      document.getElementById('story-archive-root').innerHTML=window.TrackerStories.render(data.storyDetail,{t,esc,date},filter);
+      return;
+    }
     switch (event.target.id) {
       case "app-theme":
         if (window.TrackerAppearance.valid(event.target.value)) await command("settings", {theme:event.target.value});

@@ -31,7 +31,7 @@
         return;
       }
       const messages={preparing:t("İşlem hazırlanıyor…"),login:t("Instagram hesabına bağlanılıyor…"),profile:t("Profil okunuyor…"),avatar:t("Profil fotoğrafı yükleniyor…"),access_health:t("Hesap bağlantın kontrol ediliyor…"),access_target:t("Profilin açılıp açılmadığı kontrol ediliyor…"),access_anonymous:t("Profilin giriş yapmadan açılıp açılmadığı kontrol ediliyor…"),request:t("Instagram yanıtı bekleniyor…"),waiting:t("İstekler arasında kısa mola…"),list:t("Liste sayfaları okunuyor…"),code:t("Doğrulama kodu bekleniyor…"),cancelling:t("İptal isteniyor…")};
-      let title=messages[p.phase] || t("İşlem sürüyor…"), context='';
+      let title=p.phase==='stories'?t("Hikâyeler kaydediliyor…"):messages[p.phase] || t("İşlem sürüyor…"), context='';
       if(p.ownerUsername) context=`<p>${escape(t("Bağlı hesap: @{0}",p.ownerUsername))}</p>`;
       if(scan) {
         const direction=scan.direction==='followers'?t("Takipçiler"):t("Takip edilen");

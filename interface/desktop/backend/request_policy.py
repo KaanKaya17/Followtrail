@@ -2,7 +2,7 @@
 import re
 from urllib.parse import parse_qs, urlsplit
 
-READ_PATH = re.compile(r'/api/v1/(?:users/(?:[1-9][0-9]{0,29}/info|[A-Za-z0-9._]{1,30}/usernameinfo)|friendships/[1-9][0-9]{0,29}/(?:followers|following))/')
+READ_PATH = re.compile(r'/api/v1/(?:users/(?:[1-9][0-9]{0,29}/info|[A-Za-z0-9._]{1,30}/usernameinfo)|friendships/[1-9][0-9]{0,29}/(?:followers|following)|feed/user/[1-9][0-9]{0,29}/story)/')
 AUTH_ACTIONS = frozenset((
     'com.bloks.www.bloks.caa.login.process_client_data_and_redirect',
     'com.bloks.www.caa.login.oauth.token.fetch.async',

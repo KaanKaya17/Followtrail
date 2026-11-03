@@ -47,6 +47,11 @@ def main():
             if engine.active_id != original_owner:images.cancel(clear_cache=True)
             emit(message)
         try:
+            if request['operation'] == 'story_media':
+                # On-demand media is never part of a state snapshot or event.
+                asset = engine.story_media(request.get('args') or {})
+                emit({'type':'result','id':request['id'],'ok':True,'storyMedia':asset})
+                return
             state = engine.run(request['operation'], request.get('args') or {}, group_id=group_id)
             publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': state,
                   'notifications': engine.notifications, 'notificationGroupId': group_id})

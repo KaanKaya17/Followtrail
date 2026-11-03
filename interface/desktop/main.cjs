@@ -84,6 +84,10 @@ const allowed = new Set([
   "list_page",
   "daily_stats",
   "daily_clear",
+  "story_view",
+  "story_fetch",
+  "story_media",
+  "story_clear",
   "profile_detail",
   "cancel_list_images",
   "save_person",
@@ -130,6 +134,10 @@ function validate(operation, args) {
     cancel_search_images: [],
     daily_stats: ["accountId","id","metric","range"],
     daily_clear: ["accountId","id"],
+    story_view: ["accountId","id"],
+    story_fetch: ["accountId","id"],
+    story_media: ["accountId","id","storyId"],
+    story_clear: ["accountId","id"],
     list_page: ["accountId","revision","ownerId","direction","scanId","previousScanId","comparison","relation","query","offset"],
     list_avatar: ["accountId", "ownerId", "direction", "scanId", "id"],
     profile_detail: ["accountId", "id"],
@@ -235,6 +243,7 @@ else
         cancel:
           !details.url.startsWith("file:") &&
           !details.url.startsWith("data:image/jpeg;base64,") &&
+          !(details.url.startsWith("blob:") && ["image","media"].includes(details.resourceType)) &&
           !details.url.startsWith("devtools:"),
       });
     });

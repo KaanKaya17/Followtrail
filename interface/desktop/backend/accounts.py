@@ -17,6 +17,7 @@ from login_identity import device_settings
 import request_budget
 import localization
 import list_preparation
+import stories
 
 DEVICE_SETTINGS = ('language', 'theme', 'compact')
 
@@ -177,6 +178,7 @@ class Accounts(Engine):
             self.search_results = None
             self.search_pictures = {}
             self.profile_detail_result = None
+            self.story_detail = None
             self.recover_interrupted()
         except Exception:
             self.vault, self.data, self.active_id = old_vault, old_data, old_id
@@ -268,7 +270,9 @@ class Accounts(Engine):
                 self.catalog['active'] = self.active_id
                 self.persist_catalog()
             elif operation == 'delete_all':
-                if self.data['account']:self.daily_store().clear_all(revoke=True)
+                if self.data['account']:
+                    self.daily_store().clear_all(revoke=True)
+                    stories.StoryStore(self.vault.path.parent,self.data['account']['id']).clear_all()
                 # This command removes only the selected account and its backup.
                 cleared = blank(copy.deepcopy(self.catalog['gate']))
                 cleared['removedAccountId'] = original
