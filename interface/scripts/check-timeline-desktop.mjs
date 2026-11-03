@@ -44,6 +44,14 @@ try {
  assert.equal(await page.locator('.timeline-routine .timeline-event').count(),100);
  assert.equal(await row('qa-check-0').isVisible(),false);
  await page.locator('.timeline-routine > summary').click();await row('qa-check-0').waitFor({state:'visible'});
+ await row('qa-check-0').click();
+ assert.equal(await page.getByRole('dialog').locator('#dialog-title').innerText(),'Profil kontrolü');
+ assert.equal(await page.getByRole('dialog').locator('.timeline-check-result strong').innerText(),'@qa.deniz');
+ assert.equal(await page.getByRole('dialog').locator('.timeline-check-result small').innerText(),'Profil kontrol edildi');
+ assert.equal(await page.getByRole('dialog').locator('.change-values, .dialog-note').count(),0);
+ assert.equal(await page.getByRole('dialog').locator('.avatar img').getAttribute('src'),before.people.find(p=>p.id==='200').avatar);
+ assert.doesNotMatch(await page.getByRole('dialog').innerText(),/Bilinmiyor|değişiklik yok/i);
+ await page.screenshot({path:path.join(output,'routine-check-detail.png')});await page.keyboard.press('Escape');
  await page.locator('[data-action="more-checks"]').click();
  assert.equal(await page.locator('.timeline-routine .timeline-event').count(),120);
  assert.equal(await row('qa-check-119').isVisible(),true);
@@ -54,7 +62,7 @@ try {
  assert.equal(await row('qa-access').isVisible(),true);
  await filter('access').click();assert.equal(await row('qa-access').isVisible(),true);assert.equal(await page.locator('.timeline-routine').count(),0);
  await reset();
- checks.push('Routine checks start collapsed, paginate independently of changes, retain expansion on updates and open directly in the Checks filter');
+ checks.push('Routine checks open a completion receipt without invented comparisons; they start collapsed, paginate independently of changes, retain expansion on updates and open directly in the Checks filter');
  await page.locator('#timeline-person').selectOption('200');
  assert.equal(await page.locator('.timeline-day-group > .timeline-events .timeline-event').count(),4);
  await filter('list').click();assert.equal(await page.locator('.timeline-event').count(),1);

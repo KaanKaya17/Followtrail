@@ -344,6 +344,11 @@ select {
 .timeline-routine .timeline-event-body { gap:5px; }
 .timeline-routine .timeline-event-summary { color:var(--muted); font-size:12px; }
 .timeline-more { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+.timeline-check-result { display:flex; align-items:center; gap:14px; padding:18px; background:var(--subtle-surface); border:1px solid var(--line); border-radius:16px; }
+.timeline-check-result > .avatar { flex-shrink:0; }
+.timeline-check-result > span:last-child { display:grid; gap:6px; min-width:0; }
+.timeline-check-result strong { font-size:15px; overflow-wrap:anywhere; }
+.timeline-check-result small { font-size:13px; color:var(--teal); }
 @media (max-width:1050px) {
   .timeline-person-filter { flex:1; }
   .timeline-person-filter select { max-width:100%; }
