@@ -1,0 +1,88 @@
+import { _electron as electron } from 'playwright-core';
+import {execFileSync} from 'node:child_process';
+import {mkdtemp,mkdir,readFile,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import os from 'node:os';
+import assert from 'node:assert/strict';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const python=process.env.TRACKER_BUILD_PYTHON || path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe');
+const version=JSON.parse(await readFile(path.join(root,'interface/package.json'),'utf8')).version;
+const home=await mkdtemp(path.join(os.tmpdir(),'TrackerQA-'));
+for(const script of ['interface/desktop/backend/seed_qa.py','interface/scripts/seed-profile-panel-qa.py'])
+ execFileSync(python,[path.join(root,script),'--home',home,...(script.includes('seed_qa.py')?['--accounts']:[])],{stdio:'pipe'});
+const output=path.join(root,`artifacts/desktop-${version}-qa/profile-panel`);await mkdir(output,{recursive:true});
+const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
+const app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+const page=await app.firstWindow();page.setDefaultTimeout(15000);
+const errors=[],network=[],checks=[];
+page.on('pageerror',error=>errors.push(error.message));
+page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});
+const command=(operation,args={})=>page.evaluate(({operation,args})=>window.TrackerDesktop.command(operation,args),{operation,args});
+async function openProfile(){await page.locator('[data-action="person"][data-id="200"]').first().click();await page.locator('dialog.profile-panel').waitFor();}
+try {
+ await page.locator('.account-switcher').waitFor();
+ const before=(await command('state')).state;
+ await page.locator('.sidebar a[href="#people"]').click();await openProfile();
+ assert.deepEqual(await page.locator('.profile-metrics strong').allTextContents(),['82','50','12']);
+ assert.equal(await page.locator('.profile-badge').count(),2);
+ assert.equal(await page.locator('.profile-refresh').count(),1);
+ assert.equal(await page.locator('[data-action="story-archive"]').isVisible(),true);
+ assert.equal(await page.locator('[data-action="history"]').isVisible(),false);
+ assert.equal(await page.locator('.profile-access[open]').count(),0);
+ await page.screenshot({path:path.join(output,'profile-light.png')});
+ checks.push('Profile identity, known counters, privacy and verification badges lead the panel; primary tools are visible and secondary tools are collapsed');
+ assert.equal(await page.locator('.profile-personal[open]').count(),0);
+ await page.locator('.profile-more > summary').click();await page.locator('[data-action="history"]').waitFor();
+ await page.keyboard.press('Escape');assert.equal(await page.locator('dialog.profile-panel[open]').count(),1);assert.equal(await page.locator('.profile-more[open]').count(),0);
+ const draft='Taslak not <img src=x onerror=window.profileInjected=true>';
+ await page.locator('.profile-personal > summary').click();
+ await page.locator('#person-note').fill(draft);await page.locator('#person-group').fill('Yakın arkadaşlar');
+ const favorite=await page.locator('.profile-favorite').getAttribute('aria-pressed');
+ await page.locator('.profile-favorite').click();
+ await page.waitForFunction(previous=>document.querySelector('.profile-favorite')?.getAttribute('aria-pressed')!==previous,favorite);
+ assert.equal(await page.locator('#person-note').inputValue(),draft);
+ const watching=await page.locator('.profile-watch').getAttribute('aria-pressed');
+ await page.locator('.profile-watch').click();
+ await page.waitForFunction(previous=>document.querySelector('.profile-watch')?.getAttribute('aria-pressed')!==previous,watching);
+ assert.equal(await page.locator('#person-group').inputValue(),'Yakın arkadaşlar');
+ await page.locator('[data-action="save-note"]').click();
+ await page.waitForFunction(()=>document.querySelector('.profile-personal summary small')?.textContent==='Yakın arkadaşlar');
+ assert.equal((await command('state')).state.people.find(p=>p.id==='200').note,draft);
+ assert.equal(await page.evaluate(()=>window.profileInjected),undefined);
+ checks.push('More closes with Escape without closing the drawer; local toggles preserve unsaved note/group text and explicit saving persists escaped content');
+ await page.locator('.profile-more > summary').click();await page.locator('[data-action="history"]').click();
+ await page.locator('.history-records').waitFor();await page.keyboard.press('Escape');await openProfile();
+ await page.locator('.profile-more > summary').click();await page.locator('[data-action="remove-person"]').click();
+ await page.locator('[data-action="remove-confirm"].danger').waitFor();
+ assert.equal((await command('state')).state.people.some(p=>p.id==='200'),true);
+ await page.locator('[data-action="close"]').last().click();await openProfile();
+ checks.push('History remains reachable; removal has a distinct danger confirmation and cancelling keeps the saved profile');
+ for(const language of ['en','es','pt-BR','tr']) {
+  await page.keyboard.press('Escape');await command('settings',{language});
+  await page.waitForFunction(language=>document.documentElement.lang===language,language);await openProfile();
+  assert.equal(await page.locator('#person-profile-info #dialog-title').innerText(),'Deniz Kaya');
+  assert.equal(await page.locator('.profile-shortcuts').evaluate(element=>element.scrollWidth<=element.clientWidth+1),true);
+ }
+ await command('settings',{theme:'dark'});await page.screenshot({path:path.join(output,'profile-dark.png')});
+ const contentWidth=await app.evaluate(({BrowserWindow})=>{const window=BrowserWindow.getAllWindows()[0];window.setSize(960,680);return window.getContentSize()[0];});
+ await page.waitForFunction(width=>window.innerWidth===width,contentWidth);
+ assert.equal(await page.locator('.profile-panel-scroll').evaluate(element=>element.scrollWidth<=element.clientWidth+1),true);
+ await page.locator('.profile-more > summary').click();
+ await page.waitForFunction(()=>{const menu=document.querySelector('.profile-more-items').getBoundingClientRect();return menu.top>=0 && menu.bottom<=innerHeight;});
+ await page.screenshot({path:path.join(output,'profile-small-more.png')});
+ checks.push('All four languages and dark theme keep source names unchanged; the minimum window and open More panel have no horizontal overflow');
+ await page.keyboard.press('Escape');await page.keyboard.press('Escape');
+ await page.keyboard.press('Control+k');await page.locator('.command-palette').getByRole('combobox').fill('@qa.owner');await page.keyboard.press('Enter');
+ await page.locator('dialog.profile-panel').waitFor();assert.equal(await page.locator('.profile-personal').count(),0);
+ await page.locator('.profile-more > summary').click();assert.equal(await page.locator('[data-action="remove-person"]').count(),0);
+ assert.deepEqual((await command('state')).state.gate,before.gate);
+ await command('switch_account',{id:'400'});await page.waitForFunction(()=>!document.querySelector('#overlay-root dialog[open]'));
+ const after=(await command('state')).state.gate;
+ for(const field of ['attempts','blockedUntil','status'])assert.equal(after[field],before.gate[field]);
+ checks.push('Own-account profile omits person-only editing/removal; account switch closes the panel and local operations preserve the request gate');
+ assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
+ await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,network,home},null,2));
+ console.log(JSON.stringify({checks:checks.length,errors,network,output}));
+} catch(error) {await page.screenshot({path:path.join(output,'failure.png')}).catch(()=>{});throw error;}
+finally {await app.close();}

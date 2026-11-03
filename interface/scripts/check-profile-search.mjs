@@ -13,6 +13,7 @@ const home=await mkdtemp(path.join(os.tmpdir(),'TrackerQA-'));
 execFileSync(python,[path.join(backend,'seed_qa.py'),'--home',home]);
 const fixture=await localListFixture(python,backend,home);
 const state=fixture.state;
+state.people.push({id:'449',username:'qa.449',name:'QA 449',observedAt:0,note:'',group:'Test',watching:false});
 state.gate={...state.gate,blockedUntil:0,manualOnly:false};state.activeAccountId='100';state.connected=true;
 const output=path.join(root,'artifacts/profile-search-ui');await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
@@ -46,6 +47,10 @@ try {
    if(operation==='add_person') {
     state.people.push({id:args.id,username:args.username,name:'İpek Kaya',followers:1,following:1,observedAt:1800000000,watching:false});
     state.searchResults=null;
+   }
+   if(operation==='save_person') {
+    if(window.qaDelaySave)await new Promise(resolve=>window.qaSaveResolver=resolve);
+    Object.assign(state.people.find(person=>person.id===args.id),args);
    }
    return {ok:true,state};
   }};
@@ -104,14 +109,15 @@ try {
  await page.locator('#list-rows .list-person').click();
  assert.equal(await page.locator('#person-profile-info .avatar img').getAttribute('src'),image);
  await page.waitForFunction(()=>typeof qaProfileResolver==='function');
- assert.equal(await page.locator('#person-profile-info .drawer-counts').count(),0);
+ assert.equal(await page.locator('#person-profile-info .profile-metrics').count(),0);
  assert.equal((await page.locator('#person-profile-info').innerText()).includes('Bilinmiyor'),false);
  assert.equal(await page.locator('#person-detail-status').innerText(),'Profil bilgileri getiriliyor…');
+ await page.locator('.profile-personal > summary').click();
  await page.locator('#person-note').fill('Keep this unsaved note');
  await page.evaluate(()=>{window.qaDelayProfile=false;qaProfileResolver()});
- await page.waitForFunction(()=>document.querySelector('#person-profile-info .drawer-counts strong')?.textContent==='42');
- assert.deepEqual(await page.locator('#person-profile-info .drawer-counts strong').allTextContents(),['42','0']);
- assert.match(await page.locator('#person-profile-info').innerText(),/Gizlilik\s+Açık\s+Gönderi\s+0/);
+ await page.waitForFunction(()=>document.querySelector('#person-profile-info .profile-metrics strong')?.textContent==='42');
+ assert.deepEqual(await page.locator('#person-profile-info .profile-metrics strong').allTextContents(),['42','0','0']);
+ assert.equal(await page.locator('.profile-badge').innerText(),'Açık hesap');
  assert.equal(await page.locator('#person-note').inputValue(),'Keep this unsaved note');
  const lines=await page.locator('.drawer-bio').evaluate(node=>{
   const text=node.firstChild;
@@ -126,7 +132,7 @@ try {
  assert.equal(await page.locator('#person-profile-info .avatar img').getAttribute('src'),image);
  assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='add_person'&&c.args.id==='449').length),0);
  await page.keyboard.press('Escape');await page.locator('#list-rows .list-person').click();
- await page.locator('#person-profile-info .drawer-counts').waitFor();
+ await page.locator('#person-profile-info .profile-metrics').waitFor();
  assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='profile_detail'&&c.args.id==='449').length),1);
  await page.screenshot({path:path.join(output,'list-profile-drawer.png')});
  await page.keyboard.press('Escape');
@@ -172,8 +178,11 @@ try {
  await page.locator('#list-search').fill('qa.444');
  await page.waitForFunction(()=>qaImageResolvers.length>0);
  await page.locator('#list-rows .list-person').click();
- await page.waitForFunction(()=>document.querySelector('#person-profile-info .drawer-counts strong')?.textContent==='42');
- assert.equal(await page.locator('#person-profile-info .detail-pair').count(),1,'Only the known observation time is shown');
+ await page.waitForFunction(()=>document.querySelector('#person-profile-info .profile-metrics strong')?.textContent==='42');
+ assert.equal(await page.locator('.profile-last-observed').count(),1);
+ assert.equal(await page.locator('.profile-badge').count(),0,'Omitted privacy stays hidden');
+ assert.deepEqual(await page.locator('.profile-metrics strong').allTextContents(),['42','0']);
+ assert.equal(await page.locator('.profile-personal').count(),0,'Unsaved profiles omit saved-only notes');
  assert.equal((await page.locator('#person-profile-info').innerText()).includes('Bilinmiyor'),false);
  await page.evaluate(()=>{for(const resolve of qaImageResolvers)resolve({ok:true,avatar:'data:image/jpeg;base64,QA=='});window.qaDelayListImages=false});
  await page.locator('#person-profile-info .avatar img').waitFor();
@@ -181,6 +190,13 @@ try {
  assert.equal(await page.locator('.profile-site-link[data-url*="threads"]').count(),0);
  await page.keyboard.press('Escape');
  checks.push('Opening before the list image finishes shares its download; omitted post/privacy fields stay hidden after the profile reply');
+ await page.locator('#list-search').fill('qa.449');await page.locator('#list-rows .list-person').click();
+ await page.evaluate(()=>window.qaDelaySave=true);await page.locator('.profile-favorite').click();
+ await page.waitForFunction(()=>typeof qaSaveResolver==='function');await page.keyboard.press('Escape');
+ await page.evaluate(()=>{window.qaDelaySave=false;qaSaveResolver()});
+ await page.waitForFunction(()=>document.querySelector('[data-action="add-person"]')?.disabled!==true);
+ assert.equal(await page.locator('#overlay-root dialog[open]').count(),0);
+ checks.push('Closing during a local preference save keeps the panel closed when the reply arrives');
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
  await writeFile(path.join(output,'checks.json'),JSON.stringify({checks,errors,external,syntheticApi:true,liveInstagram:false},null,2));
  console.log(`${checks.length} profile search renderer checks passed; synthetic API, no external requests.`);

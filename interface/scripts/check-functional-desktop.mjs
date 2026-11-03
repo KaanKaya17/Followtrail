@@ -415,6 +415,7 @@ try {
       "PRIVATE-QA-NOTE <img src=x onerror=alert(1)>",
     );
     assert.equal(await page.getByRole("dialog").locator("img").count(), 1);
+    await page.locator('.profile-personal > summary').click();
     await page
       .locator("#person-note")
       .fill("Saved QA note <script>window.hacked=true</script>");
@@ -626,6 +627,8 @@ try {
       await page
         .getByRole("button", { name: "QA qa.deniz kaydını aç", exact: true })
         .click();
+      await page
+        .locator('.profile-more > summary').click();
       await page
         .getByRole("button", { name: "Bildirim tercihleri", exact: true })
         .click();

@@ -1177,7 +1177,11 @@
     "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "The original source of a story reshare could not be verified in this record.",
     "Hikâyeleri görmek için bir gün seç.": "Select a day to view its stories.",
     "Yeniden dene": "Try again",
-    "Bağlantılar": "Links"
+    "Bağlantılar": "Links",
+    "Not ve grup": "Notes and group",
+    "Açık hesap": "Public account",
+    "Hikâye arşivi": "Story archive",
+    "Deneysel": "Experimental"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2350,7 +2354,11 @@
     "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "No se pudo verificar el origen de una historia compartida en este registro.",
     "Hikâyeleri görmek için bir gün seç.": "Selecciona un día para ver sus historias.",
     "Yeniden dene": "Reintentar",
-    "Bağlantılar": "Enlaces"
+    "Bağlantılar": "Enlaces",
+    "Not ve grup": "Notas y grupo",
+    "Açık hesap": "Cuenta pública",
+    "Hikâye arşivi": "Archivo de historias",
+    "Deneysel": "Experimental"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3523,7 +3531,11 @@
     "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "Não foi possível verificar a origem de um story recompartilhado neste registro.",
     "Hikâyeleri görmek için bir gün seç.": "Selecione um dia para ver os stories.",
     "Yeniden dene": "Tentar novamente",
-    "Bağlantılar": "Links"
+    "Bağlantılar": "Links",
+    "Not ve grup": "Notas e grupo",
+    "Açık hesap": "Conta pública",
+    "Hikâye arşivi": "Arquivo de stories",
+    "Deneysel": "Experimental"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

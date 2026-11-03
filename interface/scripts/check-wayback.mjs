@@ -20,6 +20,7 @@ try{
  const state=await page.evaluate(()=>window.TrackerDesktop.command('wayback',{id:'200'}));
  assert.equal(state.ok,true);assert.equal(Object.keys(state.state.waybackDetail.images).length,3);checks.push('Packaged worker exposes encrypted archive metadata and deduplicated thumbnails');
  await page.locator('.sidebar a[href="#people"]').click();await page.locator('.person-title[data-id="200"]').click();
+ await page.locator('.profile-more > summary').click();
  await page.getByRole('button',{name:'Profil zaman tüneli',exact:true}).click();
  await page.getByRole('heading',{name:'Biyografi zaman tüneli'}).waitFor();
  assert.equal(await page.locator('.wayback-gallery img').count(),3);assert.ok(await page.locator('.bio-diff ins').count()>0);assert.ok(await page.locator('.bio-diff del').count()>0);
@@ -31,7 +32,7 @@ try{
  await app.close();app=null;
  app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
  const english=await app.firstWindow();english.setDefaultTimeout(12000);await english.getByRole('heading',{name:'What is happening in your circle?'}).waitFor();
- await english.locator('.sidebar a[href="#people"]').click();await english.locator('.person-title[data-id="200"]').click();await english.getByRole('button',{name:'Profile time tunnel',exact:true}).click();
+ await english.locator('.sidebar a[href="#people"]').click();await english.locator('.person-title[data-id="200"]').click();await english.locator('.profile-more > summary').click();await english.getByRole('button',{name:'Profile time tunnel',exact:true}).click();
  await english.getByRole('heading',{name:'Biography time tunnel'}).waitFor();assert.equal(await english.locator('.wayback-gallery img').count(),3);checks.push('Archive and paused preference survive process restart in English');
  await english.screenshot({path:path.join(output,'desktop-en.png')});
  await english.getByRole('button',{name:'Clear archive',exact:true}).click();await english.getByRole('button',{name:'Delete archive and stop',exact:true}).click();

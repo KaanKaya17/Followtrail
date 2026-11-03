@@ -46,7 +46,7 @@ try {
  checks.push('Slash opens the local palette; Turkish names also match an ASCII query');
  await search('@qa.ada');assert.match(await page.locator('.command-palette').innerText(),/<img src=x onerror=/);
  assert.equal(await page.evaluate(()=>window.paletteInjected),undefined);await page.keyboard.press('Escape');
- await person();const note=page.locator('#person-note');await note.fill('draft: ');await page.keyboard.type('12345/');
+ await person();await page.locator('.profile-personal > summary').click();const note=page.locator('#person-note');await note.fill('draft: ');await page.keyboard.type('12345/');
  assert.equal(await note.inputValue(),'draft: 12345/');assert.match(await page.url(),/#people$/);
  await page.keyboard.press('Control+r');await page.getByText('Yazı alanındayken yenileme kısayolu çalışmaz.',{exact:true}).waitFor();
  assert.deepEqual(await refreshes(),[]);assert.equal(await page.evaluate(()=>window.qaReloadMarker),'preserved');
@@ -60,7 +60,7 @@ try {
    window.webContents.sendInputEvent({type:'keyDown',keyCode:'R',modifiers:['control']});
    window.webContents.sendInputEvent({type:'keyUp',keyCode:'R',modifiers:['control']});
  });
- await page.getByText('@qa.deniz için yenileme tamamlanamadı.',{exact:true}).waitFor();
+ await page.locator('#person-detail-status').getByText('Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.',{exact:true}).waitFor();
  assert.deepEqual(await refreshes(),[{id:'200'}]);assert.equal(await page.evaluate(()=>window.qaReloadMarker),'preserved');await page.keyboard.press('Escape');
  await route('3','lists');await page.locator('#list-owner').selectOption('200');await page.locator('#main').focus();await page.keyboard.press('Control+r');
  await page.getByRole('dialog',{name:'İşlem tamamlanamadı',exact:true}).waitFor();

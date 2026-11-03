@@ -54,6 +54,7 @@ try {
   await page.keyboard.press('Escape');
   await page.locator('.sidebar a[href="#people"]').click();
   await page.locator('[data-action="person"][data-id="200"]').first().click();
+  await page.locator('.profile-more > summary').click();
   await page.getByRole('dialog').getByRole('button',{name:'Geçmiş',exact:true}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Günlük geçmiş',exact:true}).click();
   await page.locator('#daily-dialog-chart .chart-point').first().waitFor();
