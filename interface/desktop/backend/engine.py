@@ -1,9 +1,11 @@
 """Local observations, paging, comparison and guarded account operations."""
 import copy
 import csv
+import daily_stats
 import list_pages
 from list_pages import public_member
 import json
+import io
 import math
 import os
 from pathlib import Path
@@ -69,6 +71,8 @@ def public_person(value):
 class Engine:
     def __init__(self, directory, emit=lambda event: None, clock=time.time, *, request_delay=None):
         self.vault = Vault(directory)
+        self._daily_current = None
+        self._daily_view = None
         self.data = self.load_vault()
         self.emit = emit
         self.clock = clock
@@ -120,8 +124,44 @@ class Engine:
         validate_archive(data)
         return data
 
+    def daily_store(self, owner=None):
+        owner = owner or (self.data['account'] or {}).get('id')
+        key = (self.vault.path.parent, owner)
+        if self._daily_current is None or self._daily_current[0] != key or self._daily_current[1].closed:
+            self._daily_current = (key, daily_stats.DailyStore(key[0], owner))
+        return self._daily_current[1]
+
+    def daily_query(self, args):
+        view = self._daily_view
+        if (not isinstance(args,dict) or set(args) != {'accountId','id','metric','range'} or
+                not view or args.get('accountId') != view[0] or args.get('id') not in view[2] or
+                args.get('metric') not in daily_stats.METRICS or type(args.get('range')) is not int or args['range'] not in (0,7,30,365)):
+            raise AppFailure('input', 'Geçersiz günlük geçmiş isteği.')
+        store = view[1]
+        with store.lock:
+            store.record(args['id'], view[2][args['id']])
+            result = store.query(args['id'],args['metric'],args['range'],round(self.clock()*1000))
+            store.warning = False
+        return dict(result,accountId=view[0],id=args['id'],metric=args['metric'],range=args['range'])
+
+    def clear_daily(self, args):
+        own = (self.data['account'] or {}).get('id')
+        if args.get('accountId') != own or args.get('id') not in {own,*self.data['people']}:
+            raise AppFailure('input', 'Geçersiz günlük geçmiş isteği.')
+        times = [p['observedAt'] for p in self.data['history'].get(args['id'], [])]
+        self.daily_store().clear(args['id'],max([round(self.clock()*1000),*[round(t*1000) for t in times]]))
+
     def snapshot(self):
         d = self.data
+        if d['account']:
+            store = self.daily_store()
+            seeds = {identity:tuple(p for p in d['history'].get(identity, [profile]) if
+                     type(p.get('observedAt')) in (int,float) and math.isfinite(p['observedAt']) and p['observedAt']>0) for identity,profile in
+                     [(d['account']['id'],d['account']), *d['people'].items()]}
+            self._daily_view = (d['account']['id'], store, seeds)
+        else:
+            store = None
+            self._daily_view = None
         published = self.list_pages.publish(d)
         records = {key: {'snapshots': [list_pages.metadata(s) for s in record.get('snapshots', [])],
                          'draft': list_pages.metadata(record.get('draft')),
@@ -131,6 +171,7 @@ class Engine:
         return {'account': public_person(d['account']) if d['account'] else None,
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
                 'history': d['history'], 'lists': records, 'listsRevision': published['revision'], 'events': d['events'],
+                'dailyRevision': {identity:store.revisions.get(identity,store.revision) for identity in seeds} if store else {}, 'dailyWarning': store.warning if store else False,
                 'gate': d['gate'], 'settings': d['settings'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
                 'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
@@ -144,7 +185,7 @@ class Engine:
                 'searchResults': self.search_results,
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.35'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.36'}
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -268,6 +309,14 @@ class Engine:
             new = profile.get(key)
             if old is not None and new is not None and old != new:
                 self.event('profile', f"@{profile['username']} · {key}", identity, {key: old}, {key: new}, group_id=group_id)
+        owner = identity if own else (self.data['account'] or {}).get('id')
+        if owner:
+            store = self.daily_store(owner)
+            try:
+                store.record(identity,[*history,profile])
+                store.warning = False
+            except Exception:
+                store.warning = True
         history.append({key: profile.get(key) for key in ('observedAt', *PROFILE_FIELDS)})
         wayback.record(self.data, profile)
         del history[:-366]
@@ -777,9 +826,25 @@ class Engine:
                 record['draft'].pop('seenCursors', None)
         value['settings']['automatic'] = False
         value['lastError'] = None
-        raw = json.dumps({'format': 'InstagramTracker-observations', 'version': 1, 'data': value},
-                         ensure_ascii=False, allow_nan=False).encode()
-        atomic_write(Path(path), protect(raw))
+        # Preserve the established backup bound while streaming archive years.
+        # No large all-years JSON tree is allocated and an old destination survives refusal.
+        stream = io.BytesIO()
+        encoder = json.JSONEncoder(ensure_ascii=False,allow_nan=False,separators=(',',':'))
+        def write(raw):
+            if stream.tell()+len(raw)>MAX_VAULT-4096:
+                raise AppFailure('backup','Yedek dosyası çok büyük. Mevcut dosya korundu.')
+            stream.write(raw)
+        def encode(value):
+            for chunk in encoder.iterencode(value):write(chunk.encode('utf-8'))
+        write(b'{"format":"InstagramTracker-observations","version":1,"data":')
+        encode(value)
+        write(b',"daily":[')
+        if own:
+            for index,document in enumerate(self.daily_store().export_iter()):
+                if index:write(b',')
+                encode(document)
+        write(b']}')
+        atomic_write(Path(path),protect(stream.getvalue()))
 
     def import_backup(self, path):
         path = Path(path)
@@ -799,9 +864,19 @@ class Engine:
             list_preparation.initialize(restored)
             wayback.initialize(restored)
             validate_archive(restored)
+            documents = value.get('daily', [])
+            owner = (restored['account'] or {}).get('id')
+            if not isinstance(documents,list) or (documents and not owner):raise ValueError('daily backup')
+            unique = set()
+            for document in documents:
+                daily_stats.validate(document,owner)
+                key = (document['target'],document['year'])
+                if key in unique:raise ValueError('duplicate daily backup')
+                unique.add(key)
         except Exception as exc:
             raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
         self.prepare_restore(restored)
+        if documents:self.daily_store(owner).restore(documents)
         old_gate = self.data['gate']
         gate = restored['gate']
         for key in ('blockedUntil', 'nextAt', 'loginAfter', 'attempts', 'streak'):
@@ -847,7 +922,7 @@ class Engine:
         try:
             if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'profile_detail', 'automatic', 'check_access'):
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
-            handlers = {'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
+            handlers = {'daily_clear': lambda: self.clear_daily(args), 'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
                         'refresh': lambda: self.refresh(args), 'profile_detail': lambda: self.profile_detail(args), 'add_person': lambda: self.add_person(args),
                         'scan': lambda: self.scan(args, resume=True), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
@@ -871,6 +946,7 @@ class Engine:
                 # Session removal also purges the immediately preceding backup.
                 self.vault.backup.unlink(missing_ok=True)
             elif operation == 'delete_all':
+                if self.data['account']:self.daily_store().clear_all(revoke=True)
                 self.data = blank(dict(self.data['gate']))
                 self.save()
                 self.vault.backup.unlink(missing_ok=True)

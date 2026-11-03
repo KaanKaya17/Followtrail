@@ -1,3 +1,4 @@
+import {waitForState} from './wait-for-account.mjs';
 import { _electron as electron } from "playwright-core";
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
@@ -483,11 +484,8 @@ try {
       await page
         .getByRole("switch", { name: "Windows bildirimleri", exact: true })
         .click();
-      await page.waitForFunction(
-        async () =>
-          (await window.TrackerDesktop.command("state")).state.settings
-            .notifications,
-      );
+      await waitForState(page, reply => (reply.state.settings
+            .notifications));
       const details = await desktop.evaluate(
         ({ shell }, qaHome) =>
           shell.readShortcutLink(
@@ -506,11 +504,8 @@ try {
       await page
         .getByRole("switch", { name: "Windows bildirimleri", exact: true })
         .click();
-      await page.waitForFunction(
-        async () =>
-          !(await window.TrackerDesktop.command("state")).state.settings
-            .notifications,
-      );
+      await waitForState(page, reply => (!reply.state.settings
+            .notifications));
     },
   );
   await check(
@@ -544,9 +539,7 @@ try {
         .getByText("Dosya işlemi tamamlandı.", { exact: true })
         .waitFor();
       // Native save writes asynchronously; wait through the invocation boundary.
-      await page.waitForFunction(
-        async () => !(await window.TrackerDesktop.command("state")).busy,
-      );
+      await waitForState(page, reply => (!reply.busy));
       const csv = await readFile(
         path.join(home, "InstagramTracker-liste.csv"),
         "utf8",
@@ -738,13 +731,8 @@ try {
         true,
       );
       assert.equal(await page.evaluate(() => window.logInjected), undefined);
-      await page.waitForFunction(
-        async () =>
-          (
-            await window.TrackerDesktop.command("state")
-          ).state.notificationLog.find((e) => e.id === "qa-multi-change")
-            .readAt != null,
-      );
+      await waitForState(page, reply => (reply.state.notificationLog.find((e) => e.id === "qa-multi-change")
+            .readAt != null));
       await page.screenshot({
         path: path.join(output, "notification-detail.png"),
         fullPage: true,
@@ -870,11 +858,8 @@ try {
           exact: true,
         })
         .click();
-      await page.waitForFunction(
-        async () =>
-          (await window.TrackerDesktop.command("state")).state.settings
-            .investigateMissing,
-      );
+      await waitForState(page, reply => (reply.state.settings
+            .investigateMissing));
       const result = await page.evaluate(() =>
         window.TrackerDesktop.command("check_access", { id: "200" }),
       );
@@ -891,11 +876,8 @@ try {
           exact: true,
         })
         .click();
-      await page.waitForFunction(
-        async () =>
-          !(await window.TrackerDesktop.command("state")).state.settings
-            .investigateMissing,
-      );
+      await waitForState(page, reply => (!reply.state.settings
+            .investigateMissing));
     },
   );
   await check(

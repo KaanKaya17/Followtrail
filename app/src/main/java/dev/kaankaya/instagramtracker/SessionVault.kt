@@ -17,7 +17,7 @@ class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int 
     private val file = AtomicFile(File(context.noBackupFilesDir, "$slot.enc"))
     private val alias = "instagramtracker.$slot.v1"
     private val aad = "InstagramTracker/session/v1".toByteArray()
-    fun exists(): Boolean = file.baseFile.exists()
+    fun exists(): Boolean = file.baseFile.exists() || File(file.baseFile.path + ".bak").exists()
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(alias, null) as? SecretKey)?.let { return it }
@@ -59,7 +59,7 @@ class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int 
     }
     fun clear() {
         file.delete()
-        check(!file.baseFile.exists())
+        check(!file.baseFile.exists() && !File(file.baseFile.path + ".bak").exists() && !File(file.baseFile.path + ".new").exists())
         KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(alias)
     }
 }
@@ -70,6 +70,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     private fun currentOwner()=owner ?: catalog?.active()
     private fun storage()=catalog?.let {c->currentOwner()?.let(c::storage)} ?: slot
     private val record get()=EncryptedRecord(context,storage(),ACCOUNT_BYTES)
+    val daily get()=DailyStatsStore(context,storage())
     val visual get()=VisualHistoryStore(context,storage())
     val journal get()=CheckJournal(context,"${storage()}checks")
     fun record(session: Session, event: CheckEvent) = synchronized(lock) {
@@ -88,9 +89,14 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     fun write(account: SavedAccount): Unit = synchronized(lock) {
         require(owner==null || owner==account.session.userId)
         val destination=catalog?.storage(account.session.userId) ?: slot
+        val previous = try { EncryptedRecord(context,destination,ACCOUNT_BYTES).read()?.let(AccountCodec::decode) } catch (_: Exception) { null }
+        persist(account,previous,destination)
+    }
+    private fun persist(account: SavedAccount, previous: SavedAccount?, destination: String) {
         EncryptedRecord(context,destination,ACCOUNT_BYTES).write(AccountCodec.encode(account))
         catalog?.remember(account,owner==null)
         VisualHistoryStore(context,destination).observe(account)
+        DailyStatsStore(context,destination).observe(account,previous?.takeIf { it.session.userId==account.session.userId })
     }
     fun read(): SavedAccount? = synchronized(lock) {
         val c=catalog
@@ -102,7 +108,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     /** Serialize foreground/background read-modify-write operations across vault instances. */
     fun update(expected: Session, transform: (SavedAccount) -> SavedAccount): SavedAccount = synchronized(lock) {
         val current = read()?.takeIf { it.session == expected } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
-        transform(current).also { require(it.session == expected); write(it) }
+        transform(current).also { require(it.session == expected); persist(it,current,storage()) }
     }
     fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
         val previous = if(catalog!=null)SessionVault(context,owner=session.userId).read() else read()
@@ -124,6 +130,12 @@ class SessionVault(private val context: Context, private val slot: String = "acc
         val profile=readProfile()
         return linkIfUnchanged(expected,session,profile,cancelled)
     }
+    fun clearDaily(expected: Session, target: String, now: Long) = synchronized(lock) {
+        val bound=if(catalog!=null)SessionVault(context,owner=expected.userId) else this
+        val current=bound.read()?.takeIf {it.session==expected} ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        val latest=if(target==current.profile.userId)current.profile.observedAt else current.people.firstOrNull {it.latest.userId==target}?.latest?.observedAt ?: now
+        bound.daily.clear(expected.userId,target,maxOf(now,latest))
+    }
     fun inspect(action: (SavedAccount?) -> Unit) = synchronized(lock) { action(read()) }
     fun clear(): Unit = synchronized(lock) {
         val id=currentOwner()
@@ -137,6 +149,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
         record.clear()
         journal.clear()
         visual.clearAll()
+        daily.clearAll()
         id?.let {catalog?.forget(it)}
     }
 }

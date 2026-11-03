@@ -158,4 +158,22 @@
     <string name="web_pending_missing">No hay ninguna conexión pendiente. Cierra esta pantalla para volver a iniciar la conexión de una cuenta.</string>
     <string name="web_pending_forget">Eliminar conexión pendiente</string>
     <string name="web_pending_forget_body">Solo se elimina de este dispositivo la sesión de este inicio de sesión incompleto. Las cuentas guardadas y el tiempo de espera se conservan. Tendrás que volver a iniciar sesión para continuar.</string>
+
+    <string name="daily_title">Historial diario</string>
+    <string name="daily_week">7 días</string>
+    <string name="daily_month">30 días</string>
+    <string name="daily_year">1 año</string>
+    <string name="daily_all">Todos</string>
+    <string name="daily_loading">Cargando el historial diario…</string>
+    <string name="daily_error">No se pudo leer el historial diario. Los registros se conservan.</string>
+    <string name="daily_retry">Reintentar</string>
+    <string name="daily_empty">El historial diario se acumula aquí tras un control correcto.</string>
+    <string name="daily_coverage">%1$s días · %2$s controles</string>
+    <string name="daily_grouped">Los períodos largos se muestran en grupos de %1$s días.</string>
+    <string name="daily_extrema">Mínimo %1$s · Máximo %2$s</string>
+    <string name="daily_scope">Los días se agrupan según UTC. Los días sin controles quedan vacíos.</string>
+    <string name="daily_clear">Borrar el historial diario</string>
+    <string name="daily_clear_question">¿Borrar el historial diario?</string>
+    <string name="daily_clear_scope">Se borrarán los resúmenes diarios de este perfil. Los controles recientes, las listas y la sesión se conservarán.</string>
+    <string name="daily_retention">Los resúmenes diarios de contadores no caducan automáticamente. Se guardan cifrados en el dispositivo, separados de los controles recientes, y se pueden borrar desde el historial diario.</string>
 </resources>

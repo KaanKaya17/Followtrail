@@ -2,31 +2,36 @@
 
 [Kılavuz ana sayfası](Home.md) · [Değişiklik kaydı](../../CHANGELOG.md)
 
-**Son içerik denetimi: 2 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+**Son içerik denetimi: 3 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
 ## Windows
 
-**Güncel önizleme: 0.2.35 · kaynak etiketi: `desktop-v0.2.35`**
+**Güncel önizleme: 0.2.36 · kaynak etiketi: `desktop-v0.2.36`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Paket: `InstagramTracker-Desktop-0.2.35.zip`; çıkarılan klasörde `InstagramTracker.exe` çalıştırılır.
+- Paket: `InstagramTracker-Desktop-0.2.36.zip`; çıkarılan klasörde `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
-- Son sürümde 208 Python, 51 Node, 10 arayüz kontrolü ve paketli EXE üzerinde 36 genel ve 4 büyük liste kontrolü geçmiştir. Bu testlerin büyük bölümü sentetik veri kullanır.
+- Son sürümde 224 Python, 54 Node, 10 arayüz kontrolü ve paketli EXE üzerinde 36 genel, 4 büyük liste, 5 günlük geçmiş ve 10 çoklu hesap kontrolü geçmiştir. Bu testlerin büyük bölümü sentetik veri kullanır.
 
 ## Android
 
-**Güncel APK: 0.1.74 · sürüm kodu: 75 · kaynak etiketi: `android-v0.1.74`**
+**Güncel APK: 0.1.75 · sürüm kodu: 76 · kaynak etiketi: `android-v0.1.75`**
 
-- Dosya: `InstagramTracker-0.1.74.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.75.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
 - **Telefon içinden uçtan uca başarılı hesap bağlantısı ve liste okuması henüz tamamlanmış sayılmıyor.** Araştırılan açık konu girişten sonraki profil okumasıdır.
 - E-posta/kod akışı üzerinde çalışılmıştır; her CAPTCHA, TOTP ve başka cihazdan onay yönteminin desteklendiği varsayılmamalıdır. Cihaz onayı sonucunu periyodik sorgulayan yöntem hâlâ sınırlıdır.
-- 0.1.74'te 132 JVM testi, release derlemesi, lint ve imzalı paket kontrolleri geçmiştir. Yeni Threads ayrıştırması gerçek telefonda ayrıca sınanmamıştır.
+- Yeni günlük geçmiş ekranı ve Keystore dosyaları için altı cihaz testi derlendi; cihazda çalıştırılmadı.
+- 0.1.75'te 138 JVM testi, release derlemesi, lint ve imzalı paket kontrolleri geçmiştir. Yeni Threads ayrıştırması gerçek telefonda ayrıca sınanmamıştır.
 
 ## Web
 
 Örnek verilerle arayüz önizlemesidir. Gerçek hesaba bağlanma, sürekli arka plan kontrolü ve cihazlar arasında veri eşitleme hizmeti değildir.
+
+## Günlük istatistikler
+
+Windows ve Android için ayrı şifreli günlük arşiv eklendi. Son kontroller silinse de günlük özetler otomatik silinmez. [Kullanım ve sınırlar](Gunluk-Istatistikler.md).
 
 ## Dil ve görünüm
 
@@ -60,4 +65,4 @@ Normal hata bildirimi için proje sahibinin belirttiği destek kanalını kullan
 
 ## Sonraya bırakılan geliştirmeler
 
-Kalıcı günlük sayaç özetleri, resmî Instagram ZIP içe aktarma, işlevsel web hizmeti, geniş Threads/Facebook entegrasyonu ve AI içerik analizi henüz tamamlanmış özellikler değildir. [Geliştirme notları](../DEVELOPMENT-BACKLOG.md) güncel kapsamı korur; listedeki bir fikir yayın tarihi taahhüdü değildir.
+Resmî Instagram ZIP içe aktarma, işlevsel web hizmeti, geniş Threads/Facebook entegrasyonu ve AI içerik analizi henüz tamamlanmış özellikler değildir. [Geliştirme notları](../DEVELOPMENT-BACKLOG.md) güncel kapsamı korur; listedeki bir fikir yayın tarihi taahhüdü değildir.

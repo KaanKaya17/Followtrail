@@ -1,10 +1,10 @@
-# InstagramTracker Windows 0.2.35
+# InstagramTracker Windows 0.2.36
 
 Biyografi satır sonları masaüstü ve ortak web panelinde korunur; Instagram’da alt alta yazılan metin aynı satır düzeniyle gösterilir. Bu bir sunum düzeltmesidir; kayıtlı biyografi yeniden yazılmaz. Android metin bileşeni zaten bu düzeni korur.
 
 Profilin web siteleri, yanıltıcı **Profil bağlantısı** satırı yerine yerel logo ve site adıyla gösterilir; tam adres fareyle üzerine gelince ve klavye erişilebilirlik açıklamasında bulunur. Tanınmayan sitelerde alan adı/globe simgesi kullanılır. Hiçbir favicon/başlık servisi çağrılmaz. Instagram’da aç düğmesi kişinin gözlenen kullanıcı adıyla normal tarayıcıyı açar. Site bağlantıları yalnız kullanıcı tıklayınca açılır; uygulama içine uzak sayfa yüklenmez.
 
-**Threads’te aç**, açık bir Threads profil adresi veya Instagram'ın etkin Threads rozetinde geçerli kullanıcı adı geldiğinde gösterilir. Açık adres varsa korunur ve önceliklidir. Rozet bağlantısı yalnız `show_text_post_app_badge=true` ve geçerli `text_post_app_badge_label` ile hazırlanır; sırf Instagram kullanıcı adı var diye oluşturulmaz. Beş site bağlantısına ek bir Threads bağlantısı korunur. Düğme normal tarayıcıyı doğrudan açar; ayrı Threads doğrulaması, giriş veya ek istek yoktur. Eski kayıt yeni bilgiye sonraki normal profil okumasıyla ulaşır. Android 0.1.74 aynı ayrıştırmayı kullanır; giriş/profil 429 araştırması ayrıdır.
+**Threads’te aç**, açık bir Threads profil adresi veya Instagram'ın etkin Threads rozetinde geçerli kullanıcı adı geldiğinde gösterilir. Açık adres varsa korunur ve önceliklidir. Rozet bağlantısı yalnız `show_text_post_app_badge=true` ve geçerli `text_post_app_badge_label` ile hazırlanır; sırf Instagram kullanıcı adı var diye oluşturulmaz. Beş site bağlantısına ek bir Threads bağlantısı korunur. Düğme normal tarayıcıyı doğrudan açar; ayrı Threads doğrulaması, giriş veya ek istek yoktur. Eski kayıt yeni bilgiye sonraki normal profil okumasıyla ulaşır. Android 0.1.75 aynı ayrıştırmayı kullanır; giriş/profil 429 araştırması ayrıdır.
 
 Listeden açılan sağ panel, satırdaki küçük resmi doğrudan kullanır; indirme sürüyorsa aynı işi paylaşır. Eksik/eski profil bilgileri için panel açıkken tek sayısal ID profil okuması sıraya girer. Takipçi, takip edilen, gönderi ve gizlilik alanları yalnız geçerli yanıtla gösterilir; bilinmeyen/boş satırlar gizlenir, gerçek sıfır değerleri korunur. Yanıt yalnız bilgi bölümünü günceller, yazılmakta olan notu veya odağı değiştirmez. Paneli kapatmak henüz gönderilmemiş okumayı kaldırır; gönderilmiş işlemin geç yanıtı paneli yeniden açmaz.
 
@@ -24,7 +24,7 @@ Profil ekleme penceresinde en az iki karakter yazıp 650 ms duraklamak Instagram
 
 Fotoğraflar metin sonuçlarını bekletmez. Özel yerel pipe üzerinden yalnız mevcut sonuç belirteci ve ID ile istenir; URL seçimi renderer'a açılmaz. İşçi içinde iki CDN indirmesi ve en fazla 20 bekleyen/çalışan iş vardır; iptal eski işleri durdurur. Oturum/çerez kullanılmaz, yönlendirme izlenmez, mevcut resim boyutu/çözünürlük sınırları uygulanır. Pencere kapanınca geçici sorgu önbelleği bırakılır ve görsel işleri iptal edilir.
 
-`artifacts/InstagramTracker-Desktop-0.2.35/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur. [Kullanıcı kurulum rehberi](../docs/wiki/Kurulum.md).
+`artifacts/InstagramTracker-Desktop-0.2.36/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur. [Kullanıcı kurulum rehberi](../docs/wiki/Kurulum.md).
 
 ## Dört yerel uygulama dili
 

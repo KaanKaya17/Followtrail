@@ -20,11 +20,13 @@ const errors=[],external=[],checks=[];
 try {
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
  await page.exposeFunction('qaLocalList',args=>fixture.request(args));
+ await page.exposeFunction('qaDailyStats',args=>fixture.request(args,'daily_stats'));
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!r.url().startsWith('file:')&&!r.url().startsWith('data:'))external.push(r.url());});
  await page.addInitScript(({state})=>{
   const calls=[];window.qaCalls=calls;window.qaImageResolvers=[];
   window.TrackerDesktop={subscribe:()=>{},openLink:async url=>{calls.push({operation:'open_link',url});return {ok:true};},command:async(operation,args={})=>{
    calls.push({operation,args});
+   if(operation==='daily_stats')return window.qaDailyStats(args);
    if(operation==='list_page')return window.qaLocalList(args);
    if(operation==='search_people') {
     if(args.query==='late')await new Promise(resolve=>window.qaResolve=resolve);

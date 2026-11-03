@@ -432,6 +432,7 @@ class MainActivity : LocalizedActivity() {
         row.addView(stat(getString(R.string.ui_following), saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
         page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(16)
         page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(16)
+        page.addView(button(getString(R.string.daily_title),false) { openDaily(saved.profile.userId) }); page.gap(16)
         renderPreparation(page, saved); page.gap(16)
         page.addView(button(getString(R.string.quick_start), false) { startQuickWatch(saved.profile.userId) }); page.gap(8)
         page.gap(12)
@@ -512,6 +513,11 @@ class MainActivity : LocalizedActivity() {
             row.addView(tile, LinearLayout.LayoutParams(dp(138), -2).apply { marginEnd = dp(8) })
         }
         page.addView(android.widget.HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(row) }); page.gap(20)
+    }
+    private fun openDaily(target: String) {
+        val saved=account ?: return
+        startActivity(Intent(this,DailyStatsActivity::class.java).putExtra("viewer_id",saved.session.userId)
+            .putExtra("target_id",target).putExtra("offline_preview",preview))
     }
     private fun openTimeline(target: String? = null) {
         val saved = account ?: return
@@ -1023,6 +1029,7 @@ class MainActivity : LocalizedActivity() {
         page.addView(personHeading); page.gap(8)
         page.addView(badge(person.group.ifBlank { getString(R.string.ui_profile_analysis) })); page.gap(20)
         page.addView(ProfileSummary.view(this, p)); page.gap(12)
+        page.addView(button(getString(R.string.daily_title),false) { openDaily(p.userId) }); page.gap(12)
         page.addView(button(getString(R.string.visual_title),false) {
             startActivity(Intent(this,VisualHistoryActivity::class.java).putExtra("viewer_id",saved.session.userId).putExtra("target_id",p.userId).putExtra("offline_preview",preview))
         }); page.gap(12)
@@ -1099,6 +1106,7 @@ class MainActivity : LocalizedActivity() {
                     if (quickWatch.target == profile.userId) quickWatch.stop(false)
                     if (savePeople { people -> people.filterNot { it.latest.userId == profile.userId } }) {
                         try {
+                            vault.clearDaily(session,profile.userId,maxOf(System.currentTimeMillis(),profile.observedAt))
                             vault.journal.clearTarget(session, profile.userId)
                             ViewedProfiles.clear(session.userId, profile.userId)
                             avatars.remove(session.userId, profile.userId)

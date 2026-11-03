@@ -268,6 +268,7 @@ class Accounts(Engine):
                 self.catalog['active'] = self.active_id
                 self.persist_catalog()
             elif operation == 'delete_all':
+                if self.data['account']:self.daily_store().clear_all(revoke=True)
                 # This command removes only the selected account and its backup.
                 cleared = blank(copy.deepcopy(self.catalog['gate']))
                 cleared['removedAccountId'] = original

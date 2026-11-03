@@ -1,3 +1,4 @@
+import {waitForAccount} from './wait-for-account.mjs';
 // Production EXE, pipe, DPAPI and 10,000-member synthetic lists. No account access.
 import {_electron as electron} from 'playwright-core';
 import {execFileSync} from 'node:child_process';
@@ -51,7 +52,7 @@ try {
   const foreign=await page.evaluate(args=>window.TrackerDesktop.command('list_page',{...args,accountId:'400'}),context);
   assert.equal(foreign.ok,false);assert.equal(foreign.page,undefined);
   await page.locator('.account-switcher').click();await page.locator('.saved-account[data-id="400"]').click();
-  await page.waitForFunction(async()=>(await window.TrackerDesktop.command('state')).state.activeAccountId==='400');
+  await waitForAccount(page,'400');
   const stale=await page.evaluate(args=>window.TrackerDesktop.command('list_page',args),context);
   assert.equal(stale.ok,false);assert.equal(stale.page,undefined);
   assert.equal(await page.locator('#list-rows').count(),0);

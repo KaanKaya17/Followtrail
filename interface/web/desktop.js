@@ -71,11 +71,15 @@
     eventType: "all",
     eventLimit: 100,
     range: "30",
+    dailyRange: 30,
+    dailyMetric: "followers",
+    chartSource: "daily",
     notificationFilter: "all",
     notificationLimit: 100,
   };
   function acceptState(next) {
     if (data && next.activeAccountId !== data.activeAccountId) {
+      dailyChart.reset();
       listPager.reset();
       listPhotos.clear(true);
       profileDetails.reset();
@@ -108,6 +112,7 @@
     onImage:(source,image)=>receivePersonPhoto(source,image),
   });
   const listPager=window.TrackerListPages.create({request:args=>api.command("list_page",args),change:paintListPage});
+  const dailyChart=window.TrackerDailyChart.create({request:args=>api.command("daily_stats",args),change:paintDailyChart});
   const profileDetails=window.TrackerProfileDetails.create({
     availability:()=>({busy,wait:Math.max(0,(data?.gate.nextAt || 0)*1000-Date.now()),
       stop:!data?.connected ? {code:'connection'} : (data.gate.blockedUntil || 0)*1000>Date.now() ? {code:'cooldown'} :
@@ -311,7 +316,28 @@
   function operationPanel() {
     operationProgress.update({busy, progress, gate: data?.gate || {}, visible: windowVisible});
   }
+  function dailyControls(id) {
+    return `<div data-daily-target="${esc(id)}"><div class="toolbar"><div class="segmented">${['followers','following'].map(metric=>`<button data-action="daily-metric" data-value="${metric}" class="${ui.dailyMetric===metric?'active':''}">${metric==='followers'?t("Takipçi"):t("Takip edilen")}</button>`).join('')}</div><div class="segmented" aria-label="${t("Grafik aralığı")}">${[[7,t("7 gün")],[30,t("30 gün")],[365,t("1 yıl")],[0,t("Tümü")]].map(([span,label])=>`<button data-action="daily-range" data-value="${span}" class="${ui.dailyRange===span?'active':''}">${label}</button>`).join('')}</div></div></div>`;
+  }
+  function paintDailyChart() {
+    const root=document.getElementById('daily-dialog-chart') || document.getElementById('daily-chart-root');
+    if(!root || root.dataset.target!==dailyChart.context?.id)return;
+    root.innerHTML=window.TrackerDailyChart.render(dailyChart.state,{t,num,esc,locale:i18n.locale(language)});
+  }
+  function mountDailyChart(force=false) {
+    const root=document.getElementById('daily-dialog-chart') || document.getElementById('daily-chart-root');
+    if(!root || !data?.account)return;
+    dailyChart.load({accountId:data.activeAccountId,id:root.dataset.target,metric:ui.dailyMetric,range:ui.dailyRange},data.dailyRevision?.[root.dataset.target] || '',force);
+    paintDailyChart();
+  }
+  function dailyDialog(id) {
+    const p=person(id);if(!p)return;
+    dialog(`<h2 id="dialog-title">${esc(p.username)} · ${t("Günlük geçmiş")}</h2>${dailyControls(id)}<div id="daily-dialog-chart" data-target="${esc(id)}"></div><p class="field-hint">${t("Günler UTC saatine göre gruplanır. Kontrol yapılmayan günler boş kalır.")}</p>${button(t("Günlük geçmişi temizle"),'clear-daily','close','secondary',idattr(id))}`,true);
+    mountDailyChart();
+  }
   function chart(p) {
+    const mode=`<div class="segmented">${[['daily',t("Günlük")],['recent',t("Son kontroller")]].map(([value,label])=>`<button data-action="chart-source" data-value="${value}" class="${ui.chartSource===value?'active':''}">${label}</button>`).join('')}</div>`;
+    if(ui.chartSource==='daily')return `<section class="chart-card card"><div class="section-heading"><h2>${t("Günlük geçmiş")}</h2>${mode}</div>${dailyControls(p?.id || '')}<div id="daily-chart-root" data-target="${esc(p?.id)}"></div>${data.dailyWarning?`<p class="notice warning">${t("Günlük geçmiş kaydedilemedi. Son kontroller korunuyor.")}</p>`:''}<div class="chart-caption">${button(t("Kayıtları gör"),'daily-history','clock','secondary',idattr(p?.id || ''))}</div></section>`;
     const all = data.history[p?.id] || [];
     const cutoff =
       ui.range === "all" ? 0 : Date.now() / 1000 - Number(ui.range) * 86400;
@@ -346,7 +372,7 @@
         .join(" ");
       graph = `<div class="chart-summary"><strong>${num(values.at(-1))}<span>${t("takipçi")}</span></strong><span class="muted">${t("{0} kayıt", history.length)}</span></div><div class="chart-wrap"><svg class="history-chart" viewBox="0 0 710 252" role="img" aria-label="${t("Kayıtlı takipçi sayıları")}">${[0, 1, 2, 3].map((i) => `<line x1="50" y1="${40 + (i * 170) / 3}" x2="680" y2="${40 + (i * 170) / 3}" class="grid-line"/><text x="34" y="${44 + (i * 170) / 3}" text-anchor="end" class="axis-label">${num(Math.round(max - (i * (max - min)) / 3))}</text>`).join("")}<path d="${line}" class="chart-line"/>${points.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="5" class="chart-point" tabindex="0"><title>${esc(date(history[i].observedAt))} · ${num(values[i])}</title></circle>`).join("")}<text x="50" y="242" class="axis-label">${esc(new Date(start * 1000).toLocaleDateString(i18n.locale(language)))}</text><text x="670" y="242" text-anchor="end" class="axis-label">${esc(new Date(end * 1000).toLocaleDateString(i18n.locale(language)))}</text></svg></div>`;
     }
-    return `<section class="chart-card card"><div class="section-heading"><div><h2>${t("Takipçi geçmişi")}</h2><p>${t("Önceki kontrollerdeki takipçi sayın.")}</p></div>${controls}</div>${graph}<div class="chart-caption">${button(t("Kayıtları gör"), "history", "clock", "secondary", idattr(p?.id || ""))}</div></section>`;
+    return `<section class="chart-card card"><div class="section-heading"><div><h2>${t("Takipçi geçmişi")}</h2><p>${t("Önceki kontrollerdeki takipçi sayın.")}</p></div>${controls}${mode}</div>${graph}<div class="chart-caption">${button(t("Kayıtları gör"), "history", "clock", "secondary", idattr(p?.id || ""))}</div></section>`;
   }
   function eventTitle(e) {
     if (e.type === "error") return t("Kontrol tamamlanamadı");
@@ -855,6 +881,7 @@
     document.getElementById("app").innerHTML =
       `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`;
     mountListPage();
+    mountDailyChart();
     refreshListPhotos();
     operationPanel();
   }
@@ -929,7 +956,7 @@
     const p = person(id),
       history = data.history[id] || [];
     dialog(
-      `<span class="dialog-symbol lavender">${icon("chart")}</span><h2 id="dialog-title">${t("@{0} · Profil geçmişi", esc(p?.username || t("hesap")))}</h2><p>${t("Son {0} kontrol. Sayılar bu kontroller sırasında görülen değerlerdir.", history.length)}</p><div class="history-records">${[...history]
+      `<span class="dialog-symbol lavender">${icon("chart")}</span><h2 id="dialog-title">${t("@{0} · Profil geçmişi", esc(p?.username || t("hesap")))}</h2>${button(t("Günlük geçmiş"),"daily-history","chart","secondary",idattr(id))}<p>${t("Son {0} kontrol. Sayılar bu kontroller sırasında görülen değerlerdir.", history.length)}</p><div class="history-records">${[...history]
           .reverse()
           .map(
             (h) =>
@@ -1076,6 +1103,17 @@
         ui.previous = null;
         ui.listFilter = "all";
         navigate("lists");
+        break;
+      case "chart-source":ui.chartSource=value;render();break;
+      case "daily-range":ui.dailyRange=Number(value);if(document.getElementById('daily-dialog-chart'))dailyDialog(dailyChart.context.id);else render();break;
+      case "daily-metric":ui.dailyMetric=value;if(document.getElementById('daily-dialog-chart'))dailyDialog(dailyChart.context.id);else render();break;
+      case "daily-retry":mountDailyChart(true);break;
+      case "daily-history":dailyDialog(id);break;
+      case "clear-daily":
+        dialog(`<h2 id="dialog-title">${t("Günlük geçmiş temizlensin mi?")}</h2><p>${t("Bu profilin günlük özetleri silinir. Son kontroller, listeler ve oturum korunur.")}</p>${button(t("Vazgeç"),'close')}${button(t("Günlük geçmişi temizle"),'confirm-clear-daily','close','primary',idattr(id))}`);
+        break;
+      case "confirm-clear-daily":
+        if((await command('daily_clear',{accountId:data.activeAccountId,id})).ok)dailyDialog(id);
         break;
       case "range":
         ui.range = value;

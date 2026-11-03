@@ -29,6 +29,7 @@ Bu dizindeki teknik belgeler araştırma, uygulama ve test geçmişini korur. Do
 - [Otomatik ilk hazırlık](AUTOMATIC-PREPARATION-TEST.md)
 - [Otomatik kontroller](AUTOMATION-TEST.md)
 - [Profil zaman tüneli](VISUAL-HISTORY-TEST.md)
+- [Kalıcı günlük sayaçlar](DAILY-STATS-TEST.md)
 - [Anonim erişim karşılaştırması](ANONYMOUS-VISIBILITY-TEST.md)
 - [Dil paketleri](DESKTOP-LANGUAGES-TEST.md)
 - [Görünüm](APPEARANCE-TEST.md) · [Görsel incelikler](VISUAL-POLISH-TEST.md)

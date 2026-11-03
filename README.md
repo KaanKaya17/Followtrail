@@ -15,6 +15,7 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 - Takipçi/takip edilen kayıtları ve uygun tam listeler arasında üye karşılaştırması. Windows'ta kaydırdıkça yüklenen listeler ve bütün yerel listede arama.
 - Kaydedilen profillerde arama, favoriler, notlar ve izleme.
 - Sayaç, kullanıcı adı, biyografi ve avatar değişikliklerinin geçmişi.
+- [Kalıcı günlük istatistikler](docs/wiki/Gunluk-Istatistikler.md): şifreli yıllık arşiv ve hafta/ay/yıl grafikleri.
 - Windows'ta kontrol başına gruplanan değişiklik kayıtları ve bildirim tercihleri.
 - Birbirinden ayrı şifreli kayıtlarla çoklu hesap altyapısı.
 - Türkçe, English, Español ve Português (Brasil); açık, koyu, OLED ve sistem görünümü.
@@ -23,9 +24,9 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-**Windows 0.2.35:** Yerel işlev paketi; kayıtlı oturumlarla canlı profil/liste okumaları görülmüş, son paket kontrolleri tamamlanmıştır. Bütün hesaplarda uyumluluk garantisi değildir.
+**Windows 0.2.36:** Yerel işlev paketi; kayıtlı oturumlarla canlı profil/liste okumaları görülmüş, son paket kontrolleri tamamlanmıştır. Bütün hesaplarda uyumluluk garantisi değildir.
 
-**Android 0.1.74:** İmzalı APK. Kod sonrasında bekleyen oturumu koruma doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
+**Android 0.1.75:** İmzalı APK. Kod sonrasında bekleyen oturumu koruma doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

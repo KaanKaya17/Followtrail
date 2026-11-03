@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.36 / Android 0.1.75 — 2026-11-03 (Kalıcı günlük istatistikler)
+
+- Kendi hesabı ve kaydedilen profiller için ayrıntılı son kontrollerden bağımsız, şifreli profil/yıl arşivi eklendi. Günlük ilk/son/minimum/maksimum sayaçlar, gözlem zamanları ve kontrol sayısı tutulur. Eski ayrıntılar budanmadan önce eldeki kayıtlar aktarılır; günlük özetlerde süreye bağlı silme yoktur.
+- Hafta/ay/yıl/tümü aralıkları ve takipçi/takip edilen seçimi eklendi. Eksik günler sıfıra çevrilmez; UTC günleri kullanılır. Uzun aralıklar kapsam korunarak en çok 720 grafik noktasına gruplandırılır. Son kontroller görünümü ayrıca korunur.
+- Günlük temizleme yakın geçmişten otomatik geri aktarımı engeller. Windows yedeği günlük özetleri birleştirir; daha yeni günler korunur. Arşiv yıl bazında okunur/yazılır; başka profilin kontrolü kendi grafiğini gereksiz yenilemez. Ek Instagram isteği gönderilmez.
+- Android atomik kayıt okuyucusu yalnız `.bak` kaldığında da kurtarma okuması yapar. Native günlük ekran ve Keystore için cihaz testleri eklendi/derlendi; kullanıcının isteğiyle cihaz çalıştırması sonraya bırakıldı.
+- Doğrulama, saklama sınırları ve ölçüm: [günlük istatistikler](docs/DAILY-STATS-TEST.md).
+
 ## Windows 0.2.35 — 2026-11-02 (Kaydırdıkça yerel liste yükleme)
 
 - Takip Listeleri, alt sınıra yaklaşınca sonraki 100 üyeyi otomatik yükler; normal sayfalama düğmesi kaldırıldı. Yeni satırlar mevcut satırları yeniden oluşturmadan eklenir.

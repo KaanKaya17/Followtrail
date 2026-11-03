@@ -21,9 +21,9 @@ export async function localListFixture(python,backend,home) {
   const timer=setTimeout(()=>{fail(Error('Fixture worker startup timeout'));child.kill();},15000);
   try {
     const state=await first;
-    return {state,request:args=>new Promise((resolve,reject)=>{
+    return {state,request:(args,operation="list_page")=>new Promise((resolve,reject)=>{
       const id=++counter;pending.set(id,{resolve,reject});
-      child.stdin.write(JSON.stringify({id,operation:'list_page',args})+'\n');
+      child.stdin.write(JSON.stringify({id,operation,args})+'\n');
     }),close:()=>new Promise(resolve=>{
       if(child.exitCode!==null){input.close();resolve();return;}
       const stop=setTimeout(()=>child.kill(),5000);
