@@ -1204,7 +1204,17 @@
     "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Choose another type or show all records.",
     "Güncellendi": "Updated",
     "Tüm türler": "All types",
-    "{0} değişiklik daha": "{0} more changes"
+    "{0} değişiklik daha": "{0} more changes",
+    "Hesap filtresi": "Account filter",
+    "Tüm hesaplar": "All accounts",
+    "Genel kayıtlar": "General records",
+    "Hesap · {0}": "Account · {0}",
+    "Rutin kontroller": "Routine checks",
+    "Profil kontrol edildi": "Profile checked",
+    "Tarihi bilinmiyor": "Unknown date",
+    "Filtreleri temizle": "Clear filters",
+    "Daha fazla kontrol göster": "Show more checks",
+    "{0} hesap": "{0} accounts"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2404,7 +2414,17 @@
     "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Elige otro tipo o muestra todos los registros.",
     "Güncellendi": "Actualizado",
     "Tüm türler": "Todos los tipos",
-    "{0} değişiklik daha": "{0} cambios más"
+    "{0} değişiklik daha": "{0} cambios más",
+    "Hesap filtresi": "Filtro de cuenta",
+    "Tüm hesaplar": "Todas las cuentas",
+    "Genel kayıtlar": "Registros generales",
+    "Hesap · {0}": "Cuenta · {0}",
+    "Rutin kontroller": "Comprobaciones rutinarias",
+    "Profil kontrol edildi": "Perfil comprobado",
+    "Tarihi bilinmiyor": "Fecha desconocida",
+    "Filtreleri temizle": "Borrar filtros",
+    "Daha fazla kontrol göster": "Mostrar más comprobaciones",
+    "{0} hesap": "{0} cuentas"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3604,7 +3624,17 @@
     "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Escolha outro tipo ou mostre todos os registros.",
     "Güncellendi": "Atualizado",
     "Tüm türler": "Todos os tipos",
-    "{0} değişiklik daha": "Mais {0} alterações"
+    "{0} değişiklik daha": "Mais {0} alterações",
+    "Hesap filtresi": "Filtro de conta",
+    "Tüm hesaplar": "Todas as contas",
+    "Genel kayıtlar": "Registros gerais",
+    "Hesap · {0}": "Conta · {0}",
+    "Rutin kontroller": "Verificações de rotina",
+    "Profil kontrol edildi": "Perfil verificado",
+    "Tarihi bilinmiyor": "Data desconhecida",
+    "Filtreleri temizle": "Limpar filtros",
+    "Daha fazla kontrol göster": "Mostrar mais verificações",
+    "{0} hesap": "{0} contas"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };
