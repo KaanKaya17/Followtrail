@@ -808,7 +808,7 @@
       needs_manual_scan:
         t("Önceki liste incelemesi tamamlanmadı. Listeyi yeniden kontrol et ile baştan başlatabilirsin."),
     }[plan.status];
-    return `<section class="access-review card"><div class="section-heading"><div><h2>${t("Engellenme şüphesi ve profil görünürlüğü")}</h2><p>${t("Yalnız kayıtlara dayalı olasılık; kesin engelleme listesi değildir.")}</p></div>${button(t("Profil kontrol geçmişi"), "access-history", "shield")}</div>${message ? `<div class="notice warning">${esc(stored(message))}</div>` : ""}<p>${t("Otomatik inceleme: {0}. Tam liste karşılaştırmasında eksilen kayıtlı kişiler, kendi oturumunun sağlığı doğrulandıktan sonra hesap kimliğiyle incelenir.", data.settings.investigateMissing ? t("Açık") : t("Kapalı · Ayarlar’dan açabilirsin"))}</p><div class="access-case-list">${cases.map((c) => `<div class="access-case"><div><strong>@${esc(c.username)}</strong><p>${esc(accessLabel(c))}</p><small>${esc(date(c.checks.at(-1)?.checkedAt || c.detectedAt))}</small></div>${button(t("Kanıtları gör"), "person", "info", "secondary", idattr(c.id))}${button(t("Profil açılabiliyor mu?"), "check-access", "shield", "secondary", `${idattr(c.id)} ${netDisabled()}`)}</div>`).join("") || `<p class="field-hint">${t("Henüz inceleme kaydı yok. İlk liste kaydı başlangıçtır; tek başına takipçi sayısının azalması engellenme sayılmaz.")}</p>`}</div><p class="field-hint">${t("İnceleme önce bağlı oturumu, sonra hedefi kontrol eder. Hedef bulunamazsa ek bir oturumsuz sayfa isteği yapılır. İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.", ...requestSpacing())}</p></section>`;
+    return `<section class="access-review card"><div class="section-heading"><div><h2>${t("Engellenme şüphesi ve profil görünürlüğü")}</h2><p>${t("Yalnız kayıtlara dayalı olasılık; kesin engelleme listesi değildir.")}</p></div>${button(t("Profil kontrol geçmişi"), "access-history", "shield")}</div>${message ? `<div class="notice warning">${esc(stored(message))}</div>` : ""}<p>${t("Otomatik inceleme: {0}. Tam liste karşılaştırmasında eksilen kayıtlı kişiler, kendi oturumunun sağlığı doğrulandıktan sonra hesap kimliğiyle incelenir.", data.settings.investigateMissing ? t("Açık") : t("Kapalı · Ayarlar’dan açabilirsin"))}</p><div class="access-case-list">${cases.map((c) => `<div class="access-case"><div><strong>@${esc(c.username)}</strong><p>${esc(accessLabel(c))}</p><small>${esc(date(c.checks.at(-1)?.checkedAt || c.detectedAt))}</small></div>${button(t("Kanıtları gör"), "person", "info", "secondary", `${idattr(c.id)} data-show-access="true"`)}${button(t("Profil açılabiliyor mu?"), "check-access", "shield", "secondary", `${idattr(c.id)} ${netDisabled()}`)}</div>`).join("") || `<p class="field-hint">${t("Henüz inceleme kaydı yok. İlk liste kaydı başlangıçtır; tek başına takipçi sayısının azalması engellenme sayılmaz.")}</p>`}</div><p class="field-hint">${t("İnceleme önce bağlı oturumu, sonra hedefi kontrol eder. Hedef bulunamazsa ek bir oturumsuz sayfa isteği yapılır. İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Otomatik inceleme için Otomatik profil kontrolü de açık olmalı.", ...requestSpacing())}</p></section>`;
   }
   function timeline() {
     const events = data.events.filter(
@@ -907,12 +907,13 @@
     );
   }
   function personInformation(view) {
-    const p=view.profile,counts=[['followers','takipçi'],['following','takip edilen']].filter(([key])=>Number.isFinite(p[key]) && p[key]>=0);
-    const facts=[];
-    if(Number.isFinite(p.observedAt))facts.push([t("Son kontrol"),date(p.observedAt)]);
-    if(typeof p.private==='boolean')facts.push([t("Gizlilik"),p.private?t("Gizli"):t("Açık")]);
-    if(Number.isFinite(p.posts) && p.posts>=0)facts.push([t("Gönderi"),num(p.posts)]);
-    return `<div class="drawer-heading">${avatar(view.avatar ? {...p,avatar:view.avatar} : p,true)}</div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p>${typeof p.bio==='string' && p.bio.trim() ? `<p class="drawer-bio">${esc(p.bio)}</p>` : ''}${personLinks(view)}${counts.length ? `<div class="drawer-counts">${counts.map(([key,label])=>`<div><strong>${num(p[key])}</strong><span>${t(label)}</span></div>`).join('')}</div>` : ''}${facts.length ? `<section class="drawer-section">${facts.map(([label,value])=>`<div class="detail-pair"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}</section>` : ''}`;
+    const p=view.profile,counts=[['followers','Takipçi'],['following','Takip edilen'],['posts','Gönderi']].filter(([key])=>Number.isFinite(p[key]) && p[key]>=0);
+    const badges=(typeof p.private==='boolean'?`<span class="profile-badge">${icon(p.private?'lock':'shield')}${p.private?t("Gizli hesap"):t("Açık hesap")}</span>`:'')+
+      (p.verified===true?`<span class="profile-badge verified">${icon('check')}${t("Doğrulanmış hesap")}</span>`:'');
+    return `<header class="profile-identity">${avatar(view.avatar ? {...p,avatar:view.avatar} : p,true)}<div><h2 id="dialog-title" class="profile-title">${esc(p.name || p.username)}</h2><p class="profile-handle">@${esc(p.username)}</p>${badges?`<div class="profile-badges">${badges}</div>`:''}</div></header>
+      ${counts.length?`<div class="profile-metrics">${counts.map(([key,label])=>`<div><strong>${num(p[key])}</strong><span>${t(label)}</span></div>`).join('')}</div>`:''}
+      ${typeof p.bio==='string' && p.bio.trim()?`<p class="drawer-bio">${esc(p.bio)}</p>`:''}${personLinks(view)}
+      ${Number.isFinite(p.observedAt)?`<p class="profile-last-observed">${icon('clock')}<span>${t("Son kontrol")}: ${esc(date(p.observedAt))}</span></p>`:''}`;
   }
   function personLink(url,label,brand) {
     return `<button type="button" class="profile-site-link" data-action="open-profile-link" data-url="${esc(url)}" title="${esc(url)}" aria-label="${esc(t("{0} bağlantısını aç",label))}">${window.TrackerLinkIcon(brand)}<span>${esc(label)}</span>${icon('arrow')}</button>`;
@@ -940,10 +941,35 @@
     const previous=personView?.id===id && personView.accountId===data.activeAccountId ? personView : null;
     const source=carry.source || previous?.source || null;
     const view={id,accountId:data.activeAccountId,profile:p,source,avatar:carry.avatar || previous?.avatar || (source ? listPhotos.peek(source) : null)};
-    const own=id===data.account?.id,saved=data.people.find(person=>person.id===id) || p;
-    dialog(`<div id="person-profile-info">${personInformation(view)}</div><p id="person-detail-status" class="field-hint" role="status"></p><div class="drawer-actions">${button(t("Profili kontrol et"),"refresh-person","refresh","primary",`${idattr(id)} ${netDisabled()}`)}${button(t("Geçmiş"),"history","clock","secondary",idattr(id))}${button(t("Bildirim tercihleri"),"notification-rules","bell","secondary",idattr(id))}${button(t("Takip listelerini aç"),"person-lists","list","secondary",idattr(id))}${!own ? button(t("Profil açılabiliyor mu?"),"check-access","shield","secondary",`${idattr(id)} ${netDisabled()}`) : ''}</div>${!own ? accessPanel(id) : ''}${!own ? `<section class="drawer-section"><div class="drawer-actions">${button(saved.favorite?t("Favoriden çıkar"):t("Favorilere ekle"),"drawer-star","star","secondary",`${idattr(id)} ${busy?'disabled':''}`)}${button(saved.watching?t("İzlemeyi kapat"):t("İzlemeye al"),"watch","bell","secondary",`${idattr(id)} ${busy?'disabled':''}`)}</div><p class="field-hint">${t("İzleme, Ayarlar’da otomatik kontrol açıksa pencere kapalıyken sistem tepsisinde de çalışır.")}</p><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(saved.group || '')}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(saved.note || '')}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"),"save-note","check","secondary",`${idattr(id)} ${busy?'disabled':''}`)}${data.people.some(p=>p.id===id)?button(t("Kayıtlı profillerden kaldır"),"remove-person","close","secondary",`${idattr(id)} ${busy?'disabled':''}`):''}</section>`:''}`,false,true);
+    const own=id===data.account?.id,saved=data.people.find(person=>person.id===id),managed=own || !!saved;
+    const draft=previous?{group:document.getElementById('person-group')?.value,note:document.getElementById('person-note')?.value,
+      open:document.querySelector('.profile-personal')?.open}:null;
+    const group=draft?.group ?? saved?.group ?? '',note=draft?.note ?? saved?.note ?? '';
+    const localTools=saved?`<div class="profile-preferences"><button type="button" class="profile-watch ${saved.watching?'on':''}" data-action="watch" ${idattr(id)} aria-pressed="${!!saved.watching}" ${busy?'disabled':''}><span class="profile-watch-dot"></span>${saved.watching?t("İzlenen"):t("İzlemeye al")}</button><button type="button" class="icon-button profile-favorite ${saved.favorite?'is-favorite':''}" data-action="drawer-star" ${idattr(id)} title="${saved.favorite?t("Favoriden çıkar"):t("Favorilere ekle")}" aria-label="${saved.favorite?t("Favoriden çıkar"):t("Favorilere ekle")}" aria-pressed="${!!saved.favorite}" ${busy?'disabled':''}>${icon('star')}</button></div>`:'';
+    const more=`<details class="profile-more"><summary>${t("Diğer")}${icon('down')}</summary><div class="profile-more-items">
+      ${button(t("Geçmiş"),'history','clock','secondary',idattr(id))}
+      ${managed?button(t("Profil zaman tüneli"),'wayback','photo','secondary',idattr(id))+button(t("Bildirim tercihleri"),'notification-rules','bell','secondary',idattr(id)):''}
+      ${!own?button(t("Profil açılabiliyor mu?"),'check-access','shield','secondary',`${idattr(id)} ${netDisabled()}`):''}
+      ${saved?button(t("Kayıtlı profillerden kaldır"),'remove-person','trash','secondary danger-text',`${idattr(id)} ${busy?'disabled':''}`):''}
+      </div></details>`;
+    const archive=managed?`<button type="button" class="button secondary profile-shortcut" data-action="story-archive" ${idattr(id)}>${icon('photo')}<span>${t("Hikâye arşivi")}</span><small class="profile-beta">${t("Deneysel")}</small></button>`:'';
+    const notes=saved?`<details class="profile-personal" ${draft?.open?'open':''}><summary><span>${t("Not ve grup")}</span>${group?`<small>${esc(group)}</small>`:''}${icon('down')}</summary><div class="profile-personal-content"><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(group)}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(note)}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"),'save-note','check','secondary',`${idattr(id)} ${busy?'disabled':''}`)}</div></details>`:'';
+    const evidence=!own && data.access?.find(entry=>entry.id===id);
+    dialog(`<div class="profile-panel-scroll"><div id="person-profile-info">${personInformation(view)}</div>${localTools}
+      <p id="person-detail-status" class="field-hint" role="status"></p><section class="profile-actions">${button(t("Profili kontrol et"),'refresh-person','refresh','primary profile-refresh',`${idattr(id)} ${netDisabled()}`)}<div class="profile-shortcuts">${button(t("Takip listelerini aç"),'person-lists','list','secondary profile-shortcut',idattr(id))}${archive}${more}</div></section>
+      ${notes}${evidence?`<details class="profile-access" ${carry.showAccess?'open':''}><summary><span>${t("Profil görünürlüğü")}</span><small>${esc(accessLabel(evidence))}</small>${icon('down')}</summary>${accessPanel(id)}</details>`:''}</div>`,false,true);
+    document.querySelector('#overlay-root dialog').classList.add('profile-panel');
+    const moreMenu=document.querySelector('.profile-more');
+    moreMenu.addEventListener('toggle',()=>{
+      if(!moreMenu.open)return;
+      const bounds=document.querySelector('.profile-panel-scroll').getBoundingClientRect();
+      const summary=moreMenu.querySelector('summary').getBoundingClientRect(),items=moreMenu.querySelector('.profile-more-items');
+      const below=bounds.bottom-summary.bottom-12,above=summary.top-bounds.top-12;
+      const upward=below<items.scrollHeight && above>below;
+      moreMenu.classList.toggle('opens-up',upward);
+      items.style.maxHeight=`${Math.max(0,Math.floor(upward?above:below))}px`;
+    });
     drawerId=id;personView=view;
-    if(own || data.people.some(p=>p.id===id))document.querySelector('dialog .drawer-actions')?.insertAdjacentHTML('beforeend',button(t("Profil zaman tüneli"),"wayback","photo","secondary",idattr(id))+button(t("Hikâye arşivi · Deneysel"),"story-archive","photo","secondary",idattr(id)));
     if(source && !view.avatar)listPhotos.get(source).then(result=>{if(personView===view && result?.avatar)receivePersonPhoto(source,result.avatar);});
     profileDetails.open({id,accountId:view.accountId,known:p},state=>{
       if(personView!==view)return;
@@ -1036,6 +1062,8 @@
     );
   }
   document.addEventListener("click", async (event) => {
+    const more=document.querySelector('.profile-more[open]');
+    if(more && (!more.contains(event.target) || event.target.closest('[data-action]')))more.open=false;
     const target = event.target.closest("[data-action]");
     if (!target || target.disabled || !data) return;
     const action = target.dataset.action,
@@ -1201,7 +1229,7 @@
         });
         break;
       case "person":
-        personDialog(id,{avatar:target.querySelector('.avatar img')?.getAttribute('src'),source:target.dataset.photoScan ?
+        personDialog(id,{showAccess:target.dataset.showAccess==='true',avatar:target.querySelector('.avatar img')?.getAttribute('src'),source:target.dataset.photoScan ?
           {accountId:data.activeAccountId,ownerId:ui.owner || data.account?.id,direction:ui.direction,scanId:target.dataset.photoScan,id} : null});
         break;
       case "wayback":
@@ -1227,37 +1255,39 @@
           { id },
           t("Profilin açılıp açılamadığı kontrol edildi."),
         );
-        if (result?.ok) personDialog(id);
+        if (result?.ok) personDialog(id,{showAccess:true});
         break;
       }
       case "star":
       case "drawer-star": {
         const p = data.people.find((p) => p.id === id);
         const reopen = action === "drawer-star";
-        if (reopen) closeDialog();
+        const view=personView;
         const r = await command(
           "save_person",
           { id, favorite: !p?.favorite },
           t("Favori tercihi kaydedildi."),
         );
-        if (reopen && r?.ok) personDialog(id);
+        if (reopen && r?.ok && personView===view && view?.accountId===data.activeAccountId) personDialog(id);
         break;
       }
       case "watch": {
         const p = data.people.find((p) => p.id === id);
-        closeDialog();
+        const view=personView;
         const r = await command("save_person", { id, watching: !p?.watching });
-        if (r?.ok) personDialog(id);
+        if (r?.ok && personView===view && view?.accountId===data.activeAccountId) personDialog(id);
         break;
       }
       case "save-note": {
         const note = document.getElementById("person-note").value,
           group = document.getElementById("person-group").value;
-        await command(
+        const view=personView;
+        const result=await command(
           "save_person",
           { id, note, group },
           t("Not ve grup şifreli olarak kaydedildi."),
         );
+        if(result?.ok && personView===view && view?.accountId===data.activeAccountId)personDialog(id);
         break;
       }
       case "refresh-person": {
@@ -1267,7 +1297,7 @@
       case 'open-profile-link': await openProfileLink(target.dataset.url);break;
       case "remove-person":
         dialog(
-          `<h2 id="dialog-title">${t("Bu kişi kaldırılsın mı?")}</h2><p>${t("Favori, not ve izleme tercihi silinir. Eski gözlem geçmişi ve liste kayıtları korunur.")}</p><div class="dialog-buttons">${button(t("Vazgeç"), "close")}${button(t("Kişiyi kaldır"), "remove-confirm", "close", "primary", idattr(id))}</div>`,
+          `<h2 id="dialog-title">${t("Bu kişi kaldırılsın mı?")}</h2><p>${t("Favori, not ve izleme tercihi silinir. Eski gözlem geçmişi ve liste kayıtları korunur.")}</p><div class="dialog-buttons">${button(t("Vazgeç"), "close")}${button(t("Kişiyi kaldır"), "remove-confirm", "trash", "danger", idattr(id))}</div>`,
         );
         break;
       case "remove-confirm":
@@ -1492,6 +1522,8 @@
     } else if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'r') {
       event.preventDefault(); if (!event.repeat) refreshSelected();
     } else if (event.key === 'Escape' && !palette.isOpen()) {
+      const more=document.querySelector('.profile-more[open]');
+      if(more){event.preventDefault();more.open=false;more.querySelector('summary').focus();return;}
       if (document.querySelector('#overlay-root dialog[open]')) { event.preventDefault(); closeDialog(); }
     } else if (!event.ctrlKey && !event.metaKey && !editing()) {
       if (event.key === '/') { event.preventDefault(); if (!event.repeat) palette.open(); }

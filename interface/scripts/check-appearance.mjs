@@ -66,6 +66,7 @@ try {
  await page.screenshot({path:path.join(output,'desktop-dark-dialog.png')});await page.keyboard.press('Escape');
  checks.push('All six Windows routes, command palette and account dialog use dark surfaces without horizontal overflow');
  await page.locator('.sidebar nav a[href="#people"]').click();await page.locator('.person-title[data-id="200"]').click();
+ await page.locator('.profile-more > summary').click();
  await page.getByRole('button',{name:'Profil zaman tüneli',exact:true}).click();
  await page.getByRole('heading',{name:'Biyografi zaman tüneli'}).waitFor();
  assert.equal(await page.locator('.wayback-gallery img').count(),3);

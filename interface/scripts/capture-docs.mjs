@@ -48,7 +48,7 @@ try {
     await page.screenshot({path:path.join(output,'ozet.png')});
     await page.goto(entry+'#people');
     await page.locator('[data-action="person"][data-id="200"]').first().click();
-    await page.locator('#person-profile-info .drawer-counts').waitFor();
+    await page.locator('#person-profile-info .profile-metrics').waitFor();
     await page.locator('[data-url="https://www.threads.com/@demo.deniz"]').waitFor();
     assert.equal((await page.locator('body').innerText()).includes('\uFFFD'),false);
     await page.screenshot({path:path.join(output,'profil-baglantilari.png')});

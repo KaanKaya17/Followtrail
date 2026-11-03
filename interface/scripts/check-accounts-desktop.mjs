@@ -78,6 +78,7 @@ try {
  await page.keyboard.press('Control+k');
  await page.getByRole('combobox',{name:'Profil veya ekran adı'}).fill('@qa.deniz');
  await page.keyboard.press('Enter');
+ await page.locator('.profile-personal > summary').click();
  await page.locator('#person-note').fill('SHOP-EDITED');
  await page.locator('[data-action="save-note"]').click();
  await page.locator('.account-switcher:not(:disabled)').waitFor();

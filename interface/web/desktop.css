@@ -549,3 +549,61 @@ dialog.story-modal[open] { display: flex; flex-direction: column; }
   .story-detail-layout { gap: 16px; }
   .story-modal-heading { padding-left: 24px; gap: 12px; }
 }
+.drawer.profile-panel { width: min(560px,calc(100vw - 24px)); padding: 0; overflow: hidden; }
+.profile-panel-scroll { height: 100%; overflow-y: auto; padding: 34px 30px 28px; scrollbar-gutter: stable; }
+.profile-panel > .dialog-close { z-index: 4; }
+.profile-identity { display: flex; align-items: center; gap: 18px; padding-right: 24px; margin: 15px 0 24px; }
+.profile-identity > .avatar { width: 76px; height: 76px; min-width: 76px; font-size: 24px; }
+.profile-identity > div:last-child { min-width: 0; }
+.profile-panel .profile-title { font-size: 25px; line-height: 1.2; margin: 0 0 7px; overflow-wrap: anywhere; }
+.profile-panel .profile-handle { font-size: 14px; color: var(--muted); margin: 0; }
+.profile-badges { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+.profile-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--subtle-surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 7px; font-size: 11px; }
+.profile-badge > .icon { width: 13px; height: 13px; }
+.profile-badge.verified { color: var(--violet); background: var(--violet-soft); }
+.profile-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(100px,1fr)); gap: 10px; margin-bottom: 22px; }
+.profile-metrics > div { background: var(--subtle-surface); border: 1px solid var(--line); border-radius: 15px; padding: 16px; }
+.profile-metrics strong, .profile-metrics span { display: block; }
+.profile-metrics strong { font-size: 25px; font-variant-numeric: tabular-nums; margin-bottom: 6px; }
+.profile-metrics span { font-size: 12px; color: var(--muted); }
+.profile-panel .drawer-bio { font-size: 14px; line-height: 1.7; margin: 0 0 18px; }
+.profile-panel .profile-links { margin: 14px 0; }
+.profile-panel .profile-site-link { font-size: 12px; min-height: 36px; padding: 7px 10px; }
+.profile-last-observed { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; margin: 16px 0; }
+.profile-last-observed > .icon { width: 14px; height: 14px; flex-shrink: 0; }
+.profile-preferences { display: flex; align-items: center; justify-content: space-between; margin: 18px 0; }
+.profile-watch { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); padding: 9px 13px; border-radius: 22px; font-size: 13px; cursor: pointer; }
+.profile-watch.on { color: var(--teal); border-color: var(--mint); background: var(--mint); }
+.profile-watch-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.profile-favorite { border: 1px solid var(--line); border-radius: 12px; }
+.profile-favorite.is-favorite { color: var(--violet); background: var(--violet-soft); }
+.profile-favorite.is-favorite .icon { fill: currentColor; }
+.profile-actions { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 18px; }
+.profile-refresh { width: 100%; justify-content: center; font-size: 14px; min-height: 46px; }
+.profile-shortcuts { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 10px; }
+.profile-shortcut { flex: 1; font-size: 12px; padding: 10px 11px; justify-content: center; min-height: 43px; white-space: nowrap; }
+.profile-beta { font-size: 9px; font-weight: 500; background: var(--violet-soft); color: var(--violet); padding: 3px 5px; border-radius: 5px; }
+.profile-more { position: relative; }
+.profile-more > summary { display: flex; align-items: center; gap: 7px; list-style: none; min-height: 43px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 11px; cursor: pointer; font-size: 12px; }
+.profile-more > summary::-webkit-details-marker { display: none; }
+.profile-more > summary > .icon { width: 14px; height: 14px; }
+.profile-more[open] > summary { background: var(--violet-soft); border-color: var(--violet); }
+.profile-more-items { position: absolute; top: calc(100% + 8px); right: 0; z-index: 3; width: 240px; padding: 7px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); box-shadow: 0 8px 24px #00000012; }
+.profile-more-items > .button { display: flex; width: 100%; justify-content: flex-start; text-align: left; border: 0; background: transparent; border-radius: 8px; font-size: 13px; padding: 11px; }
+.profile-more-items { overflow-y: auto; }
+.profile-more.opens-up .profile-more-items { top: auto; bottom: calc(100% + 8px); }
+.profile-more-items > .button:hover { background: var(--hover-surface); }
+.profile-more-items > .danger-text { color: var(--removed-text); border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; margin-top: 5px; }
+.profile-personal, .profile-access { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 18px; }
+.profile-personal > summary, .profile-access > summary { display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+.profile-personal > summary small, .profile-access > summary small { font-size: 11px; font-weight: 400; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-personal > summary .icon, .profile-access > summary .icon { margin-left: auto; width: 15px; height: 15px; flex-shrink: 0; }
+.profile-personal-content { padding-top: 16px; }
+.profile-personal-content input, .profile-personal-content textarea { width: 100%; font-size: 14px; line-height: 1.5; }
+.profile-personal-content input { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--background); min-height: 43px; }
+.profile-personal-content .button { font-size: 13px; }
+.profile-panel .field-hint { font-size: 12px; line-height: 1.6; }
+.profile-panel #person-detail-status:empty { display: none; }
+.profile-panel .access-evidence, .profile-panel .access-evidence p { font-size: 13px; }
+.button.danger { background: var(--removed-bg); color: var(--removed-text); border: 1px solid var(--removed-text); }
+summary:focus-visible { outline: 3px solid var(--violet); outline-offset: 4px; }
