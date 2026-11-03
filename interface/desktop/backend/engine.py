@@ -169,6 +169,7 @@ class Engine:
         records = {key: {'snapshots': [list_pages.metadata(s) for s in record.get('snapshots', [])],
                          'draft': list_pages.metadata(record.get('draft')),
                          'retainedPartial': list_pages.metadata(record.get('retainedPartial')),
+                         'visiblePartialId': (list_pages.visible_partial(record) or {}).get('id'),
                          'canResume': list_preparation.resumable(record.get('draft'), self.clock())}
                    for key, record in published['records'].items()}
         return {'account': public_person(d['account']) if d['account'] else None,
@@ -189,7 +190,7 @@ class Engine:
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
                 'storyDetail': self.story_detail,
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.41'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.42'}
 
     def story_target(self, args):
         owner = (self.data['account'] or {}).get('id')
@@ -581,13 +582,15 @@ class Engine:
         continuing = resume and list_preparation.resumable(draft, self.clock())
         if not continuing:
             # A new partial read is independent evidence, never a union with
-            # the old page. Keep the old visible partial until a full result
-            # replaces it, including across failed/restarted fresh attempts.
-            if (not record['snapshots'] and draft and draft.get('members') and not record.get('retainedPartial')):
-                record['retainedPartial'] = {k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}
+            # the old page. Preserve the widest partial across fresh attempts;
+            # publication can select a newer scan once its coverage catches up.
+            prior = list_pages.visible_partial(record)
+            if not record['snapshots'] and prior and prior.get('members'):
+                record['retainedPartial'] = {k:v for k,v in prior.items() if k not in ('nextCursor','seenCursors')}
             draft = {'id': uuid.uuid4().hex, 'ownerId': identity, 'direction': direction,
                      'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
-                     'status': 'running', 'pages': 0, 'expected': None, 'nextCursor': None, 'seenCursors': []}
+                     'status': 'running', 'pages': 0, 'expected': None, 'nextCursor': None, 'seenCursors': [],
+                     'recoveryPass': 0, 'restartPending': False, 'overlapRows': 0, 'recoveryStartCount': 0}
             record['draft'] = draft
         schedule = record.setdefault('schedule', {})
         try:
@@ -619,6 +622,9 @@ class Engine:
                 members, next_cursor = parsed.members, parsed.cursor
                 if len(set(draft['members']) | set(members)) > MAX_MEMBERS:
                     raise AppFailure('capacity', 'Tarama 20.000 hesap sınırına ulaştı; kısmi kayıt korundu.')
+                if not draft.get('recoveryPass'):
+                    draft['overlapRows'] = draft.get('overlapRows', 0) + len(set(draft['members']) & set(members))
+                draft['restartPending'] = False
                 draft['members'].update(members)
                 draft['pages'] += 1
                 draft['finishedAt'] = self.clock()
@@ -635,7 +641,28 @@ class Engine:
                     draft['seenCursors'].append(digest)
                 if not next_cursor:
                     if len(draft['members']) != draft['expected']:
+                        # Bounded repair of overlapping server pages, within
+                        # this scan only. Never merge a previous partial/baseline.
+                        if (draft.get('recoveryPass', 0) < list_preparation.RECOVERY_PASSES and draft.get('overlapRows', 0) > 0 and
+                                len(draft['members']) > draft.get('recoveryStartCount', 0) and
+                                len(draft['members']) < draft['expected'] and
+                                0 <= self.clock() - draft['startedAt'] < list_preparation.RECOVERY_AGE):
+                            draft.update(recoveryPass=draft.get('recoveryPass', 0)+1, restartPending=True,
+                                         recoveryStartCount=len(draft['members']),seenCursors=[], status='queued')
+                            self.save(); self.progress('list_received')
+                            if one_page: return
+                            cursor = ''
+                            continue
                         raise AppFailure('list_count', 'Liste sayısı profil sayısıyla uyuşmadı. Kısmi kayıt korundu; fark hesabı yapılmadı.')
+                    if draft.get('recoveryPass'):
+                        # Confirm the profile count after the repair; an old
+                        # counter must not certify a changed list.
+                        profile = self.read_profile(client, identity, avatar=False)
+                        self.record_profile(profile, own=identity == self.data['account']['id'])
+                        if (profile[direction] != draft['expected'] or
+                                not 0 <= self.clock() - draft['startedAt'] < list_preparation.RECOVERY_AGE):
+                            raise AppFailure('list_count', 'Liste sayısı profil sayısıyla uyuşmadı. Kısmi kayıt korundu; fark hesabı yapılmadı.')
+                        owner = profile
                     self.check_cancel()
                     draft.update(complete=True, status='complete')
                     record['snapshots'].append(copy.deepcopy({k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}))

@@ -1195,7 +1195,9 @@
     "Son kontrole göre aynı": "Unchanged since last check",
     "Profil ayrıntıları": "Profile details",
     "SON HAREKETLER": "RECENT ACTIVITY",
-    "Seçili dönemde": "Over selected period"
+    "Seçili dönemde": "Over selected period",
+    "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "A completion pass is being used for overlapping pages.",
+    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "This list was completed with additional passes within one scan."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2386,7 +2388,9 @@
     "Son kontrole göre aynı": "Sin cambios desde la última comprobación",
     "Profil ayrıntıları": "Detalles del perfil",
     "SON HAREKETLER": "ACTIVIDAD RECIENTE",
-    "Seçili dönemde": "En el período seleccionado"
+    "Seçili dönemde": "En el período seleccionado",
+    "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Se está usando una pasada de completado para páginas solapadas.",
+    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista se completó con pasadas adicionales dentro del mismo escaneo."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3577,7 +3581,9 @@
     "Son kontrole göre aynı": "Sem mudanças desde a última verificação",
     "Profil ayrıntıları": "Detalhes do perfil",
     "SON HAREKETLER": "ATIVIDADE RECENTE",
-    "Seçili dönemde": "No período selecionado"
+    "Seçili dönemde": "No período selecionado",
+    "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Uma rodada de conclusão está sendo usada para páginas sobrepostas.",
+    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista foi concluída com rodadas adicionais na mesma varredura."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

@@ -1187,5 +1187,7 @@
   "Son kontrole göre aynı": "Sem mudanças desde a última verificação",
   "Profil ayrıntıları": "Detalhes do perfil",
   "SON HAREKETLER": "ATIVIDADE RECENTE",
-  "Seçili dönemde": "No período selecionado"
+  "Seçili dönemde": "No período selecionado",
+  "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Uma rodada de conclusão está sendo usada para páginas sobrepostas.",
+  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista foi concluída com rodadas adicionais na mesma varredura."
 }
