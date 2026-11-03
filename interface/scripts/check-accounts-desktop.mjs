@@ -1,3 +1,4 @@
+import {waitForAccount} from './wait-for-account.mjs';
 // Packaged worker + native IPC + real DPAPI, synthetic accounts, no Instagram.
 import {_electron as electron} from 'playwright-core';
 import {mkdtemp,mkdir,readFile,writeFile,access} from 'node:fs/promises';
@@ -25,7 +26,7 @@ const switchTo=async id=>{
  if(await page.locator('dialog[open]').count()) await page.keyboard.press('Escape');
  await page.locator('.account-switcher').click();
  await page.locator(`.saved-account[data-id="${id}"]`).click();
- await page.waitForFunction(async id=>(await window.TrackerDesktop.command('state')).state.activeAccountId===id,id);
+ await waitForAccount(page,id);
  await page.locator('.account-switcher:not(:disabled)').waitFor();
 };
 try {
@@ -110,7 +111,7 @@ try {
  await page.getByRole('button',{name:'Yerel verileri sil',exact:true}).click();
  await page.getByRole('heading',{name:'Seçili hesabın yerel verileri silinsin mi?',exact:true}).waitFor();
  await page.locator('[data-action="delete-confirm"]').click();
- await page.waitForFunction(async ()=>(await window.TrackerDesktop.command('state')).state.activeAccountId==='100');
+ await waitForAccount(page,'100');
  assert.equal((await state()).state.accounts.length,1);
  assert.match((await state()).state.people.find(p=>p.id==='200').note,/PRIVATE-QA-NOTE/);
  checks.push('Confirmed deletion removes only the selected account and returns to the preserved account');

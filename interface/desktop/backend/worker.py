@@ -66,7 +66,9 @@ def main():
             if not isinstance(request, dict) or not isinstance(request.get('id'), int):
                 raise ValueError()
             operation = request.get('operation')
-            if operation == 'list_page':
+            if operation == 'daily_stats':
+                emit({'type':'control', 'id':request['id'], 'ok':True, 'daily':engine.daily_query(request.get('args'))})
+            elif operation == 'list_page':
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'page':engine.list_pages.page(request.get('args'))})
             elif operation == 'search_avatar':
                 images.request(request, engine.search_results, engine.search_pictures, namespace=engine.active_id, offline=args.offline)

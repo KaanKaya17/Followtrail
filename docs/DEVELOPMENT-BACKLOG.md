@@ -43,9 +43,9 @@ Sonraki geliştirmeler:
 - **Bağımsız kontrollü doğrulama:** Yetkili test hesaplarıyla normal görünürlük, yalnız engelleme, yalnız ad değişikliği, ikisi birlikte ve geçici hesap kapatma senaryoları. Kişisel hesabı dondurmak test önkoşulu yapılmamalı. Başarı yüzdesi ancak yeterli ölçümle raporlanmalı.
 - **Platform kapsamı:** Bu erişim karşılaştırması Windows'tadır. Android'e işlev taşınırken aynı sınıflandırma, oturum ayrımı, yerel mola ve Türkçe/İngilizce açıklamalar korunmalı. Web tasarım önizlemesi gerçek anonim kontrol yapıyor gibi sunulmamalı.
 
-## Uzun dönem sayaç analizi
+## Uzun dönem sayaç analizi — uygulandı (2026-11-03)
 
-Kullanıcıyla daha önce konuşulan kalıcı günlük özetler henüz eklenmedi. Windows'ta 366 gözlem, 5 dakikalık aralıkta yaklaşık 30,5 saat kapsar. Haftalık/aylık analiz için dönen ayrıntılardan bağımsız günlük özetler gerekir. Profil zaman tüneli biyografi/fotoğraf değişikliklerini ayrı saklar; bu sayaç sorununu çözmez.
+Windows 0.2.36 ve Android 0.1.75'te günlük sayaçlar profil/yıl başına ayrı şifreli dosyalarda saklanır; ayrıntılı geçmişin budanması günlük kayıtları silmez. UTC günleri, bilinen sayaçların ilk/son/minimum/maksimum değerleri ve kontrol sayısı korunur. Yerel aralık sorgusu, 720 nokta sınırı, temizleme işareti ve Windows yedeği eklendi. [Doğrulama ve ölçüm](DAILY-STATS-TEST.md). Android cihaz testi sonraya bırakıldı; canlı giriş sorunu tamamlanmış sayılmaz. Parçalı/büyük arşiv yedeği henüz uygulanmadı; mevcut tek dosyalık yedek sınırı korunur.
 
 
 ## Threads otomatik doğrulama — ertelendi (2026-11-02)

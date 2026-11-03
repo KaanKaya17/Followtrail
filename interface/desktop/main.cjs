@@ -82,6 +82,8 @@ const allowed = new Set([
   "cancel_search_images",
   "list_avatar",
   "list_page",
+  "daily_stats",
+  "daily_clear",
   "profile_detail",
   "cancel_list_images",
   "save_person",
@@ -126,6 +128,8 @@ function validate(operation, args) {
     search_people: ["query"],
     search_avatar: ["token", "id"],
     cancel_search_images: [],
+    daily_stats: ["accountId","id","metric","range"],
+    daily_clear: ["accountId","id"],
     list_page: ["accountId","revision","ownerId","direction","scanId","previousScanId","comparison","relation","query","offset"],
     list_avatar: ["accountId", "ownerId", "direction", "scanId", "id"],
     profile_detail: ["accountId", "id"],
@@ -331,7 +335,7 @@ else
           cancelId: 0,
           message: t("Yerel gözlemler bu yedekle değiştirilsin mi?"),
           detail:
-            t("Önceki depo şifreli önceki kopyada korunur. Oturum aktarılmaz; tekrar hesap bağlantısı gerekir. Mola bilgisi kısaltılmaz."),
+            t("Önceki depo şifreli önceki kopyada korunur. Oturum aktarılmaz; tekrar hesap bağlantısı gerekir. Mola bilgisi kısaltılmaz.") + " " + t("Günlük özetler birleştirilir; daha yeni günler korunur."),
         });
         if (confirm.response !== 1) return { ok: true, cancelled: true };
         if (accountChanged()) return accountChangedResult();

@@ -12,7 +12,7 @@ Zaman çizelgesi, uygulamanın hangi kontrolde ne gördüğünü bir araya getir
 
 Takipçi/takip edilen grafikleri kaydedilmiş gözlemlerden oluşur. Kontroller arasında bilinmeyen hareketler olabilir. Net artış, o aralıktaki bütün ekleme ve çıkışların sayısı değildir.
 
-Ayrıntılı sayaç geçmişi sınırlı sayıda kayıt tutar. Sık kontrol, saklanan zaman aralığını kısaltır. Takvimde bir hafta veya ay seçmek, o dönemin bütün verisinin mutlaka mevcut olduğu anlamına gelmez. Kalıcı günlük özetlerle uzun dönem analiz henüz geliştirme listesindedir.
+Ayrıntılı sayaç geçmişi sınırlı sayıda kayıt tutar. Sık kontrol, saklanan zaman aralığını kısaltır. Bu sınıra ulaşılsa da ayrı saklanan [günlük istatistikler](Gunluk-Istatistikler.md) otomatik silinmez. Uzun dönem için Günlük görünümünü kullanın; Son kontroller ayrıntılı ve sınırlı pencereyi gösterir. Hiç gözlenmemiş günler sonradan oluşturulmaz.
 
 ## Profil zaman tüneli
 

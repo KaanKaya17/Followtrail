@@ -25,6 +25,7 @@ class UsageNotesActivity : LocalizedActivity() {
             R.string.ui_lists to R.string.usage_notes_lists,
             R.string.ui_automatic_monitoring to R.string.usage_notes_checks,
             R.string.timeline_title to R.string.timeline_scope,
+            R.string.daily_title to R.string.daily_retention,
             R.string.quick_start to R.string.quick_hint
         ).map { (title,body) -> getString(title) to getString(body) } + listOf(
             getString(R.string.ui_people) to listOf(

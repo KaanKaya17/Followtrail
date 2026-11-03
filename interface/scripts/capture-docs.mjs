@@ -23,6 +23,12 @@ try {
     page.on('pageerror',error=>errors.push(error.message));
     await page.addInitScript(({state})=>{
         window.TrackerDesktop={subscribe:()=>{},openLink:async()=>({ok:true}),command:async(operation,args={})=>{
+            if(operation==='daily_stats') {
+                const points=(state.history[args.id] || []).filter(p=>typeof p[args.metric]==='number').map(p=>({
+                    bucket:Math.floor(p.observedAt/86400),day:Math.floor(p.observedAt/86400)*86400000,at:p.observedAt*1000,
+                    first:p[args.metric],value:p[args.metric],minimum:p[args.metric],maximum:p[args.metric],observedDays:1,samples:1}));
+                return {ok:true,daily:{...args,points,bucketDays:1,observedDays:points.length,samples:points.length,timezone:'UTC'}};
+            }
             if(operation==='profile_detail') state.profileDetail={accountId:'100',profile:state.people.find(p=>p.id===args.id)};
             else if(operation==='read_notification') {
                 const entry=state.notificationLog.find(item=>item.id===args.id);
@@ -35,6 +41,7 @@ try {
     const entry=pathToFileURL(path.join(root,'interface/web/desktop.html')).href;
     await page.goto(entry+'#overview');
     await page.locator('.stat-card').first().waitFor();
+    await page.locator('#daily-chart-root .chart-point').first().waitFor();
     assert.equal((await page.locator('body').innerText()).includes('\uFFFD'),false);
     assert.equal(await page.getByText('Hesap bağlı değil',{exact:true}).count(),0);
     assert.equal(await page.locator('.pause-banner').count(),0);

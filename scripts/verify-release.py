@@ -43,6 +43,9 @@ def verify(apk: Path, sdk: Path) -> dict:
     timelines = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'TimelineActivity' in block]
     if len(timelines) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', timelines[0]):
         raise ValueError('Local history must be non-exported')
+    daily_views = [block for block in re.split(r'(?m)^\s*E: activity ', manifest)[1:] if 'DailyStatsActivity' in block]
+    if len(daily_views) != 1 or not re.search(r'android:exported\([^)]*\)=\(type 0x12\)0x0\s', daily_views[0]):
+        raise ValueError('Daily archive view must be non-exported')
     for attribute in ('allowBackup', 'usesCleartextTraffic'):
         if not re.search(r'android:' + attribute + r'\([^)]*\)=\(type 0x12\)0x0\s', manifest):
             raise ValueError(attribute + ' must be explicitly disabled')

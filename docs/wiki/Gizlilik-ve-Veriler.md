@@ -31,6 +31,10 @@ Parola ve doğrulama kodu ek bir günlük/kasa kaydı olarak tutulmaz. Girişten
 
 **İstek bilgileri**, sınırlı sonuç ve hata olgularını gösterir; ham parola, kod, çerez veya yanıt gövdesi tanı kaydına yazılmaz. Buna rağmen destek için ekran görüntüsü paylaşmadan önce kullanıcı adı, not ve diğer kişisel alanları kontrol edin.
 
+## Günlük sayaç arşivi
+
+Günlük özetler, yakın gözlemlerden ayrı şifreli profil/yıl dosyalarında tutulur. Süreye bağlı otomatik silme yoktur. Günlük geçmiş ekranından hedefe özel temizleme yapılabilir; hesabın yerel verilerini silmek kendi arşivini de siler. [Günlük istatistikler](Gunluk-Istatistikler.md).
+
 ## Fotoğraflar
 
 Arama/liste küçük resimleri süre ve adet sınırları olan bellek önbelleklerini kullanır. Profil kayıtlarında kaynak görsel adresi bulunabilir. İsteğe bağlı avatar zaman tüneli, bu geçici küçük resimlerden farklı olarak görselleri yerel şifreli arşivde tutar.
@@ -38,6 +42,8 @@ Arama/liste küçük resimleri süre ve adet sınırları olan bellek önbellekl
 ## Yedek ve dışa aktarma
 
 Windows'taki **Şifreli yedek al**, gözlem verilerini dışa aktarır; Instagram oturumunu çıkarır. Bu dosya aynı Windows kullanıcı bağlamında açılmak üzere DPAPI ile korunur. Başka bilgisayarda veya Windows yeniden kurulduktan sonra açılabilen taşınabilir, parola tabanlı yedek olarak değerlendirmeyin.
+
+Günlük özetler de bu yedeğe dahildir. Geri yüklemede çakışan günlerin daha yeni olanı korunur; mevcut temizleme sınırları aşılmaz. Yaklaşık 64 MiB tek yedek sınırı aşılırsa dosya üretilmez; önceki dosya korunur.
 
 Geri yükleme oturumu veya otomatik kontrolü kendiliğinden etkinleştirmez. Kayıtlı beklemeler kaldırılmaz. Mevcut hesapla yedeğin hesap kapsamı uyuşmuyorsa işlem reddedilebilir.
 

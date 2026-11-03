@@ -137,4 +137,22 @@
     <string name="web_pending_missing">Tamamlanmayı bekleyen bir bağlantı yok. Bu ekranı kapatarak hesap bağlantısını yeniden başlatabilirsin.</string>
     <string name="web_pending_forget">Bekleyen bağlantıyı sil</string>
     <string name="web_pending_forget_body">Yalnız bu tamamlanmamış girişin cihazdaki oturumu silinir. Kayıtlı hesapların ve bekleme süresi korunur. Devam etmek için yeniden giriş yapman gerekir.</string>
+
+    <string name="daily_title">Günlük geçmiş</string>
+    <string name="daily_week">7 gün</string>
+    <string name="daily_month">30 gün</string>
+    <string name="daily_year">1 yıl</string>
+    <string name="daily_all">Tümü</string>
+    <string name="daily_loading">Günlük geçmiş yükleniyor…</string>
+    <string name="daily_error">Günlük geçmiş okunamadı. Kayıtlar korunuyor.</string>
+    <string name="daily_retry">Tekrar dene</string>
+    <string name="daily_empty">İlk başarılı kontrolün ardından günlük geçmiş burada birikir.</string>
+    <string name="daily_coverage">%1$s gün · %2$s kontrol</string>
+    <string name="daily_grouped">Uzun dönem için %1$s günlük gruplar gösteriliyor.</string>
+    <string name="daily_extrema">En düşük %1$s · En yüksek %2$s</string>
+    <string name="daily_scope">Günler UTC saatine göre gruplanır. Kontrol yapılmayan günler boş kalır.</string>
+    <string name="daily_clear">Günlük geçmişi temizle</string>
+    <string name="daily_clear_question">Günlük geçmiş temizlensin mi?</string>
+    <string name="daily_clear_scope">Bu profilin günlük özetleri silinir. Son kontroller, listeler ve oturum korunur.</string>
+    <string name="daily_retention">Günlük sayaç özetleri kendiliğinden silinmez. Son kontrollerden ayrı, cihazda şifreli saklanır; günlük geçmiş ekranından temizlenebilir.</string>
 </resources>

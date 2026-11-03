@@ -2,6 +2,12 @@
 
 Güncel kullanıcı açıklaması: [Gizlilik ve veriler](wiki/Gizlilik-ve-Veriler.md). Aşağıdaki sürümlü bölümler teknik davranış ve gelişim geçmişini kaydeder.
 
+## Windows 0.2.36 / Android 0.1.75 günlük sayaçlar
+
+Günlük sayısal özetler hesap/profil/yıl başına ayrı, cihazdaki DPAPI veya Keystore/AES-GCM dosyalarındadır; zaman aşımıyla silinmez. Gövde yalnız sayısal kimlik, UTC günü, gözlem zamanları, örnek sayısı ve bilinen sayaçları içerir. Biyografi, görsel, parola veya çerez bu arşive yazılmaz. Profil/yıl dosyası en çok 512 KiB'dır. Yeni ağ isteği gerekmez; aralık okuması hedefe ve yerel kayda bağlıdır.
+
+Hedefe özel temizleme eski yakın geçmişten otomatik geri aktarımı engeller. Hesap silme kendi yıl dosyalarını/işaretlerini de temizler. Windows gözlem yedeğine günlük kayıtlar eklenir; çakışmada daha yeni gün korunur. Yedek kodlaması yaklaşık 64 MiB sınırında kesilir; çok büyük bir çıktı üretilmez ve eski dosya değiştirilmez. [Kullanıcı rehberi](wiki/Gunluk-Istatistikler.md) ve [uygulama/test kapsamı](DAILY-STATS-TEST.md).
+
 ## Windows 0.2.35 yerel liste sayfalama
 
 Ana durum mesajı liste üyeleri yerine sayıları ve kayıt bilgilerini içerir. Listeyi kaydırma, arama ve filtreleme en fazla 100 üyelik yerel sayfalar getirir; Instagram istemcisi açmaz ve istek bütçesini değiştirmez. Hesap ve görünüm revizyonu doğrulanır. Tam kayıt şifreli kasada kalır; CSV yalnız açık dışa aktarma işleminde tam kayıttan oluşturulur. Görünür profil görsellerinin mevcut CDN yüklemesi ayrı devam eder.

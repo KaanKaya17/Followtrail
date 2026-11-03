@@ -137,4 +137,22 @@
     <string name="web_pending_missing">There is no connection waiting to be completed. Close this screen to start connecting an account again.</string>
     <string name="web_pending_forget">Delete pending connection</string>
     <string name="web_pending_forget_body">Only this unfinished login session is removed from this device. Saved accounts and the waiting period are preserved. You will need to sign in again to continue.</string>
+
+    <string name="daily_title">Daily history</string>
+    <string name="daily_week">7 days</string>
+    <string name="daily_month">30 days</string>
+    <string name="daily_year">1 year</string>
+    <string name="daily_all">All</string>
+    <string name="daily_loading">Loading daily history…</string>
+    <string name="daily_error">Could not read daily history. Existing records are preserved.</string>
+    <string name="daily_retry">Try again</string>
+    <string name="daily_empty">Daily history builds here after a successful check.</string>
+    <string name="daily_coverage">%1$s days · %2$s checks</string>
+    <string name="daily_grouped">Long periods are shown in groups of %1$s days.</string>
+    <string name="daily_extrema">Minimum %1$s · Maximum %2$s</string>
+    <string name="daily_scope">Days are grouped in UTC. Days without checks remain empty.</string>
+    <string name="daily_clear">Clear daily history</string>
+    <string name="daily_clear_question">Clear daily history?</string>
+    <string name="daily_clear_scope">Daily summaries for this profile will be deleted. Recent checks, lists and your session are preserved.</string>
+    <string name="daily_retention">Daily counter summaries do not expire automatically. They are stored separately from recent checks, encrypted on this device, and can be cleared from daily history.</string>
 </resources>
