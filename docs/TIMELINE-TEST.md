@@ -16,3 +16,11 @@ Mevcut tür filtresine hesap filtresi eklendi. Geçmişi bulunan silinmiş profi
 - 62 mevcut Node testi ve `npm run check` geçti; Türkçe/İngilizce/İspanyolca/Brezilya Portekizcesinde 1146 metin eşleşiyor.
 
 Ekran görüntüleri ve sonuç özeti yerel `artifacts/desktop-0.2.45-qa/timeline/` altında, Git dışında tutulur. Veriler sentetiktir; canlı Instagram veya gerçek hesap kasası kullanılmadı. Backend'de yalnız sürüm bilgisi değişti; Python test kümesi yeniden çalıştırılmadı. Android ekranları bu Windows düzenlemesinde değiştirilmedi. Önceki sürümle CPU/RAM veya süre karşılaştırması yapılmadı.
+
+## 0.2.46 — Rutin kontrol ayrıntısı
+
+Kullanıcı ekranında rutin kontrole tıklanınca eski/yeni değerler “Bilinmiyor” görünüyordu. Üretici `record_profile`, başarıyla kaydedilen profil için eski/yeni değer taşımayan bir `check` olayı üretir; aynı kontroldaki gerçek farklar ayrı `profile` olaylarıdır. Genel ayrıntı penceresi bu kontrol olayını da karşılaştırma gibi gösteriyordu.
+
+`eventDialog`, normal kontrol türü için artık hesap fotoğrafı, kimliği, kayıt zamanı ve tamamlanma durumunu gösterir. Görünürlük incelemeleri kendi kanıt ekranını kullanmaya devam eder. Null değerler dönüştürülmedi; kontrol kaydından “değişiklik yok” sonucu çıkarılmaz. Karşılaştırma kutuları ve ilgisiz liste açıklaması bu pencereden kaldırıldı.
+
+Yeni 0.2.46 EXE'sinde `check-timeline-desktop.mjs` içindeki 5 senaryo grubu tekrar geçti. Rutin kontrol ayrıntısının fotoğraf/kimlik eşleşmesi, karşılaştırma/“Bilinmiyor” içermemesi ve değişiklik yok iddiasında bulunmaması eklendi; gerçek profil farkı ayrıntıları da mevcut senaryoda kontrol edildi. JavaScript hatası ve HTTP isteği yoktu. `npm run check` geçti. Yeni ekran `artifacts/desktop-0.2.46-qa/timeline/routine-check-detail.png` altında görsel olarak incelendi. Genel Windows ve Python test kümeleri bu küçük UI düzeltmesi için tekrar çalıştırılmadı.

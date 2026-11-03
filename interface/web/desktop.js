@@ -1116,6 +1116,11 @@
       );
       return;
     }
+    if (e.type === "check") {
+      const {profile,label}=eventIdentity(e);
+      dialog(`<span class="dialog-symbol mint">${icon("check")}</span><span class="eyebrow">${esc(date(e.at))}</span><h2 id="dialog-title">${t("Profil kontrolü")}</h2><div class="timeline-check-result">${avatar(profile || {name:label})}<span><strong>${esc(label)}</strong><small>${t("Profil kontrol edildi")}</small></span></div>`);
+      return;
+    }
     dialog(
       `<span class="dialog-symbol lavender">${icon("clock")}</span><span class="eyebrow">${esc(date(e.at))}</span><h2 id="dialog-title">${esc(eventTitle(e))}</h2><div class="change-values"><div><span>${t("Önceki kontrol")}</span><strong>${esc(valueText(e.old))}</strong></div><div><span>${t("Yeni kontrol")}</span><strong>${esc(valueText(e.new))}</strong></div></div><p class="dialog-note">${t("Bu zaman kontrolün kaydedildiği andır. Liste farkı tek başına takipten çıkış veya engelleme kanıtı değildir.")}</p>`,
     );
