@@ -493,6 +493,23 @@ select {
 .story-card p { margin: 10px 0; }
 .story-card .button { margin: 3px 0; }
 .story-day { margin-top: 20px; }
+.story-calendar { padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.story-calendar-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.story-calendar-heading h3 { margin: 0; font-size: 18px; text-transform: capitalize; }
+.story-calendar-heading button { font-size: 25px; }
+.story-calendar-tools { display: flex; align-items: center; gap: 12px; margin: 14px 0; color: var(--muted); font-size: 12px; }
+.story-calendar-tools small { margin-left: auto; }
+.story-calendar-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 5px; }
+.story-weekday { padding: 8px 0; text-align: center; color: var(--muted); font-size: 11px; }
+.story-calendar-day { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; min-height: 64px; padding: 9px 2px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: var(--ink); cursor: pointer; font-variant-numeric: tabular-nums; }
+.story-calendar-day > span { line-height: 18px; }
+.story-calendar-day small { border-radius: 6px; padding: 3px 4px; background: var(--surface); font-size: 9px; line-height: 1.2; }
+.story-calendar-day.has-stories { background: var(--violet-soft); color: var(--violet); }
+.story-calendar-day:hover { border-color: var(--line); background: var(--hover-surface); }
+.story-calendar-day.is-today > span { text-decoration: underline; text-underline-offset: 4px; }
+.story-calendar-day.is-selected { border-color: var(--violet); outline: 1px solid var(--violet); outline-offset: -2px; }
+.story-empty { padding: 20px; }
+.story-last-check { margin-top: 20px; }
 #story-player:empty { display: none; }
 #story-player { display: flex; justify-content: center; margin: 16px 0; }
 #story-player img, #story-player video { max-height: 55vh; max-width: 100%; border-radius: 12px; object-fit: contain; background: #000; }

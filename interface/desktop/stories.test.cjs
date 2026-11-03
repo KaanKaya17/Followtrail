@@ -16,10 +16,22 @@ test('Story rendering escapes source text and keeps mention and source-post iden
 test('Story date filter uses publication time, falling back only when its source time is unknown',()=>{
  const archive={id:'200',items:[row]};
  assert.equal(stories.day(row),new Date(row.publishedAt*1000).toISOString().slice(0,10));
- assert.ok(stories.render(archive,options,'2000-01-01').includes('Bu tarihte kayıt yok.'));
- assert.ok(!stories.render(archive,options,'2000-01-01').includes('story-card'));
+ assert.ok(stories.render(archive,options,{month:'2000-01',selected:'2000-01-01'}).includes('Bu günde kayıtlı hikâye yok.'));
+ assert.ok(!stories.render(archive,options,{month:'2000-01',selected:'2000-01-01'}).includes('story-card'));
  const unknown={...row,publishedAt:null};
  assert.ok(stories.render({id:'200',items:[unknown]},options).includes('Kaydedilme zamanı'));
+});
+test('Calendar shows daily counts with Monday alignment, leap days and explicit empty results',()=>{
+ const feb=Date.parse('2024-02-29T23:59:00Z')/1000;
+ const archive={id:'200',items:[{...row,publishedAt:feb},{...row,id:'301',publishedAt:feb+20}],checkedAt:1,summary:{returned:0}};
+ const model=stories.calendar(archive,{month:'2024-02'},new Date('2024-03-01T00:00:00Z'));
+ assert.equal(model.offset,3);assert.equal(model.days,29);assert.equal(model.selected,'2024-02-29');assert.equal(model.counts.get('2024-02-29'),2);
+ assert.equal(stories.shiftMonth('2024-12',1),'2025-01');assert.equal(stories.shiftMonth('1970-01',-1),null);
+ const html=stories.render(archive,options,{month:'2024-02'});
+ assert.ok(html.includes('2 hikâye'));assert.ok(html.includes('Instagram bu kontrolde hikâye verisi döndürmedi.'));
+ assert.ok(!html.includes('type="date"'));
+ const empty=stories.calendar({items:[]},{},new Date('2026-11-03T00:00:00Z'));
+ assert.equal(empty.month,'2026-11');assert.equal(empty.selected,'2026-11-03');
 });
 test('On-demand story bytes resolve to the caller but never enter state or renderer event broadcasts',async()=>{
  const events=[],backend=new Backend({onEvent:event=>events.push(event)});

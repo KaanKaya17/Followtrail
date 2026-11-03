@@ -189,7 +189,7 @@ class Engine:
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
                 'storyDetail': self.story_detail,
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.37'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.38'}
 
     def story_target(self, args):
         owner = (self.data['account'] or {}).get('id')

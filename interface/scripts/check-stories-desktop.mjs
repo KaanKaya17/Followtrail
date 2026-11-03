@@ -30,6 +30,10 @@ try {
  assert.match(await page.locator('#story-archive-root').innerText(),/qa.tagged/);
  assert.match(await page.locator('#story-archive-root').innerText(),/Hikâyede paylaşılan gönderi/);
  checks.push('Profile opens two local dated records with mentions, links and source-post reference');
+ await page.evaluate(()=>{
+  window.storyRevoked=[];const revoke=URL.revokeObjectURL.bind(URL);
+  URL.revokeObjectURL=value=>{window.storyRevoked.push(value);revoke(value);};
+ });
  await page.locator('[data-action="story-play"]:not([disabled])').click();
  await page.waitForFunction(()=>document.querySelector('#story-player img')?.naturalWidth===360);
  const blob=await page.locator('#story-player img').getAttribute('src');assert.match(blob,/^blob:/);
@@ -37,13 +41,19 @@ try {
  assert.deepEqual(state.gate,before.gate);
  checks.push('Actual encrypted JPEG decrypts and displays on demand, outside snapshots and without gate changes');
  await page.screenshot({path:path.join(output,'story-archive.png')});
- await page.locator('#story-date').fill('2027-01-01');
+ assert.equal(await page.locator('.story-calendar-day.has-stories').count(),1);
+ assert.equal(await page.locator('.story-calendar-day.has-stories small').innerText(),'2 hikâye');
+ await page.locator('.story-calendar-day[data-day="2027-01-01"]').click();
  assert.equal(await page.locator('.story-card').count(),0);
- await page.locator('#story-date').fill('');assert.equal(await page.locator('.story-card').count(),2);
+ await page.locator('.story-calendar-day.has-stories').click();assert.equal(await page.locator('.story-card').count(),2);
+ await page.locator('[data-action="story-month"]').first().click();
+ assert.equal(await page.locator('.story-calendar').getAttribute('data-month'),'2026-12');
+ await page.locator('[data-action="story-day"][data-day="2027-01-15"]').click();
+ assert.equal(await page.locator('.story-card').count(),2);
  await page.keyboard.press('Escape');assert.equal(await page.locator('#overlay-root dialog[open]').count(),0);
- const revocation=await page.evaluate(async url=>{try{await fetch(url);return false;}catch{return true;}},blob);
+ const revocation=await page.evaluate(url=>window.storyRevoked.includes(url),blob);
  assert.equal(revocation,true);
- checks.push('Date filter has an explanatory empty state; closing revokes playback resources');
+ checks.push('Calendar day counts expand local records, month navigation and latest-record shortcut work; changing days revokes playback resources');
  for(const [language,title] of [['en','Story archive · Experimental'],['es','Archivo de historias · Experimental'],['pt-BR','Arquivo de stories · Experimental'],['tr','Hikâye arşivi · Deneysel']]) {
   await command('settings',{language});
   await page.waitForFunction(language=>document.documentElement.lang===language,language);

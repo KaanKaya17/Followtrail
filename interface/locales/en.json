@@ -1119,10 +1119,8 @@
   "Günlük geçmiş görünümü değişti.": "The daily history view changed.",
   "Hikâye arşivi · Deneysel": "Story archive · Experimental",
   "Hikâyeleri kontrol et": "Check stories",
-  "Tarih (UTC)": "Date (UTC)",
-  "{0} hikâye kaydı": "{0} archived stories",
+  "{0} hikâye kaydı": {"count": 0, "one": "{0} archived story", "other": "{0} archived stories"},
   "Son kontrolde {0} erişilebilir hikâye döndü.": "The last check returned {0} accessible stories.",
-  "Bu tarihte kayıt yok. Hikâyeleri kontrol ederek arşivlemeyi deneyebilirsin.": "No records for this date. Check stories to try archiving them.",
   "Desteklenmeyen içerik": "Unsupported content",
   "Kaydedilme zamanı": "Capture time",
   "Yalnız bilgiler kaydedildi": "Only details saved",
@@ -1144,5 +1142,11 @@
   "Hikâyeler kaydediliyor…": "Saving stories…",
   "Fotoğraf": "Photo",
   "Video": "Video",
-  "Bazı hikâye ayrıntıları okunamadı.": "Some story details could not be read."
+  "Bazı hikâye ayrıntıları okunamadı.": "Some story details could not be read.",
+  "Hikâye takvimi": "Story calendar",
+  "Önceki ay": "Previous month",
+  "Sonraki ay": "Next month",
+  "{0} hikâye": {"count": 0, "one": "{0} story", "other": "{0} stories"},
+  "Bu günde kayıtlı hikâye yok.": "No archived stories for this day.",
+  "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram returned no story data in this check. This does not mean no story was posted. Check whether your connected account can open the story on Instagram."
 }
