@@ -1119,7 +1119,11 @@
   "Günlük geçmiş görünümü değişti.": "The daily history view changed.",
   "Hikâye arşivi · Deneysel": "Story archive · Experimental",
   "Hikâyeleri kontrol et": "Check stories",
-  "{0} hikâye kaydı": {"count": 0, "one": "{0} archived story", "other": "{0} archived stories"},
+  "{0} hikâye kaydı": {
+    "count": 0,
+    "one": "{0} archived story",
+    "other": "{0} archived stories"
+  },
   "Son kontrolde {0} erişilebilir hikâye döndü.": "The last check returned {0} accessible stories.",
   "Desteklenmeyen içerik": "Unsupported content",
   "Kaydedilme zamanı": "Capture time",
@@ -1146,7 +1150,24 @@
   "Hikâye takvimi": "Story calendar",
   "Önceki ay": "Previous month",
   "Sonraki ay": "Next month",
-  "{0} hikâye": {"count": 0, "one": "{0} story", "other": "{0} stories"},
+  "{0} hikâye": {
+    "count": 0,
+    "one": "{0} story",
+    "other": "{0} stories"
+  },
   "Bu günde kayıtlı hikâye yok.": "No archived stories for this day.",
-  "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram returned no story data in this check. This does not mean no story was posted. Check whether your connected account can open the story on Instagram."
+  "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram returned no story data in this check. This does not mean no story was posted. Check whether your connected account can open the story on Instagram.",
+  "Takvime dön": "Back to calendar",
+  "Günün hikâyeleri": "Stories for this day",
+  "Hikâye açılamadı.": "The story could not be opened.",
+  "Diğer işlem bitince hikâye açılacak.": "The story will open when the other operation finishes.",
+  "Hikâye açılıyor…": "Opening story…",
+  "Hikâye bilgileri": "Story details",
+  "Etiket bilgisi alınamadı.": "Mention details were not available.",
+  "Kayıtlı etiket yok.": "No mentions were recorded.",
+  "Paylaşım kaynağı": "Share source",
+  "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "The original source of a story reshare could not be verified in this record.",
+  "Hikâyeleri görmek için bir gün seç.": "Select a day to view its stories.",
+  "Yeniden dene": "Try again",
+  "Bağlantılar": "Links"
 }

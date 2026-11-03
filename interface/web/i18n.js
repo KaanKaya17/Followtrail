@@ -1164,7 +1164,20 @@
       "other": "{0} stories"
     },
     "Bu günde kayıtlı hikâye yok.": "No archived stories for this day.",
-    "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram returned no story data in this check. This does not mean no story was posted. Check whether your connected account can open the story on Instagram."
+    "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram returned no story data in this check. This does not mean no story was posted. Check whether your connected account can open the story on Instagram.",
+    "Takvime dön": "Back to calendar",
+    "Günün hikâyeleri": "Stories for this day",
+    "Hikâye açılamadı.": "The story could not be opened.",
+    "Diğer işlem bitince hikâye açılacak.": "The story will open when the other operation finishes.",
+    "Hikâye açılıyor…": "Opening story…",
+    "Hikâye bilgileri": "Story details",
+    "Etiket bilgisi alınamadı.": "Mention details were not available.",
+    "Kayıtlı etiket yok.": "No mentions were recorded.",
+    "Paylaşım kaynağı": "Share source",
+    "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "The original source of a story reshare could not be verified in this record.",
+    "Hikâyeleri görmek için bir gün seç.": "Select a day to view its stories.",
+    "Yeniden dene": "Try again",
+    "Bağlantılar": "Links"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2324,7 +2337,20 @@
       "other": "{0} historias"
     },
     "Bu günde kayıtlı hikâye yok.": "No hay historias archivadas para este día.",
-    "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram no devolvió datos de historias en esta consulta. Esto no significa que no se haya publicado ninguna historia. Comprueba si tu cuenta conectada puede abrirla en Instagram."
+    "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "Instagram no devolvió datos de historias en esta consulta. Esto no significa que no se haya publicado ninguna historia. Comprueba si tu cuenta conectada puede abrirla en Instagram.",
+    "Takvime dön": "Volver al calendario",
+    "Günün hikâyeleri": "Historias del día",
+    "Hikâye açılamadı.": "No se pudo abrir la historia.",
+    "Diğer işlem bitince hikâye açılacak.": "La historia se abrirá cuando termine la otra operación.",
+    "Hikâye açılıyor…": "Abriendo historia…",
+    "Hikâye bilgileri": "Detalles de la historia",
+    "Etiket bilgisi alınamadı.": "No se obtuvo información sobre menciones.",
+    "Kayıtlı etiket yok.": "No se registraron menciones.",
+    "Paylaşım kaynağı": "Origen de la publicación",
+    "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "No se pudo verificar el origen de una historia compartida en este registro.",
+    "Hikâyeleri görmek için bir gün seç.": "Selecciona un día para ver sus historias.",
+    "Yeniden dene": "Reintentar",
+    "Bağlantılar": "Enlaces"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3484,7 +3510,20 @@
       "other": "{0} stories"
     },
     "Bu günde kayıtlı hikâye yok.": "Não há stories arquivados neste dia.",
-    "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "O Instagram não retornou dados de stories nesta verificação. Isso não significa que nenhum story foi publicado. Verifique se a conta conectada consegue abrir o story no Instagram."
+    "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "O Instagram não retornou dados de stories nesta verificação. Isso não significa que nenhum story foi publicado. Verifique se a conta conectada consegue abrir o story no Instagram.",
+    "Takvime dön": "Voltar ao calendário",
+    "Günün hikâyeleri": "Stories do dia",
+    "Hikâye açılamadı.": "Não foi possível abrir o story.",
+    "Diğer işlem bitince hikâye açılacak.": "O story será aberto quando a outra operação terminar.",
+    "Hikâye açılıyor…": "Abrindo story…",
+    "Hikâye bilgileri": "Detalhes do story",
+    "Etiket bilgisi alınamadı.": "As informações de menções não estavam disponíveis.",
+    "Kayıtlı etiket yok.": "Nenhuma menção foi registrada.",
+    "Paylaşım kaynağı": "Origem do compartilhamento",
+    "Yeniden paylaşımın kaynağı bu kayıtta doğrulanamadı.": "Não foi possível verificar a origem de um story recompartilhado neste registro.",
+    "Hikâyeleri görmek için bir gün seç.": "Selecione um dia para ver os stories.",
+    "Yeniden dene": "Tentar novamente",
+    "Bağlantılar": "Links"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };
