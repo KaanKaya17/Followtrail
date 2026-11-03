@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "reel": {
+    "user": {"pk": "200", "username": "qa.person"},
+    "items": [
+      {
+        "pk": "300", "taken_at": 1800000000, "expiring_at": 1800086400, "media_type": 1,
+        "image_versions2": {"candidates": [{"url": "https://scontent.cdninstagram.com/qa-story.jpg?expires=synthetic", "width": 1080, "height": 1920}]},
+        "reel_mentions": [{"user": {"pk": "900", "username": "qa.tagged"}}],
+        "story_link_stickers": [{"story_link": {"url": "https://example.com/event"}}],
+        "story_hashtags": [{"hashtag": {"name": "test"}}],
+        "story_locations": [{"location": {"name": "Test studio"}}],
+        "story_feed_media": [{"media_id": "777", "media_code": "QAsource", "user_id": "900", "product_type": "clips"}]
+      },
+      {
+        "pk": "301", "taken_at": 1800000060, "media_type": 2,
+        "video_versions": [{"url": "https://scontent.cdninstagram.com/qa-story.mp4", "width": 720, "height": 1280}],
+        "reel_mentions": [], "story_feed_media": []
+      }
+    ]
+  }
+}

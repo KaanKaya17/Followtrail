@@ -488,3 +488,11 @@ select {
 }
 
 .list-scroll-status { min-height: 48px; padding: 16px; text-align: center; color: var(--muted); font-size: 13px; }
+.story-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 12px; }
+.story-card { padding: 16px; min-width: 0; overflow-wrap: anywhere; }
+.story-card p { margin: 10px 0; }
+.story-card .button { margin: 3px 0; }
+.story-day { margin-top: 20px; }
+#story-player:empty { display: none; }
+#story-player { display: flex; justify-content: center; margin: 16px 0; }
+#story-player img, #story-player video { max-height: 55vh; max-width: 100%; border-radius: 12px; object-fit: contain; background: #000; }

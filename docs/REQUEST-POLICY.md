@@ -121,3 +121,6 @@ Listeyi güncelle, aktif yönde MORE varsa kaldığı yerden; aksi halde ilk say
 Yeni profil önbelleği gözlem süresini uzatmaz veya bildirim üretmez. Okuma başlamadan hemen önce kayıtlı/önbellekteki daha yeni taze profil tercih edilir; yeniden açılış ve araya giren başarılı okuma ek HTTP isteği gerektirmeyebilir. Ortak ReadRuntime yalnız aynı saat/iptal edilebilir bekleme sözleşmesini paylaşır; arka plan seçim/bütçe kuralları değiştirilmedi.
 
 Genel manuel mod veya henüz temizlenmemiş eski 429 kaydı varsa, yerel mola dolduktan sonraki açık kullanıcı denemesi yalnız bir sayfa alır; devam sayfasına otomatik geçilmez. Bu sayfa başarısı önceki kısıtlama kaydını temizlemez.
+# Windows 0.2.37 deneysel hikâye okuması
+
+Kullanıcı eylemiyle kayıtlı profil için `/api/v1/feed/user/{numeric-id}/story/` GET sözleşmesi eklendi. Otomatik kontrol veya mobil/web fallback yoktur. Görüldü/beğeni/yanıt/oy uçları kapalıdır. Hikâye medyası yalnız Meta CDN'den ayrı çerezsiz TLS taşımasıyla indirilir; bu indirmeler de mevcut ortak 6–10 saniyelik sıraya ve kayan bütçeye yazılır. 429'da durulur; mevcut mola veya oturum doğrulaması kaldırılmaz. Arşivi yerel açma/oynatma/filtreleme ağ rezervasyonu yapmaz. Android politikası değiştirilmedi. [Doğrulama ve sınırlar](STORY-ARCHIVE-TEST.md).

@@ -9,6 +9,7 @@ for (const file of [
   "web/list-photos.js",
   "web/list-pages.js",
   "web/daily-chart.js",
+  "web/stories.js",
   "web/profile-details.js",
   "web/profile-links.js",
   "web/link-icons.js",

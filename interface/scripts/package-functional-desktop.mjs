@@ -75,6 +75,7 @@ for (const name of [
   "list-photos.js",
   "list-pages.js",
   "daily-chart.js",
+  "stories.js",
   "profile-details.js",
   "profile-links.js",
   "link-icons.js",

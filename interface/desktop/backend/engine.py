@@ -2,6 +2,7 @@
 import copy
 import csv
 import daily_stats
+import stories
 import list_pages
 from list_pages import public_member
 import json
@@ -25,6 +26,7 @@ import list_preparation
 import profile_search
 import profile_links
 import hashlib
+from instagrapi import config as instagram_config
 from login_identity import LoginIdentity, device_settings
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
@@ -90,6 +92,7 @@ class Engine:
         self.search_results = None
         self.search_pictures = {}
         self.profile_detail_result = None
+        self.story_detail = None
         self.list_pages = list_pages.ListPages()
         self.recover_interrupted()
 
@@ -185,7 +188,59 @@ class Engine:
                 'searchResults': self.search_results,
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.36'}
+                'storyDetail': self.story_detail,
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.37'}
+
+    def story_target(self, args):
+        owner = (self.data['account'] or {}).get('id')
+        target = args.get('id')
+        if (not owner or args.get('accountId') != owner or not stories.identity(target) or
+                target not in {owner,*self.data['people']}):
+            raise AppFailure('input', 'Geçersiz hikâye isteği.')
+        return stories.StoryStore(self.vault.path.parent,owner), target
+
+    def story_archive(self, args, *, fetch=False, clear=False):
+        store,target = self.story_target(args)
+        try:
+            if clear:
+                store.clear(target)
+            if fetch:
+                client = self.client()
+                try:
+                    # One chosen mobile GET; the library's automatic public
+                    # fallback, seen events and media-info helpers are not used.
+                    payload = client.private_request('feed/user/'+target+'/story/', params={
+                        'supported_capabilities_new':json.dumps(instagram_config.SUPPORTED_CAPABILITIES)})
+                    items = stories.parse(payload,target)
+                    summary = {'returned':len(items),'saved':0,'existing':0,'metadata':0}
+                    for index,item in enumerate(items):
+                        self.check_cancel()
+                        self.progress('stories',current=index+1,total=len(items))
+                        if store.contains(target,item['id']):
+                            summary['existing'] += 1
+                            continue
+                        # Keep known metadata even if a later download stops.
+                        store.record(target,item,self.clock())
+                        if item['mediaUrl'] and item['type'] in ('image','video'):
+                            media = stories.download(item['mediaUrl'],item['type'],self)
+                            self.check_cancel()
+                            store.record(target,item,self.clock(),media)
+                            summary['saved'] += 1
+                        else:
+                            summary['metadata'] += 1
+                    self.data['session'] = client.get_settings()
+                    self.save()
+                    store.checked(target,self.clock(),summary)
+                finally:
+                    close_client(client)
+        finally:
+            self.story_detail = store.view(target)
+
+    def story_media(self, args):
+        store,target = self.story_target(args)
+        if not stories.identity(args.get('storyId')):
+            raise AppFailure('input', 'Geçersiz hikâye isteği.')
+        return store.media(target,args['storyId'])
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
@@ -916,13 +971,16 @@ class Engine:
         self.search_results = None
         self.search_pictures = {}
         self.profile_detail_result = None
+        self.story_detail = None
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()
         try:
-            if self.offline and operation in ('login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'profile_detail', 'automatic', 'check_access'):
+            if self.offline and operation in ('story_fetch', 'login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'profile_detail', 'automatic', 'check_access'):
                 raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
-            handlers = {'daily_clear': lambda: self.clear_daily(args), 'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
+            handlers = {'story_view': lambda:self.story_archive(args), 'story_fetch': lambda:self.story_archive(args,fetch=True),
+                        'story_clear': lambda:self.story_archive(args,clear=True),
+                        'daily_clear': lambda: self.clear_daily(args), 'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
                         'refresh': lambda: self.refresh(args), 'profile_detail': lambda: self.profile_detail(args), 'add_person': lambda: self.add_person(args),
                         'scan': lambda: self.scan(args, resume=True), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
@@ -946,7 +1004,9 @@ class Engine:
                 # Session removal also purges the immediately preceding backup.
                 self.vault.backup.unlink(missing_ok=True)
             elif operation == 'delete_all':
-                if self.data['account']:self.daily_store().clear_all(revoke=True)
+                if self.data['account']:
+                    self.daily_store().clear_all(revoke=True)
+                    stories.StoryStore(self.vault.path.parent,self.data['account']['id']).clear_all()
                 self.data = blank(dict(self.data['gate']))
                 self.save()
                 self.vault.backup.unlink(missing_ok=True)
