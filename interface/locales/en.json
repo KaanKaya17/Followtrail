@@ -1189,5 +1189,12 @@
   "SON HAREKETLER": "RECENT ACTIVITY",
   "Seçili dönemde": "Over selected period",
   "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "A completion pass is being used for overlapping pages.",
-  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "This list was completed with additional passes within one scan."
+  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "This list was completed with additional passes within one scan.",
+  "Ayrıntıları gör": "View details",
+  "Bildirim türü": "Notification type",
+  "Bu filtrelere uygun kayıt yok.": "No records match these filters.",
+  "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Choose another type or show all records.",
+  "Güncellendi": "Updated",
+  "Tüm türler": "All types",
+  "{0} değişiklik daha": "{0} more changes"
 }

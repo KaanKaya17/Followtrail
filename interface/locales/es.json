@@ -1189,5 +1189,12 @@
   "SON HAREKETLER": "ACTIVIDAD RECIENTE",
   "Seçili dönemde": "En el período seleccionado",
   "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Se está usando una pasada de completado para páginas solapadas.",
-  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista se completó con pasadas adicionales dentro del mismo escaneo."
+  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista se completó con pasadas adicionales dentro del mismo escaneo.",
+  "Ayrıntıları gör": "Ver detalles",
+  "Bildirim türü": "Tipo de notificación",
+  "Bu filtrelere uygun kayıt yok.": "No hay registros que coincidan con estos filtros.",
+  "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Elige otro tipo o muestra todos los registros.",
+  "Güncellendi": "Actualizado",
+  "Tüm türler": "Todos los tipos",
+  "{0} değişiklik daha": "{0} cambios más"
 }

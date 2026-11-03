@@ -1197,7 +1197,14 @@
     "SON HAREKETLER": "RECENT ACTIVITY",
     "Seçili dönemde": "Over selected period",
     "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "A completion pass is being used for overlapping pages.",
-    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "This list was completed with additional passes within one scan."
+    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "This list was completed with additional passes within one scan.",
+    "Ayrıntıları gör": "View details",
+    "Bildirim türü": "Notification type",
+    "Bu filtrelere uygun kayıt yok.": "No records match these filters.",
+    "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Choose another type or show all records.",
+    "Güncellendi": "Updated",
+    "Tüm türler": "All types",
+    "{0} değişiklik daha": "{0} more changes"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2390,7 +2397,14 @@
     "SON HAREKETLER": "ACTIVIDAD RECIENTE",
     "Seçili dönemde": "En el período seleccionado",
     "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Se está usando una pasada de completado para páginas solapadas.",
-    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista se completó con pasadas adicionales dentro del mismo escaneo."
+    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista se completó con pasadas adicionales dentro del mismo escaneo.",
+    "Ayrıntıları gör": "Ver detalles",
+    "Bildirim türü": "Tipo de notificación",
+    "Bu filtrelere uygun kayıt yok.": "No hay registros que coincidan con estos filtros.",
+    "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Elige otro tipo o muestra todos los registros.",
+    "Güncellendi": "Actualizado",
+    "Tüm türler": "Todos los tipos",
+    "{0} değişiklik daha": "{0} cambios más"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3583,7 +3597,14 @@
     "SON HAREKETLER": "ATIVIDADE RECENTE",
     "Seçili dönemde": "No período selecionado",
     "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Uma rodada de conclusão está sendo usada para páginas sobrepostas.",
-    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista foi concluída com rodadas adicionais na mesma varredura."
+    "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista foi concluída com rodadas adicionais na mesma varredura.",
+    "Ayrıntıları gör": "Ver detalhes",
+    "Bildirim türü": "Tipo de notificação",
+    "Bu filtrelere uygun kayıt yok.": "Nenhum registro corresponde a estes filtros.",
+    "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Escolha outro tipo ou mostre todos os registros.",
+    "Güncellendi": "Atualizado",
+    "Tüm türler": "Todos os tipos",
+    "{0} değişiklik daha": "Mais {0} alterações"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

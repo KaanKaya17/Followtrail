@@ -6,6 +6,7 @@ window.TrackerUsageNotes = Object.freeze({
       <section><h3>${t("Takip Listeleri")}</h3><p>${t("İlk tam liste başlangıç kaydıdır. Sonraki tamamlanmış listeler karşılaştırılır. Yarım listeler kesin sonuç üretmez; arama yalnız cihazdaki kayıtlarda çalışır.")}</p><p>${t("Liste sayfa sayfa okunur. İstekler arasında molalar verilir; kaydedilen sayfa ve hesap sayısını ilerleme göstergesinden izleyebilirsin. Bu sırada diğer ekranları kullanabilirsin; yeni ağ işlemleri sıra bekler.")}</p><p>${t("Bu sonuç kaydedilen takipçi ve takip edilen listelerine göre gösterilir. İki listenin kontrol zamanı farklı olabilir.")}</p></section>
       <section><h3>${t("Otomatik profil kontrolü")}</h3><p>${t("Kontrol aralığı bir hedeftir. Instagram molası, internet ve arka plan koşulları geciktirebilir.")}</p></section>
       <section><h3>${t("Günlük geçmiş")}</h3><p>${t("Günlük sayaç özetleri kendiliğinden silinmez. Son kontrollerden ayrı, cihazda şifreli saklanır; günlük geçmiş ekranından temizlenebilir.")}</p><p>${t("Günler UTC saatine göre gruplanır. Kontrol yapılmayan günler boş kalır.")}</p></section>
+      <section><h3>${t("Bildirimler")}</h3><p>${t("Aynı kontroldeki değişiklikler tek kayıtta; bildirim tercihin kapalı olsa da geçmiş burada kalır.")}</p><p>${t("Son 500 değişiklik grubu şifreli saklanır. “Windows bildirimi için seçildi” ifadesi Windows’un bildirimi teslim ettiğini doğrulamaz.")}</p></section>
       ${retention ? `<section><h3>${t("Zaman çizelgesi")}</h3><p>${retention}</p></section>` : ""}
     </div>`;
   },

@@ -1189,5 +1189,12 @@
   "SON HAREKETLER": "ATIVIDADE RECENTE",
   "Seçili dönemde": "No período selecionado",
   "Tekrarlanan hesaplar için tamamlama turu uygulanıyor.": "Uma rodada de conclusão está sendo usada para páginas sobrepostas.",
-  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista foi concluída com rodadas adicionais na mesma varredura."
+  "Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.": "Esta lista foi concluída com rodadas adicionais na mesma varredura.",
+  "Ayrıntıları gör": "Ver detalhes",
+  "Bildirim türü": "Tipo de notificação",
+  "Bu filtrelere uygun kayıt yok.": "Nenhum registro corresponde a estes filtros.",
+  "Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin.": "Escolha outro tipo ou mostre todos os registros.",
+  "Güncellendi": "Atualizado",
+  "Tüm türler": "Todos os tipos",
+  "{0} değişiklik daha": "Mais {0} alterações"
 }
