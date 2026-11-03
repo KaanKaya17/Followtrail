@@ -1173,5 +1173,19 @@
   "Not ve grup": "Notes and group",
   "Açık hesap": "Public account",
   "Hikâye arşivi": "Story archive",
-  "Deneysel": "Experimental"
+  "Deneysel": "Experimental",
+  "Kontrol sürüyor": "Check in progress",
+  "Kontrol sırası bekleniyor": "Waiting for a check slot",
+  "Planlanmadı": "Not scheduled",
+  "Sırada": "Queued",
+  "Kontrol durumu": "Check status",
+  "Sonraki kontrol": "Next check",
+  "Kontrol ayarları": "Check settings",
+  "{0} yeni görülen": "{0} newly seen",
+  "{0} son kayıtta yok": "{0} missing from latest list",
+  "{0} listesi": "{0} list",
+  "Son kontrole göre aynı": "Unchanged since last check",
+  "Profil ayrıntıları": "Profile details",
+  "SON HAREKETLER": "RECENT ACTIVITY",
+  "Seçili dönemde": "Over selected period"
 }

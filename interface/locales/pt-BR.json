@@ -1173,5 +1173,19 @@
   "Not ve grup": "Notas e grupo",
   "Açık hesap": "Conta pública",
   "Hikâye arşivi": "Arquivo de stories",
-  "Deneysel": "Experimental"
+  "Deneysel": "Experimental",
+  "Kontrol sürüyor": "Verificação em andamento",
+  "Kontrol sırası bekleniyor": "Aguardando a vez de verificar",
+  "Planlanmadı": "Não agendada",
+  "Sırada": "Na fila",
+  "Kontrol durumu": "Status das verificações",
+  "Sonraki kontrol": "Próxima verificação",
+  "Kontrol ayarları": "Configurações de verificação",
+  "{0} yeni görülen": "{0} contas vistas pela primeira vez",
+  "{0} son kayıtta yok": "{0} ausentes da lista mais recente",
+  "{0} listesi": "Lista de {0}",
+  "Son kontrole göre aynı": "Sem mudanças desde a última verificação",
+  "Profil ayrıntıları": "Detalhes do perfil",
+  "SON HAREKETLER": "ATIVIDADE RECENTE",
+  "Seçili dönemde": "No período selecionado"
 }

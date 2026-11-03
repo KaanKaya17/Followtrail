@@ -1181,7 +1181,21 @@
     "Not ve grup": "Notes and group",
     "Açık hesap": "Public account",
     "Hikâye arşivi": "Story archive",
-    "Deneysel": "Experimental"
+    "Deneysel": "Experimental",
+    "Kontrol sürüyor": "Check in progress",
+    "Kontrol sırası bekleniyor": "Waiting for a check slot",
+    "Planlanmadı": "Not scheduled",
+    "Sırada": "Queued",
+    "Kontrol durumu": "Check status",
+    "Sonraki kontrol": "Next check",
+    "Kontrol ayarları": "Check settings",
+    "{0} yeni görülen": "{0} newly seen",
+    "{0} son kayıtta yok": "{0} missing from latest list",
+    "{0} listesi": "{0} list",
+    "Son kontrole göre aynı": "Unchanged since last check",
+    "Profil ayrıntıları": "Profile details",
+    "SON HAREKETLER": "RECENT ACTIVITY",
+    "Seçili dönemde": "Over selected period"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2358,7 +2372,21 @@
     "Not ve grup": "Notas y grupo",
     "Açık hesap": "Cuenta pública",
     "Hikâye arşivi": "Archivo de historias",
-    "Deneysel": "Experimental"
+    "Deneysel": "Experimental",
+    "Kontrol sürüyor": "Comprobación en curso",
+    "Kontrol sırası bekleniyor": "Esperando turno de comprobación",
+    "Planlanmadı": "Sin programar",
+    "Sırada": "En cola",
+    "Kontrol durumu": "Estado de las comprobaciones",
+    "Sonraki kontrol": "Próxima comprobación",
+    "Kontrol ayarları": "Ajustes de comprobación",
+    "{0} yeni görülen": "{0} nuevas cuentas vistas",
+    "{0} son kayıtta yok": "{0} ausentes de la última lista",
+    "{0} listesi": "Lista de {0}",
+    "Son kontrole göre aynı": "Sin cambios desde la última comprobación",
+    "Profil ayrıntıları": "Detalles del perfil",
+    "SON HAREKETLER": "ACTIVIDAD RECIENTE",
+    "Seçili dönemde": "En el período seleccionado"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3535,7 +3563,21 @@
     "Not ve grup": "Notas e grupo",
     "Açık hesap": "Conta pública",
     "Hikâye arşivi": "Arquivo de stories",
-    "Deneysel": "Experimental"
+    "Deneysel": "Experimental",
+    "Kontrol sürüyor": "Verificação em andamento",
+    "Kontrol sırası bekleniyor": "Aguardando a vez de verificar",
+    "Planlanmadı": "Não agendada",
+    "Sırada": "Na fila",
+    "Kontrol durumu": "Status das verificações",
+    "Sonraki kontrol": "Próxima verificação",
+    "Kontrol ayarları": "Configurações de verificação",
+    "{0} yeni görülen": "{0} contas vistas pela primeira vez",
+    "{0} son kayıtta yok": "{0} ausentes da lista mais recente",
+    "{0} listesi": "Lista de {0}",
+    "Son kontrole göre aynı": "Sem mudanças desde a última verificação",
+    "Profil ayrıntıları": "Detalhes do perfil",
+    "SON HAREKETLER": "ATIVIDADE RECENTE",
+    "Seçili dönemde": "No período selecionado"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

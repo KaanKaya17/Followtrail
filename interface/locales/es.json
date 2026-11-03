@@ -1173,5 +1173,19 @@
   "Not ve grup": "Notas y grupo",
   "Açık hesap": "Cuenta pública",
   "Hikâye arşivi": "Archivo de historias",
-  "Deneysel": "Experimental"
+  "Deneysel": "Experimental",
+  "Kontrol sürüyor": "Comprobación en curso",
+  "Kontrol sırası bekleniyor": "Esperando turno de comprobación",
+  "Planlanmadı": "Sin programar",
+  "Sırada": "En cola",
+  "Kontrol durumu": "Estado de las comprobaciones",
+  "Sonraki kontrol": "Próxima comprobación",
+  "Kontrol ayarları": "Ajustes de comprobación",
+  "{0} yeni görülen": "{0} nuevas cuentas vistas",
+  "{0} son kayıtta yok": "{0} ausentes de la última lista",
+  "{0} listesi": "Lista de {0}",
+  "Son kontrole göre aynı": "Sin cambios desde la última comprobación",
+  "Profil ayrıntıları": "Detalles del perfil",
+  "SON HAREKETLER": "ACTIVIDAD RECIENTE",
+  "Seçili dönemde": "En el período seleccionado"
 }
