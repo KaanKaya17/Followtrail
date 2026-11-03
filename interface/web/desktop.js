@@ -978,7 +978,13 @@
     const result=await command(operation,{accountId,id});
     if(!result?.ok || data.activeAccountId!==accountId || !data.storyDetail)return;
     dialog(`<h2 id="dialog-title">${t("Hikâye arşivi · Deneysel")}</h2><p>@${esc(person(id)?.username || '')}</p><div class="drawer-actions">${button(t("Hikâyeleri kontrol et"),'story-fetch','refresh','primary',idattr(id))}${button(t("Arşivi temizle"),'story-clear','trash','secondary',idattr(id))}</div><p class="field-hint">${t("Yalnız erişilebilir hikâyeler kaydedilir. Bu test sürümünde otomatik kontrol yoktur.")}</p><div id="story-archive-root"></div><p class="dialog-note">${t("Arşiv cihazında şifrelidir. Sınır: 200 kayıt, toplam 256 MB, dosya başına 16 MB. Hikâyeler mevcut yedeğe dahil değildir.")}</p>`,true);
-    document.getElementById('story-archive-root').innerHTML=window.TrackerStories.render(data.storyDetail,{t,esc,date});
+    drawStoryCalendar();
+  }
+  function drawStoryCalendar(view={}) {
+    const root=document.getElementById('story-archive-root');
+    if(!root || data.storyDetail?.accountId!==data.activeAccountId)return;
+    window.TrackerStories.release();
+    root.innerHTML=window.TrackerStories.render(data.storyDetail,{t,esc,date,locale:i18n.locale(language)},view);
   }
   async function playStory(id,storyId) {
     const accountId=data.activeAccountId;
@@ -1128,6 +1134,12 @@
       case 'story-archive':await storyDialog(id);break;
       case 'story-fetch':await storyDialog(id,'story_fetch');break;
       case 'story-play':await playStory(id,target.dataset.storyId);break;
+      case 'story-month':drawStoryCalendar({month:target.dataset.month});break;
+      case 'story-day':
+        drawStoryCalendar({month:target.dataset.day?.slice(0,7),selected:target.dataset.day});
+        document.querySelector('.story-calendar-day.is-selected')?.focus({preventScroll:true});
+        document.getElementById('story-day-detail')?.scrollIntoView({block:'nearest'});
+        break;
       case 'story-clear':
         dialog(`<h2 id="dialog-title">${t("Hikâye arşivi temizlensin mi?")}</h2><p>${t("Bu profilin kaydedilen hikâyeleri silinir. Diğer kayıtlar korunur.")}</p>${button(t("Vazgeç"),'story-archive',null,'secondary',idattr(id))}${button(t("Arşivi temizle"),'story-confirm-clear','trash','primary',idattr(id))}`);
         break;
@@ -1426,12 +1438,6 @@
     }
   });
   document.addEventListener("change", async (event) => {
-    if(event.target.id==='story-date' && data.storyDetail) {
-      const filter=event.target.value;
-      window.TrackerStories.release();
-      document.getElementById('story-archive-root').innerHTML=window.TrackerStories.render(data.storyDetail,{t,esc,date},filter);
-      return;
-    }
     switch (event.target.id) {
       case "app-theme":
         if (window.TrackerAppearance.valid(event.target.value)) await command("settings", {theme:event.target.value});

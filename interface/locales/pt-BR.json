@@ -1119,10 +1119,8 @@
   "Günlük geçmiş görünümü değişti.": "A visualização do histórico diário mudou.",
   "Hikâye arşivi · Deneysel": "Arquivo de stories · Experimental",
   "Hikâyeleri kontrol et": "Verificar stories",
-  "Tarih (UTC)": "Data (UTC)",
-  "{0} hikâye kaydı": "{0} stories arquivados",
+  "{0} hikâye kaydı": {"count": 0, "one": "{0} story arquivado", "other": "{0} stories arquivados"},
   "Son kontrolde {0} erişilebilir hikâye döndü.": "A última verificação retornou {0} stories acessíveis.",
-  "Bu tarihte kayıt yok. Hikâyeleri kontrol ederek arşivlemeyi deneyebilirsin.": "Não há registros nesta data. Verifique os stories para tentar arquivá-los.",
   "Desteklenmeyen içerik": "Conteúdo não compatível",
   "Kaydedilme zamanı": "Data de captura",
   "Yalnız bilgiler kaydedildi": "Somente os detalhes foram salvos",
@@ -1144,5 +1142,11 @@
   "Hikâyeler kaydediliyor…": "Salvando stories…",
   "Fotoğraf": "Foto",
   "Video": "Vídeo",
-  "Bazı hikâye ayrıntıları okunamadı.": "Não foi possível ler alguns detalhes do story."
+  "Bazı hikâye ayrıntıları okunamadı.": "Não foi possível ler alguns detalhes do story.",
+  "Hikâye takvimi": "Calendário de stories",
+  "Önceki ay": "Mês anterior",
+  "Sonraki ay": "Próximo mês",
+  "{0} hikâye": {"count": 0, "one": "{0} story", "other": "{0} stories"},
+  "Bu günde kayıtlı hikâye yok.": "Não há stories arquivados neste dia.",
+  "Instagram bu kontrolde hikâye verisi döndürmedi. Bu, hikâye paylaşılmadığını göstermez. Bağlı hesabın hikâyeyi Instagram’da açabildiğini kontrol et.": "O Instagram não retornou dados de stories nesta verificação. Isso não significa que nenhum story foi publicado. Verifique se a conta conectada consegue abrir o story no Instagram."
 }
