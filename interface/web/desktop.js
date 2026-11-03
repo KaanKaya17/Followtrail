@@ -75,6 +75,7 @@
     dailyMetric: "followers",
     chartSource: "daily",
     notificationFilter: "all",
+    notificationType: "all",
     notificationLimit: 100,
   };
   function acceptState(next) {
@@ -87,7 +88,7 @@
       document.querySelector('.command-palette')?.close();
       Object.assign(ui, {page:'overview', query:'', filter:'all', owner:'', listQuery:'',
         listFilter:'all', comparison:false, previous:null, current:null, eventLimit:100,
-        notificationFilter:'all', notificationLimit:100});
+        notificationFilter:'all', notificationType:'all', notificationLimit:100});
       location.hash = '#overview';
     }
     data = next;
@@ -231,6 +232,7 @@
     return guide(filtered,t("Farklı bir arama dene veya tüm kayıtlı kişilere dön. Favori ve izleme tercihlerini kişi ayrıntısından değiştirebilirsin."),[],button(t("Arama ve filtreleri temizle"),'reset-people','search'));
   }
   function notificationsEmpty() {
+    if ((data.notificationLog || []).length && ui.notificationType!=='all')return guide(t("Bu filtrelere uygun kayıt yok."),t("Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin."),[],button(t("Tüm bildirimleri göster"),'reset-notifications','bell','primary'),'bell');
     if ((data.notificationLog || []).length) return guide(t("Okunmamış bildirim yok."),t("Diğer kayıtlar için Tümü filtresine dönebilirsin."),[],button(t("Tüm bildirimleri göster"),'notification-filter','bell','primary','data-value="all"'),'bell');
     return guide(t("Değişiklik kayıtların burada birikecek."),t("İlk kontrol başlangıç kaydını oluşturur. Daha sonra görülen değişiklikler, her kontrol için tek kayıtta toplanır."),
       [t("Önce bir profil kaydet ve kontrol et."),t("Profil ayrıntısında bildirim almak istediğin değişiklik türlerini seç."),t("Windows bildirimi isteğe bağlıdır; uygulama içindeki kayıtlar bildirim kapalıyken de tutulur.")],
@@ -319,7 +321,7 @@
     return `<header class="topbar"><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[ui.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${data.connected ? t("Yerel oturum") : t("Hesap bağlı değil")}</span><button class="icon-button" data-action="notifications" aria-label="${t("Bildirim kayıtları")}">${icon("bell")}${(data.notificationLog || []).some((entry) => entry.readAt == null) ? `<span class="unread-dot"></span>` : ""}</button><button class="account-button" data-action="account" aria-label="${t("Hesap bağlantısı")}">${avatar(own)}<span><strong>${own ? "@" + esc(own.username) : t("Hesabını bağla")}</strong><small>${data.connected ? t("Şifreli oturum") : t("Bağlantı bekleniyor")}</small></span>${icon("down")}</button></div></header>`;
   }
   function operationPanel() {
-    const host=document.getElementById('overview-operation');
+    const host=document.getElementById('overview-operation') || document.getElementById('notifications-operation');
     if(host) {if(operationRoot.parentElement!==host)host.append(operationRoot);}
     else if(operationRoot.parentElement!==document.body)document.body.insertBefore(operationRoot,document.getElementById('overlay-root'));
     if(operationRoot.classList.contains('inline-operation')!==!!host)operationRoot.classList.toggle('inline-operation',!!host);
@@ -433,34 +435,47 @@
     const names = [...new Set(entry.changes.map((change) => change.username))];
     return t("{0} · {1} değişiklik", names.length === 1 ? "@" + names[0] : names.length + t(" hesap"), entry.changes.length);
   }
-  function notificationRows() {
-    return (data.notificationLog || []).filter(
-      (entry) => ui.notificationFilter !== "unread" || entry.readAt == null,
-    );
+  function notificationKind(change) {
+    return change.category==='lists'?'lists':change.category==='access'?'access':'profile';
+  }
+  function notificationRows(type=ui.notificationType) {
+    return (data.notificationLog || []).filter(entry=>(ui.notificationFilter!=='unread' || entry.readAt==null) &&
+      (type==='all' || entry.changes.some(change=>notificationKind(change)===type)));
+  }
+  function notificationPreview(change,multiple) {
+    const kind=change.category,label=t(change.label),prefix=multiple?`<small class="notification-change-owner">@${esc(change.username)}</small>`:'';
+    const before=change.before?.[kind],after=change.after?.[kind];
+    let detail='';
+    if(kind==='lists') {
+      const value=change.after || {};
+      const names=(members)=>Array.isArray(members) && members.length ? `<span class="notification-member-names">${members.slice(0,2).map(member=>'@'+esc(member.username)).join(', ')}${members.length>2?' · '+t("ve {0} hesap daha",num(members.length-2)):''}</span>`:'';
+      detail=`<span class="notification-list-preview"><span><strong>${t("{0} yeni görülen",num(value.added))}</strong>${names(value.membersAdded)}</span><span><strong>${t("{0} son kayıtta yok",num(value.removed))}</strong>${names(value.membersRemoved)}</span></span>`;
+    } else if(Number.isFinite(before) && Number.isFinite(after)) {
+      const difference=after-before;
+      detail=`<span class="notification-pair"><span class="notification-before">${num(before)}</span>${icon('arrow')}<strong>${num(after)}</strong>${difference?`<span class="notification-delta ${difference>0?'trend-up':'trend-down'}">${difference>0?'+':''}${num(difference)}</span>`:''}</span>`;
+    } else if(['username','name','url'].includes(kind) && typeof before==='string' && typeof after==='string') {
+      detail=`<span class="notification-pair notification-text-pair"><span class="notification-before" title="${esc(before)}">${esc(before)}</span>${icon('arrow')}<strong title="${esc(after)}">${esc(after)}</strong></span>`;
+    } else if(kind==='private' && typeof before==='boolean' && typeof after==='boolean') {
+      detail=`<span class="notification-pair"><span class="notification-before">${before?t("Gizli"):t("Açık")}</span>${icon('arrow')}<strong>${after?t("Gizli"):t("Açık")}</strong></span>`;
+    } else if(kind==='access') {
+      detail=`<span class="notification-text-preview">${esc(stored(change.title))}</span>`;
+    } else detail=`<span class="notification-text-preview">${t("Güncellendi")}</span>`;
+    return `<span class="notification-change">${prefix}<span class="notification-change-label">${esc(label)}</span>${detail}</span>`;
+  }
+  function notificationCard(entry) {
+    const identities=[...new Set(entry.changes.map(change=>change.personId))],multiple=identities.length>1;
+    const image=multiple?`<span class="event-icon lavender">${icon('people')}</span>`:avatar(person(identities[0]) || {username:entry.changes[0].username});
+    const ranked=entry.changes.slice().sort((a,b)=>{
+      const score=change=>(ui.notificationType!=='all' && notificationKind(change)!==ui.notificationType?10:0)+(['followers','following','posts'].includes(change.category)?0:change.category==='lists'?1:2);
+      return score(a)-score(b);
+    });
+    const unread=entry.readAt==null;
+    return `<button class="notification-log-row notification-card card ${unread?'unread':''}" data-action="notification-log" ${idattr(entry.id)}>${image}<span class="notification-log-copy"><span class="notification-card-heading"><strong>${esc(logHeading(entry))}</strong><time datetime="${new Date(entry.at*1000).toISOString()}">${esc(date(entry.at))}</time></span><span class="notification-card-state">${unread?'<span class="notification-unread-dot" aria-hidden="true"></span>':''}${unread?t("Okunmamış"):t("Okundu")}</span><span class="notification-preview">${ranked.slice(0,3).map(change=>notificationPreview(change,multiple)).join('')}</span>${ranked.length>3?`<span class="notification-more">${t("{0} değişiklik daha",num(ranked.length-3))}</span>`:''}<span class="notification-card-footer"><small>${entry.desktopEligible?t("Windows bildirimi için seçildi"):t("Yalnız uygulama kaydı")}</small><span>${t("Ayrıntıları gör")}${icon('chevron')}</span></span></span></button>`;
   }
   function notifications() {
-    const rows = notificationRows(),
-      unread = (data.notificationLog || []).filter(
-        (entry) => entry.readAt == null,
-      ).length;
-    return `${title(t("BİLDİRİM KAYITLARI"), t("Bir kontrolde neler değişti?"), t("Aynı kontroldeki değişiklikler tek kayıtta; bildirim tercihin kapalı olsa da geçmiş burada kalır."))}<div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Bildirim filtresi")}">${[
-      ["all", t("Tümü")],
-      ["unread", t("Okunmamış")],
-    ]
-      .map(
-        ([key, label]) =>
-          `<button data-action="notification-filter" data-value="${key}" class="${ui.notificationFilter === key ? "active" : ""}" aria-pressed="${ui.notificationFilter === key}">${t(label)}${key === "unread" ? ` (${unread})` : ""}</button>`,
-      )
-      .join(
-        "",
-      )}</div><a class="text-button" href="#settings">${t("Bildirim ayarları {0}", icon("settings"))}</a></div><div class="notification-log">${rows
-        .slice(0, ui.notificationLimit)
-        .map(
-          (entry) =>
-            `<button class="notification-log-row card ${entry.readAt == null ? "unread" : ""}" data-action="notification-log" ${idattr(entry.id)}><span class="event-icon lavender">${icon("bell")}</span><span class="notification-log-copy"><strong>${esc(logHeading(entry))}</strong><span>${esc([...new Set(entry.changes.map((change) => t(change.label)))].join(" · "))}</span><small>${esc(date(entry.at))} · ${entry.readAt == null ? t("Okunmamış") : t("Okundu")} · ${entry.desktopEligible ? t("Windows bildirimi için seçildi") : t("Yalnız uygulama kaydı")}</small></span>${icon("chevron")}</button>`,
-        )
-        .join("") ||
-      notificationsEmpty()}</div>${rows.length > ui.notificationLimit ? button(t("Daha fazla kayıt göster"), "more-notifications", "down") : ""}<p class="field-hint">${t("Son 500 değişiklik grubu şifreli saklanır. “Windows bildirimi için seçildi” ifadesi Windows’un bildirimi teslim ettiğini doğrulamaz.")}</p>`;
+    const rows=notificationRows(),unread=(data.notificationLog || []).filter(entry=>entry.readAt==null).length;
+    const types=[['all',t("Tüm türler")],['profile',t("Profil")],['lists',t("Liste değişiklikleri")],['access',t("Profil görünürlüğü")]];
+    return `<div class="notifications-page">${title(t("BİLDİRİM KAYITLARI"),t("Bir kontrolde neler değişti?"),'')}<div class="notifications-toolbar"><div class="filter-tabs" role="group" aria-label="${t("Bildirim filtresi")}">${[['all',t("Tümü")],['unread',t("Okunmamış")]].map(([key,label])=>`<button data-action="notification-filter" data-value="${key}" class="${ui.notificationFilter===key?'active':''}" aria-pressed="${ui.notificationFilter===key}">${label}${key==='unread'?` (${num(unread)})`:''}</button>`).join('')}</div><a class="text-button" href="#settings">${t("Bildirim ayarları {0}",icon('settings'))}</a></div><div class="notification-type-filters" role="group" aria-label="${t("Bildirim türü")}">${types.map(([key,label])=>`<button data-action="notification-type" data-value="${key}" aria-pressed="${ui.notificationType===key}">${label}<span>${num(notificationRows(key).length)}</span></button>`).join('')}</div><div id="notifications-operation"></div><div class="notification-log">${rows.slice(0,ui.notificationLimit).map(notificationCard).join('') || notificationsEmpty()}</div>${rows.length>ui.notificationLimit?button(t("Daha fazla kayıt göster"),'more-notifications','down'):''}</div>`;
   }
   async function notificationDialog(id) {
     const entry = data.notificationLog?.find((entry) => entry.id === id);
@@ -913,7 +928,7 @@
       : "comfortable";
     document.title = `${t(pages[ui.page][0])} — Tracker`;
     document.getElementById("app").innerHTML =
-      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(ui.page==='overview' && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`;
+      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(['overview','notifications'].includes(ui.page) && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`;
     mountListPage();
     mountDailyChart();
     refreshListPhotos();
@@ -1359,6 +1374,15 @@
       case "notification-filter":
         ui.notificationFilter = value;
         ui.notificationLimit = 100;
+        render();
+        break;
+      case "notification-type":
+        ui.notificationType=value;
+        ui.notificationLimit=100;
+        render();
+        break;
+      case "reset-notifications":
+        ui.notificationFilter='all';ui.notificationType='all';ui.notificationLimit=100;
         render();
         break;
       case "more-notifications":
