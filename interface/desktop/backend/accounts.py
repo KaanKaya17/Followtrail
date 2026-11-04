@@ -174,7 +174,6 @@ class Accounts(Engine):
             self.data = self.load_vault()
             self.active_id = identity
             self.bind_shared_state()
-            if old_id!=identity:self.search_cache.clear()
             self.wayback_id = None
             self.search_results = None
             self.profile_detail_result = None
@@ -267,6 +266,7 @@ class Accounts(Engine):
         try:
             if operation == 'switch_account':
                 self.activate(str(args.get('id', '')))
+                if self.catalog['active'] != self.active_id:self.search_cache.clear()
                 self.catalog['active'] = self.active_id
                 self.persist_catalog()
             elif operation == 'delete_all':

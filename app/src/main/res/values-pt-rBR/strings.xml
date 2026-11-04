@@ -123,6 +123,7 @@
     <string name="list_limited">O Instagram não mostrou parte da lista. As contas baixadas foram salvas.</string>
     <string name="list_unknown">A lista completa não pôde ser lida.</string>
     <string name="list_stalled">A lista não progrediu. As contas baixadas foram salvas.</string>
+    <string name="list_automatic_coverage_hold">A verificação automática desta lista foi interrompida. Use Verifique a lista novamente para tentar de novo.</string>
     <string name="list_observed">Última verificação · %1$s</string>
     <string name="list_first">"Leia a primeira página"</string>
     <string name="list_next">"Leia a próxima página"</string>

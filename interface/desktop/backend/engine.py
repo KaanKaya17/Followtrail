@@ -601,26 +601,6 @@ class Engine:
         finally:
             close_client(client)
 
-    def list_picture(self, args):
-        if args.get('accountId') != (self.data.get('account') or {}).get('id'):return None
-        owner, direction, scan_id, identity = (args.get(k) for k in ('ownerId','direction','scanId','id'))
-        if (not all(isinstance(v,str) for v in (owner,direction,scan_id,identity)) or
-                direction not in list_preparation.DIRECTIONS):return None
-        record = self.data['lists'].get(owner+':'+direction, {})
-        scans = record.get('snapshots',[]) + [s for s in (record.get('draft'),record.get('retainedPartial')) if s]
-        scan = next((s for s in scans if s.get('id') == scan_id),None)
-        member = scan.get('members',{}).get(identity) if scan else None
-        if not member:return None
-        picture = member.get('pictureUrl')
-        if not avatar_url(picture):
-            # Old visible lists may predate thumbnail retention. The same ID's
-            # newer page can supply its photo without rewriting membership.
-            candidates = [s for s in (record.get('draft'),*reversed(record.get('snapshots',[])),record.get('retainedPartial')) if s]
-            picture = next((p['pictureUrl'] for s in candidates for p in [s.get('members',{}).get(identity,{})]
-                            if avatar_url(p.get('pictureUrl'))),None)
-        if not avatar_url(picture):return None
-        return owner+':'+direction+':'+scan_id, identity, picture
-
     def scan(self, args, *, one_page=False, resume=False):
         direction = args.get('direction')
         if direction not in ('followers', 'following'):

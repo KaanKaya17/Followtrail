@@ -333,12 +333,15 @@ class FollowListActivity : LocalizedActivity() {
         FollowCoverage.STALLED -> R.string.list_stalled
     })
     private fun showScope() {
-        val run = snapshot?.run(direction)
+        val record = lists.target(reference, target.userId)
+        val run = (record?.snapshot ?: snapshot)?.run(direction)
         val description = if (run == null) getString(R.string.list_not_read) else
             getString(R.string.list_count, run.users.size, run.pages.size) + "\n" + coverageText(run.coverage()) + "\n" +
                 getString(R.string.list_observed, SimpleDateFormat("d MMM yyyy · HH:mm", AppLanguage.locale(this)).format(Date(run.latest.observedAt)))
         AlertDialog.Builder(this).setTitle(R.string.list_info_title)
-            .setMessage(description + "\n\n" + getString(R.string.list_info_body) + "\n\n" + getString(R.string.navigation_list_pacing))
+            .setMessage(description + (if (record != null && ListAutomationPolicy.coverageHeld(record, direction))
+                "\n\n" + getString(R.string.list_automatic_coverage_hold) else "") +
+                "\n\n" + getString(R.string.list_info_body) + "\n\n" + getString(R.string.navigation_list_pacing))
             .setNeutralButton(R.string.auto_list_differences) { _, _ -> showListDifferences() }
             .setPositiveButton(R.string.list_close, null).show()
     }

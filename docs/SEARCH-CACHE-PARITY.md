@@ -2,6 +2,8 @@
 
 Windows 0.2.50 / Android 0.1.78. Profil ekleme araması, pencere kapatılıp yeniden açıldığında aynı sonuçları kısa süreyle tekrar kullanır. Kaydedilen profillerdeki yerel filtreleme bundan ayrı kalır.
 
+Windows 0.2.51, arka plan hesap kontrolünde önbellek ve liste fotoğraflarının korunmasını ayrıca düzeltir. [Hata kontrolü ve kapsamı](BUG-CHECK-2026-11-04.md).
+
 ## Ortak davranış
 
 - Tek kaynak: `design/search-cache.json`. Üç platform dosyası `node interface/scripts/generate-search-policy.mjs` ile üretilir; masaüstü kaynak kontrolü `--check` ile tutarlılığı doğrular.

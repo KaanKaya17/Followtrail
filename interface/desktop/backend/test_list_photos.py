@@ -28,11 +28,12 @@ class ListPhotoTests(unittest.TestCase):
         self.assertEqual(scan['members']['200']['pictureUrl'],url)
         self.assertNotIn(url,json.dumps(state))
         args={'accountId':'100','ownerId':'100','direction':'followers','scanId':scan['id'],'id':'200'}
-        self.assertEqual(self.engine.list_picture(args)[2],url)
+        self.assertEqual(self.engine.list_pages.picture(args)[3],url)
         for key,value in [('accountId','300'),('ownerId','300'),('direction','following'),('scanId','forged'),('id','999')]:
-            self.assertIsNone(self.engine.list_picture({**args,key:value}))
+            self.assertIsNone(self.engine.list_pages.picture({**args,key:value}))
         reopened=Engine(self.home.name)
-        self.assertEqual(reopened.list_picture(args)[2],url)
+        reopened.snapshot()
+        self.assertEqual(reopened.list_pages.picture(args)[3],url)
         changed=page(['201']);changed['users'][0]['profile_pic_url']=url
         with patch.object(self.engine,'client',return_value=PacedClient(self.engine,[profile(followers=1),changed])):
             after=self.engine.run('scan',{'direction':'followers'})
@@ -47,6 +48,19 @@ class ListPhotoTests(unittest.TestCase):
             self.assertIn('200',parsed.members)
             self.assertNotIn('pictureUrl',parsed.members['200'])
 
+    def test_published_list_photo_survives_background_context_and_rejects_next_selected_view(self):
+        url='https://cdninstagram.com/avatar.jpg'
+        scan={'id':'published','ownerId':'100','direction':'followers','complete':False,
+              'members':{'200':{'id':'200','username':'qa.person','pictureUrl':url}}}
+        self.engine.data['lists']['100:followers']={'snapshots':[],'draft':scan}
+        self.engine.snapshot()
+        args={'accountId':'100','ownerId':'100','direction':'followers','scanId':'published','id':'200'}
+        self.engine.data['account']={'id':'300','username':'qa.background','observedAt':1}
+        self.engine.data['lists']={}
+        self.assertEqual(self.engine.list_pages.picture(args)[3],url)
+        self.engine.snapshot()
+        self.assertIsNone(self.engine.list_pages.picture(args))
+
     def test_old_visible_partial_can_use_newer_same_identity_photo_without_merging_members(self):
         url='https://cdninstagram.com/new.jpg'
         old={'id':'old','ownerId':'100','direction':'followers','complete':False,
@@ -54,9 +68,10 @@ class ListPhotoTests(unittest.TestCase):
         new={'id':'new','members':{'200':{'id':'200','username':'qa.renamed','name':'QA','pictureUrl':url},
                                   '201':{'id':'201','username':'qa.other','name':'QA','pictureUrl':url}}}
         self.engine.data['lists']['100:followers']={'snapshots':[],'retainedPartial':old,'draft':new}
+        self.engine.snapshot()
         args={'accountId':'100','ownerId':'100','direction':'followers','scanId':'old','id':'200'}
-        self.assertEqual(self.engine.list_picture(args)[2],url)
-        self.assertIsNone(self.engine.list_picture({**args,'id':'201'}))
+        self.assertEqual(self.engine.list_pages.picture(args)[3],url)
+        self.assertIsNone(self.engine.list_pages.picture({**args,'id':'201'}))
         self.assertNotIn('pictureUrl',old['members']['200'])
         self.assertEqual(self.engine.snapshot()['lists']['100:followers']['retainedPartial']['count'],1)
 

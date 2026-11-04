@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.51 / Android 0.1.79 — 2026-11-04 (Hesap bağlamı ve eksik liste tekrarları)
+
+- Windows arka plan hesabı geçici açıldığında arama önbelleği gereksiz sıfırlanmıyor. Fotoğraflar ekranda seçili hesabın arama/listesi üzerinden çözülüyor; açık hesap değişimi ve silme sınırları korunuyor.
+- Android sınırlı, belirsiz veya ilerlemeyen listeyi sayı değişince/günlük süre dolunca kendiliğinden tekrar taramıyor. Okunan kişiler saklanıyor; elle yeniden deneme ve yeni bağlantıyla devam mümkün. Liste bilgi penceresinde dört dilde kısa açıklama var.
+- Aynı fotoğraf sorgusunu canlı çalışma hesabı üzerinden yorumlayan eski Engine yolu kaldırıldı; liste görünümü kendi fotoğraf kaynaklarının sahibi oldu.
+- Üç hata düzeltmeden önce başarısız testle üretildi. [Kontrol kapsamı ve kalan sınırlar](docs/BUG-CHECK-2026-11-04.md).
+- Doğrulama: 268 Python, 68 JavaScript ve 154 Android JVM testi; 36 paketli Windows kontrolü geçti. Android release/test APK derlemeleri, lint (0 hata / mevcut 50 uyarı), dört dil, v2/v3 imza ve manifest kontrolleri geçti. Android cihaz testi ve canlı Instagram girişi bu turda yapılmadı.
+
 ## Windows 0.2.50 / Android 0.1.78 — 2026-11-04 (Tekrar açılan aramada sonuçları kullanma)
 
 - Profil ekleme aramasında aynı hesaba ait son 6 sorgu, 60 saniye içinde pencere kapatılıp açıldığında yeniden kullanılır. Sonuca bakmak süreyi uzatmaz; sorgu başına en fazla 20 aday, yalnız bellekte saklanır. Ortak politika dosyası ve üretim kontrolü iki platformun sınırlarını eşit tutar.

@@ -82,7 +82,8 @@ def main():
             elif operation == 'list_page':
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'page':engine.list_pages.page(request.get('args'))})
             elif operation == 'search_avatar':
-                owner=engine.active_id
+                # Automatic work temporarily activates other vaults; images belong to the UI selection.
+                owner=engine.catalog['active']
                 source=engine.search_cache.picture(owner,(request.get('args') or {}).get('token'),(request.get('args') or {}).get('id'))
                 result,pictures=source if source else (None,{})
                 images.request(request,result,pictures,namespace=owner,offline=args.offline)
@@ -90,12 +91,12 @@ def main():
                 images.cancel('search')
                 emit({'type': 'control', 'id': request['id'], 'ok': True})
             elif operation == 'list_avatar':
-                source = engine.list_picture(request.get('args') or {})
+                source = engine.list_pages.picture(request.get('args') or {})
                 if source:
-                    scope, identity, picture = source
-                    token = str(engine.active_id)+':'+scope
+                    owner, scope, identity, picture = source
+                    token = str(owner)+':'+scope
                     normalized = {**request, 'args':{'token':token,'id':identity}}
-                    images.request(normalized, {'token':token}, {identity:picture}, namespace=engine.active_id, group='list', offline=args.offline)
+                    images.request(normalized, {'token':token}, {identity:picture}, namespace=owner, group='list', offline=args.offline)
                 else:
                     emit({'type':'control','id':request['id'],'ok':True,'avatar':None})
             elif operation == 'cancel_list_images':
