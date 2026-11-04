@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="retention_title">"Data retention"</string>
+    <string name="retention_description">"Choose how long to keep detailed history and daily statistics. The current profile and latest list baseline stay available. Cleanup runs once a day while the app is in use."</string>
+    <string name="retention_history">"Detailed history"</string>
+    <string name="retention_daily">"Daily statistics"</string>
+    <string name="retention_manual">"Until I delete it"</string>
+    <string name="retention_days">"%1$d days"</string>
+    <string name="retention_apply">"Save and clean up"</string>
+    <string name="retention_confirm">"Archives older than the selected period will be deleted from this device. This cannot be undone. Exported files must be deleted separately. Latest comparison baselines and dates that prevent erased history from returning are retained."</string>
+    <string name="retention_failed">"Some archives could not be cleaned up. Preferences were saved; retry from Data retention."</string>
+    <string name="retention_saved">"Retention preferences applied."</string>
+    <string name="retention_remove_scope">"History, daily statistics, photo archives, notifications, notes and lists owned by @%1$s will be deleted. Membership in other accounts’ lists and exported files are excluded. Nothing changes on Instagram."</string>
+</resources>

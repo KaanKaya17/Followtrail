@@ -139,5 +139,16 @@ class FollowListVault(private val context: Context, private val slot: String = "
         val archive = archive(session)
         if (archive.targets.any { it.target == target }) write(archive.copy(targets = archive.targets.filterNot { it.target == target }))
     }
+    fun prunePast(session: Session, before: Long) = synchronized(lock) {
+        if (before == 0L) return@synchronized
+        val saved = record(session.userId).read()?.let(FollowArchiveCodec::decode) ?: return@synchronized
+        require(saved.owner==session.userId)
+        fun recent(snapshot: FollowSnapshot?): FollowSnapshot? = snapshot?.let {
+            val followers=it.followers?.takeIf {run -> run.latest.observedAt>=before}
+            val following=it.following?.takeIf {run -> run.latest.observedAt>=before}
+            if(followers==null && following==null)null else it.copy(followers=followers,following=following)
+        }
+        write(saved.copy(targets=saved.targets.map { it.copy(previous=recent(it.previous)) }))
+    }
     fun clear() = synchronized(lock) { record(owner ?: if(slot=="followlists")AccountCatalog(context).active() else null).clear() }
 }

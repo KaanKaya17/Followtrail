@@ -1210,5 +1210,21 @@
   "Kayıtlar yükleniyor…": "Loading records…",
   "Kayıtlar yüklenemedi.": "Could not load records.",
   "Geçersiz geçmiş isteği.": "Invalid history request.",
-  "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "History changed. Loading the current record."
+  "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "History changed. Loading the current record.",
+  "Veri saklama": "Data retention",
+  "Ayrıntılı geçmiş": "Detailed history",
+  "Ben silene kadar": "Until I delete it",
+  "{0} gün": "{0} days",
+  "Kaydet ve temizle": "Save and clean up",
+  "Saklama tercihleri uygulandı.": "Retention preferences applied.",
+  "Süreyi aşan arşivler uygulama kullanılırken günde bir temizlenir. Güncel profil bilgisi ve son liste kaydı karşılaştırma için korunur.": "Archives beyond the selected period are cleaned up once a day while the app is in use. The current profile and latest list baseline are kept for comparison.",
+  "Seçilen süreden eski kayıtlar geri alınamaz biçimde silinir. Dışa aktarılan dosyalar ayrıca silinmelidir. Silinen geçmişin yeniden oluşmasını engelleyen tarihler korunur.": "Records older than the selected period are permanently deleted. Exported files must be deleted separately. Dates that prevent erased history from returning are retained.",
+  "Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.": "Some archives could not be cleaned up. Your preferences are saved; you can retry cleanup.",
+  "Profilin geçmişi, günlük istatistikleri, görsel ve hikâye arşivi, bildirimleri, notları ve kendi listeleri silinir. Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar buna dahil değildir. Instagram hesabında işlem yapılmaz.": "The profile’s history, daily statistics, visual and story archives, notifications, notes and own lists are deleted. Membership in other accounts’ lists and exported files are excluded. Nothing changes on Instagram.",
+  "Profil ve arşivleri silindi.": "Profile and its archives deleted.",
+  "Saklama süresi geçersiz.": "Invalid retention period.",
+  "Saklama tercihi geçersiz.": "Invalid retention preference.",
+  "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "Some archives could not be cleaned up. Preferences were saved; you can retry cleanup.",
+  "Silmek için kayıtlı bir profil seç.": "Select a saved profile to delete.",
+  "Günlük istatistikler": "Daily statistics"
 }

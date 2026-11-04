@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.48 / Android 0.1.77 — 2026-11-04 (Veri saklama ve profil arşivini silme)
+
+- Hesap başına ayrıntılı geçmiş ve günlük istatistikler için ayrı Ben silene kadar / 30 / 90 / 365 gün tercihleri eklendi. Onaydan sonra yerel temizlik uygulanır; güncel profil ve son liste kaydı korunur. Başarısız temizlik görünür ve yeniden denenebilir.
+- Profil kaldırma ilgili geçmiş, günlük/görsel/bildirim ve kendi liste arşivlerini de temizler; Windows hikâyeleri dahildir. Başka hesapların liste üyeliği, dışa aktarılan dosyalar ve güvenlik molaları korunur. Windows otomatik kurtarma kopyası da temizlenmiş içerikle değiştirilir.
+- Android geçici disk küçük resimleri ayrı Keystore/AES-GCM anahtarıyla şifrelendi; eski düz küçük resimler arka planda temizlenir. Mevcut oturum şifreleme biçimi korunur. Dört dil güncellendi.
+- [Veri envanteri, silme kapsamı ve yayın öncesi açık işler](docs/DATA-LIFECYCLE.md) eklendi. Android canlı giriş ve yeni cihaz testleri sonraya bırakıldı; giriş/429 kuralları gevşetilmedi.
+- Doğrulama: 258 Python, 146 Android JVM testi; 36 genel ve 5 yeni paketli Windows kontrolü geçti. Release/test APK derlemeleri, lint (0 hata / 50 uyarı), dört dil ve imza/paket kontrolleri geçti. Android cihaz testleri yalnız derlendi. [Ayrıntılı kanıt ve sınırlar](docs/DATA-LIFECYCLE.md#doğrulama-sınırı).
+
 ## Android 0.1.76 — 2026-11-04 (Mobil görünüm ve yerel bildirim geçmişi)
 
 - Özet, profil ayrıntısı ve liste sahibi Windows düzeniyle uyumlu hale getirildi. Fotoğraf, kullanıcı adı/isim ve bilinen sayaçlar belirginleştirildi; profil geçmişi ve ikincil işlemler isteyerek açılır. Yerel günlük grafikte dönem net farkı gösterilir.

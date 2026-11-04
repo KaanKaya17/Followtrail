@@ -49,6 +49,10 @@ def view(data, identity):
 
 
 def record(data, profile):
+    import data_privacy
+    days=data['settings'].get('historyRetentionDays',0)
+    if days and profile['observedAt'] < data_privacy.cutoff(days, data.get('privacyMaintenance',{}).get('at',0)):
+        return
     archive = data['wayback']
     target = archive['profiles'].get(profile['id'])
     if not target or not target['enabled']:

@@ -2,6 +2,12 @@
 
 Güncel kullanıcı açıklaması: [Gizlilik ve veriler](wiki/Gizlilik-ve-Veriler.md). Aşağıdaki sürümlü bölümler teknik davranış ve gelişim geçmişini kaydeder.
 
+## Windows 0.2.48 / Android 0.1.77 saklama ve silme
+
+Hesap başına ayrıntılı geçmiş ve günlük istatistikler için ayrı süre tercihleri eklendi. Varsayılan kayıtları kullanıcı silene kadar korur; 30/90/365 gün seçenekleri onayla uygulanır. Güncel profil ve son liste karşılaştırma kaydı korunur. Kaydedilen profili kaldırmak ilgili günlük/görsel/olay/liste arşivlerini de siler; Windows hikâyeleri dahildir. Başka hesapların liste üyeliği ve dışa aktarılan kopyalar bu kapsamın dışındadır.
+
+Android geçici disk küçük resimleri de Keystore/AES-GCM ile şifrelenir. Eski düz küçük resimlerin temizliği, temizlik başarısızlığı/tekrar deneme davranışı, silme sınırları, veri envanteri ve hukuki açık işler [yerel veri yaşam döngüsünde](DATA-LIFECYCLE.md) açıklanır. Önceki bölümlerdeki süresiz günlük arşiv ifadesi artık **varsayılan tercih** için geçerlidir.
+
 ## Windows 0.2.36 / Android 0.1.75 günlük sayaçlar
 
 Günlük sayısal özetler hesap/profil/yıl başına ayrı, cihazdaki DPAPI veya Keystore/AES-GCM dosyalarındadır; zaman aşımıyla silinmez. Gövde yalnız sayısal kimlik, UTC günü, gözlem zamanları, örnek sayısı ve bilinen sayaçları içerir. Biyografi, görsel, parola veya çerez bu arşive yazılmaz. Profil/yıl dosyası en çok 512 KiB'dır. Yeni ağ isteği gerekmez; aralık okuması hedefe ve yerel kayda bağlıdır.

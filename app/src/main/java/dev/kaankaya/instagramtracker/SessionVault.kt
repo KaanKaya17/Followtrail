@@ -1,42 +1,24 @@
 package dev.kaankaya.instagramtracker
 
 import android.content.Context
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
 import android.util.AtomicFile
 import java.io.File
-import java.security.KeyStore
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
 
 /** Owns bounded, atomic Keystore encryption for account and mobile-session records. */
 class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int = 512 * 1024) {
     init { require(slot.matches(Regex("[a-z]+"))); require(maxBytes in 1..2 * 1024 * 1024) }
     private val file = AtomicFile(File(context.noBackupFilesDir, "$slot.enc"))
     private val alias = "instagramtracker.$slot.v1"
+    private val cipher = LocalCipher(alias,maxBytes)
     private val aad = "InstagramTracker/session/v1".toByteArray()
     fun exists(): Boolean = file.baseFile.exists() || File(file.baseFile.path + ".bak").exists()
     fun stamp(): String = listOf(file.baseFile, File(file.baseFile.path + ".bak")).joinToString(":") { "${it.lastModified()}:${it.length()}" }
-    private fun key(): SecretKey {
-        val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        (store.getKey(alias, null) as? SecretKey)?.let { return it }
-        return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore").apply {
-            init(KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setKeySize(256).setRandomizedEncryptionRequired(true).build())
-        }.generateKey()
-    }
     fun write(value: String) {
         val json = value.toByteArray(Charsets.UTF_8)
         if (json.size > maxBytes) throw ApiFailure(ApiFailure.Kind.CAPACITY)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, key())
-        cipher.updateAAD(aad)
-        val encrypted = cipher.doFinal(json)
+        val encrypted = cipher.seal(json,aad)
         val output = file.startWrite()
-        try { output.write(cipher.iv); output.write(encrypted); file.finishWrite(output) }
+        try { output.write(encrypted); file.finishWrite(output) }
         catch (failure: Exception) { file.failWrite(output); throw failure }
     }
     fun read(): String? {
@@ -52,16 +34,12 @@ class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int 
             }
             output.toByteArray()
         }
-        require(bytes.size >= 29)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, bytes.copyOfRange(0, 12)))
-        cipher.updateAAD(aad)
-        return String(cipher.doFinal(bytes.copyOfRange(12, bytes.size)), Charsets.UTF_8)
+        return String(cipher.open(bytes,aad), Charsets.UTF_8)
     }
     fun clear() {
         file.delete()
         check(!file.baseFile.exists() && !File(file.baseFile.path + ".bak").exists() && !File(file.baseFile.path + ".new").exists())
-        KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(alias)
+        cipher.destroy()
     }
 }
 
@@ -74,6 +52,8 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     val daily get()=DailyStatsStore(context,storage())
     val visual get()=VisualHistoryStore(context,storage())
     val journal get()=CheckJournal(context,"${storage()}checks")
+    val privacy get()=PrivacyStore(context,storage())
+    private fun lists()=if(slot=="account")FollowListVault(context,owner=currentOwner()) else FollowListVault(context,if(slot=="previewaccount")"previewlists" else storage()+"lists")
     fun record(session: Session, event: CheckEvent) = synchronized(lock) {
         val current = try { read() } catch (_: Exception) { null }
         if (current?.session == session && (event.target == current.profile.userId || current.people.any { it.latest.userId == event.target }))
@@ -93,23 +73,62 @@ class SessionVault(private val context: Context, private val slot: String = "acc
         val previous = try { EncryptedRecord(context,destination,ACCOUNT_BYTES).read()?.let(AccountCodec::decode) } catch (_: Exception) { null }
         persist(account,previous,destination)
     }
-    private fun persist(account: SavedAccount, previous: SavedAccount?, destination: String) {
-        EncryptedRecord(context,destination,ACCOUNT_BYTES).write(AccountCodec.encode(account))
-        catalog?.remember(account,owner==null)
-        VisualHistoryStore(context,destination).observe(account)
+    private fun persist(account: SavedAccount, previous: SavedAccount?, destination: String): SavedAccount {
+        val retained=PrivacyStore(context,destination).read(account.session.userId).retain(account,System.currentTimeMillis())
+        EncryptedRecord(context,destination,ACCOUNT_BYTES).write(AccountCodec.encode(retained))
+        catalog?.remember(retained,owner==null)
+        VisualHistoryStore(context,destination).observe(retained)
         DailyStatsStore(context,destination).observe(account,previous?.takeIf { it.session.userId==account.session.userId })
+        return retained
     }
     fun read(): SavedAccount? = synchronized(lock) {
         val c=catalog
         c?.initialize()
         if(c!=null && (currentOwner()==null || !c.stored(currentOwner()!!)))return@synchronized null
-        record.read()?.let(AccountCodec::decode)?.also {require(c==null || it.session.userId==currentOwner())}
-            ?: if(c!=null)throw ApiFailure(ApiFailure.Kind.STORAGE) else null
+        val saved=record.read()?.let(AccountCodec::decode)?.also {require(c==null || it.session.userId==currentOwner())}
+            ?: return@synchronized if(c!=null)throw ApiFailure(ApiFailure.Kind.STORAGE) else null
+        maintain(saved)
+    }
+    private fun maintain(saved: SavedAccount, force: Boolean = false): SavedAccount {
+        val now=System.currentTimeMillis(); val policy=privacy.read(saved.session.userId)
+        if(!force && !policy.due(now))return saved
+        val attempted=policy.copy(attemptedAt=now,failed=false)
+        privacy.write(saved.session.userId,attempted)
+        return try {
+            daily.observe(saved,null)
+            daily.prune(saved.session.userId,policy.dailyBefore(now))
+            visual.prune(saved.session.userId,policy.historyBefore(now))
+            journal.prune(saved.session,policy.historyBefore(now))
+            lists().prunePast(saved.session,policy.historyBefore(now))
+            val retained=policy.retain(saved,now)
+            record.write(AccountCodec.encode(retained))
+            retained
+        } catch (_: Exception) {
+            privacy.write(saved.session.userId,attempted.copy(failed=true)); saved
+        }
+    }
+    fun configurePrivacy(expected: Session, value: ArchiveRetention): SavedAccount = synchronized(lock) {
+        val current=read()?.takeIf {it.session==expected} ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        privacy.write(expected.userId,value.copy(attemptedAt=0,failed=false))
+        maintain(current,true)
+    }
+    /** Auxiliary owners finish erasure before the saved-profile registry is changed. */
+    fun erasePerson(expected: Session, target: String, followLists: FollowListVault = lists()): SavedAccount = synchronized(lock) {
+        val current=read()?.takeIf {it.session==expected} ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        val person=current.people.firstOrNull {it.latest.userId==target} ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        daily.clear(expected.userId,target,maxOf(System.currentTimeMillis(),person.latest.observedAt))
+        visual.clear(expected.userId,target)
+        journal.clearTarget(expected,target)
+        followLists.clearTarget(expected,target)
+        AvatarCache(context,if(slot=="previewaccount")"previewavatars" else "avatars").clear(expected.userId,target)
+        val retained=current.copy(people=current.people.filterNot {it.latest.userId==target},
+            automation=current.automation.copy(targets=current.automation.targets-target))
+        persist(retained,current,storage())
     }
     /** Serialize foreground/background read-modify-write operations across vault instances. */
     fun update(expected: Session, transform: (SavedAccount) -> SavedAccount): SavedAccount = synchronized(lock) {
         val current = read()?.takeIf { it.session == expected } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
-        transform(current).also { require(it.session == expected); persist(it,current,storage()) }
+        val next=transform(current); require(next.session==expected); persist(next,current,storage())
     }
     fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
         val previous = if(catalog!=null)SessionVault(context,owner=session.userId).read() else read()
@@ -151,6 +170,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
         journal.clear()
         visual.clearAll()
         daily.clearAll()
+        privacy.clear()
         id?.let {catalog?.forget(it)}
     }
 }

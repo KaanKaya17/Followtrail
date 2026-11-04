@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="retention_title">"Retenção de dados"</string>
+    <string name="retention_description">"Escolha por quanto tempo manter o histórico detalhado e as estatísticas diárias. O perfil atual e o último registro de lista para comparação são mantidos. A limpeza é feita uma vez por dia enquanto o app está em uso."</string>
+    <string name="retention_history">"Histórico detalhado"</string>
+    <string name="retention_daily">"Estatísticas diárias"</string>
+    <string name="retention_manual">"Até eu excluir"</string>
+    <string name="retention_days">"%1$d dias"</string>
+    <string name="retention_apply">"Salvar e limpar"</string>
+    <string name="retention_confirm">"Os arquivos anteriores ao período escolhido serão excluídos deste dispositivo. Isso não pode ser desfeito. Os arquivos exportados devem ser excluídos separadamente. Os últimos registros para comparação e as datas que impedem o retorno do histórico excluído são mantidos."</string>
+    <string name="retention_failed">"Não foi possível limpar alguns arquivos. As preferências foram salvas; tente novamente em Retenção de dados."</string>
+    <string name="retention_saved">"Preferências de retenção aplicadas."</string>
+    <string name="retention_remove_scope">"O histórico, as estatísticas diárias, o arquivo de fotos, as notificações, as notas e as listas de @%1$s serão excluídos. Não inclui a presença nas listas de outras contas nem os arquivos exportados. Nada muda no Instagram."</string>
+</resources>

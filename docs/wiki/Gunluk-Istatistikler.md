@@ -2,7 +2,7 @@
 
 [Kılavuz ana sayfası](Home.md) · [Geçmiş ve analiz](Gecmis-ve-Analiz.md)
 
-Günlük geçmiş, kendi hesabınızın ve kaydettiğiniz profillerin sayaçlarını uzun süre incelemek içindir. Ayrıntılı son kontrollerin sınırı dolsa da günlük özetler otomatik silinmez.
+Günlük geçmiş, kendi hesabınızın ve kaydettiğiniz profillerin sayaçlarını uzun süre incelemek içindir. Ayrıntılı son kontrollerin sınırı dolsa da günlük özetler varsayılan olarak korunur. Veri saklama bölümünde süre seçilirse günlük özetler bu süreye göre temizlenir.
 
 ## Ekranı açmak
 
@@ -34,7 +34,7 @@ Bu kayıtlar cihazlar arasında otomatik eşitlenmez. Bir telefonda alınan göz
 
 **Günlük geçmişi temizle**, seçili profilin günlük özetlerini kaldırır. Son ayrıntılı kontrolleri, listeleri ve oturumu kaldırmaz. Temizlenen eski özetler, yakın geçmişten kendiliğinden yeniden oluşturulmaz. Sonraki yeni kontroller yeni günlük kayıtlar oluşturabilir.
 
-Hesabın yerel verilerini silmek o hesaba ait günlük arşivi de siler. Windows'ta bir kişiyi kayıtlı profillerden çıkarmak geçmişi korur; onay metninde bu kapsam belirtilir. Android'de kişi kaldırma, o kişinin günlük geçmişini de temizler.
+Hesabın yerel verilerini silmek o hesaba ait günlük arşivi de siler. Windows ve Android'de bir kişiyi kayıtlı profillerden çıkarmak o kişinin günlük geçmişini de temizler. Dışa aktarılan dosyalar ayrıca silinmelidir. [Saklama ve silme kapsamı](../DATA-LIFECYCLE.md).
 
 Disk, şifreleme veya bozuk dosya sorunu olursa günlük kayıt durumu ayrıca hata gösterebilir. Mevcut dosyalar sessizce sıfırlanmaz. Sorun bildiriminde parola veya ham arşiv dosyası paylaşmayın.
 

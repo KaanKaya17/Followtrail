@@ -111,6 +111,7 @@ class DailyStore:
         self.closed = False
         self.revision = uuid.uuid4().hex
         self.revisions = {}
+        self.retention_after = 0
 
     def prefix(self, target):
         if not identity(target):
@@ -132,6 +133,9 @@ class DailyStore:
         self.revisions[value['target']] = uuid.uuid4().hex
 
     def reset_after(self, target):
+        return max(self.retention_after, self.saved_reset_after(target))
+
+    def saved_reset_after(self, target):
         value = self.read(self.directory / (self.prefix(target)+'.reset'))
         if value is None:
             return 0
@@ -139,6 +143,22 @@ class DailyStore:
                 type(value.get('after')) is not int or value['after']<0):
             raise ValueError('daily reset')
         return value['after']
+
+    def prune(self, before):
+        """UTC day watermark prevents expired summaries being backfilled from old observations."""
+        if not before:
+            return
+        with self.lock:
+            for document in self.iter_documents():
+                target = document['target']
+                after = max(self.saved_reset_after(target), before-1)
+                self.write(self.directory/(self.prefix(target)+'.reset'), dict(version=1,owner=self.owner,target=target,after=after))
+                days = {key: row for key,row in document['days'].items() if int(key) >= before}
+                path = self.directory/f"{self.prefix(target)}-{document['year']}.stats"
+                if days != document['days']:
+                    if days:self.write(path,dict(document,days=days))
+                    else:path.unlink()
+            self.revision=uuid.uuid4().hex
 
     def load_year(self, target, year):
         path = self.directory / f'{self.prefix(target)}-{year}.stats'

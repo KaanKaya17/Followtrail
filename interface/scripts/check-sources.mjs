@@ -43,6 +43,7 @@ for (const file of [
   "scripts/check-ui.mjs",
   "scripts/check-desktop.mjs",
   "scripts/check-functional-desktop.mjs",
+  "scripts/check-privacy-desktop.mjs",
   "scripts/check-list-pages-desktop.mjs",
   "scripts/local-list-fixture.mjs",
   "scripts/read-history.mjs",

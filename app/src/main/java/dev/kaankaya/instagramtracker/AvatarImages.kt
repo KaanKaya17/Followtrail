@@ -77,23 +77,55 @@ class CdnAvatarFetcher : AvatarFetcher {
 class AvatarCache(context: Context, slot: String = "avatars") {
     companion object {
         private val lock = Any()
+        private val migrationFailures=mutableSetOf<String>()
         const val MAX_DISK_BYTES = 8L * 1024 * 1024
         const val MAX_FILES = 128
     }
     private val directory: File
-    init { require(slot.matches(Regex("[a-z]+"))); directory = File(context.cacheDir, slot) }
+    private val identity="${context.packageName}:$slot"
+    val cleanupFailed get()=synchronized(lock){identity in migrationFailures}
+    private val cipher = LocalCipher("instagramtracker.${slot}cache.v1", AvatarPolicy.MAX_BYTES)
+    private val magic = "ITAV1".toByteArray(Charsets.US_ASCII)
+    private fun aad(key: String) = "InstagramTracker/avatar/v1:$key".toByteArray()
+    private var migrated=false
+    init {
+        require(slot.matches(Regex("[a-z]+"))); directory = File(context.cacheDir, slot)
+    }
+    private fun migrate() {
+        if(migrated)return
+        // Disposable PNGs from older versions must not remain on disk after migration.
+        directory.listFiles().orEmpty().filter { it.isFile && it.name.matches(Regex("[a-f0-9-]+")) }.forEach { file ->
+            val header = file.inputStream().use { input -> ByteArray(magic.size).also { bytes ->
+                var offset=0
+                while(offset<bytes.size) { val count=input.read(bytes,offset,bytes.size-offset);if(count<0)break;offset+=count }
+            } }
+            if (!header.contentEquals(magic)) check(file.delete())
+        }
+        migrated=true
+    }
+    fun migrateLegacy() = synchronized(lock) {
+        try {migrate();migrationFailures.remove(identity)}
+        catch (failure: Exception) {migrationFailures.add(identity);throw failure}
+        Unit
+    }
     fun read(key: String): ByteArray? = synchronized(lock) {
         require(key.matches(Regex("[a-f0-9-]+")))
+        migrate()
         val file = File(directory, key)
         if (!file.isFile) return null
-        if (file.length() > AvatarPolicy.MAX_BYTES) { file.delete(); return null }
-        file.readBytes().also { file.setLastModified(System.currentTimeMillis()) }
+        if (file.length() !in (magic.size+29).toLong()..(AvatarPolicy.MAX_BYTES+28+magic.size).toLong()) { file.delete(); return null }
+        try {
+            val bytes = file.readBytes()
+            require(bytes.copyOfRange(0,magic.size).contentEquals(magic))
+            cipher.open(bytes.copyOfRange(magic.size,bytes.size),aad(key)).also { file.setLastModified(System.currentTimeMillis()) }
+        } catch (_: Exception) { file.delete(); null }
     }
     fun write(key: String, bytes: ByteArray, valid: () -> Boolean) = synchronized(lock) {
         require(key.matches(Regex("[a-f0-9-]+")) && bytes.size <= AvatarPolicy.MAX_BYTES)
         if (!valid()) return@synchronized
+        migrate()
         check(directory.isDirectory || directory.mkdirs())
-        File(directory, key).writeBytes(bytes)
+        File(directory, key).writeBytes(magic + cipher.seal(bytes,aad(key)))
         val files = directory.listFiles().orEmpty().filter { it.isFile }.sortedByDescending { it.lastModified() }
         var total = 0L
         files.forEachIndexed { index, file ->
@@ -104,6 +136,7 @@ class AvatarCache(context: Context, slot: String = "avatars") {
     fun clear(owner: String? = null, target: String? = null) = synchronized(lock) {
         val prefix = owner?.let { AvatarPolicy.prefix(it, target) }
         directory.listFiles().orEmpty().filter { prefix == null || it.name.startsWith(prefix) }.forEach { check(it.delete()) }
+        if(prefix==null)migrationFailures.remove(identity)
     }
 }
 
@@ -127,6 +160,8 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
     private val jobs = mutableSetOf<Job>()
     private val failures = LruCache<String, Boolean>(128)
     @Volatile private var closed = false
+    init { if(cache!=null)executor.execute {try {cache.migrateLegacy()}catch (_: Exception){ /* Reported in data settings; optional images stay optional. */ }} }
+    fun retryCacheCleanup() {cache?.migrateLegacy()}
     inner class Job internal constructor(val source: AvatarSource, private val deliver: (Bitmap) -> Unit) {
         private val cancelled = AtomicBoolean(false)
         @Volatile private var download: AvatarDownload? = null

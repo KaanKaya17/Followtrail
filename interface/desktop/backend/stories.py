@@ -286,6 +286,19 @@ class StoryStore:
         value['targets'].pop(target,None)
         self.save(value)
 
+    def prune(self,before):
+        if not before or not self.path.exists():
+            return
+        value=self.load()
+        changed=False
+        for entry in value['targets'].values():
+            expired=[pk for pk,row in entry['items'].items() if row['capturedAt'] < before]
+            # Keep ownership metadata intact until every file in this target has been removed.
+            for pk in expired:self.asset_path(pk).unlink(missing_ok=True)
+            for pk in expired:entry['items'].pop(pk)
+            changed=changed or bool(expired)
+        if changed:self.save(value)
+
     def clear_all(self):
         # Account deletion also owns encrypted incomplete/orphan files here.
         for path in self.directory.glob('*.media.vault'):

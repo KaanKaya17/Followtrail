@@ -33,11 +33,11 @@ Parola ve doğrulama kodu ek bir günlük/kasa kaydı olarak tutulmaz. Girişten
 
 ## Günlük sayaç arşivi
 
-Günlük özetler, yakın gözlemlerden ayrı şifreli profil/yıl dosyalarında tutulur. Süreye bağlı otomatik silme yoktur. Günlük geçmiş ekranından hedefe özel temizleme yapılabilir; hesabın yerel verilerini silmek kendi arşivini de siler. [Günlük istatistikler](Gunluk-Istatistikler.md).
+Günlük özetler, yakın gözlemlerden ayrı şifreli profil/yıl dosyalarında tutulur. Varsayılan kullanıcı silene kadar saklar. Windows'ta **Ayarlar → Yerel veriler → Veri saklama**, Android'de **⋯ → Veri saklama** bölümünden ayrıntılı geçmiş ve günlük istatistikler için ayrı ayrı 30/90/365 gün seçilebilir. Eski kayıtlar onaydan sonra ve sonraki kullanımlarda günde bir temizlenir; uygulama kapalıyken temizlik çalışmaz. Güncel profil ve son liste kaydı korunur. Temizlik başarısızsa bu bölümden yeniden denenebilir. [Günlük istatistikler](Gunluk-Istatistikler.md) · [Saklama ve silme kapsamı](../DATA-LIFECYCLE.md).
 
 ## Fotoğraflar
 
-Arama/liste küçük resimleri süre ve adet sınırları olan bellek önbelleklerini kullanır. Profil kayıtlarında kaynak görsel adresi bulunabilir. İsteğe bağlı avatar zaman tüneli, bu geçici küçük resimlerden farklı olarak görselleri yerel şifreli arşivde tutar.
+Arama/liste küçük resimleri sınırlı önbellekleri kullanır. Windows geçici resimleri bellekte; Android disk küçük resimleri Keystore/AES-GCM ile şifreli tutar. Android'in eski düz küçük resimleri görsel yükleyicisi açılınca arka planda temizlenir; yeniden indirilebilirler. Profil kayıtlarında kaynak görsel adresi bulunabilir. İsteğe bağlı avatar zaman tüneli, bu geçici küçük resimlerden farklı olarak görselleri yerel şifreli arşivde tutar.
 
 ## Yedek ve dışa aktarma
 
@@ -56,5 +56,7 @@ Geri yükleme oturumu veya otomatik kontrolü kendiliğinden etkinleştirmez. Ka
 Bağlantı kaldırma, uygulamadaki yerel oturum kopyasını yönetir. Instagram sunucusundaki oturumu kapattığını varsaymayın. Gerekirse resmî Instagram güvenlik/giriş hareketleri ekranını kendiniz inceleyin.
 
 Seçili hesabı kaldırmak ile bütün yerel kayıtları temizlemek farklı kapsamlardır; onay metnini okuyun. Yerel veriyi silmek mevcut güvenlik molasını sıfırlamak için kullanılmaz.
+
+Kaydedilen profili kaldırmak, o kişinin geçmişini, günlük/görsel arşivini, uygulama içi bildirimlerini, notlarını ve kendi liste kayıtlarını da siler; Windows'ta hikâyeleri de dahildir. **Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar ayrıca yönetilir.** Silinen günlüklerin eski gözlemlerden geri oluşmaması için şifreli silme sınırı korunur. Diğer bağlı hesabın deposu etkilenmez. Ayrıntılar: [veri yaşam döngüsü](../DATA-LIFECYCLE.md).
 
 Güvenlik açığı bildirimi için [güvenlik politikasını](../../SECURITY.md) izleyin; parola, kod, çerez ve anahtarları issue'ya eklemeyin.
