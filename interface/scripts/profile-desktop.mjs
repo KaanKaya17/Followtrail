@@ -29,8 +29,13 @@ try {
     new MutationObserver(records => { window.qaMutations += records.length; }).observe(document.getElementById('app'), { childList: true, subtree: true });
   });
   await delay(3000);
+  const snapshotBytes=await page.evaluate(async()=>new TextEncoder().encode(JSON.stringify((await window.TrackerDesktop.command('state')).state)).length);
+  if(process.argv.includes('--snapshot-only')) {
+    await writeFile(path.join(out,'snapshot-size.json'),JSON.stringify({version,snapshotBytes,large}));
+    console.log(JSON.stringify({version,snapshotBytes,large}));
+  } else {
   const samples = {};
-  for (const phase of ['visible-idle', 'hidden-idle', 'hidden-updates']) {
+  for (const phase of ['visible-idle', 'visible-updates', 'hidden-idle', 'hidden-updates']) {
     if (phase === 'hidden-idle') await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close());
     const output = path.join(out, phase + '.json');
     await unlink(output + '.ready').catch(error => { if (error.code !== 'ENOENT') throw error; });
@@ -45,7 +50,7 @@ try {
     if (!ready) throw Error('Resource monitor did not become ready');
     const before = await page.evaluate(() => window.qaMutations);
     const start = performance.now();
-    if (phase === 'hidden-updates') {
+    if (phase.endsWith('-updates')) {
       for (let n = 0; n < 40; n++) {
         const result = await page.evaluate(n => window.TrackerDesktop.command('save_person', { id: '200', note: `Synthetic update ${n}` }).then(r => ({ ok: r.ok })), n);
         assert.equal(result.ok, true); changes++;
@@ -61,8 +66,9 @@ try {
   assert.equal(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isVisible()), false);
   await app.evaluate(({ app }) => app.emit('activate'));
   await page.waitForFunction(async () => (await window.TrackerDesktop.command('state')).state.people.find(p => p.id === '200').note === 'Synthetic update 39');
-  const result = { version, samples, changes, savedAccounts:accounts?2:1, fixture: large ? '24 profiles including owner, 20 with 60 history entries; two 10000-member snapshots; 2000 events and 500 log groups; synthetic offline data' : 'standard seed_qa (4 profiles including owner, lists and notification log); synthetic offline data', warmupSeconds: 3, liveInstagram: false, limitations: 'Short warm samples, not an hours-long leak or weak-device benchmark. Hidden update burst is 40 local encrypted note saves through real IPC, not Instagram request timing. The optional second account has one saved target and remains inactive.' };
+  const result = { version, snapshotBytes, samples, changes, savedAccounts:accounts?2:1, fixture: large ? '24 profiles including owner, 20 with 60 history entries; two 10000-member snapshots; 2000 events and 500 log groups; synthetic offline data' : 'standard seed_qa (4 profiles including owner, lists and notification log); synthetic offline data', warmupSeconds: 3, liveInstagram: false, limitations: 'Short warm samples, not an hours-long leak or weak-device benchmark. Each update burst is 40 local encrypted note saves through real IPC, not Instagram request timing. The optional second account has one saved target and remains inactive.' };
   await writeFile(path.join(out, 'summary.json'), JSON.stringify(result, null, 2));
+  }
 } finally {
   try { await app.close(); }
   finally { if (sampleProcess && sampleProcess.exitCode == null) sampleProcess.kill(); }

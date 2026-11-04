@@ -190,7 +190,7 @@ class Engine:
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
                 'storyDetail': self.story_detail,
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.46'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.47'}
 
     def story_target(self, args):
         owner = (self.data['account'] or {}).get('id')
@@ -394,7 +394,11 @@ class Engine:
             'from_module': 'self_profile' if identity == str(client.user_id) else 'profile', 'is_app_start': False})
         result = parse_profile(payload, identity)
         if avatar:
-            read_avatar(result, self)
+            previous = self.data['account'] if (self.data['account'] or {}).get('id') == identity else self.data['people'].get(identity)
+            if result.get('picture') is not None and previous and result['picture'] == previous.get('picture') and previous.get('avatar'):
+                result['avatar'] = previous['avatar']
+            else:
+                read_avatar(result, self)
         return result
 
     def connect(self, args, imported=False):

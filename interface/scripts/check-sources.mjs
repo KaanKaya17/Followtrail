@@ -8,6 +8,8 @@ for (const file of [
   "web/profile-search.js",
   "web/list-photos.js",
   "web/list-pages.js",
+  "web/history-pages.js",
+  "web/dom-updates.js",
   "web/daily-chart.js",
   "web/stories.js",
   "web/profile-details.js",
@@ -43,6 +45,7 @@ for (const file of [
   "scripts/check-functional-desktop.mjs",
   "scripts/check-list-pages-desktop.mjs",
   "scripts/local-list-fixture.mjs",
+  "scripts/read-history.mjs",
   "scripts/wait-for-account.mjs",
   "scripts/check-daily-desktop.mjs",
   "scripts/check-navigation-desktop.mjs",
@@ -53,6 +56,7 @@ for (const file of [
   "scripts/check-list-recovery-desktop.mjs",
   "scripts/check-notifications-desktop.mjs",
   "scripts/check-timeline-desktop.mjs",
+  "scripts/check-resource-desktop.mjs",
 ]) {
   execFileSync(process.execPath, ["--check", path.join(root, file)], {
     stdio: "inherit",

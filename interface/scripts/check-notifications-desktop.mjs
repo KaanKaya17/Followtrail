@@ -1,3 +1,5 @@
+import {waitHistory} from './read-history.mjs';
+import {readHistory,historyDetail} from './read-history.mjs';
 import {_electron as electron} from 'playwright-core';
 import {execFileSync} from 'node:child_process';
 import {mkdtemp,mkdir,readFile,writeFile} from 'node:fs/promises';
@@ -24,7 +26,7 @@ async function launch() {
  await page.locator('.account-switcher').waitFor();await page.locator('.sidebar nav a[href="#notifications"]').click();await row('qa-multi-change').waitFor();
 }
 try {
- await launch();await command('settings',{theme:'light'});const before=(await command('state')).state;
+ await launch();await command('settings',{theme:'light'});const before=(await command('state')).state;before.notificationLog=await readHistory(page,'notifications',before);
  const main=row('qa-multi-change');await main.locator('.avatar img').waitFor();
  assert.equal(await main.locator('.notification-card-heading strong').innerText(),'@qa.deniz · 3 değişiklik');
  assert.deepEqual(await main.locator('.notification-change').first().locator('.notification-pair > .notification-before, .notification-pair > strong').allTextContents(),['81','82']);
@@ -43,23 +45,23 @@ try {
  await app.evaluate(({BrowserWindow},state)=>BrowserWindow.getAllWindows()[0].webContents.send('tracker:event',{type:'result',state}),before);
  const mixed=row('qa-mixed-notification');assert.equal(await mixed.locator('.notification-change').count(),3);
  assert.match(await mixed.locator('.notification-more').innerText(),/1/);
- await type('lists').click();assert.equal(await main.count(),0);assert.equal(await mixed.count(),1);
+ await type('lists').click();await waitHistory(page);assert.equal(await main.count(),0);assert.equal(await mixed.count(),1);
  assert.equal(await mixed.locator('.notification-change').first().locator('.notification-list-preview').count(),1);
  assert.match(await mixed.innerText(),/@qa.new700, @qa.new701/);assert.doesNotMatch(await mixed.innerText(),/@qa.new702/);
  assert.match(await mixed.innerText(),/ve 1 hesap daha/);
  await mixed.screenshot({path:path.join(output,'mixed-list-card.png')});
  await mixed.click();await page.locator('.change-log-details > li').first().waitFor();assert.equal(await page.locator('.change-log-details > li').count(),4);
- await page.keyboard.press('Escape');await type('profile').click();assert.equal(await mixed.count(),1);
- assert.equal((await command('state')).state.notificationLog.find(entry=>entry.id==='qa-mixed-notification').readAt!=null,true);
+ await page.keyboard.press('Escape');await type('profile').click();await waitHistory(page);assert.equal(await mixed.count(),1);
+ assert.equal((await historyDetail(page,'notification','qa-mixed-notification')).readAt!=null,true);
  checks.push('Type filters keep mixed observations grouped; bounded frozen-name previews open the complete four-change log and persist its read state');
- await page.locator('[data-action="notification-filter"][data-value="unread"]').click();await type('access').click();
+ await page.locator('[data-action="notification-filter"][data-value="unread"]').click();await waitHistory(page);await type('access').click();await waitHistory(page);
  const access=before.notificationLog.filter(entry=>entry.changes.some(change=>change.category==='access'));
  assert.ok(access.length);for(const entry of access)await command('read_notification',{id:entry.id});
  await page.getByRole('heading',{name:'Bu filtrelere uygun kayıt yok.',exact:true}).waitFor();
- await page.getByRole('button',{name:'Tüm bildirimleri göster',exact:true}).click();
+ await page.getByRole('button',{name:'Tüm bildirimleri göster',exact:true}).click();await waitHistory(page);
  assert.equal(await type('all').getAttribute('aria-pressed'),'true');assert.equal(await main.count(),1);
  assert.equal(await page.locator('[data-action="notification-filter"][data-value="all"]').getAttribute('aria-pressed'),'true');
- const after=(await command('state')).state;
+ const after=(await command('state')).state;after.notificationLog=await readHistory(page,'notifications',after);
  assert.equal(after.notificationLog.find(entry=>entry.id==='qa-multi-change').readAt,null);
  assert.deepEqual(after.gate,before.gate);assert.deepEqual(after.notificationRules,before.notificationRules);
  checks.push('Unread plus type filters show an accurate empty state; reset clears both filters and filtering never reads entries or changes requests/preferences');
@@ -77,7 +79,7 @@ try {
  }
  await page.screenshot({path:path.join(output,'notifications-small.png')});
  checks.push('Four languages and light/dark/OLED themes preserve source text and fit the 960×680 native window');
- await type('lists').click();await page.locator('[data-action="notification-filter"][data-value="unread"]').click();
+ await type('lists').click();await waitHistory(page);await page.locator('[data-action="notification-filter"][data-value="unread"]').click();await waitHistory(page);
  await command('switch_account',{id:'400'});await page.waitForFunction(()=>location.hash==='#overview');
  await page.locator('.sidebar nav a[href="#notifications"]').click();assert.equal(await type('all').getAttribute('aria-pressed'),'true');assert.equal(await main.count(),0);
  await command('switch_account',{id:'100'});await page.waitForFunction(()=>location.hash==='#overview');

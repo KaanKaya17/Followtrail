@@ -1,3 +1,4 @@
+import {readHistory} from './read-history.mjs';
 import { _electron as electron } from 'playwright-core';
 import { mkdtemp,mkdir,readFile,writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
@@ -77,7 +78,7 @@ try {
  checks.push('A busy progress state prevents a second refresh command');
  await route('2','people');await page.locator('#people-search').fill('nobody_matches_this');
  await page.getByRole('button',{name:'Arama ve filtreleri temizle',exact:true}).click();assert.equal(await page.locator('.person-card').count(),3);
- await route('4','notifications');for(const entry of (await state()).state.notificationLog) await page.evaluate(id=>window.TrackerDesktop.command('read_notification',{id}),entry.id);
+ await route('4','notifications');for(const entry of (await readHistory(page,'notifications'))) await page.evaluate(id=>window.TrackerDesktop.command('read_notification',{id}),entry.id);
  await page.getByRole('button',{name:/^Okunmamış/}).click();await page.getByRole('heading',{name:'Okunmamış bildirim yok.',exact:true}).waitFor();
  await page.getByRole('button',{name:'Tüm bildirimleri göster',exact:true}).click();assert.ok(await page.locator('.notification-log-row').count()>0);
  checks.push('Search-zero and unread-zero states offer working reset actions rather than first-use instructions');

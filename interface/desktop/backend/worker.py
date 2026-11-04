@@ -12,6 +12,7 @@ from accounts import Accounts
 import localization
 from network import AppFailure, failure
 from thumbnails import Thumbnails
+from history_pages import HistoryPages, preview_log
 
 logging.disable(logging.CRITICAL)
 sys.stdin.reconfigure(encoding='utf-8')
@@ -37,7 +38,8 @@ def main():
     except Exception:
         emit({'type': 'fatal', 'code': 'storage', 'message': 'Şifreli depo açılamadı. Dosyalar korundu; otomatik sıfırlanmadı.'})
         return 2
-    emit({'type': 'ready', 'state': engine.snapshot()})
+    history = HistoryPages()
+    emit({'type': 'ready', 'state': history.publish(engine.snapshot())})
     images = Thumbnails(emit)
 
     def execute(request):
@@ -53,12 +55,12 @@ def main():
                 emit({'type':'result','id':request['id'],'ok':True,'storyMedia':asset})
                 return
             state = engine.run(request['operation'], request.get('args') or {}, group_id=group_id)
-            publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': state,
-                  'notifications': engine.notifications, 'notificationGroupId': group_id})
+            publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': history.publish(state),
+                  'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})
         except Exception as exc:
             publish({'type': 'result', 'id': request['id'], 'ok': False,
-                  'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': engine.snapshot(),
-                  'notifications': engine.notifications, 'notificationGroupId': group_id})
+                  'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': history.publish(engine.snapshot()),
+                  'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})
         finally:
             active.release()
 
@@ -71,7 +73,10 @@ def main():
             if not isinstance(request, dict) or not isinstance(request.get('id'), int):
                 raise ValueError()
             operation = request.get('operation')
-            if operation == 'daily_stats':
+            if operation in ('history_page', 'history_detail'):
+                value = history.page(request.get('args')) if operation == 'history_page' else history.detail(request.get('args'))
+                emit({'type':'control', 'id':request['id'], 'ok':True, 'page' if operation == 'history_page' else 'history':value})
+            elif operation == 'daily_stats':
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'daily':engine.daily_query(request.get('args'))})
             elif operation == 'list_page':
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'page':engine.list_pages.page(request.get('args'))})
