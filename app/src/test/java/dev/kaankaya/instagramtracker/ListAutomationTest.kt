@@ -21,6 +21,30 @@ class ListAutomationTest {
         val foreign = JSONObject(AccountCodec.encode(account)); foreign.getJSONObject("listAutomation").getJSONArray("targets").put("999")
         assertThrows(Exception::class.java) { AccountCodec.decode(foreign.toString()) }
     }
+    @Test fun serverLimitedCoverageIsNotRetriedAutomaticallyOnCountChangeOrDailyDeadline() {
+        val initial=ListTarget("200",followers=ListScan(basisCount=2,basisAt=1000))
+        val target=ListAutomationPolicy.record(initial,session,page(2000,listOf("1"),limited=true))
+        val restored=FollowArchiveCodec.decode(FollowArchiveCodec.encode(ListArchive(session.userId,session.connectionBinding,listOf(target)))).targets.single()
+        assertEquals(target,restored)
+        assertTrue(ListAutomationPolicy.coverageHeld(restored,FollowDirection.FOLLOWERS))
+        assertFalse(ListAutomationPolicy.coverageHeld(restored,FollowDirection.FOLLOWING))
+        assertNull(AutomaticQueue.page(target,FollowDirection.FOLLOWERS,3000,basis=ListBasis(3,3000)))
+        assertNull(AutomaticQueue.page(target,FollowDirection.FOLLOWERS,2001+ListAutomationPolicy.RESCAN_MS,basis=ListBasis(3,3000)))
+    }
+    @Test fun reconnectResetAndNewManualPagesCanResumeWithoutDiscardingOldCoverage() {
+        val limited=ListAutomationPolicy.record(ListTarget("200"),session,page(2000,listOf("1"),limited=true))
+        val reconnected=limited.copy(followers=ListScan())
+        assertNotNull(AutomaticQueue.page(reconnected,FollowDirection.FOLLOWERS,3000,basis=ListBasis(3,3000)))
+        val manual=ListAutomationPolicy.record(limited,session,page(4000,listOf("1"),next="next"))
+        assertNotNull(AutomaticQueue.page(manual,FollowDirection.FOLLOWERS,4001,manual.snapshot!!.followers,ListBasis(3,4000)))
+    }
+    @Test fun stalledAndUnknownCoverageAlsoRequireAnExplicitRetry() {
+        val first=ListAutomationPolicy.record(ListTarget("200"),session,page(1000,listOf("1"),next="c"))
+        val stalled=ListAutomationPolicy.record(first,session,page(2000,listOf("2"),cursor="c",next="c"))
+        assertNull(AutomaticQueue.page(stalled,FollowDirection.FOLLOWERS,2001+ListAutomationPolicy.RESCAN_MS,basis=ListBasis(3,3000)))
+        val unknown=ListAutomationPolicy.record(ListTarget("200"),session,page(2000,listOf("1")).copy(hasMore=FollowField(true,true)))
+        assertNull(AutomaticQueue.page(unknown,FollowDirection.FOLLOWERS,2001+ListAutomationPolicy.RESCAN_MS,basis=ListBasis(3,3000)))
+    }
     @Test fun legacySingleTargetMigratesWithoutDiscardingCoverageAndCursor() {
         val snapshot = FollowSnapshot("100", session.mobileBinding, "200").record(page(1000, listOf("1", "2"), next = "cursor"))
         val migrated = FollowArchiveCodec.decode(FollowListCodec.encode(snapshot))

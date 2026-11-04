@@ -102,6 +102,7 @@
     <string name="list_limited">Instagram listenin bir bölümünü göstermedi. Okunan hesaplar saklandı.</string>
     <string name="list_unknown">Listenin tamamı okunamadı.</string>
     <string name="list_stalled">Liste ilerlemedi. Okunan hesaplar saklandı.</string>
+    <string name="list_automatic_coverage_hold">Bu listenin otomatik taraması durdu. Yeniden denemek için Listeyi yeniden kontrol et seçeneğini kullanabilirsin.</string>
     <string name="list_observed">Son kontrol · %1$s</string>
     <string name="list_first">İlk sayfayı oku</string>
     <string name="list_next">Sonraki sayfayı oku</string>

@@ -29,6 +29,15 @@ data class ListPageCommit(val target: ListTarget, val difference: ListDifference
 object ListAutomationPolicy {
     const val RESCAN_MS = 24 * 60 * 60 * 1000L
     const val OWN_PROFILE_MS = MonitorPolicy.POLL_MS
+    /** A restricted committed run needs an explicit retry. Reconnecting resets its scan state. */
+    fun coverageHeld(target: ListTarget, direction: FollowDirection): Boolean {
+        val state = target.scan(direction)
+        val run = target.snapshot?.run(direction) ?: return false
+        return state.failure == null && state.attemptAt == run.latest.observedAt && when (run.coverage()) {
+            FollowCoverage.LIMITED, FollowCoverage.UNKNOWN, FollowCoverage.STALLED -> true
+            else -> false
+        }
+    }
     fun difference(target: ListTarget, direction: FollowDirection): ListDifference? {
         val before = target.previous?.run(direction) ?: return null
         val after = target.snapshot?.run(direction) ?: return null
@@ -68,7 +77,7 @@ object AutomaticQueue {
     fun page(target: ListTarget, direction: FollowDirection, now: Long, continuationOf: FollowRun? = null,
         basis: ListBasis? = null): AutomaticTask.Page? {
         val state = target.scan(direction)
-        if (state.failure == ApiFailure.Kind.CAPACITY) return null
+        if (state.failure == ApiFailure.Kind.CAPACITY || ListAutomationPolicy.coverageHeld(target, direction)) return null
         val run = target.snapshot?.run(direction)
         val continuingRound = continuationOf != null && state.continuing && run == continuationOf && run.coverage() == FollowCoverage.MORE
         val changed = !state.continuing && state.failure == null && basis != null &&

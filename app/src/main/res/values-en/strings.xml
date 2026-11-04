@@ -102,6 +102,7 @@
     <string name="list_limited">Instagram did not show part of the list. Downloaded accounts were saved.</string>
     <string name="list_unknown">The full list could not be read.</string>
     <string name="list_stalled">The list did not progress. Downloaded accounts were saved.</string>
+    <string name="list_automatic_coverage_hold">Automatic scanning for this list has stopped. Use Check list again to retry.</string>
     <string name="list_observed">Last checked · %1$s</string>
     <string name="list_first">"Read first page"</string>
     <string name="list_next">"Read next page"</string>

@@ -43,6 +43,20 @@ class AccountsTests(unittest.TestCase):
         self.assertEqual(self.e.snapshot()['accounts'][0]['username'], 'qa.owner')
         self.assertEqual(self.e.catalog['accounts']['100']['slot'], 'legacy')
 
+    def test_only_successful_user_account_switch_clears_search_cache(self):
+        self.add()
+        self.e.run('switch_account',{'id':'100'})
+        self.e.search_cache.bind('100')
+        result=self.e.search_cache.put('100','qa',[{'id':'200','username':'qa.person'}],{'200':'https://cdninstagram.com/synthetic.jpg'})
+        with self.assertRaises(AppFailure):
+            self.e.run('switch_account',{'id':'999'})
+        self.assertIsNotNone(self.e.search_cache.get('100','qa'))
+        self.e.run('switch_account',{'id':'100'})
+        self.assertIsNotNone(self.e.search_cache.picture('100',result['token'],'200'))
+        self.e.run('switch_account',{'id':'300'})
+        self.assertIsNone(self.e.search_cache.get('100','qa'))
+        self.assertIsNone(self.e.search_cache.picture('100',result['token'],'200'))
+
     def test_new_account_independent_vault_and_local_switch(self):
         self.add()
         self.assertEqual(self.e.active_id, '300')
@@ -113,8 +127,12 @@ class AccountsTests(unittest.TestCase):
         self.now += 301
         operations = []
         self.e.run('settings', {'automaticLists':False})
+        self.e.search_cache.bind('300')
+        cached=self.e.search_cache.put('300','qa',[{'id':'200','username':'qa.person'}],{'200':'https://cdninstagram.com/synthetic.jpg'})
         def refresh(engine, args):
             operations.append((engine.active_id, args['id']))
+            self.assertEqual(engine.catalog['active'],'300')
+            self.assertIsNotNone(engine.search_cache.picture(engine.catalog['active'],cached['token'],'200'))
             p = parse_profile(profile(followers=15))
             engine.record_profile(p, own=True)
             engine.save()
@@ -123,6 +141,7 @@ class AccountsTests(unittest.TestCase):
         self.assertEqual(operations, [('100','100')])
         self.assertEqual(state['activeAccountId'], '300')
         self.assertEqual(state['account']['id'], '300')
+        self.assertIsNotNone(self.e.search_cache.get('300','qa'))
         self.assertEqual(len(self.e.notifications), 1)
         self.assertEqual(self.e.notifications[0]['ownerId'], '100')
         self.assertEqual(self.e.notifications[0]['ownerUsername'], 'qa.owner')

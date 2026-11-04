@@ -1,7 +1,7 @@
 """Published local list views. Paging never opens a client or writes a vault."""
 import unicodedata
 import uuid
-from network import AppFailure
+from network import AppFailure, avatar_url
 
 
 def public_member(value):
@@ -46,6 +46,27 @@ class ListPages:
             self.signature = signature
             self.cached = None
         return self.view
+
+    def picture(self, args):
+        view = self.view
+        if not isinstance(args,dict) or not view or args.get('accountId') != view['accountId']:return None
+        owner, direction, scan_id, identity = (args.get(k) for k in ('ownerId','direction','scanId','id'))
+        if (not all(isinstance(v,str) for v in (owner,direction,scan_id,identity)) or
+                direction not in ('followers','following')):return None
+        record = view['records'].get(owner+':'+direction, {})
+        scans = record.get('snapshots',[]) + [s for s in (record.get('draft'),record.get('retainedPartial')) if s]
+        scan = next((s for s in scans if s.get('id') == scan_id),None)
+        member = scan.get('members',{}).get(identity) if scan else None
+        if not member:return None
+        picture = member.get('pictureUrl')
+        if not avatar_url(picture):
+            # Old visible lists may predate thumbnail retention. The same ID's
+            # newer page can supply its photo without rewriting membership.
+            candidates = [s for s in (record.get('draft'),*reversed(record.get('snapshots',[])),record.get('retainedPartial')) if s]
+            picture = next((p['pictureUrl'] for s in candidates for p in [s.get('members',{}).get(identity,{})]
+                            if avatar_url(p.get('pictureUrl'))),None)
+        if not avatar_url(picture):return None
+        return view['accountId'], owner+':'+direction+':'+scan_id, identity, picture
 
     def page(self, args):
         fields = {'accountId','revision','ownerId','direction','scanId','previousScanId','comparison','relation','query','offset'}

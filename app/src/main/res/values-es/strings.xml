@@ -123,6 +123,7 @@
     <string name="list_limited">Instagram no mostró parte de la lista. Las cuentas descargadas se guardaron.</string>
     <string name="list_unknown">No se pudo leer la lista completa.</string>
     <string name="list_stalled">La lista no avanzó. Las cuentas descargadas se guardaron.</string>
+    <string name="list_automatic_coverage_hold">El escaneo automático de esta lista se ha detenido. Usa Comprobar la lista de nuevo para reintentarlo.</string>
     <string name="list_observed">Última comprobación · %1$s</string>
     <string name="list_first">"Leer la primera página"</string>
     <string name="list_next">"Leer la página siguiente"</string>
