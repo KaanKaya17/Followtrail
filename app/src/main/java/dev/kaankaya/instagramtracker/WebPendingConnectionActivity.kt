@@ -66,7 +66,7 @@ class WebPendingConnectionActivity : LocalizedActivity() {
         if (reference != null) {
             if (next > gate.now() && next != Long.MAX_VALUE) label(getString(R.string.desktop_link_pause,
                 SimpleDateFormat("d MMM · HH:mm", AppLanguage.locale(this)).format(Date(next))))
-            action(R.string.ui_complete_connection, next <= gate.now()) { connect(reference) }
+            action(R.string.web_pending_verify, next <= gate.now()) { connect(reference) }
             action(R.string.web_pending_forget, primary = false) {
                 AlertDialog.Builder(this).setTitle(R.string.web_pending_forget)
                     .setMessage(R.string.web_pending_forget_body)
@@ -78,8 +78,27 @@ class WebPendingConnectionActivity : LocalizedActivity() {
             if (!busy && next > gate.now() && next != Long.MAX_VALUE)
                 main.postDelayed(wake, (next - gate.now()).coerceAtLeast(1))
         }
+        action(R.string.ui_request_information, primary = false) { requestInfo() }
         action(R.string.ui_close, primary = false) { finish() }
         setContentView(ScrollView(this).apply { isFillViewport = true; addView(page) })
+    }
+    private fun requestInfo() {
+        fun date(value: Long) = SimpleDateFormat("d MMM · HH:mm:ss", AppLanguage.locale(this)).format(Date(value))
+        val lines = mutableListOf(
+            getString(R.string.ui_read_attempts_started, java.text.NumberFormat.getIntegerInstance(AppLanguage.locale(this)).format(gate.attempts())),
+            getString(R.string.web_compare_last_counted_http, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)),
+            getString(R.string.web_transport_selected, getString(if (WebRequestClients.platformAvailable()) R.string.web_transport_android else R.string.web_transport_standard)),
+            getString(R.string.web_transport_app_id, WebRequests.APP_ID))
+        if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))
+        if (gate.restrictionPending()) {
+            lines += getString(R.string.ui_signal, gate.limitReasonMessage(this))
+            lines += getString(R.string.ui_last_limit, date(gate.lastLimitedAt()))
+            lines += getString(R.string.ui_server_wait_information, gate.serverRetryAt()?.let(::date) ?: getString(R.string.ui_not_specified))
+            lines += if (gate.blockedUntil() > gate.now()) getString(R.string.ui_app_cooldown_until, date(gate.blockedUntil()))
+                else getString(R.string.ui_the_local_cooldown_has_ended)
+        }
+        AlertDialog.Builder(this).setTitle(R.string.ui_request_information)
+            .setMessage(lines.joinToString("\n\n")).setPositiveButton(R.string.ui_ok, null).show()
     }
     private fun connect(reference: Session) {
         if (busy) return

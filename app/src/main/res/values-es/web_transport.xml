@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="web_transport_selected">Transporte web seleccionado: %1$s</string>
+    <string name="web_transport_app_id">ID de aplicación del lector web: %1$s</string>
     <string name="web_transport_android">Android HttpEngine / Cromo</string>
     <string name="web_transport_standard">Lector HTTP/2 estándar</string>
 </resources>

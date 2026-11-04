@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inspector.WindowInspector
 import android.widget.Button
+import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
@@ -35,7 +36,7 @@ class WebPendingConnectionTest {
         repeat(2) {
             scenario!!.onActivity { a ->
                 val button = all(a.window.decorView).filterIsInstance<Button>()
-                    .single { it.text == a.getString(R.string.ui_complete_connection) }
+                    .single { it.text == a.getString(R.string.web_pending_verify) }
                 assertFalse(button.isEnabled)
             }
             scenario!!.recreate()
@@ -58,6 +59,20 @@ class WebPendingConnectionTest {
                 .single { it.id == android.R.id.button1 && it.text == a.getString(R.string.web_pending_forget) }.performClick()
         }
         assertNull(WebSessions(context).pending()); assertEquals(existing, SessionVault(context).read())
+        assertEquals(0L, gate.attempts()); assertEquals(pause, gate.blockedUntil())
+    }
+    @Test fun requestDetailsShowTheReaderContractWithoutSendingOrDiscardingThePendingSession() {
+        val reference = pending(); val gate = RequestGate(context); gate.limited(null)
+        val pause = gate.blockedUntil()
+        scenario = ActivityScenario.launch(WebPendingConnectionActivity::class.java)
+        scenario!!.onActivity { a ->
+            all(a.window.decorView).filterIsInstance<Button>()
+                .single { it.text == a.getString(R.string.ui_request_information) }.performClick()
+            val text = WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<TextView>().map { it.text.toString() }
+            assertTrue(text.any { it.contains(a.getString(R.string.web_transport_app_id, WebRequests.APP_ID)) })
+            assertTrue(text.any { it.contains(a.getString(R.string.web_compare_last_counted_http, a.getString(R.string.ui_no_response_yet))) })
+        }
+        assertEquals(reference, WebSessions(context).pending()); assertNull(SessionVault(context).read())
         assertEquals(0L, gate.attempts()); assertEquals(pause, gate.blockedUntil())
     }
 }

@@ -23,11 +23,13 @@ Hesap kayıt biçimi v5'tir; v1–v4 hesapları okunur. Liste kaydı biçimi de�
 
 ## Sabit web istek sözleşmesi
 
+**0.1.80 düzeltmesi:** Masaüstü giriş görünümüyle eşleşen web okuyucu kimliği artık `936619743392459`. [Güncel birincil kaynak gözlemi ve doğrulama sınırı](ANDROID-WEB-APP-ID.md). Aşağıdaki 27 Ekim kaydı önceki seçimin tarihsel açıklamasıdır.
+
 27 Ekim 2026'da Instagram'ın açık ana sayfası kullanıcı oturumu olmadan bir kez okundu: HTTP 200; yayımlanan web `app_id`/`APP_ID`/`appId` değeri `1217981644879628`. HTML, yanıt çerezleri veya kimlik doğrulama değerleri tutulmadı. Yeni web başlık sözleşmesi bu sabiti kullanır. Bu gözlem, oturumlu API kabulünün kanıtı değildir.
 
 - Profil: `/api/v1/users/{id}/info/`; kullanıcı adı araması: `/api/v1/users/web_profile_info/?username=...`.
 - Liste: `/api/v1/friendships/{id}/followers/` veya `/following/`, `count=50`, `search_surface=follow_list_page`; devam için URL-encoded `max_id`.
-- Referer kök Instagram adresidir; CSRF bu cihazdaki web çerezinden gelir. İlk WWW-Claim değeri `0`'dır; giriş WebView'ından claim yakalanmaz. Başarılı okuyucu yanıtındaki `X-IG-Set-WWW-Claim` sonraki istekler için şifreli kayda alınabilir. Instagram mobil Authorization header'ı üretilmez veya taklit edilmez. Bu başlık birleşiminin canlı profil/liste kabulü henüz doğrulanmadı.
+- Referer kök Instagram adresidir; CSRF bu cihazdaki web çerezinden gelir. Güncel kod, giriş relay'inin yakaladığı `X-IG-Set-WWW-Claim` değerini kullanır; yoksa ilk değer `0`'dır. Başarılı okuyucu yanıtındaki claim değişimi sonraki istekler için şifreli kayda alınabilir. Instagram mobil Authorization header'ı üretilmez veya taklit edilmez. Bu başlık birleşiminin canlı profil/liste kabulü henüz doğrulanmadı.
 
 Bu uçlar resmî Graph API garantisi değildir. 50 yerel sayfa tercihidir, güvenli Instagram kotası değildir. Instagram formatı veya kabulü değişebilir. Eksik sayaç/liste sıfırla doldurulmaz; eksik sayfalama tam liste sayılmaz.
 

@@ -18,14 +18,16 @@
 
 ## Android
 
-**Güncel APK: 0.1.79 · sürüm kodu: 80 · kaynak etiketi: `android-v0.1.79`**
+**Güncel APK: 0.1.80 · sürüm kodu: 81 · kaynak etiketi: `android-v0.1.80`**
 
-- Dosya: `InstagramTracker-0.1.79.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.80.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
 - **Telefon içinden uçtan uca başarılı hesap bağlantısı ve liste okuması henüz tamamlanmış sayılmıyor.** Araştırılan açık konu girişten sonraki profil okumasıdır.
 - E-posta/kod akışı üzerinde çalışılmıştır; her CAPTCHA, TOTP ve başka cihazdan onay yönteminin desteklendiği varsayılmamalıdır. Cihaz onayı sonucunu periyodik sorgulayan yöntem hâlâ sınırlıdır.
 - Yeni günlük geçmiş ekranı ve Keystore dosyaları için altı cihaz testi derlendi; cihazda çalıştırılmadı.
 - 0.1.76: profil/özet/liste sahibi ve yerel Bildirimler/Zaman Çizelgesi görünümü güncellendi. 142 JVM testi, release derlemesi, lint ve imzalı paket kontrolü geçti; emülatör ekran testi tamamlanmadı. [Doğrulama ve kalan kapsam](../ANDROID-UI-ALIGNMENT.md).
+
+0.1.80: Android web okuyucusunun uygulama kimliği, resmî masaüstü giriş yapılandırmasıyla eşleştirildi. [Gözlem, değişiklik ve canlı test sınırı](../ANDROID-WEB-APP-ID.md).
 
 0.1.79 / Windows 0.2.51: arka planda hesap kontrolü sırasında arama/listenin fotoğrafları korunur; sınırlanan Android listesi açık bir yeniden deneme bekler. [Hata düzeltmeleri ve kapsam](../BUG-CHECK-2026-11-04.md).
 

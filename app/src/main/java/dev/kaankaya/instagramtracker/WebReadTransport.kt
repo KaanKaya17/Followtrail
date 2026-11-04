@@ -28,8 +28,9 @@ class WebReadTransport(gate: RequestGate, sessions: WebSessions,
 }
 
 object WebRequests {
-    // Public Instagram Web app configuration observed without a user session on 2026-10-27.
-    const val APP_ID = "1217981644879628"
+    // Desktop CurrentUserInitialData.APP_ID, observed without a session on 2026-11-04.
+    // Matches LoginBrowserResources.desktopUserAgent; see docs/ANDROID-WEB-APP-ID.md.
+    const val APP_ID = "936619743392459"
     private fun request(state: WebSession, path: String, query: Map<String, String> = emptyMap()): Request {
         WebSessionCodec.validate(state)
         require(path.startsWith("/api/v1/") && !path.contains("..") && !path.contains('?') && !path.contains('#'))

@@ -155,6 +155,7 @@
     <string name="security_budget_next">Próximo tiempo de presupuesto disponible: %1$s</string>
     <string name="security_remove_local">Se elimina la copia de la sesión en este dispositivo; la sesión en el servidor de Instagram no se revoca. Revise la actividad de inicio de sesión en la aplicación oficial de Instagram si un inicio de sesión parece sospechoso.</string>
     <string name="web_pending_title">Último paso: conecta tu cuenta</string>
+    <string name="web_pending_verify">Comprobar mi perfil y conectar</string>
     <string name="web_pending_body">Has iniciado sesión en Instagram. Aún debemos leer tu perfil para completar la conexión. Tu sesión se guarda cifrada en este dispositivo; no necesitas volver a introducir la contraseña ni el código. Continúa cuando termine el tiempo de espera, si lo hay. Tus cuentas guardadas se conservan.</string>
     <string name="web_pending_missing">No hay ninguna conexión pendiente. Cierra esta pantalla para volver a iniciar la conexión de una cuenta.</string>
     <string name="web_pending_forget">Eliminar conexión pendiente</string>

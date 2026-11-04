@@ -1,5 +1,6 @@
 <resources>
     <string name="web_transport_selected">Selected web transport: %1$s</string>
+    <string name="web_transport_app_id">Web reader application ID: %1$s</string>
     <string name="web_transport_android">Android HttpEngine / Chromium</string>
     <string name="web_transport_standard">Standard HTTP/2 reader</string>
 </resources>

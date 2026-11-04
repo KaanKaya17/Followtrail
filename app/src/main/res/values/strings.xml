@@ -134,6 +134,7 @@
     <string name="security_budget_next">Bütçe için sonraki uygun zaman: %1$s</string>
     <string name="security_remove_local">Bu cihazdaki oturum kopyası kaldırılır; Instagram sunucusundaki oturum iptal edilmez. Şüpheli bir giriş varsa resmî Instagram uygulamasında giriş hareketlerini incele.</string>
     <string name="web_pending_title">Son adım: hesabını bağla</string>
+    <string name="web_pending_verify">Profilimi kontrol et ve bağla</string>
     <string name="web_pending_body">Instagram oturumu açıldı. Bağlantıyı tamamlamak için profil bilgilerini okumamız gerekiyor. Oturumun bu cihazda şifreli saklanıyor; tekrar parola veya kod girmen gerekmiyor. Varsa bekleme süresi bitince devam et. Kayıtlı hesapların korunur.</string>
     <string name="web_pending_missing">Tamamlanmayı bekleyen bir bağlantı yok. Bu ekranı kapatarak hesap bağlantısını yeniden başlatabilirsin.</string>
     <string name="web_pending_forget">Bekleyen bağlantıyı sil</string>
