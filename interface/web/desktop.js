@@ -6,6 +6,7 @@
   const stored = message => i18n.stored(message, language);
   const api = window.TrackerDesktop,
     icon = window.TrackerIcon;
+  const searchCache=window.TrackerProfileSearch.createCache();
   const esc = (value) =>
     String(value ?? "").replace(
       /[&<>"']/g,
@@ -80,6 +81,8 @@
     notificationType: "all",
   };
   function acceptState(next) {
+    if(data && (next.activeAccountId!==data.activeAccountId || next.connected!==data.connected ||
+      (data.searchCacheRevision && next.searchCacheRevision!==data.searchCacheRevision)))searchCache.clear();
     if (data && next.activeAccountId !== data.activeAccountId) {
       dailyChart.reset();
       eventPages.reset();checkPages.reset();notificationPages.reset();
@@ -293,6 +296,7 @@
       return null;
     }
     const control = ["cancel", "code", "state"].includes(operation);
+    if(['login','import_counter','disconnect','delete_all','remove_person','import_backup'].includes(operation))searchCache.clear();
     if (!control) {
       busy = true;
       progress = { phase: "preparing" };
@@ -618,6 +622,7 @@
       photosPending=false;
     };
     profileSearch=window.TrackerProfileSearch.live({
+      cache:searchCache,owner,
       cancelImages,
       availability:()=>({busy,wait:Math.max(0,(data.gate.nextAt || 0)*1000-Date.now()),
         stop:!data.connected ? {code:'connection'} : (data.gate.blockedUntil || 0)*1000>Date.now() ? {code:'cooldown'} :
@@ -627,7 +632,8 @@
         phase==='busy' ? t("Diğer işlem tamamlanınca aranacak.") : phase==='error' ? userError(value) : '';note.classList.toggle('warning',phase==='error');note.classList.toggle('notice',phase==='error');},
       search:async q=>{
         const response=await command('search_people',{query:q},'',false);
-        return {...response,users:response?.state?.searchResults?.users || [],token:response?.state?.searchResults?.token};
+        return {...response,users:response?.state?.searchResults?.users || [],token:response?.state?.searchResults?.token,
+          remainingMs:response?.state?.searchResults?.remainingMs};
       },
       results:response=>{
         if(!modal.open || data.activeAccountId!==owner)return;

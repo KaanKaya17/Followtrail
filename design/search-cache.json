@@ -1,0 +1,5 @@
+{
+  "ttlMilliseconds": 60000,
+  "maxQueries": 6,
+  "maxResults": 20
+}

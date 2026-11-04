@@ -15,18 +15,20 @@ import java.util.concurrent.Executors
 class ProfileSearchDialog(private val context: Context, private val known: List<ProfileCandidate>,
     private val search: (String)->List<ProfileCandidate>, private val cancel: ()->Unit,
     private val select: (ProfileCandidate)->Unit, private val direct: (String)->Unit,
-    private val gate: RequestGate? = null, private val owner: String = "search",
+    private val gate: RequestGate? = null,
+    private val session: Session, private val cache: SearchResultsCache = SearchResultsCache(),
     private val dismissed: ()->Unit = {}) : AutoCloseable {
     private val worker=Executors.newSingleThreadExecutor()
     private val main=Handler(Looper.getMainLooper())
     private val images=AvatarImages(context,transient=true)
+    private val owner get()=session.userId
     private var busy=false
     private var held=false
     private var heldError: ApiFailure?=null
     private var closed=false
     private var inFlight: String?=null
     private var attempted: String?=null
-    private val cache=linkedMapOf<String,Pair<Long,List<ProfileCandidate>>>()
+    private val cacheTicket=cache.bind(session)
     private val input=EditText(context).apply {
         hint=context.getString(R.string.search_people_hint);setSingleLine(true)
         filters=arrayOf(android.text.InputFilter.LengthFilter(256))
@@ -71,15 +73,16 @@ class ProfileSearchDialog(private val context: Context, private val known: List<
         attempted=null;main.removeCallbacks(pending)
         display(known.filter {ProfileSearch.matches(it.username+" "+it.name,input.text.toString())}.take(20),R.string.search_local)
         val q=query() ?: return
-        val saved=cache[q]
-        if(saved!=null && android.os.SystemClock.elapsedRealtime()-saved.first<60000) {
-            attempted=q;display(saved.second,R.string.search_results);return
+        val saved=cache.get(session,q)
+        if(saved!=null) {
+            attempted=q;display(saved,R.string.search_results);return
         }
         if(!held)schedule(650) else status.text=heldError?.userMessage(context)
     }
     private fun request() {
         val q=query() ?: return
         if(closed || held || attempted==q)return
+        cache.get(session,q)?.let {attempted=q;display(it,R.string.search_results);return}
         if(busy) {schedule(250);return}
         try {
             val now=gate?.now() ?: System.currentTimeMillis()
@@ -102,8 +105,7 @@ class ProfileSearchDialog(private val context: Context, private val known: List<
                 busy=false;inFlight=null
                 if(closed)return@post
                 result.onSuccess {
-                    cache.remove(q);cache[q]=android.os.SystemClock.elapsedRealtime() to it
-                    if(cache.size>6)cache.remove(cache.keys.first())
+                    cache.put(cacheTicket,q,it)
                 }.onFailure {if((it as ApiFailure).kind in setOf(ApiFailure.Kind.LIMITED,ApiFailure.Kind.BUDGET,ApiFailure.Kind.CONNECTION,ApiFailure.Kind.SESSION_EXPIRED,ApiFailure.Kind.VERIFICATION)) {held=true;heldError=it}}
                 if(q==query()) {
                     attempted=q
@@ -118,7 +120,7 @@ class ProfileSearchDialog(private val context: Context, private val known: List<
     }
     fun show() {
         dialog.setOnDismissListener {
-            closed=true;main.removeCallbacksAndMessages(null);cache.clear();cancel();images.close();worker.shutdownNow();dismissed()
+            closed=true;main.removeCallbacksAndMessages(null);cancel();images.close();worker.shutdownNow();dismissed()
         }
         dialog.show()
         input.addTextChangedListener(object:TextWatcher {

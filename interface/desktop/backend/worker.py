@@ -82,7 +82,10 @@ def main():
             elif operation == 'list_page':
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'page':engine.list_pages.page(request.get('args'))})
             elif operation == 'search_avatar':
-                images.request(request, engine.search_results, engine.search_pictures, namespace=engine.active_id, offline=args.offline)
+                owner=engine.active_id
+                source=engine.search_cache.picture(owner,(request.get('args') or {}).get('token'),(request.get('args') or {}).get('id'))
+                result,pictures=source if source else (None,{})
+                images.request(request,result,pictures,namespace=owner,offline=args.offline)
             elif operation == 'cancel_search_images':
                 images.cancel('search')
                 emit({'type': 'control', 'id': request['id'], 'ok': True})

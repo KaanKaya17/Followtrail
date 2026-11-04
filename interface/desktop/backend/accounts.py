@@ -174,9 +174,9 @@ class Accounts(Engine):
             self.data = self.load_vault()
             self.active_id = identity
             self.bind_shared_state()
+            if old_id!=identity:self.search_cache.clear()
             self.wayback_id = None
             self.search_results = None
-            self.search_pictures = {}
             self.profile_detail_result = None
             self.story_detail = None
             self.recover_interrupted()
@@ -270,6 +270,7 @@ class Accounts(Engine):
                 self.catalog['active'] = self.active_id
                 self.persist_catalog()
             elif operation == 'delete_all':
+                self.search_cache.clear()
                 if self.data['account']:
                     self.daily_store().clear_all(revoke=True)
                     stories.StoryStore(self.vault.path.parent,self.data['account']['id']).clear_all()

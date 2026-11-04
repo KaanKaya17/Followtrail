@@ -27,6 +27,7 @@ import profile_search
 import profile_links
 import hashlib
 import data_privacy
+from search_cache import SearchCache
 from instagrapi import config as instagram_config
 from login_identity import LoginIdentity, device_settings
 
@@ -93,7 +94,7 @@ class Engine:
         self.scan_progress = None
         self.wayback_id = None
         self.search_results = None
-        self.search_pictures = {}
+        self.search_cache = SearchCache()
         self.profile_detail_result = None
         self.story_detail = None
         self.list_pages = list_pages.ListPages()
@@ -173,7 +174,7 @@ class Engine:
         self.profile_detail_result=None
         self.story_detail=None
         self.search_results=None
-        self.search_pictures={}
+        self.search_cache.clear()
         self.save(replace_previous=True)
 
     def daily_query(self, args):
@@ -228,11 +229,11 @@ class Engine:
                 'notificationTypes': {key: localization.translate(value, d['settings']['language']) for key, value in notification_log.TYPES.items()},
                 'wayback': wayback.metadata(d),
                 'waybackDetail': wayback.view(d, self.wayback_id) if self.wayback_id else None,
-                'searchResults': self.search_results,
+                'searchResults': self.search_results, 'searchCacheRevision': self.search_cache.revision,
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
                 'storyDetail': self.story_detail,
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.49'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.50'}
 
     def story_target(self, args):
         owner = (self.data['account'] or {}).get('id')
@@ -581,16 +582,22 @@ class Engine:
 
     def search_people(self, args):
         query=profile_search.query(args.get('query'))
+        owner=(self.data['account'] or {}).get('id')
+        if not owner or not self.data['session']:raise AppFailure('session','Önce hesabını bağla.')
+        self.search_cache.bind(owner)
+        cached=self.search_cache.get(owner,query)
+        if cached is not None:
+            self.search_results=cached;return
         client=self.client()
         try:
             self.progress('profile')
             payload=client.private_request('users/search/',params={'query':query,'count':20})
             self.check_cancel()
             users=profile_search.results(payload)
-            self.search_pictures={user['id']:user.pop('pictureUrl',None) for user in users}
-            self.search_results={'query':query,'token':uuid.uuid4().hex,'users':users}
+            pictures={user['id']:user.pop('pictureUrl',None) for user in users}
             self.data['session']=client.get_settings()
             self.save()
+            self.search_results=self.search_cache.put(owner,query,users,pictures)
         finally:
             close_client(client)
 
@@ -1062,9 +1069,10 @@ class Engine:
 
     def run(self, operation, args, *, group_id=None, project=True):
         self.maintain_privacy()
+        if operation in ('login','import_counter','disconnect','delete_all','import_backup'):
+            self.search_cache.clear()
         self.operation = operation
         self.search_results = None
-        self.search_pictures = {}
         self.profile_detail_result = None
         self.story_detail = None
         self.observation_group = group_id or uuid.uuid4().hex

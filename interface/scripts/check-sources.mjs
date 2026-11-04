@@ -24,6 +24,7 @@ for (const file of [
   "web/i18n.js",
   "locales/runtime.js",
   "scripts/generate-i18n.mjs",
+  "scripts/generate-search-policy.mjs",
   "scripts/check-i18n-web.mjs",
   "scripts/check-profile-search.mjs",
   "desktop/main.cjs",

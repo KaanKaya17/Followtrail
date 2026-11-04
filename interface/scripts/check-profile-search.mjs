@@ -80,6 +80,12 @@ try {
  assert.deepEqual(await page.evaluate(()=>qaCalls.find(c=>c.operation==='add_person').args),{id:'900',username:'ipek.kaya'});
  checks.push('Debounced live query preserves input/focus and shows safe asynchronous avatars; only selected numeric identity is added');
  await page.locator('[data-action="add-person"]').first().click();
+ await page.locator('#new-username').fill('ipe');
+ await page.locator('[data-action="choose-profile"][data-id="900"] .avatar img').waitFor();
+ assert.equal(await page.evaluate(()=>qaCalls.filter(c=>c.operation==='search_people'&&c.args.query==='ipe').length),1);
+ await page.keyboard.press('Escape');
+ checks.push('Closing and reopening the same account search reuses candidates and photos without another Instagram query');
+ await page.locator('[data-action="add-person"]').first().click();
  await page.locator('#new-username').fill('rate limit');
  await page.getByRole('dialog').getByRole('button',{name:'Instagram’da ara',exact:true}).click();
  await page.getByRole('dialog').locator('.notice.warning').waitFor();
