@@ -73,7 +73,7 @@ class FollowListActivity : LocalizedActivity() {
             val account = accountVault.read() ?: throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
             intent.getStringExtra("notification_owner")?.let { if (it != account.session.userId) throw ApiFailure(ApiFailure.Kind.WRONG_ACCOUNT) }
             reference = account.session
-            val id = intent.getStringExtra("target_id")
+            val id = savedInstanceState?.getString("selected_target") ?: intent.getStringExtra("target_id")
             target = (listOf(account.profile) + account.people.map { it.latest }).firstOrNull { it.userId == id }
                 ?: throw ApiFailure(ApiFailure.Kind.NOT_FOUND)
             snapshot = lists.read(reference, target.userId)
@@ -121,10 +121,23 @@ class FollowListActivity : LocalizedActivity() {
         header.addView(AppUi.iconButton(this, "back", getString(R.string.list_back)) { finish() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         val title = column().apply { setPadding(dp(12), 0, 0, 0) }
         title.addView(AppUi.heading(this, getString(R.string.ui_lists), 22f)); title.gap(4)
-        title.addView(AppUi.text(this, "@${target.username}", 12f, AppUi.muted).apply { maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END })
         header.addView(title, LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(AppUi.iconButton(this, "info", getString(R.string.list_info_title)) { showScope() }, LinearLayout.LayoutParams(dp(48), dp(48)))
-        val toolbarBlock = column().apply { addView(header); gap(16) }; root.addView(toolbarBlock)
+        val owner = LinearLayout(this).apply {
+            gravity=android.view.Gravity.CENTER_VERTICAL
+            background=AppUi.touch(this@FollowListActivity,AppUi.shape(this@FollowListActivity,AppUi.surface,18,AppUi.line))
+            setPadding(dp(14),dp(12),dp(14),dp(12));isFocusable=true
+            contentDescription=getString(R.string.parity_list_owner,target.username)
+            setOnClickListener { if(!loading && !queuedRead.pending)chooseOwner() }
+        }
+        owner.addView(ProfileAvatarView(this,48).apply {bind(avatars,reference.userId,target.userId,target.username,target.details.pictureUrl.value,target.details.pictureId.value)})
+        owner.addView(column().apply {
+            setPadding(dp(12),0,dp(8),0)
+            addView(AppUi.text(this@FollowListActivity,"@${target.username}",17f,fg,true))
+            target.name?.takeIf {it.isNotBlank()}?.let {addView(AppUi.text(this@FollowListActivity,it,12f,AppUi.muted))}
+        },LinearLayout.LayoutParams(0,-2,1f))
+        owner.addView(AppUi.text(this,"",14f).apply {setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@FollowListActivity,"chevron",AppUi.muted),null,null,null)})
+        val toolbarBlock = column().apply { addView(header);gap(12);addView(owner);gap(16) }; root.addView(toolbarBlock)
         if (preview) { root.addView(AppUi.text(this, getString(R.string.list_demo), 10f, AppUi.violet, true)); root.gap(10) }
         val tabs = LinearLayout(this).apply { background = AppUi.shape(this@FollowListActivity, AppUi.violetSoft, 18); setPadding(dp(4), dp(4), dp(4), dp(4)) }
         FollowDirection.entries.forEach { selected -> tabs.addView(button(directionName(selected), !loading && !queuedRead.pending) {
@@ -393,6 +406,23 @@ class FollowListActivity : LocalizedActivity() {
                 users.joinToString("\n", transform = ::userLabel)).setPositiveButton(R.string.list_close, null).show()
         }.setNegativeButton(R.string.list_close, null).show()
     }
+    private fun chooseOwner() {
+        try {
+            val saved=accountVault.read()?.takeIf {currentAccount(it)} ?: return
+            val profiles=listOf(saved.profile)+saved.people.map {it.latest}
+            AlertDialog.Builder(this).setTitle(R.string.parity_choose_owner)
+                .setSingleChoiceItems(profiles.map {"@${it.username}" + (it.name?.takeIf {name->name.isNotBlank()}?.let {name->" · $name"} ?: "")}.toTypedArray(),profiles.indexOfFirst {it.userId==target.userId}) {dialog,index ->
+                    dialog.dismiss()
+                    if(loading || queuedRead.pending)return@setSingleChoiceItems
+                    try {
+                        if(!currentAccount(accountVault.read()))return@setSingleChoiceItems
+                        val selected=profiles[index]
+                        val stored=lists.read(reference,selected.userId)
+                        target=selected;snapshot=stored;query="";visibleList=null;visibleSearch=null;message=null;render()
+                    } catch (_: Exception) {message=getString(R.string.list_storage_error);render()}
+                }.setNegativeButton(R.string.ui_cancel,null).show()
+        } catch (_: Exception) {message=getString(R.string.list_storage_error);render()}
+    }
     private fun cancel() { generation++; source.cancel(); pending?.cancel(true); pending = null; loading = false }
     private fun openProfile(user: FollowUser) {
         startActivity(Intent(this, MemberProfileActivity::class.java).putExtra("viewer_id", reference.userId)
@@ -409,7 +439,7 @@ class FollowListActivity : LocalizedActivity() {
         } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@FollowListActivity) }
         render()
     }
-    override fun onSaveInstanceState(outState: Bundle) { outState.putString("direction", direction.name); outState.putString("query", query); super.onSaveInstanceState(outState) }
+    override fun onSaveInstanceState(outState: Bundle) { if(::target.isInitialized)outState.putString("selected_target",target.userId);outState.putString("direction", direction.name); outState.putString("query", query); super.onSaveInstanceState(outState) }
     @SuppressLint("GestureBackNavigation")
     @Deprecated("Legacy callback for Android 7–12; API 33+ uses OnBackInvokedCallback")
     override fun onBackPressed() { finish() }

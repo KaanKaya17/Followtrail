@@ -1,7 +1,7 @@
 package dev.kaankaya.instagramtracker
 
 data class ObservedProfileChange(val ownerId: String, val profile: Profile, val followersDelta: Long, val followingDelta: Long,
-    val edits: List<ProfileEdit> = emptyList(), val previousAt: Long? = null)
+    val edits: List<ProfileEdit> = emptyList(), val previousAt: Long? = null, val postsDelta: Long? = null)
 
 object MonitorPolicy {
     const val POLL_MS = 15 * 60 * 1000L
@@ -12,7 +12,8 @@ object MonitorPolicy {
         val followers = profile.followers - person.latest.followers
         val following = profile.following - person.latest.following
         val edits = if (profile.observedAt > person.latest.observedAt) ProfileChanges.latest(person.history, profile) else emptyList()
-        return if (followers == 0L && following == 0L && edits.isEmpty()) null else ObservedProfileChange(owner, profile, followers, following, edits, minOf(person.latest.observedAt, edits.minOfOrNull { it.previousAt } ?: person.latest.observedAt))
+        val posts = person.latest.posts?.let { before -> profile.posts?.let { it-before } }?.takeIf { it != 0L }
+        return if (followers == 0L && following == 0L && edits.isEmpty() && posts == null) null else ObservedProfileChange(owner, profile, followers, following, edits, minOf(person.latest.observedAt, edits.minOfOrNull { it.previousAt } ?: person.latest.observedAt),posts)
     }
 }
 
@@ -33,7 +34,9 @@ object Observations {
         }
         vault.record(session, CheckEvent(profile.userId, profile.username, CheckKind.PROFILE, startedAt, profile.observedAt,
             clock(), before?.observedAt, before?.let { profile.followers - it.followers }, before?.let { profile.following - it.following },
-            change?.edits?.map { it.field }?.toSet().orEmpty()))
+            change?.edits?.map { it.field }?.toSet().orEmpty(), beforeFollowers = before?.followers, afterFollowers = profile.followers,
+            beforeFollowing = before?.following, afterFollowing = profile.following, beforePosts = before?.posts,
+            afterPosts = profile.posts, edits = change?.edits.orEmpty()))
         return ObservationCommit(updated, change)
     }
     fun deliver(vault: SessionVault, session: Session, change: ObservedProfileChange, allowed: () -> Boolean,
@@ -51,6 +54,7 @@ object Observations {
         var before: Profile? = null
         var fields = emptySet<ProfileChangeField>()
         var comparisonAt: Long? = null
+        var edits = emptyList<ProfileEdit>()
         val updated = vault.update(session) { current ->
             if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
             val person = current.people.firstOrNull { it.latest.userId == profile.userId }
@@ -59,12 +63,15 @@ object Observations {
             val observedChange = MonitorPolicy.change(session.userId, person?.copy(watching = true), profile)
             change = observedChange.takeIf { person?.watching == true }
             fields = observedChange?.edits?.map { it.field }?.toSet().orEmpty()
+            edits = observedChange?.edits.orEmpty()
             comparisonAt = observedChange?.previousAt ?: before?.observedAt
             current.copy(people = PeoplePolicy.record(current.people, profile))
         }
         vault.record(session, CheckEvent(profile.userId, profile.username, CheckKind.PROFILE, startedAt, profile.observedAt,
             analyzedAt(), comparisonAt, before?.let { profile.followers - it.followers }, before?.let { profile.following - it.following },
-            fields))
+            fields, beforeFollowers = before?.followers, afterFollowers = profile.followers, beforeFollowing = before?.following,
+            afterFollowing = profile.following, beforePosts = before?.posts, afterPosts = profile.posts,
+            edits = edits))
         return ObservationCommit(updated, change)
     }
 }

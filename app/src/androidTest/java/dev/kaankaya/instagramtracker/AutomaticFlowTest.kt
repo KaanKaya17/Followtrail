@@ -43,7 +43,7 @@ class AutomaticFlowTest {
         now = System.currentTimeMillis(); phase = 0; requests = 0; onPause = {}; vault.write(saved())
     }
     @After fun cleanup() {
-        vault.clear(); lists.clear(); preferences.edit().clear().commit(); ChangeNotifications(context).clear()
+        vault.clear(); lists.clear(); preferences.edit().clear().commit(); ChangeNotifications(context,vaultForOwner={vault}).clear()
         PreviewMode.cancel(context); SessionVault(context, "previewaccount").clear(); FollowListVault(context, "previewlists").clear()
         context.getSharedPreferences("preview_gate", 0).edit().clear().commit()
     }
@@ -69,7 +69,7 @@ class AutomaticFlowTest {
     }
     @Test fun pagesResumeAcrossEngineInstancesAndTwoCompletedCyclesPostPrivateListDifferences() {
         if (Build.VERSION.SDK_INT >= 33) shell("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")
-        val notices = ChangeNotifications(context); notices.ensureChannel()
+        val notices = ChangeNotifications(context,vaultForOwner={vault}); notices.ensureChannel()
         val transport = source { target, direction, cursor ->
             if (direction == FollowDirection.FOLLOWING) page(target, direction, cursor, if (phase == 0) listOf("2") else listOf("4"))
             else if (cursor == null) page(target, direction, cursor, if (phase == 0) listOf("1", "2") else listOf("2", "4"), "second")
@@ -321,7 +321,7 @@ class AutomaticFlowTest {
         previewLists.clear(); context.getSharedPreferences("preview_gate", 0).edit().clear().commit()
         previewVault.write(seed.copy(automation = ListAutomation(true, setOf("100"))))
         val previewGate = RequestGate(context, "preview_gate")
-        ChangeNotifications(context).ensureChannel(); shell("input keyevent KEYCODE_HOME")
+        ChangeNotifications(context,vaultForOwner={vault}).ensureChannel(); shell("input keyevent KEYCODE_HOME")
         assertTrue(PreviewMode.sync(context, previewVault.read(), previewGate))
         shell("cmd jobscheduler run -f ${context.packageName} ${PreviewMode.JOB_ID}")
         await("The Android job did not save its first list page") { previewLists.read(seed.session, "100")?.followers != null }

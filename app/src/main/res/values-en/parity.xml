@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="parity_posts">Posts</string>
+    <string name="parity_lists">Lists</string>
+    <string name="parity_checked">Profile checked</string>
+    <string name="parity_baseline">First list saved</string>
+    <plurals name="parity_more_people">
+        <item quantity="one">%1$d more person</item>
+        <item quantity="other">%1$d more people</item>
+    </plurals>
+    <string name="parity_arrivals">Newly seen: %1$d</string>
+    <string name="parity_missing">Missing from this check: %1$d</string>
+    <string name="parity_technical">Request information</string>
+    <string name="parity_profile_check">Profile check</string>
+    <string name="parity_details">Change details</string>
+    <string name="parity_preferences">%1$s · Notification preferences</string>
+    <string name="parity_notices_enabled">Notifications for this account</string>
+    <string name="parity_notifications">Notifications</string>
+    <string name="parity_refresh_history">Reload saved records</string>
+    <string name="parity_unread">Unread</string>
+    <string name="parity_read">Read</string>
+    <string name="parity_all_types">All types</string>
+    <string name="parity_profile_changes">Profile changes</string>
+    <string name="parity_checks">Checks</string>
+    <string name="parity_errors">Errors</string>
+    <string name="parity_today">Today</string>
+    <string name="parity_yesterday">Yesterday</string>
+    <string name="parity_no_notifications">No change notifications yet. New changes will appear here.</string>
+    <plurals name="parity_records">
+        <item quantity="one">%1$d record</item>
+        <item quantity="other">%1$d records</item>
+    </plurals>
+    <string name="parity_routine_count">Routine checks · %1$d</string>
+    <string name="parity_more_records">More records</string>
+    <string name="parity_more_checks">More checks</string>
+    <string name="parity_clear_filters">Clear filters</string>
+    <string name="parity_post_delta">Posts: %1$s</string>
+    <string name="parity_preferences_short">Notification preferences</string>
+    <string name="parity_more">More</string>
+    <string name="parity_hide_history">Hide history</string>
+    <string name="parity_list_owner">List owner: @%1$s · Change</string>
+    <string name="parity_choose_owner">Choose list owner</string>
+    <string name="parity_net_change">Net change in period: %1$s</string>
+</resources>

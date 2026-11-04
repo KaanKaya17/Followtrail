@@ -31,7 +31,7 @@ class QuickWatchFlowTest {
         context.getSharedPreferences("quick_test_gate", 0).edit().clear().commit()
         if (Build.VERSION.SDK_INT >= 33) android.os.ParcelFileDescriptor.AutoCloseInputStream(
             instrumentation.uiAutomation.executeShellCommand("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
-        ChangeNotifications(context).ensureChannel()
+        ChangeNotifications(context,vaultForOwner={vault}).ensureChannel()
         val seed = PreviewMode.seed(true)!!
         vault.write(seed.copy(automation = ListAutomation(true, setOf("201")), people = seed.people.map { if (it.latest.userId == "201") it.copy(watching = true) else it }))
         val p = vault.read()!!.people.single { it.latest.userId == "201" }.latest
@@ -43,11 +43,11 @@ class QuickWatchFlowTest {
     @After fun cleanup() {
         instrumentation.runOnMainSync { controllers.forEach { it.close() } }
         vault.clear(); lists.clear(); context.getSharedPreferences("quick_test_gate", 0).edit().clear().commit()
-        ChangeNotifications(context).clear()
+        ChangeNotifications(context,vaultForOwner={vault}).clear()
     }
     private fun controller(onChange: (ApiFailure?) -> Unit = {}) = QuickWatch(vault, lists, gate,
         { calls.incrementAndGet(); PreviewMode.api(gate, true) }, { PreviewMode.followLists(gate, true) },
-        ChangeNotifications(context), onChange, runtime).also { controllers += it }
+        ChangeNotifications(context,vaultForOwner={vault}), onChange, runtime).also { controllers += it }
     private fun await(predicate: () -> Boolean) {
         val deadline = SystemClock.elapsedRealtime() + 5000
         while (!predicate() && SystemClock.elapsedRealtime() < deadline) Thread.sleep(25)

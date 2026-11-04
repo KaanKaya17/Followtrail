@@ -10,7 +10,7 @@
     <string name="timeline_title">Línea de tiempo</string>
     <string name="timeline_menu">comprobar el historial</string>
     <string name="timeline_empty">Aquí aparecerán nuevos cheques. Los registros de perfil anteriores permanecen en la pantalla de análisis.</string>
-    <string name="timeline_scope">Los últimos 120 registros están cifrados en este dispositivo. Los tiempos se refieren a lecturas y comparaciones de dispositivos, no a tiempos exactos de eventos de Instagram. Los tiempos que faltan en registros más antiguos se muestran como no registrados.</string>
+    <string name="timeline_scope">Se cifran hasta 2000 registros en este dispositivo, con un límite de 2 MB. Las horas indican cuándo revisó la aplicación, no el momento exacto del cambio en Instagram.</string>
     <string name="timeline_filter">Elige cuenta</string>
     <string name="timeline_all">Todas las cuentas</string>
     <string name="timeline_unknown">No grabado</string>
@@ -35,7 +35,7 @@
     <string name="timeline_unavailable">No se pudo abrir el historial de cheques. Los registros de perfil y lista se almacenan por separado.</string>
     <string name="timeline_write_failed">La última acción no pudo agregarse a la historia; verifique el perfil y enumere los registros por separado.</string>
     <string name="adaptive_scope">Primero se verifican los recuentos de perfiles. Un cambio de recuento prioriza la lista relevante; Las listas completadas también conservan un control diario. Las personas pueden cambiar incluso cuando los recuentos siguen siendo los mismos. Una ronda en segundo plano utiliza hasta seis solicitudes y una ventana de 90 segundos para iniciar solicitudes, con al menos 15 segundos de diferencia. Android puede retrasar el trabajo. La visualización rápida solo se ejecuta mientras la aplicación está visible y se detiene ante el primer error; Se conservan 429 tiempos de reutilización.</string>
-    <string name="journal_privacy">El historial de verificación y comparación de listas también está cifrado en este dispositivo. Se conservan hasta 120 acciones recientes; Las contraseñas y las respuestas sin procesar no se escriben en este historial.</string>
+    <string name="journal_privacy">El historial de revisiones se cifra en este dispositivo. Se conservan hasta 2000 registros, con un límite de 2 MB; no se guardan contraseñas ni respuestas sin procesar.</string>
     <plurals name="timeline_member_sample">
         <item quantity="one">El historial conserva la primera cuenta %1$d en cada dirección; Las diferencias totales se muestran arriba. Abra la pantalla de lista para todos los registros retenidos de la última lectura.</item>
         <item quantity="other">La historia conserva las primeras %1$d cuentas en cada dirección; Las diferencias totales se muestran arriba. Abra la pantalla de lista para todos los registros retenidos de la última lectura.</item>

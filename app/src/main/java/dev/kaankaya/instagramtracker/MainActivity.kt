@@ -92,6 +92,8 @@ class MainActivity : LocalizedActivity() {
     private var loginPageEpoch = 0L
     private val inspectPage = Runnable { inspectLoginPage() }
     private var peopleScreen = false
+    private var profileHistoryExpanded = false
+    private var watchDetailsExpanded = false
     private var peopleQuery = ""
     private var personSearch: ProfileSearchDialog? = null
     private var selectedPersonId: String? = null
@@ -135,6 +137,8 @@ class MainActivity : LocalizedActivity() {
         }
         avatars = AvatarImages(this, PreviewMode.avatarFetcher(preview), if (preview) "previewavatars" else "avatars")
         peopleScreen = savedInstanceState?.getBoolean("people") ?: false
+        profileHistoryExpanded = savedInstanceState?.getBoolean("profileHistory") ?: false
+        watchDetailsExpanded = savedInstanceState?.getBoolean("watchDetails") ?: false
         peopleQuery = savedInstanceState?.getString("peopleQuery").orEmpty()
         selectedPersonId = savedInstanceState?.getString("person")
         if(localAccountView) {peopleScreen=false;selectedPersonId=null}
@@ -174,6 +178,7 @@ class MainActivity : LocalizedActivity() {
                 main.post { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MainActivity); needsConnection = true }
                 null
             }
+            saved?.let { try { vault.journal.read(it.session) } catch (_: Exception) { /* History may be unavailable independently of the account. */ } }
             val pendingConnection = try { !preview && MobileSessions(this).pending() != null } catch (_: Exception) { false }
             val pendingWebConnection = try { !preview && WebSessions(this).pending() != null } catch (_: Exception) { false }
             main.post {
@@ -258,6 +263,7 @@ class MainActivity : LocalizedActivity() {
         val brand = stack().apply { setPadding(dp(12), 0, 0, 0) }
         brand.addView(text("Tracker", 21f, ink, true)); brand.gap(3); brand.addView(text(getString(R.string.ui_your_social_circle_together), 11f, muted))
         header.addView(brand, LinearLayout.LayoutParams(0, -2, 1f))
+        if (account != null) header.addView(AppUi.iconButton(this, "bell", getString(R.string.parity_notifications)) { openNotifications() }, LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(6) })
         header.addView(AppUi.iconButton(this, "more", getString(R.string.ui_options)) { options() }, LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(header); page.gap(24)
         if(!preview) {
@@ -400,8 +406,13 @@ class MainActivity : LocalizedActivity() {
     private fun renderOverview(page: LinearLayout, saved: SavedAccount) {
         page.addView(AppUi.heading(this, getString(R.string.ui_at_a_glance), 28f)); page.gap(8)
         val identity = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        identity.addView(avatar(saved.profile, 40))
-        identity.addView(text("@${saved.profile.username}", 15f, ink, true).apply { setPadding(dp(12), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
+        identity.addView(avatar(saved.profile, 52))
+        val identityText = stack().apply { setPadding(dp(12), 0, 0, 0) }
+        identityText.addView(text("@${saved.profile.username}", 17f, ink, true))
+        saved.profile.name?.takeIf { it.isNotBlank() }?.let { identityText.addView(text(it, 13f, muted)) }
+        identity.addView(identityText, LinearLayout.LayoutParams(0, -2, 1f))
+        identity.addView(AppUi.iconButton(this, "chevron", getString(R.string.profile_details_title)) { showOwnProfile(saved) })
+        val recentCheck = try { vault.journal.read(saved.session).lastOrNull { it.target == saved.profile.userId && it.kind == CheckKind.PROFILE && it.observedAt == saved.profile.observedAt } } catch (_: Exception) { null }
         page.addView(identity); page.gap(12)
         val row = LinearLayout(this)
         fun stat(label: String, value: Long, direction: FollowDirection, purple: Boolean) = stack().apply {
@@ -422,6 +433,8 @@ class MainActivity : LocalizedActivity() {
                 maxLines = 1
                 if (android.os.Build.VERSION.SDK_INT >= 26) setAutoSizeTextTypeUniformWithConfiguration(16, 38, 1, android.util.TypedValue.COMPLEX_UNIT_SP)
             }); gap(10)
+            val before = if (direction == FollowDirection.FOLLOWERS) recentCheck?.beforeFollowers else recentCheck?.beforeFollowing
+            if (before != null && before != value) { addView(text("${number(before)} → ${number(value)} · ${delta(value-before)}", 11f, foreground)); gap(6) }
             addView(text(getString(R.string.ui_open_list), 11f, foreground).apply {
                 setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, AppUi.Icon(this@MainActivity, "arrow", foreground, 16), null)
             })
@@ -432,6 +445,10 @@ class MainActivity : LocalizedActivity() {
         row.addView(stat(getString(R.string.ui_following), saved.profile.following, FollowDirection.FOLLOWING, false), LinearLayout.LayoutParams(0, -1, 1f))
         page.addView(row, LinearLayout.LayoutParams(-1, -2)); page.gap(16)
         page.addView(profileStatuses.view(saved.session, saved.profile.userId)); page.gap(16)
+        val shortcuts = LinearLayout(this)
+        shortcuts.addView(button(getString(R.string.parity_notifications), false) { openNotifications() }, LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(8) })
+        shortcuts.addView(button(getString(R.string.timeline_title), false) { openTimeline() }, LinearLayout.LayoutParams(0,-2,1f))
+        page.addView(shortcuts); page.gap(12)
         page.addView(button(getString(R.string.daily_title),false) { openDaily(saved.profile.userId) }); page.gap(16)
         renderPreparation(page, saved); page.gap(16)
         page.addView(button(getString(R.string.quick_start), false) { startQuickWatch(saved.profile.userId) }); page.gap(8)
@@ -523,6 +540,18 @@ class MainActivity : LocalizedActivity() {
         val saved = account ?: return
         startActivity(Intent(this, TimelineActivity::class.java).putExtra("viewer_id", saved.session.userId)
             .putExtra("target_id", target).putExtra("offline_preview", preview))
+    }
+    private fun openNotifications(target: String? = null) {
+        val saved = account ?: return
+        startActivity(Intent(this, TimelineActivity::class.java).putExtra("viewer_id", saved.session.userId)
+            .putExtra("target_id", target).putExtra("notifications_only", true).putExtra("offline_preview", preview))
+    }
+    private fun showOwnProfile(saved: SavedAccount) {
+        val content = stack()
+        content.addView(ProfileSummary.view(this, saved.profile))
+        content.addView(button(getString(R.string.parity_preferences_short), false) { HistoryViews.preferences(this, vault.journal, saved.session, saved.profile) })
+        AlertDialog.Builder(this).setTitle("@${saved.profile.username}")
+            .setView(ScrollView(this).apply { addView(content) }).setPositiveButton(R.string.ui_close, null).show()
     }
     private fun startQuickWatch(target: String) {
         val saved = account ?: return
@@ -711,8 +740,8 @@ class MainActivity : LocalizedActivity() {
     }
     private fun activityDetail(item: ActivityItem): String = when (item) {
         is ActivityItem.Counts -> listOfNotNull(
-            item.followersDelta.takeIf { it != 0L }?.let { getString(R.string.activity_followers, delta(it)) },
-            item.followingDelta.takeIf { it != 0L }?.let { getString(R.string.activity_following, delta(it)) }).joinToString(" · ")
+            item.followersDelta.takeIf { it != 0L }?.let { getString(R.string.activity_followers, delta(it)) + (item.beforeFollowers?.let {before -> " · ${number(before)} → ${number(before+it)}"} ?: "") },
+            item.followingDelta.takeIf { it != 0L }?.let { getString(R.string.activity_following, delta(it)) + (item.beforeFollowing?.let {before -> " · ${number(before)} → ${number(before+it)}"} ?: "") }).joinToString(" · ")
         is ActivityItem.ProfileChanged -> editTitle(item.edit)
         is ActivityItem.ListRead -> getString(R.string.activity_list_page,
             getString(if (item.direction == FollowDirection.FOLLOWERS) R.string.list_followers else R.string.list_following), item.pageNumber)
@@ -744,8 +773,8 @@ class MainActivity : LocalizedActivity() {
                     tag = "activity:${item.key}"; contentDescription = "@${item.username}. ${activityDetail(item)}. ${date(item.observedAt)}"
                     setOnClickListener { openActivity(item) }
                 }
-                row.addView(AppUi.avatar(this, item.username, 36, if (item is ActivityItem.Counts) AppUi.mint else AppUi.violetSoft,
-                    if (item is ActivityItem.Counts) AppUi.teal else accent))
+                val current=(listOf(saved.profile)+saved.people.map {it.latest}).firstOrNull {it.userId==item.profileId}
+                row.addView(if(current!=null)avatar(current,40) else AppUi.avatar(this,item.username,40))
                 val labels = stack().apply { setPadding(dp(10), 0, 0, 0) }
                 labels.addView(text("@${item.username}", 14f, ink, true)); labels.gap(5)
                 labels.addView(text(activityDetail(item), 13f, if (item is ActivityItem.Counts) AppUi.teal else accent)); labels.gap(5)
@@ -1023,80 +1052,108 @@ class MainActivity : LocalizedActivity() {
             compoundDrawablePadding = dp(6)
         }); page.gap(12)
         val personHeading = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        personHeading.addView(avatar(p, 48), LinearLayout.LayoutParams(dp(48), dp(48)).apply { marginEnd = dp(12) })
-        personHeading.addView(AppUi.heading(this, "@${p.username}", 27f), LinearLayout.LayoutParams(0, -2, 1f))
+        personHeading.addView(avatar(p, 72), LinearLayout.LayoutParams(dp(72), dp(72)).apply { marginEnd = dp(14) })
+        val identity = stack()
+        identity.addView(AppUi.heading(this, "@${p.username}", 23f))
+        p.name?.takeIf { it.isNotBlank() }?.let { identity.addView(text(it, 14f, muted)) }
+        personHeading.addView(identity, LinearLayout.LayoutParams(0, -2, 1f))
         personHeading.addView(favoriteButton(person), LinearLayout.LayoutParams(dp(48), dp(48)))
-        page.addView(personHeading); page.gap(8)
-        page.addView(badge(person.group.ifBlank { getString(R.string.ui_profile_analysis) })); page.gap(20)
+        page.addView(personHeading); page.gap(16)
         page.addView(ProfileSummary.view(this, p)); page.gap(12)
-        page.addView(button(getString(R.string.daily_title),false) { openDaily(p.userId) }); page.gap(12)
-        page.addView(button(getString(R.string.visual_title),false) {
-            startActivity(Intent(this,VisualHistoryActivity::class.java).putExtra("viewer_id",saved.session.userId).putExtra("target_id",p.userId).putExtra("offline_preview",preview))
-        }); page.gap(12)
-        page.addView(profileStatuses.view(saved.session, p.userId)); page.gap(16)
-        val fastActions = LinearLayout(this)
-        fastActions.addView(button(getString(R.string.quick_start), false) { startQuickWatch(p.userId) }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
-        fastActions.addView(button(getString(R.string.timeline_title), false) { openTimeline(p.userId) }, LinearLayout.LayoutParams(0, -2, 1f))
-        page.addView(fastActions); page.gap(8)
-        page.addView(text(getString(R.string.quick_hint), 12f, muted)); page.gap(16)
-        page.addView(button(getString(R.string.list_open), false) { openLists(p) }); page.gap(16)
-        if (person.history.size >= 2) {
-            val previous = person.history[person.history.lastIndex - 1]
-            page.addView(text(getString(R.string.ui_compared_with_the_previous_record), 12f, muted)); page.gap(6)
-            page.addView(text(getString(R.string.ui_followers_following, delta(p.followers - previous.followers), delta(p.following - previous.following)), 17f, ink, true))
-            page.gap(6); page.addView(text("${date(previous.observedAt)} → ${date(p.observedAt)}", 12f, muted))
-        } else page.addView(text(getString(R.string.ui_no_comparison_yet), 14f, muted))
-        page.gap(20)
-        renderWatchStatus(page, person, saved)
-        renderProfileDetails(page, person)
-        page.addView(button(getString(R.string.ui_refresh_person), false, networkAction = true) { readPerson(person = person) }.apply {
+        person.note.takeIf {it.isNotBlank()}?.let {note ->
+            page.addView(text(note,13f,muted).apply {maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;setOnClickListener {editPerson(person)}});page.gap(12)
+        }
+        val primary = LinearLayout(this)
+        primary.addView(button(getString(R.string.ui_refresh_person), false, networkAction = true) { readPerson(person = person) }.apply {
             isEnabled = !loading && !queuedRead.pending && (gate.nextAllowedAt() <= System.currentTimeMillis() || queuedRead.canWait()) && PeoplePolicy.needsRefresh(p, System.currentTimeMillis())
             alpha = if (isEnabled) 1f else .5f
-        }, LinearLayout.LayoutParams(-1, -2)); page.gap(24)
-        val historyCard = AppUi.card(this)
-        historyCard.addView(AppUi.heading(this, getString(R.string.ui_observation_history), 22f)); historyCard.gap(10)
-        val filters = LinearLayout(this)
-        for ((label, days) in listOf(getString(R.string.ui_7_days) to 7, getString(R.string.ui_30_days) to 30, getString(R.string.ui_all) to 0)) {
-            filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
+        }, LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(8) })
+        primary.addView(button(getString(R.string.list_open), false) { openLists(p) }, LinearLayout.LayoutParams(0,-2,1f))
+        page.addView(primary); page.gap(8)
+        val secondary = LinearLayout(this)
+        secondary.addView(button(getString(R.string.watch_toggle), person.watching) {
+            if (person.watching) setWatch(p.userId,saved.session.userId,person.intervalMinutes,false) else watchSettings(person)
+        }, LinearLayout.LayoutParams(0,-2,1f).apply { marginEnd=dp(8) })
+        secondary.addView(button(getString(R.string.parity_more), false) { profileMenu(saved,person) },LinearLayout.LayoutParams(0,-2,1f))
+        page.addView(secondary); page.gap(12)
+        if(person.watching) {
+            val interval=LinearLayout(this).apply {gravity=Gravity.CENTER_VERTICAL}
+            interval.addView(text(intervalLabel(person.intervalMinutes),13f,accent,true),LinearLayout.LayoutParams(0,-2,1f))
+            interval.addView(AppUi.iconButton(this,"more",getString(R.string.watch_change_interval)){watchSettings(person)},LinearLayout.LayoutParams(dp(48),dp(48)))
+            page.addView(interval);page.gap(12)
         }
-        historyCard.addView(filters); historyCard.gap(10)
-        val observations = person.history.filter { rangeDays == 0 || it.observedAt >= System.currentTimeMillis() - rangeDays * 86400000L }
-        val coverage = ObservationCoverage.of(observations)
-        if (coverage.count > 0) {
-            val minutes = coverage.spanMinutes
-            val summary = if (coverage.count == 1) getString(R.string.history_single_scope, date(coverage.firstAt!!))
-                else getString(R.string.history_actual_scope, coverage.count, minutes / 1440, minutes % 1440 / 60, minutes % 60,
-                    date(coverage.firstAt!!), date(coverage.lastAt!!))
-            historyCard.addView(text(summary, 13f, ink)); historyCard.gap(10)
+        page.addView(profileStatuses.view(saved.session,p.userId)); page.gap(16)
+        if(watchDetailsExpanded) {
+            renderWatchStatus(page,person,saved)
+            page.addView(button(getString(R.string.ui_close),false){watchDetailsExpanded=false;render()});page.gap(12)
         }
-        if (observations.isNotEmpty()) {
-            val metric = LinearLayout(this)
-            metric.addView(button(getString(R.string.ui_followers), chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
-            metric.addView(button(getString(R.string.ui_following), !chartFollowers) { chartFollowers = false; render() }, LinearLayout.LayoutParams(0, -2, 1f))
-            historyCard.addView(metric); historyCard.gap(12)
-            if (observations.size >= 2) {
-                historyCard.addView(HistoryChartView(this, observations, chartFollowers, accent, muted).apply {
-                    setPadding(0, dp(8), 0, dp(8))
-                }, LinearLayout.LayoutParams(-1, dp(224)))
-                val first = observations.first(); val last = observations.last()
-                historyCard.addView(text(getString(R.string.ui_net_change_in_period_followers_following, delta(last.followers - first.followers), delta(last.following - first.following)), 13f, accent)); historyCard.gap(10)
+        page.addView(button(getString(if(profileHistoryExpanded) R.string.parity_hide_history else R.string.ui_observation_history),false) {
+            profileHistoryExpanded=!profileHistoryExpanded; render()
+        }); page.gap(12)
+        if (profileHistoryExpanded) {
+            val historyCard = AppUi.card(this)
+            historyCard.addView(AppUi.heading(this, getString(R.string.ui_observation_history), 22f)); historyCard.gap(10)
+            val filters = LinearLayout(this)
+            for ((label, days) in listOf(getString(R.string.ui_7_days) to 7, getString(R.string.ui_30_days) to 30, getString(R.string.ui_all) to 0)) {
+                filters.addView(button(label, rangeDays == days) { rangeDays = days; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(5) })
             }
-            historyCard.addView(button(getString(R.string.ui_view_records), false) {
-                val records = observations.takeLast(10).asReversed().joinToString("\n\n") {
-                    getString(R.string.ui_n_followers_following, it.username, date(it.observedAt), number(it.followers), number(it.following))
+            historyCard.addView(filters); historyCard.gap(10)
+            val observations = person.history.filter { rangeDays == 0 || it.observedAt >= System.currentTimeMillis() - rangeDays * 86400000L }
+            val coverage = ObservationCoverage.of(observations)
+            if (coverage.count > 0) {
+                val minutes = coverage.spanMinutes
+                val summary = if (coverage.count == 1) getString(R.string.history_single_scope, date(coverage.firstAt!!))
+                    else getString(R.string.history_actual_scope, coverage.count, minutes / 1440, minutes % 1440 / 60, minutes % 60,
+                        date(coverage.firstAt!!), date(coverage.lastAt!!))
+                historyCard.addView(text(summary, 13f, ink)); historyCard.gap(10)
+            }
+            if (observations.isNotEmpty()) {
+                val metric = LinearLayout(this)
+                metric.addView(button(getString(R.string.ui_followers), chartFollowers) { chartFollowers = true; render() }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(6) })
+                metric.addView(button(getString(R.string.ui_following), !chartFollowers) { chartFollowers = false; render() }, LinearLayout.LayoutParams(0, -2, 1f))
+                historyCard.addView(metric); historyCard.gap(12)
+                if (observations.size >= 2) {
+                    historyCard.addView(HistoryChartView(this, observations, chartFollowers, accent, muted).apply {
+                        setPadding(0, dp(8), 0, dp(8))
+                    }, LinearLayout.LayoutParams(-1, dp(224)))
+                    val first = observations.first(); val last = observations.last()
+                    historyCard.addView(text(getString(R.string.ui_net_change_in_period_followers_following, delta(last.followers - first.followers), delta(last.following - first.following)), 13f, accent)); historyCard.gap(10)
                 }
-                AlertDialog.Builder(this).setTitle(getString(R.string.ui_recent_records)).setMessage(records).setPositiveButton(getString(R.string.ui_close), null).show()
-            })
-        } else historyCard.addView(text(getString(R.string.ui_no_records_in_this_date_range_choose), 14f, muted))
-        historyCard.gap(12)
-        page.addView(historyCard); page.gap(16)
-        val notesCard = AppUi.card(this)
-        notesCard.addView(AppUi.heading(this, getString(R.string.ui_your_private_note), 18f)); notesCard.gap(8)
-        if (person.note.isNotBlank()) { notesCard.addView(text(person.note, 14f, muted)); notesCard.gap(10) }
-        notesCard.addView(button(getString(R.string.ui_edit_note_and_group), false) { editPerson(person) }, LinearLayout.LayoutParams(-1, -2)); notesCard.gap(10)
-        page.addView(notesCard); page.gap(16)
-        page.addView(button(getString(R.string.ui_remove_person), false) { removePerson(saved.session, p) }
-            .apply { background = null; setTextColor(AppUi.coral) }, LinearLayout.LayoutParams(-1, -2)); page.gap(20)
+                historyCard.addView(button(getString(R.string.ui_view_records), false) {
+                    val records = observations.takeLast(10).asReversed().joinToString("\n\n") {
+                        getString(R.string.ui_n_followers_following, it.username, date(it.observedAt), number(it.followers), number(it.following))
+                    }
+                    AlertDialog.Builder(this).setTitle(getString(R.string.ui_recent_records)).setMessage(records).setPositiveButton(getString(R.string.ui_close), null).show()
+                })
+            } else historyCard.addView(text(getString(R.string.ui_no_records_in_this_date_range_choose), 14f, muted))
+            historyCard.gap(12)
+            page.addView(historyCard); page.gap(16)
+        }
+    }
+
+    private fun profileMenu(saved: SavedAccount, person: TrackedPerson) {
+        val p=person.latest
+        val options=listOf(R.string.timeline_title,R.string.parity_notifications,R.string.parity_preferences_short,R.string.daily_title,
+            R.string.visual_title,R.string.profile_history,R.string.ui_edit_note_and_group,R.string.watch_status_title,R.string.quick_start,R.string.ui_remove_person)
+        AlertDialog.Builder(this).setTitle(R.string.parity_more).setItems(options.map {getString(it)}.toTypedArray()) { _,index ->
+            when(options[index]) {
+                R.string.timeline_title -> openTimeline(p.userId)
+                R.string.parity_notifications -> openNotifications(p.userId)
+                R.string.parity_preferences_short -> HistoryViews.preferences(this,vault.journal,saved.session,p)
+                R.string.daily_title -> openDaily(p.userId)
+                R.string.visual_title -> startActivity(Intent(this,VisualHistoryActivity::class.java).putExtra("viewer_id",saved.session.userId).putExtra("target_id",p.userId).putExtra("offline_preview",preview))
+                R.string.profile_history -> {
+                    val content=stack();renderProfileDetails(content,person)
+                    AlertDialog.Builder(this).setTitle(R.string.profile_history).setView(ScrollView(this).apply {addView(content)}).setPositiveButton(R.string.ui_close,null).show()
+                }
+                R.string.ui_edit_note_and_group -> editPerson(person)
+                R.string.watch_status_title -> {
+                    watchDetailsExpanded=true;render()
+                }
+                R.string.quick_start -> startQuickWatch(p.userId)
+                R.string.ui_remove_person -> removePerson(saved.session,p)
+            }
+        }.setNegativeButton(R.string.ui_close,null).show()
     }
 
     private fun removePerson(session: Session, profile: Profile) {
@@ -1961,7 +2018,7 @@ class MainActivity : LocalizedActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         if (::quickWatch.isInitialized) quickWatch.save(outState)
         outState.putString("pendingQuickTarget", pendingQuickTarget)
-        outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
+        outState.putBoolean("watchDetails",watchDetailsExpanded);outState.putBoolean("profileHistory",profileHistoryExpanded); outState.putBoolean("people", peopleScreen); outState.putString("person", selectedPersonId); outState.putInt("range", rangeDays)
         outState.putInt("visiblePeople", visiblePeople)
         outState.putString("peopleQuery",peopleQuery)
         outState.putString("pendingWatch", pendingWatchId); outState.putString("pendingOwner", pendingWatchOwner); outState.putInt("pendingMinutes", pendingWatchMinutes)

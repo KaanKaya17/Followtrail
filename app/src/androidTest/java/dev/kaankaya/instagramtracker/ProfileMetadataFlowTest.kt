@@ -40,7 +40,7 @@ class ProfileMetadataFlowTest {
         scenario?.close(); vault.clear(); preferences.edit().clear().commit()
         SessionVault(context, "previewaccount").clear(); FollowListVault(context, "previewlists").clear()
         context.getSharedPreferences("preview_gate", 0).edit().clear().commit(); PreviewMode.cancel(context)
-        ChangeNotifications(context).clear(); EncryptedRecord(context, "metacap").clear()
+        ChangeNotifications(context,vaultForOwner={vault}).clear(); EncryptedRecord(context, "metacap").clear()
     }
     private class Connection(private val only: ProfileChangeField? = null) : HttpsURLConnection(URL("https://www.instagram.com/")) {
         override fun getResponseCode() = 200
@@ -66,7 +66,7 @@ class ProfileMetadataFlowTest {
     }
     @Test fun unchangedCountsStillPostOnePrivateProfileNotificationAndPreserveFavorites() {
         if (Build.VERSION.SDK_INT >= 33) shell("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")
-        val notices = ChangeNotifications(context); notices.ensureChannel(); assertTrue(notices.allowed())
+        val notices = ChangeNotifications(context,vaultForOwner={vault}); notices.ensureChannel(); assertTrue(notices.allowed())
         val gate = RequestGate(context, "meta_test_gate"); var requests = 0
         val api = InstagramApi(gate) { requests++; Connection() }
         val engine = MonitorEngine(vault, gate, api, notices::allowed, notices::post)
@@ -85,13 +85,31 @@ class ProfileMetadataFlowTest {
         assertFalse(notification.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("renamed"))
         assertEquals(3, RecentActivity.items(vault.read()!!).filterIsInstance<ActivityItem.ProfileChanged>().size)
     }
+    @Test fun accountPreferencesFilterOneGroupedNotificationWithoutLosingJournalFacts() {
+        if(Build.VERSION.SDK_INT>=33)shell("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")
+        val notices=ChangeNotifications(context,vaultForOwner={vault});notices.ensureChannel();notices.clear()
+        vault.journal.setRule(session,"456",NoticeRule(fields=setOf(NoticeField.USERNAME)))
+        val gate=RequestGate(context,"meta_test_gate")
+        MonitorEngine(vault,gate,InstagramApi(gate){Connection()},notices::allowed,notices::post).tick()
+        val manager=context.getSystemService(NotificationManager::class.java)
+        val deadline=android.os.SystemClock.elapsedRealtime()+5000
+        while(manager.activeNotifications.none {it.tag=="profile:123:456"} && android.os.SystemClock.elapsedRealtime()<deadline)Thread.sleep(30)
+        val body=manager.activeNotifications.single {it.tag=="profile:123:456"}.notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString()
+        assertTrue(body.contains("Kullanıcı adı değişti"));assertFalse(body.contains("Biyografi değişti"));assertFalse(body.contains("Profil fotoğrafı bilgisi değişti"))
+        val recorded=vault.journal.read(session).single();assertEquals(3,recorded.edits.size)
+        assertEquals("before-private-bio",recorded.edits.single {it.field==ProfileChangeField.BIOGRAPHY}.before)
+        assertEquals("after-private-bio",recorded.edits.single {it.field==ProfileChangeField.BIOGRAPHY}.after)
+        notices.clear();vault.journal.setRule(session,"456",NoticeRule(enabled=false))
+        notices.post(ObservedProfileChange("123",vault.read()!!.people.single().latest,2,0))
+        assertTrue(manager.activeNotifications.none {it.tag=="profile:123:456"});assertEquals(recorded,vault.journal.read(session).single())
+    }
     @Test fun eachMetadataFieldAlonePostsItsOwnNotificationWithoutCountChanges() {
         if (Build.VERSION.SDK_INT >= 33) shell("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")
         val labels = mapOf(ProfileChangeField.USERNAME to "Kullanıcı adı değişti", ProfileChangeField.BIOGRAPHY to "Biyografi değişti",
             ProfileChangeField.PICTURE to "Profil fotoğrafı bilgisi değişti")
         for ((field, label) in labels) {
             prepare()
-            val notices = ChangeNotifications(context); notices.ensureChannel()
+            val notices = ChangeNotifications(context,vaultForOwner={vault}); notices.ensureChannel()
             val gate = RequestGate(context, "meta_test_gate"); var requests = 0
             val engine = MonitorEngine(vault, gate, InstagramApi(gate) { requests++; Connection(field) }, notices::allowed, notices::post)
             engine.tick(); engine.tick(System.currentTimeMillis() + 16000)

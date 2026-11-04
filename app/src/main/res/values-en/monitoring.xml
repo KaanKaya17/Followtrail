@@ -9,7 +9,7 @@
     <string name="timeline_title">Timeline</string>
     <string name="timeline_menu">Check history</string>
     <string name="timeline_empty">New checks will appear here. Previous profile records remain on the analysis screen.</string>
-    <string name="timeline_scope">The latest 120 records are encrypted on this device. Times refer to device reads and comparisons, not exact Instagram event times. Times missing from older records are shown as not recorded.</string>
+    <string name="timeline_scope">Up to 2,000 records are encrypted on this device within a 2 MB limit. Times show when the app checked, not the exact time of a change on Instagram.</string>
     <string name="timeline_filter">Choose account</string>
     <string name="timeline_all">All accounts</string>
     <string name="timeline_unknown">Not recorded</string>
@@ -34,7 +34,7 @@
     <string name="timeline_unavailable">Could not open check history. Profile and list records are stored separately.</string>
     <string name="timeline_write_failed">The last action could not be added to history; check profile and list records separately.</string>
     <string name="adaptive_scope">Profile counts are checked first. A count change prioritizes the relevant list; completed lists also retain a daily check. People can change even when counts stay the same. A background round uses up to six requests and a 90-second window for starting requests, at least 15 seconds apart. Android may delay work. Quick watch only runs while the app is visible and stops on the first error; 429 cooldowns are preserved.</string>
-    <string name="journal_privacy">Check and list-comparison history is also encrypted on this device. Up to 120 recent actions are retained; passwords and raw responses are not written to this history.</string>
+    <string name="journal_privacy">Check history is encrypted on this device. Up to 2,000 records are retained within a 2 MB limit; passwords and raw responses are not recorded.</string>
     <plurals name="timeline_member_sample">
         <item quantity="one">History retains the first %1$d account in each direction; total differences are shown above. Open the list screen for all retained records from the latest read.</item>
         <item quantity="other">History retains the first %1$d accounts in each direction; total differences are shown above. Open the list screen for all retained records from the latest read.</item>

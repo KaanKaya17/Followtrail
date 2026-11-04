@@ -16,7 +16,9 @@ class AvatarPolicyTest {
         val source = AvatarSource("100", "200", "https://cdninstagram.com/photo.jpg", "old")
         val keys = listOf(source, source.copy(owner = "300"), source.copy(target = "400"), source.copy(revision = "new"),
             source.copy(url = "https://cdninstagram.com/other.jpg")).map { it.key }
-        assertEquals(5, keys.distinct().size)
+        assertEquals(4, keys.distinct().size)
+        assertEquals(source.key, source.copy(url = "https://cdninstagram.com/rotated.jpg?signature=new").key)
+        assertNotEquals(source.copy(revision = null).key, source.copy(revision = null, url = "https://cdninstagram.com/other.jpg").key)
         assertFalse(source.key.contains("photo.jpg")); assertTrue(source.key.startsWith(AvatarPolicy.prefix("100", "200")))
     }
     @Test fun profileLinksPreserveObservedUsernamesAndNeverGuessMissingOnes() {

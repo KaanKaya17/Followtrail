@@ -45,7 +45,7 @@ class AvatarImagesTest {
     @Test fun diskCacheSurvivesLoaderRecreationAndPhotoRevisionAndOwnerStaySeparate() {
         val calls = AtomicInteger(); val first = loader(fetcher(png(Color.RED, 1024), calls))
         val image = result(first, source); assertTrue(image.width <= AvatarPolicy.MAX_SIDE); assertEquals(Color.RED, image.getPixel(10, 10))
-        result(first, source); assertEquals(1, calls.get()); first.close()
+        result(first, source.copy(url="https://cdninstagram.com/rotated.png?signature=next")); assertEquals(1, calls.get()); first.close()
         val second = loader(fetcher(png(Color.BLUE), calls))
         assertEquals(Color.RED, result(second, source).getPixel(10, 10)); assertEquals(1, calls.get())
         assertEquals(Color.BLUE, result(second, source.copy(revision = "two")).getPixel(10, 10))
@@ -54,6 +54,16 @@ class AvatarImagesTest {
         val third = loader(fetcher(png(Color.GREEN), calls))
         result(third, source.copy(owner = "300")); assertEquals(3, calls.get())
         result(third, source); assertEquals(4, calls.get())
+    }
+    @Test fun aFreshSignedUrlCanRecoverAfterAnExpiredUrlForTheSamePhoto() {
+        val calls=AtomicInteger();val bytes=png(Color.GREEN)
+        val images=loader(AvatarFetcher { url -> object : AvatarDownload {
+            override fun cancel()=Unit
+            override fun read(): ByteArray? {calls.incrementAndGet();return if(url.queryParameter("valid")=="yes")bytes else null}
+        } })
+        images.load(source){fail("Expired URL")}!!.future.get(5,TimeUnit.SECONDS);drain()
+        images.load(source){fail("Repeated expired URL")}!!.future.get(5,TimeUnit.SECONDS);drain();assertEquals(1,calls.get())
+        assertEquals(Color.GREEN,result(images,source.copy(url="https://cdninstagram.com/photo.png?valid=yes")).getPixel(10,10));assertEquals(2,calls.get())
     }
     @Test fun aCancelledLateDownloadCannotDeliverOrRecreateDeletedCache() {
         val entered = CountDownLatch(1); val release = CountDownLatch(1); val cancelled = CountDownLatch(1)

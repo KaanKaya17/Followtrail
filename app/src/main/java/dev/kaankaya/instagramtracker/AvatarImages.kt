@@ -24,7 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 data class AvatarSource(val owner: String, val target: String, val url: String, val revision: String? = null) {
     val prefix = AvatarPolicy.prefix(owner, target)
-    val key = prefix + AvatarPolicy.hash(url + "\n" + revision.orEmpty())
+    val key = prefix + AvatarPolicy.hash(revision?.takeIf { it.isNotBlank() }?.let { "picture:$it" } ?: "url:$url")
+    // A failed signed URL must not suppress a fresh URL for the same photo.
+    val requestKey get() = key + "-" + AvatarPolicy.hash(url)
 }
 
 object AvatarPolicy {
@@ -141,7 +143,7 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
                 var bitmap = memory.get(source.key)
                 if (bitmap == null) {
                     bitmap = cache?.read(source.key)?.let(::decode)
-                    if (bitmap == null && active() && failures.get(source.key) != true) {
+                    if (bitmap == null && active() && failures.get(source.requestKey) != true) {
                         val exchange = fetcher.open(AvatarPolicy.url(source.url) ?: return)
                         download = exchange
                         if (!active()) { exchange.cancel(); return }
@@ -153,7 +155,7 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
                         }
                     }
                 }
-                val image = bitmap ?: run { if (active()) failures.put(source.key, true); return }
+                val image = bitmap ?: run { if (active()) failures.put(source.requestKey, true); return }
                 if (active()) {
                     // Only an already-selected public thumbnail of the current observation.
                     // No extra request and no archive record for an untracked list member.

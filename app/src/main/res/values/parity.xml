@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="parity_posts">Gönderiler</string>
+    <string name="parity_lists">Listeler</string>
+    <string name="parity_checked">Profil kontrol edildi</string>
+    <string name="parity_baseline">İlk liste kaydedildi</string>
+    <plurals name="parity_more_people">
+        <item quantity="one">%1$d kişi daha</item>
+        <item quantity="other">%1$d kişi daha</item>
+    </plurals>
+    <string name="parity_arrivals">Yeni görülen: %1$d</string>
+    <string name="parity_missing">Bu kontrolde görünmeyen: %1$d</string>
+    <string name="parity_technical">İstek bilgileri</string>
+    <string name="parity_profile_check">Profil kontrolü</string>
+    <string name="parity_details">Değişiklik ayrıntısı</string>
+    <string name="parity_preferences">%1$s · Bildirim tercihleri</string>
+    <string name="parity_notices_enabled">Bu hesap için bildirimler</string>
+    <string name="parity_notifications">Bildirimler</string>
+    <string name="parity_refresh_history">Kayıtları yeniden yükle</string>
+    <string name="parity_unread">Okunmamış</string>
+    <string name="parity_read">Okundu</string>
+    <string name="parity_all_types">Tüm türler</string>
+    <string name="parity_profile_changes">Profil değişiklikleri</string>
+    <string name="parity_checks">Kontroller</string>
+    <string name="parity_errors">Hatalar</string>
+    <string name="parity_today">Bugün</string>
+    <string name="parity_yesterday">Dün</string>
+    <string name="parity_no_notifications">Henüz değişiklik bildirimi yok. Yeni değişiklikler burada görünecek.</string>
+    <plurals name="parity_records">
+        <item quantity="one">%1$d kayıt</item>
+        <item quantity="other">%1$d kayıt</item>
+    </plurals>
+    <string name="parity_routine_count">Rutin kontroller · %1$d</string>
+    <string name="parity_more_records">Daha fazla kayıt</string>
+    <string name="parity_more_checks">Daha fazla kontrol</string>
+    <string name="parity_clear_filters">Filtreleri temizle</string>
+    <string name="parity_post_delta">Gönderiler: %1$s</string>
+    <string name="parity_preferences_short">Bildirim tercihleri</string>
+    <string name="parity_more">Diğer</string>
+    <string name="parity_hide_history">Geçmişi gizle</string>
+    <string name="parity_list_owner">Liste sahibi: @%1$s · Değiştir</string>
+    <string name="parity_choose_owner">Liste sahibini seç</string>
+    <string name="parity_net_change">Dönem net farkı: %1$s</string>
+</resources>

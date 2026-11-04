@@ -9,7 +9,7 @@
     <string name="timeline_title">Zaman çizelgesi</string>
     <string name="timeline_menu">İşlem geçmişi</string>
     <string name="timeline_empty">Yeni kontrollerin burada görünecek. Önceki profil kayıtlarına analiz ekranından ulaşabilirsin.</string>
-    <string name="timeline_scope">Son 120 kayıt bu cihazda şifrelenir. Saatler cihazın okuma ve karşılaştırma saatidir; Instagram’daki kesin olay saati değildir. Eski kayıtlarda tutulmayan saatler bilinmiyor olarak gösterilir.</string>
+    <string name="timeline_scope">En fazla 2000 kayıt, 2 MB sınırı içinde bu cihazda şifrelenir. Saatler uygulamanın kontrol zamanıdır; Instagram’daki kesin değişiklik saati değildir.</string>
     <string name="timeline_filter">Hesap seç</string>
     <string name="timeline_all">Bütün hesaplar</string>
     <string name="timeline_unknown">Kaydedilmedi</string>
@@ -34,7 +34,7 @@
     <string name="timeline_unavailable">İşlem geçmişi açılamadı. Profil ve liste kayıtları ayrı tutulur.</string>
     <string name="timeline_write_failed">Son işlem geçmişe yazılamadı; profil ve liste kayıtlarını ayrıca kontrol edebilirsin.</string>
     <string name="adaptive_scope">Önce profil sayıları kontrol edilir. Sayı değiştiğinde ilgili liste öne alınır; tamamlanmış listelerde günlük kontrol de korunur. Sayı aynı kalsa da kişiler değişebilir. Bir arka plan turu en fazla altı istek ve 90 saniyelik başlatma penceresi kullanır; istekler en az 15 saniye aralıklıdır. Android geciktirebilir. Hızlı izleme yalnız uygulama görünürken çalışır ve ilk hatada durur; 429 molaları korunur.</string>
-    <string name="journal_privacy">Kontrol ve liste karşılaştırma geçmişi de bu cihazda şifrelenir. En fazla son 120 işlem tutulur; parola veya ham yanıt bu geçmişe yazılmaz.</string>
+    <string name="journal_privacy">Kontrol geçmişi bu cihazda şifrelenir. En fazla 2000 kayıt, 2 MB sınırı içinde tutulur; parola ve ham yanıt kaydedilmez.</string>
     <plurals name="timeline_member_sample">
         <item quantity="one">Geçmişte her yöndeki ilk %1$d hesap saklanır; toplam fark sayısı yukarıdadır. Son okumanın tüm kayıtlarına liste ekranından ulaşabilirsin.</item>
         <item quantity="other">Geçmişte her yöndeki ilk %1$d hesap saklanır; toplam fark sayısı yukarıdadır. Son okumanın tüm kayıtlarına liste ekranından ulaşabilirsin.</item>

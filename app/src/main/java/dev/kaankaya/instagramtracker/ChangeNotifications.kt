@@ -12,7 +12,10 @@ import android.net.Uri
 import android.os.Build
 import java.text.NumberFormat
 
-class ChangeNotifications(context: Context, private val preview: Boolean = false) {
+class ChangeNotifications(context: Context, private val preview: Boolean = false,
+    private val vaultForOwner: (String) -> SessionVault = { owner ->
+        SessionVault(context.applicationContext,if(preview)"previewaccount" else "account",if(preview)null else owner)
+    }) {
     private val sourceContext = context.applicationContext
     companion object { const val CHANNEL = "profile_changes_v1" }
     private val manager = sourceContext.getSystemService(NotificationManager::class.java)
@@ -30,10 +33,17 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
     private fun accountLabel(owner: String): String? = if(preview)"DEMO" else try {
         AccountCatalog(sourceContext).entries().firstOrNull {it.id==owner}?.let {"@${it.username}"}
     }catch (_: Exception) {null}
-    fun post(change: ObservedProfileChange) {
+    private fun rule(owner: String,target: String,expected: Session?=null): NoticeRule? = try {
+        val vault=vaultForOwner(owner)
+        var result: NoticeRule?=null
+        vault.inspect {saved -> if(saved?.session?.userId==owner && (expected==null || saved.session==expected))result=vault.journal.rule(saved.session,target)}
+        result
+    } catch (_: Exception) {null}
+    fun post(observation: ObservedProfileChange) {
         val context = AppLanguage.wrap(sourceContext)
         ensureChannel()
         if (!allowed()) return
+        val change = rule(observation.ownerId,observation.profile.userId)?.select(observation) ?: return
         val intent = Intent(context, MainActivity::class.java).setData(Uri.parse("instagramtracker://observation/${change.ownerId}/${change.profile.userId}"))
             .putExtra("notification_owner", change.ownerId).putExtra("notification_person", change.profile.userId)
             .putExtra("offline_preview", preview)
@@ -49,6 +59,7 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
             ProfileChangeField.BIOGRAPHY -> R.string.profile_bio_changed
             ProfileChangeField.PICTURE -> R.string.profile_picture_changed
         }) }
+        change.postsDelta?.let {details += context.getString(R.string.parity_post_delta,delta(it))}
         details += context.getString(R.string.timeline_observed, ObservationTimes.format(context, change.profile.observedAt))
         change.previousAt?.let { details += context.getString(R.string.timeline_previous, ObservationTimes.format(context, it)) }
         val public = builder(context).setSmallIcon(R.drawable.ic_notification).setContentTitle("InstagramTracker")
@@ -67,6 +78,8 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
     fun postList(session: Session, profile: Profile, difference: ListDifference) {
         val context = AppLanguage.wrap(sourceContext)
         ensureChannel(); if (!allowed()) return
+        val rule=rule(session.userId,profile.userId,session) ?: return
+        if(!rule.enabled || NoticeField.LISTS !in rule.fields)return
         val intent = Intent(context, FollowListActivity::class.java)
             .setData(Uri.parse("instagramtracker://list/${session.userId}/${profile.userId}/${difference.direction.path}"))
             .putExtra("target_id", profile.userId).putExtra("notification_owner", session.userId)

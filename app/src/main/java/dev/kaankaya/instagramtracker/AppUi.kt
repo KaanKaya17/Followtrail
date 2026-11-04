@@ -170,6 +170,7 @@ object AppUi {
                 "lock" -> { canvas.drawRoundRect(5f, 10f, 19f, 21f, 3f, 3f, paint); canvas.drawArc(8f, 2f, 16f, 15f, 180f, 180f, false, paint); path(12f, 14f, 12f, 17f) }
                 "check" -> path(5f, 12f, 10f, 17f, 20f, 6f)
                 "clock" -> { canvas.drawCircle(12f, 12f, 9f, paint); path(12f, 7f, 12f, 12f, 16f, 14f) }
+                "bell" -> { canvas.drawArc(6f, 3f, 18f, 17f, 180f, 180f, false, paint); path(6f, 10f, 6f, 16f, 4f, 18f, 20f, 18f, 18f, 16f, 18f, 10f); canvas.drawArc(9f, 18f, 15f, 23f, 0f, 180f, false, paint) }
                 "link" -> { canvas.drawRoundRect(3f, 7f, 14f, 17f, 5f, 5f, paint); canvas.drawRoundRect(10f, 7f, 21f, 17f, 5f, 5f, paint) }
                 "compare" -> { path(4f, 7f, 20f, 7f, 16f, 3f); path(20f, 17f, 4f, 17f, 8f, 21f) }
                 "close" -> { path(6f, 6f, 18f, 18f); path(18f, 6f, 6f, 18f) }
