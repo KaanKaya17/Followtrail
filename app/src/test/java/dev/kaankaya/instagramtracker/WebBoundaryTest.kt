@@ -31,7 +31,8 @@ class WebBoundaryTest {
             WebRequests.list(state, "456", FollowDirection.FOLLOWING, null))
         requests.forEach {
             assertEquals("https", it.url.scheme); assertEquals("www.instagram.com", it.url.host); assertEquals(443, it.url.port)
-            assertEquals("1217981644879628", it.header("X-IG-App-ID")); assertEquals("csrf", it.header("X-CSRFToken"))
+            // CurrentUserInitialData.APP_ID in the first-party desktop login page, observed 2026-11-04.
+            assertEquals("936619743392459", it.header("X-IG-App-ID")); assertEquals("csrf", it.header("X-CSRFToken"))
             assertNull(it.header("Authorization")); assertNull(it.body); assertEquals("GET", it.method)
             assertEquals("same-origin", it.header("Sec-Fetch-Site")); assertEquals("cors", it.header("Sec-Fetch-Mode"))
             assertEquals("empty", it.header("Sec-Fetch-Dest"))

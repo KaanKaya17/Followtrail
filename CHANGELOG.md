@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.80 — 2026-11-04 (Masaüstü web girişinden profil okumaya geçiş)
+
+- Profil/liste/arama web GET isteklerinin ortak uygulama kimliği, giriş ekranının masaüstü UA biçimiyle eşleştirildi. Instagram'ın oturumsuz resmî giriş sayfasındaki `CurrentUserInitialData.APP_ID` gözlemi `936619743392459`; önceki sabit `1217981644879628` idi. [Birincil kaynak gözlemi ve test sınırı](docs/ANDROID-WEB-APP-ID.md).
+- Devam ekranındaki isteği gönderen düğme “Profilimi kontrol et ve bağla” olarak ayrıldı. Aynı ekrandan yerel İstek bilgileri açılabilir; uygulama kimliği, son sayaçlı HTTP ve mola zamanları görülebilir. Parola/çerez gösterilmez.
+- Mevcut şifreli bekleyen oturum, kayıtlı hesaplar ve 429 molası korunur. Süre, kota, endpoint veya mobil oturum kimliği değiştirilmedi. Bu düzeltme canlı giriş/profil 429 sorununun çözüldüğü iddiası değildir. Windows 0.2.51 değişmez.
+- Doğrulama: 154 Android JVM testi, 21 çevrimdışı tarayıcı kontrolü ve dört dilde 730 kaynak kontrolü geçti. Release/test APK derlemeleri, lint (0 hata / mevcut 50 uyarı), v2/v3 imza ve manifest kontrolleri geçti. Fiziksel telefona veri silmeden kuruldu; yeni Instagram profil isteği gönderilmedi. Instrumentasyon testleri yalnız derlendi.
+
 ## Windows 0.2.51 / Android 0.1.79 — 2026-11-04 (Hesap bağlamı ve eksik liste tekrarları)
 
 - Windows arka plan hesabı geçici açıldığında arama önbelleği gereksiz sıfırlanmıyor. Fotoğraflar ekranda seçili hesabın arama/listesi üzerinden çözülüyor; açık hesap değişimi ve silme sınırları korunuyor.

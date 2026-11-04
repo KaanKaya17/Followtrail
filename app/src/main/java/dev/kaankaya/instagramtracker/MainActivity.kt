@@ -909,6 +909,7 @@ class MainActivity : LocalizedActivity() {
         val lines = mutableListOf(getString(R.string.ui_read_attempts_started, number(gate.attempts())),
             getString(R.string.web_compare_last_counted_http, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
         lines += getString(R.string.web_transport_selected, getString(if(WebRequestClients.platformAvailable()) R.string.web_transport_android else R.string.web_transport_standard))
+        lines += getString(R.string.web_transport_app_id, WebRequests.APP_ID)
         lines += getString(R.string.security_budget_info, RequestBudgetPolicy.HOURLY, RequestBudgetPolicy.DAILY)
         if (gate.budgetNextAt() > now) lines += getString(R.string.security_budget_next, date(gate.budgetNextAt()))
         if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))

@@ -16,7 +16,7 @@ async function run({body=valid,status=200,origin='https://www.instagram.com',own
  };
  const window={fetch,AbortController,TextDecoder};
  const context=vm.createContext({window,location:{origin},fetch,AbortController,TextDecoder,setTimeout(callback){timer=callback;return 1;},clearTimeout(){}});
- const start=vm.runInContext(script+'('+JSON.stringify({slot,path,owner,headers:{Accept:'application/json','X-IG-App-ID':'1217981644879628','X-IG-WWW-Claim':'0'}})+')',context);
+ const start=vm.runInContext(script+'('+JSON.stringify({slot,path,owner,headers:{Accept:'application/json','X-IG-App-ID':'936619743392459','X-IG-WWW-Claim':'0'}})+')',context);
  return {start,window,requests,aborted:()=>aborted,timeout:()=>timer(),async done(){for(let i=0;i<30;i++){await new Promise(resolve=>setImmediate(resolve));if(window[slot]?.stage==='done')return window[slot];}throw Error('Probe did not finish');}};
 }
 {
