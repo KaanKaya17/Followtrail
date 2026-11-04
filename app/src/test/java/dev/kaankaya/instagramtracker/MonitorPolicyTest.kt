@@ -13,7 +13,7 @@ class MonitorPolicyTest {
         assertNull(MonitorPolicy.due(listOf(person.copy(watching = false), earlier), 1499))
     }
     @Test fun onlyObservedFollowerOrFollowingChangesProduceNetDeltas() {
-        assertNull(MonitorPolicy.change("123", person, profile.copy(posts = 5)))
+        assertEquals(1L, MonitorPolicy.change("123", person, profile.copy(posts = 5, observedAt = 2000))!!.postsDelta)
         assertNull(MonitorPolicy.change("123", person.copy(watching = false), profile.copy(followers = 14)))
         assertNull(MonitorPolicy.change("123", null, profile))
         val change = MonitorPolicy.change("123", person, profile.copy(followers = 10, following = 8))!!

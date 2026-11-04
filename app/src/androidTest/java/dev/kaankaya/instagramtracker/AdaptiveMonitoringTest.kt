@@ -140,8 +140,14 @@ class AdaptiveMonitoringTest {
         assertEquals(2L, gate.attempts()); assertEquals(1L, changes.single().followersDelta)
     }
     @Test fun journalIsBoundedOwnerScopedAndDeletedWithAccount() {
-        for (i in 1..125) assertTrue(vault.journal.append(session, CheckEvent("200", "friend", CheckKind.PROFILE, null, i.toLong(), i.toLong())))
-        assertEquals(120, vault.journal.read(session).size); assertEquals(6L, vault.journal.read(session).first().observedAt)
+        // Seed the encrypted production boundary once instead of doing 2,000 Keystore rewrites.
+        val events=org.json.JSONArray().apply {for(i in 1..CheckJournal.MAX_EVENTS)put(org.json.JSONObject()
+            .put("target","200").put("username","friend").put("kind","PROFILE").put("observed",i).put("analyzed",i).put("fields",org.json.JSONArray()))}
+        EncryptedRecord(context,"adaptivetestchecks",2*1024*1024).write(org.json.JSONObject().put("version",1).put("owner",session.userId).put("events",events).toString())
+        assertEquals(CheckJournal.MAX_EVENTS,vault.journal.read(session).size)
+        val next=CheckJournal.MAX_EVENTS+1L
+        assertTrue(vault.journal.append(session,CheckEvent("200","friend",CheckKind.PROFILE,null,next,next)))
+        assertEquals(CheckJournal.MAX_EVENTS, vault.journal.read(session).size); assertEquals(2L, vault.journal.read(session).first().observedAt)
         assertTrue(vault.journal.read(session.copy(userId = "999")).isEmpty())
         vault.journal.clearTarget(session, "200"); assertTrue(vault.journal.read(session).isEmpty())
         assertTrue(vault.journal.append(session, CheckEvent("200", "friend", CheckKind.PROFILE, null, now, now)))

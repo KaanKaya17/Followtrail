@@ -18,6 +18,7 @@ class EncryptedRecord(context: Context, slot: String, private val maxBytes: Int 
     private val alias = "instagramtracker.$slot.v1"
     private val aad = "InstagramTracker/session/v1".toByteArray()
     fun exists(): Boolean = file.baseFile.exists() || File(file.baseFile.path + ".bak").exists()
+    fun stamp(): String = listOf(file.baseFile, File(file.baseFile.path + ".bak")).joinToString(":") { "${it.lastModified()}:${it.length()}" }
     private fun key(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(alias, null) as? SecretKey)?.let { return it }

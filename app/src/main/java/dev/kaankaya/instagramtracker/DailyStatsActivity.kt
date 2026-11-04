@@ -77,6 +77,8 @@ class DailyStatsActivity : LocalizedActivity() {
             series.points.isEmpty()->page.addView(AppUi.text(this,getString(R.string.daily_empty),14f,AppUi.muted))
             else->{
                 page.addView(AppUi.numeric(AppUi.heading(this,number(series.points.last().value),30f)))
+                val difference=series.points.last().value-series.points.first().first
+                page.addView(AppUi.text(this,getString(R.string.parity_net_change,HistoryViews.delta(this,difference)),14f,AppUi.violet))
                 page.addView(AppUi.text(this,getString(R.string.daily_coverage,number(series.observedDays.toLong()),number(series.samples)),13f,AppUi.muted))
                 page.addView(DailyChartView(this,series),LinearLayout.LayoutParams(-1,dp(250)))
                 if(series.bucketDays>1)page.addView(AppUi.text(this,getString(R.string.daily_grouped,number(series.bucketDays)),12f,AppUi.muted))

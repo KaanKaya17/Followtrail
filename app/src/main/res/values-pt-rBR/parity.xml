@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="parity_posts">Publicações</string>
+    <string name="parity_lists">Listas</string>
+    <string name="parity_checked">Perfil verificado</string>
+    <string name="parity_baseline">Primeira lista salva</string>
+    <plurals name="parity_more_people">
+        <item quantity="one">Mais %1$d pessoa</item>
+        <item quantity="other">Mais %1$d pessoas</item>
+    </plurals>
+    <string name="parity_arrivals">Novas: %1$d</string>
+    <string name="parity_missing">Não aparecem nesta verificação: %1$d</string>
+    <string name="parity_technical">Informações das solicitações</string>
+    <string name="parity_profile_check">Verificação do perfil</string>
+    <string name="parity_details">Detalhes da alteração</string>
+    <string name="parity_preferences">%1$s · Preferências de notificações</string>
+    <string name="parity_notices_enabled">Notificações desta conta</string>
+    <string name="parity_notifications">Notificações</string>
+    <string name="parity_refresh_history">Recarregar registros salvos</string>
+    <string name="parity_unread">Não lidas</string>
+    <string name="parity_read">Lida</string>
+    <string name="parity_all_types">Todos os tipos</string>
+    <string name="parity_profile_changes">Alterações no perfil</string>
+    <string name="parity_checks">Verificações</string>
+    <string name="parity_errors">Erros</string>
+    <string name="parity_today">Hoje</string>
+    <string name="parity_yesterday">Ontem</string>
+    <string name="parity_no_notifications">Ainda não há notificações de alterações. Novas alterações aparecerão aqui.</string>
+    <plurals name="parity_records">
+        <item quantity="one">%1$d registro</item>
+        <item quantity="other">%1$d registros</item>
+    </plurals>
+    <string name="parity_routine_count">Verificações de rotina · %1$d</string>
+    <string name="parity_more_records">Mais registros</string>
+    <string name="parity_more_checks">Mais verificações</string>
+    <string name="parity_clear_filters">Limpar filtros</string>
+    <string name="parity_post_delta">Publicações: %1$s</string>
+    <string name="parity_preferences_short">Preferências de notificações</string>
+    <string name="parity_more">Mais</string>
+    <string name="parity_hide_history">Ocultar histórico</string>
+    <string name="parity_list_owner">Titular da lista: @%1$s · Alterar</string>
+    <string name="parity_choose_owner">Escolher titular da lista</string>
+    <string name="parity_net_change">Variação líquida no período: %1$s</string>
+</resources>

@@ -135,13 +135,14 @@ class LanguageFlowTest {
         instrumentation.runOnMainSync { AppLanguage.set(context, "en") }
         instrumentation.waitForIdleSync()
         val profile = vault.read()!!.people.first().latest
-        val change = ObservedProfileChange("123", profile, 2, 0, listOf(ProfileEdit(profile.userId, profile.username,
+        val owner=vault.read()!!.session.userId
+        val change = ObservedProfileChange(owner, profile, 2, 0, listOf(ProfileEdit(profile.userId, profile.username,
             ProfileChangeField.BIOGRAPHY, "özel", "private", 1000, 2000)))
         notifications.post(change)
         val manager = context.getSystemService(NotificationManager::class.java)
         val deadline = SystemClock.elapsedRealtime() + 5000
-        while (manager.activeNotifications.none { it.tag == "profile:123:${profile.userId}" } && SystemClock.elapsedRealtime() < deadline) Thread.sleep(30)
-        val notification = manager.activeNotifications.single { it.tag == "profile:123:${profile.userId}" }.notification
+        while (manager.activeNotifications.none { it.tag == "profile:$owner:${profile.userId}" } && SystemClock.elapsedRealtime() < deadline) Thread.sleep(30)
+        val notification = manager.activeNotifications.single { it.tag == "profile:$owner:${profile.userId}" }.notification
         assertTrue(notification.extras.getCharSequence(Notification.EXTRA_TITLE).toString().endsWith("profile change"))
         assertTrue(notification.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("Biography changed"))
         assertEquals("Demo: a sample profile changed.", notification.publicVersion.extras.getCharSequence(Notification.EXTRA_TEXT).toString())

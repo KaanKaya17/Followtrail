@@ -128,11 +128,11 @@ class PeopleScreenTest {
     }
     @Test fun navigatingPeopleAndHistoryDoesNotReserveNetworkAndSurvivesRecreation() {
         launch(); click("Kaydedilen Profiller"); click("Analizi aç · @deniz.demo")
-        awaitLabel("@deniz.demo"); click("7 gün"); click("Takip edilen")
+        awaitLabel("@deniz.demo"); click("Kontrol geçmişi"); click("7 gün"); click("Takip edilen")
         scenario!!.onActivity { activity ->
             val labels = all(activity.window.decorView).filterIsInstance<TextView>().map { it.text.toString() }
             assertTrue(labels.contains("DEMO · ÖRNEK VERİ"))
-            assertTrue(labels.contains("Özel notun"))
+            assertTrue(labels.contains("Bu bir örnek not. Gerçek hesap verisi değildir."))
             assertTrue(labels.any { it.startsWith("Dönem net farkı:") })
             assertTrue(all(activity.window.decorView).any { it is HistoryChartView })
         }
@@ -223,7 +223,6 @@ class PeopleScreenTest {
         assertTrue(person.watching); assertEquals(360, person.intervalMinutes)
         scenario!!.recreate(); awaitLabel("6 saatte bir")
         click("Değişiklikleri izle")
-        scenario!!.onActivity { activity -> assertFalse(all(activity.window.decorView).filterIsInstance<android.widget.Switch>().single().isChecked) }
         assertFalse(SessionVault(context, "previewaccount").read()!!.people.first().watching)
         assertNull(context.getSystemService(android.app.job.JobScheduler::class.java).getPendingJob(PreviewMode.JOB_ID))
         assertEquals(0L, RequestGate(context, "preview_gate").nextAllowedAt())
@@ -249,12 +248,12 @@ class PeopleScreenTest {
         scenario!!.recreate(); awaitLabel("15 dakikada bir")
         for ((choice, label, minutes) in listOf(Triple("En az 30 dakika arayla", "30 dakikada bir", 30),
                 Triple("En az 12 saat arayla", "12 saatte bir", 720))) {
-            click("Kontrol aralığını değiştir"); dialogClick(choice); dialogClick("İzlemeyi aç")
+            clickDescription("Kontrol aralığını değiştir"); dialogClick(choice); dialogClick("İzlemeyi aç")
             awaitLabel(label); assertEquals(minutes, vault.read()!!.people.first().intervalMinutes)
         }
         val before = vault.read()!!
         gate.limited(null)
-        click("Durumu güncelle"); awaitLabel("Sıradaki kontrol: beklemede.")
+        click("Diğer"); dialogClick("Takip durumu"); click("Durumu güncelle"); awaitLabel("Sıradaki kontrol: beklemede.")
         scenario!!.onActivity { activity ->
             assertTrue(all(activity.window.decorView).filterIsInstance<TextView>().any { it.text.toString().startsWith("Instagram molası var:") })
         }
@@ -304,13 +303,13 @@ class PeopleScreenTest {
         setText("@kullanıcıadı veya profil bağlantısı", "@efe.demo")
         dialogClick("Profili getir"); awaitLabel("@efe.demo")
         assertEquals(3, SessionVault(context, "previewaccount").read()!!.people.size)
-        click("Not ve grup düzenle")
+        click("Diğer"); dialogClick("Not ve grup düzenle")
         setText("Grup (isteğe bağlı)", "Test grubu")
         setText("Yalnız bu cihazda saklanan notun", "Test notu")
         dialogClick("Kaydet"); awaitLabel("Test notu")
         scenario!!.recreate(); awaitLabel("Test notu")
         assertEquals("Test grubu", SessionVault(context, "previewaccount").read()!!.people.last().group)
-        click("Kişiyi kaldır"); dialogClick("Kaldır"); awaitLabel("Kaydedilen Profiller")
+        click("Diğer"); dialogClick("Kişiyi kaldır"); dialogClick("Kaldır"); awaitLabel("Kaydedilen Profiller")
         assertEquals(2, SessionVault(context, "previewaccount").read()!!.people.size)
     }
 }

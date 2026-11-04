@@ -1,5 +1,14 @@
 # Değişiklikler
 
+## Android 0.1.76 — 2026-11-04 (Mobil görünüm ve yerel bildirim geçmişi)
+
+- Özet, profil ayrıntısı ve liste sahibi Windows düzeniyle uyumlu hale getirildi. Fotoğraf, kullanıcı adı/isim ve bilinen sayaçlar belirginleştirildi; profil geçmişi ve ikincil işlemler isteyerek açılır. Yerel günlük grafikte dönem net farkı gösterilir.
+- Uygulama içi Bildirimler ekranı, okunmamış/tür/profil filtreleri, kalıcı okundu durumu ve hesap/değişiklik türüne göre sistem bildirimi tercihleri eklendi. Aynı profil kontrolünün değişiklikleri tek kayıtta tutulur; tercihleri kapatmak yerel geçmişi silmez.
+- Zaman Çizelgesi günlere ayrıldı, rutin kontroller katlanır gruplara taşındı. Bilinen eski/yeni değerler gösterilir; eski kayıtlarda olmayan değerler üretilmez. Günlük en fazla 2000 olay / 2 MiB; bildirim görünümü son 500 değişikliktir. Kalıcı günlük istatistikler ayrı saklanır.
+- Geçmiş satırları ListView ile yeniden kullanılır; günlük okumaları hesap yuvasına göre sınırlı önbellekten alınır. Aynı fotoğraf ID’sinin değişen CDN bağlantısı başarılı fotoğraf önbelleğini kullanabilir; başarısız eski URL yeni URL’yi engellemez. Dört dilde karşılıkları eklendi.
+- 142 JVM testi, lint (0 hata / 48 uyarı), release/debug/test APK derlemeleri, dört dilde 716 kaynak ve imzalı paket kontrolleri geçti. **Emülatör ekran testleri tamamlanmadı**; bellek daralması sonrasında kullanıcı testi erteledi. Tam ekran ve canlı giriş doğrulaması vaat edilmez. [Kapsam ve açık testler](docs/ANDROID-UI-ALIGNMENT.md).
+- Android giriş taşıyıcısı, 429 molaları ve Windows 0.2.47 paketi değişmedi. Hikâye arşivi gibi diğer Windows özelliklerinin tamamı Android'e taşınmış değildir.
+
 ## Windows 0.2.36 / Android 0.1.75 — 2026-11-03 (Kalıcı günlük istatistikler)
 
 - Kendi hesabı ve kaydedilen profiller için ayrıntılı son kontrollerden bağımsız, şifreli profil/yıl arşivi eklendi. Günlük ilk/son/minimum/maksimum sayaçlar, gözlem zamanları ve kontrol sayısı tutulur. Eski ayrıntılar budanmadan önce eldeki kayıtlar aktarılır; günlük özetlerde süreye bağlı silme yoktur.

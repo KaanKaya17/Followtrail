@@ -8,7 +8,7 @@ sealed interface ActivityItem {
     val key: String
 
     data class Counts(override val profileId: String, override val username: String,
-        val previousAt: Long, override val observedAt: Long, val followersDelta: Long, val followingDelta: Long) : ActivityItem {
+        val previousAt: Long, override val observedAt: Long, val followersDelta: Long, val followingDelta: Long, val beforeFollowers: Long? = null, val beforeFollowing: Long? = null) : ActivityItem {
         override val key get() = "counts:$profileId:$previousAt:$observedAt"
     }
     data class ProfileChanged(val edit: ProfileEdit) : ActivityItem {
@@ -32,7 +32,7 @@ object RecentActivity {
             val followers = after.followers - before.followers
             val following = after.following - before.following
             if (followers != 0L || following != 0L) entries += ActivityItem.Counts(after.userId, after.username,
-                before.observedAt, after.observedAt, followers, following)
+                before.observedAt, after.observedAt, followers, following, before.followers, before.following)
         }
         account.people.forEach { person -> entries += ProfileChanges.history(person.history).map { ActivityItem.ProfileChanged(it) } }
         for (lists in snapshots) if (lists.matches(account.session, lists.target)) {
