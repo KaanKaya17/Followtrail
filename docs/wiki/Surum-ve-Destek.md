@@ -6,19 +6,19 @@
 
 ## Windows
 
-**Güncel önizleme: 0.2.47 · kaynak etiketi: `desktop-v0.2.47`**
+**Güncel önizleme: 0.2.48 · kaynak etiketi: `desktop-v0.2.48`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.47`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.48`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
-- Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. Android görünüm güncellemesi Windows paketini değiştirmez.
+- Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.
 
 ## Android
 
-**Güncel APK: 0.1.76 · sürüm kodu: 77 · kaynak etiketi: `android-v0.1.76`**
+**Güncel APK: 0.1.77 · sürüm kodu: 78 · kaynak etiketi: `android-v0.1.77`**
 
-- Dosya: `InstagramTracker-0.1.76.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.77.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
 - **Telefon içinden uçtan uca başarılı hesap bağlantısı ve liste okuması henüz tamamlanmış sayılmıyor.** Araştırılan açık konu girişten sonraki profil okumasıdır.
 - E-posta/kod akışı üzerinde çalışılmıştır; her CAPTCHA, TOTP ve başka cihazdan onay yönteminin desteklendiği varsayılmamalıdır. Cihaz onayı sonucunu periyodik sorgulayan yöntem hâlâ sınırlıdır.
@@ -31,7 +31,7 @@
 
 ## Günlük istatistikler
 
-Windows ve Android için ayrı şifreli günlük arşiv eklendi. Son kontroller silinse de günlük özetler otomatik silinmez. [Kullanım ve sınırlar](Gunluk-Istatistikler.md).
+Windows ve Android için ayrı şifreli günlük arşiv eklendi. Varsayılan günlük özetleri kullanıcı silene kadar korur; yeni Veri saklama bölümünde süre seçilebilir. [Kullanım ve sınırlar](Gunluk-Istatistikler.md).
 
 ## Dil ve görünüm
 

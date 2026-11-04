@@ -8,6 +8,7 @@ import java.security.MessageDigest
 class DailyStatsStore(private val context: Context, private val slot: String) {
     companion object { private val lock=Any(); private val failures=mutableSetOf<String>() }
     private val failureKey = context.packageName + ":" + slot
+    private val privacy = PrivacyStore(context,slot)
     val failed get() = synchronized(lock) { failureKey in failures }
     private fun prefix(target: String): String {
         InstagramIdentity.id(target)
@@ -29,7 +30,7 @@ class DailyStatsStore(private val context: Context, private val slot: String) {
         } ?: DailyStats.empty(owner,target,year)
     fun record(owner: String, target: String, profiles: List<Profile>) = synchronized(lock) {
         InstagramIdentity.id(owner)
-        val after=after(owner,target)
+        val after=maxOf(after(owner,target),privacy.read(owner).dailyBefore(System.currentTimeMillis())-1)
         for ((year,items) in profiles.filter { it.userId==target && it.observedAt>after }.sortedBy { it.observedAt }.groupBy { DailyStats.year(it.observedAt) }) {
             val document=load(owner,target,year)
             var changed=false
@@ -86,6 +87,22 @@ class DailyStatsStore(private val context: Context, private val slot: String) {
         val pattern=Regex("(${slot}daily[a-p]{64}(?:[a-p]{4}|reset))\\.enc(?:\\.bak|\\.new)?")
         context.noBackupFilesDir.listFiles().orEmpty().mapNotNull { pattern.matchEntire(it.name)?.groupValues?.get(1) }.distinct()
             .forEach { EncryptedRecord(context,it).clear() }
+        failures.remove(failureKey)
+    }
+    fun prune(owner: String, before: Long) = synchronized(lock) {
+        if (before == 0L) return@synchronized
+        val pattern=Regex("(${slot}daily[a-p]{64}[a-p]{4})\\.enc(?:\\.bak|\\.new)?")
+        val names=context.noBackupFilesDir.listFiles().orEmpty().mapNotNull {pattern.matchEntire(it.name)?.groupValues?.get(1)}.distinct()
+        for(name in names) {
+            val record=EncryptedRecord(context,name)
+            val body=record.read()?.let(::JSONObject) ?: continue
+            val target=body.getString("target"); DailyStats.validate(body,owner,target)
+            val days=body.getJSONObject("days")
+            days.keys().asSequence().toList().filter {it.toLong()<before}.forEach(days::remove)
+            EncryptedRecord(context,prefix(target)+"reset").write(JSONObject().put("version",1).put("owner",owner)
+                .put("target",target).put("after",maxOf(after(owner,target),before-1)).toString())
+            if(days.length()==0)record.clear() else record.write(body.toString())
+        }
         failures.remove(failureKey)
     }
 }

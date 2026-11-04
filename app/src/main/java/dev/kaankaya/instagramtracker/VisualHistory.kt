@@ -51,6 +51,9 @@ object VisualHistory {
     }
     fun clear(data: JSONObject, id: String) {
         data.getJSONObject("profiles").remove(id)
+        collect(data)
+    }
+    fun collect(data: JSONObject) {
         val used = mutableSetOf<String>()
         val profiles = data.getJSONObject("profiles")
         profiles.keys().forEach { owner -> profiles.getJSONObject(owner).getJSONArray("entries").let { a ->
@@ -58,6 +61,16 @@ object VisualHistory {
         } }
         val images = data.getJSONObject("images")
         images.keys().asSequence().toList().filterNot(used::contains).forEach(images::remove)
+    }
+    fun prune(data: JSONObject, before: Long) {
+        if (before == 0L) return
+        val profiles = data.getJSONObject("profiles")
+        profiles.keys().forEach { id ->
+            val target = profiles.getJSONObject(id); val old = target.getJSONArray("entries")
+            val kept = (0 until old.length()).map(old::getJSONObject).filter { it.getLong("lastSeen") >= before }
+            if (kept.size != old.length()) target.put("full",false).put("entries",JSONArray(kept))
+        }
+        collect(data)
     }
     fun validate(data: JSONObject) {
         require(data.getString("owner").matches(Regex("[1-9][0-9]{0,29}")))

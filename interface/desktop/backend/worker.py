@@ -54,6 +54,7 @@ def main():
                 asset = engine.story_media(request.get('args') or {})
                 emit({'type':'result','id':request['id'],'ok':True,'storyMedia':asset})
                 return
+            if request['operation'] in ('remove_person','delete_all'):images.cancel(clear_cache=True)
             state = engine.run(request['operation'], request.get('args') or {}, group_id=group_id)
             publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': history.publish(state),
                   'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})

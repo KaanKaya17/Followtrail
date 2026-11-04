@@ -285,6 +285,9 @@ class MainActivity : LocalizedActivity() {
         if (saved != null && AppUi.offline(this) == true) {
             page.addView(AppUi.notice(this, getString(R.string.ui_you_are_viewing_offline), getString(R.string.ui_showing_records_on_this_device_an_internet))); page.gap(16)
         }
+        if(saved!=null && try {vault.privacy.read(saved.session.userId).failed}catch (_: Exception){false}) {
+            page.addView(text(getString(R.string.retention_failed),13f,AppUi.coral).apply {setOnClickListener {retentionSettings()}});page.gap(12)
+        }
         if (saved == null) {
             page.addView(text(getString(R.string.ui_your_account_nat_a_glance), 38f, ink, true)); page.gap(12)
             page.addView(text(getString(R.string.ui_your_followers_and_following_in_one_place), 16f, muted))
@@ -816,9 +819,11 @@ class MainActivity : LocalizedActivity() {
         if(!preview)options.add(0,R.string.accounts_title)
         if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
+        if (account != null) options.add(R.string.retention_title)
         if (BuildConfig.DEBUG && !preview) options.add(R.string.ui_open_offline_demo)
         AlertDialog.Builder(this).setTitle(R.string.ui_options).setItems(options.map { getString(it) }.toTypedArray()) { _, index ->
             when (options[index]) {
+                R.string.retention_title -> retentionSettings()
                 R.string.accounts_title -> accountPicker()
                 R.string.ui_manage_connection -> {
                     try {
@@ -1157,24 +1162,66 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun removePerson(session: Session, profile: Profile) {
-        AlertDialog.Builder(this).setTitle(getString(R.string.ui_remove_this_person)).setMessage(getString(R.string.person_remove_confirm, profile.username))
+        if(loading || queuedRead.pending)return
+        AlertDialog.Builder(this).setTitle(getString(R.string.ui_remove_this_person)).setMessage(getString(R.string.retention_remove_scope, profile.username))
                 .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_remove)) { _, _ ->
                     if (account?.session != session) return@setPositiveButton
                     if (quickWatch.target == profile.userId) quickWatch.stop(false)
-                    if (savePeople { people -> people.filterNot { it.latest.userId == profile.userId } }) {
-                        try {
-                            vault.clearDaily(session,profile.userId,maxOf(System.currentTimeMillis(),profile.observedAt))
-                            vault.journal.clearTarget(session, profile.userId)
-                            ViewedProfiles.clear(session.userId, profile.userId)
-                            avatars.remove(session.userId, profile.userId)
-                            FollowListVault(this, if (preview) "previewlists" else "followlists").clearTarget(session, profile.userId)
+                    queuedRead.cancel(false);preparation.pause();loading=true;render()
+                    worker.execute {
+                        val result=runCatching {
+                            avatars.remove(session.userId,profile.userId)
+                            vault.erasePerson(session,profile.userId,FollowListVault(this,if(preview)"previewlists" else "followlists"))
                         }
-                        catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
-                        ChangeNotifications(this, preview).cancel(session.userId, profile.userId)
-                        if (selectedPersonId == profile.userId) selectedPersonId = null
+                        main.post {
+                            if(isDestroyed)return@post
+                            loading=false
+                            result.onSuccess {
+                                account=it;ViewedProfiles.clear(session.userId,profile.userId)
+                                ChangeNotifications(this,preview).cancel(session.userId,profile.userId)
+                                if(selectedPersonId==profile.userId)selectedPersonId=null
+                                syncMonitoring();render()
+                            }.onFailure {showFailure(ApiFailure(ApiFailure.Kind.STORAGE))}
+                        }
                     }
-                    render()
                 }.show()
+    }
+
+    private fun retentionSettings() {
+        val saved=account ?: return
+        if(loading || web!=null)return
+        val policy=try {vault.privacy.read(saved.session.userId)}catch (_: Exception){showFailure(ApiFailure(ApiFailure.Kind.STORAGE));return}
+        val panel=LinearLayout(this).apply {orientation=LinearLayout.VERTICAL;setPadding(dp(22),dp(8),dp(22),dp(8))}
+        panel.addView(text(getString(R.string.retention_description),13f,muted))
+        fun selector(label: Int,selected: Int): android.widget.Spinner {
+            panel.addView(text(getString(label),14f,ink,true))
+            val labels=ArchiveRetention.CHOICES.map { if(it==0)getString(R.string.retention_manual) else getString(R.string.retention_days,it) }
+            return android.widget.Spinner(this).apply {
+                adapter=android.widget.ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,labels)
+                setSelection(ArchiveRetention.CHOICES.indexOf(selected));panel.addView(this)
+            }
+        }
+        val history=selector(R.string.retention_history,policy.historyDays)
+        val daily=selector(R.string.retention_daily,policy.dailyDays)
+        if(policy.failed || AvatarCache(this,if(preview)"previewavatars" else "avatars").cleanupFailed)panel.addView(text(getString(R.string.retention_failed),13f,AppUi.coral))
+        AlertDialog.Builder(this).setTitle(R.string.retention_title).setView(panel).setNegativeButton(R.string.ui_cancel,null)
+            .setPositiveButton(R.string.retention_apply) {_,_->
+                val chosen=ArchiveRetention(ArchiveRetention.CHOICES[history.selectedItemPosition],ArchiveRetention.CHOICES[daily.selectedItemPosition])
+                AlertDialog.Builder(this).setTitle(R.string.retention_apply).setMessage(R.string.retention_confirm)
+                    .setNegativeButton(R.string.ui_cancel,null).setPositiveButton(R.string.retention_apply) {_,_->
+                        if(account?.session!=saved.session || loading)return@setPositiveButton
+                        queuedRead.cancel(false);quickWatch.stop(false);preparation.pause();loading=true;render()
+                        worker.execute {
+                            val result=runCatching {avatars.retryCacheCleanup();vault.configurePrivacy(saved.session,chosen)}
+                            main.post {
+                                if(isDestroyed)return@post
+                                loading=false
+                                result.onSuccess {account=it;message=getString(if(vault.privacy.read(saved.session.userId).failed)R.string.retention_failed else R.string.retention_saved);render()}
+                                    .onFailure {showFailure(ApiFailure(ApiFailure.Kind.STORAGE))}
+                            }
+                        }
+                    }.show()
+            }.show()
     }
 
     private fun input(hintValue: String, limit: Int) = EditText(this).apply {

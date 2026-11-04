@@ -1210,5 +1210,21 @@
   "Kayıtlar yükleniyor…": "Cargando registros…",
   "Kayıtlar yüklenemedi.": "No se pudieron cargar los registros.",
   "Geçersiz geçmiş isteği.": "Solicitud de historial no válida.",
-  "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "El historial cambió. Cargando el registro actual."
+  "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "El historial cambió. Cargando el registro actual.",
+  "Veri saklama": "Conservación de datos",
+  "Ayrıntılı geçmiş": "Historial detallado",
+  "Ben silene kadar": "Hasta que los elimine",
+  "{0} gün": "{0} días",
+  "Kaydet ve temizle": "Guardar y limpiar",
+  "Saklama tercihleri uygulandı.": "Preferencias de conservación aplicadas.",
+  "Süreyi aşan arşivler uygulama kullanılırken günde bir temizlenir. Güncel profil bilgisi ve son liste kaydı karşılaştırma için korunur.": "Los archivos anteriores al período elegido se limpian una vez al día mientras se usa la aplicación. Se conservan el perfil actual y el último registro de lista para comparar.",
+  "Seçilen süreden eski kayıtlar geri alınamaz biçimde silinir. Dışa aktarılan dosyalar ayrıca silinmelidir. Silinen geçmişin yeniden oluşmasını engelleyen tarihler korunur.": "Los registros anteriores al período elegido se eliminan de forma permanente. Los archivos exportados deben eliminarse por separado. Se conservan las fechas que impiden recuperar el historial eliminado.",
+  "Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.": "No se pudieron limpiar algunos archivos. Tus preferencias están guardadas; puedes volver a intentarlo.",
+  "Profilin geçmişi, günlük istatistikleri, görsel ve hikâye arşivi, bildirimleri, notları ve kendi listeleri silinir. Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar buna dahil değildir. Instagram hesabında işlem yapılmaz.": "Se eliminan el historial del perfil, sus estadísticas diarias, archivos visuales y de historias, notificaciones, notas y listas propias. Se excluyen la pertenencia a listas de otras cuentas y los archivos exportados. Nada cambia en Instagram.",
+  "Profil ve arşivleri silindi.": "Perfil y archivos eliminados.",
+  "Saklama süresi geçersiz.": "Período de conservación no válido.",
+  "Saklama tercihi geçersiz.": "Preferencia de conservación no válida.",
+  "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "No se pudieron limpiar algunos archivos. Se guardaron las preferencias; puedes volver a intentarlo.",
+  "Silmek için kayıtlı bir profil seç.": "Selecciona un perfil guardado para eliminarlo.",
+  "Günlük istatistikler": "Estadísticas diarias"
 }

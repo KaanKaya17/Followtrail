@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="retention_title">"Veri saklama"</string>
+    <string name="retention_description">"Ayrıntılı geçmiş ve günlük istatistikler için süre seç. Güncel profil ve son liste kaydı korunur. Temizlik uygulama kullanılırken günde bir yapılır."</string>
+    <string name="retention_history">"Ayrıntılı geçmiş"</string>
+    <string name="retention_daily">"Günlük istatistikler"</string>
+    <string name="retention_manual">"Ben silene kadar"</string>
+    <string name="retention_days">"%1$d gün"</string>
+    <string name="retention_apply">"Kaydet ve temizle"</string>
+    <string name="retention_confirm">"Seçilen süreden eski arşivler bu cihazdan silinecek. İşlem geri alınamaz. Dışa aktardığın dosyalar ayrıca silinmelidir. Son karşılaştırma kayıtları ve silinen geçmişin yeniden oluşmasını engelleyen tarihler korunur."</string>
+    <string name="retention_failed">"Bazı arşivler temizlenemedi. Tercihler kaydedildi; Veri saklama bölümünden yeniden deneyebilirsin."</string>
+    <string name="retention_saved">"Saklama tercihleri uygulandı."</string>
+    <string name="retention_remove_scope">"@%1$s için geçmiş, günlük istatistikler, fotoğraf arşivi, bildirimler, notlar ve bu kişinin listeleri silinir. Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar buna dahil değildir. Instagram hesabında işlem yapılmaz."</string>
+</resources>

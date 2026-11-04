@@ -142,10 +142,10 @@ class Accounts(Engine):
             monitor=super().monitor_status(), notifications=self.data['settings']['notifications'],
             lastError=(self.data['lastError'] or {}).get('code'))
 
-    def save(self):
+    def save(self, *, replace_previous=False):
         # Engine initialization can repair an interrupted scan before migration.
         if self.catalog is None:
-            return super().save()
+            return super().save(replace_previous=replace_previous)
         self.catalog['gate'] = {k: v for k, v in self.data['gate'].items() if k != 'manualOnly'}
         self.catalog['preferences'] = {k: self.data['settings'][k] for k in DEVICE_SETTINGS}
         # A request reservation/429 survives even if writing the larger account
@@ -158,7 +158,7 @@ class Accounts(Engine):
         self.persist_catalog(committed)
         if self.active_id and not self.data['account']:
             return
-        super().save()
+        super().save(replace_previous=replace_previous)
         self.update_entry()
         self.persist_catalog()
 

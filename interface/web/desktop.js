@@ -947,7 +947,7 @@
             .join(
               "",
             )}</select>${button(t("Türleri seç"), "notification-account", "bell")}</div>`
-        : ""}<div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : t("Hesap bağlı değil")}</strong><p>${data.connected ? t("Yerel oturum kayıtlı.") : t("Giriş için hesap bağlantısını aç.")}</p></div>${button(t("Hesap bağlantısı"), "account", "link")}</div><div class="setting-row"><div><strong>${t("İstek bilgileri")}</strong><p>${t("Son HTTP durumu, giriş aralığı ve yerel mola.")}</p></div>${button(t("İncele"), "requests", "info")}</div>${data.connected ? button(t("Bağlantıyı kaldır"), "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section><section class="settings-section card"><h2>${t("Yerel veriler")}</h2><p>${t("Yedekler oturum içermez ve aynı Windows kullanıcısında açılır. CSV dışa aktarımları şifresizdir; dosyayı paylaşmak senin kontrolündedir.")}</p><div class="settings-buttons">${button(t("Şifreli yedek al"), "export-backup", "lock")}${button(t("Yedekten yükle"), "import-backup", "note")}${button(t("Kayıt klasörünü aç"), "open-storage", "laptop")}${button(t("Yerel verileri sil"), "delete-all", "close")}</div></section></div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">${t("YEREL GİZLİLİK")}</span><h2>${t("Verilerin bilgisayarında.")}</h2><p>${t("Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.")}</p><p>${t("Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.")}</p><p>${t("InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.")}</p><div class="privacy-panel-foot">${t("{0} Windows masaüstü · {1}", icon("lock"), esc(data.version))}</div></aside></div>`;
+        : ""}<div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : t("Hesap bağlı değil")}</strong><p>${data.connected ? t("Yerel oturum kayıtlı.") : t("Giriş için hesap bağlantısını aç.")}</p></div>${button(t("Hesap bağlantısı"), "account", "link")}</div><div class="setting-row"><div><strong>${t("İstek bilgileri")}</strong><p>${t("Son HTTP durumu, giriş aralığı ve yerel mola.")}</p></div>${button(t("İncele"), "requests", "info")}</div>${data.connected ? button(t("Bağlantıyı kaldır"), "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section><section class="settings-section card"><h2>${t("Yerel veriler")}</h2><p>${t("Yedekler oturum içermez ve aynı Windows kullanıcısında açılır. CSV dışa aktarımları şifresizdir; dosyayı paylaşmak senin kontrolündedir.")}</p><div class="settings-buttons">${button(t("Veri saklama"), "retention-settings", "lock")}${button(t("Şifreli yedek al"), "export-backup", "lock")}${button(t("Yedekten yükle"), "import-backup", "note")}${button(t("Kayıt klasörünü aç"), "open-storage", "laptop")}${button(t("Yerel verileri sil"), "delete-all", "close")}</div></section></div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">${t("YEREL GİZLİLİK")}</span><h2>${t("Verilerin bilgisayarında.")}</h2><p>${t("Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.")}</p><p>${t("Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.")}</p><p>${t("InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.")}</p><div class="privacy-panel-foot">${t("{0} Windows masaüstü · {1}", icon("lock"), esc(data.version))}</div></aside></div>`;
   }
   function render() {
     language = i18n.valid(data?.settings.language) ? data.settings.language : 'tr';
@@ -966,7 +966,7 @@
     document.title = `${t(pages[ui.page][0])} — Tracker`;
     syncHistory();
     window.TrackerDOM.update(document.getElementById("app"),
-      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(['overview','notifications'].includes(ui.page) && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`);
+      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${data.privacyMaintenance?.failed?`<div class="notice warning" role="alert">${t("Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.")} ${button(t("Veri saklama"),"retention-settings","lock")}</div>`:""}${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(['overview','notifications'].includes(ui.page) && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`);
     loadHistory();
     mountListPage();
     mountDailyChart();
@@ -1396,14 +1396,31 @@
         break;
       }
       case 'open-profile-link': await openProfileLink(target.dataset.url);break;
+      case "retention-settings": {
+        const choices=(selected)=>[0,30,90,365].map(days=>`<option value="${days}" ${days===selected?'selected':''}>${days?t("{0} gün",days):t("Ben silene kadar")}</option>`).join('');
+        dialog(`<h2 id="dialog-title">${t("Veri saklama")}</h2><p>${t("Süreyi aşan arşivler uygulama kullanılırken günde bir temizlenir. Güncel profil bilgisi ve son liste kaydı karşılaştırma için korunur.")}</p>
+          <div class="setting-row"><label for="retention-history">${t("Ayrıntılı geçmiş")}</label><select id="retention-history">${choices(data.settings.historyRetentionDays||0)}</select></div>
+          <div class="setting-row"><label for="retention-daily">${t("Günlük istatistikler")}</label><select id="retention-daily">${choices(data.settings.dailyRetentionDays||0)}</select></div>
+          <p>${t("Seçilen süreden eski kayıtlar geri alınamaz biçimde silinir. Dışa aktarılan dosyalar ayrıca silinmelidir. Silinen geçmişin yeniden oluşmasını engelleyen tarihler korunur.")}</p>
+          ${data.privacyMaintenance?.failed?`<p role="alert">${t("Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.")}</p>`:''}
+          <div class="dialog-buttons">${button(t("Vazgeç"),"close")}${button(t("Kaydet ve temizle"),"retention-apply","trash","danger",busy?'disabled':'')}</div>`);
+        break;
+      }
+      case "retention-apply": {
+        const historyRetentionDays=Number(document.querySelector('#retention-history').value);
+        const dailyRetentionDays=Number(document.querySelector('#retention-daily').value);
+        closeDialog();
+        await command('settings',{historyRetentionDays,dailyRetentionDays,applyRetention:true},t("Saklama tercihleri uygulandı."));
+        break;
+      }
       case "remove-person":
         dialog(
-          `<h2 id="dialog-title">${t("Bu kişi kaldırılsın mı?")}</h2><p>${t("Favori, not ve izleme tercihi silinir. Eski gözlem geçmişi ve liste kayıtları korunur.")}</p><div class="dialog-buttons">${button(t("Vazgeç"), "close")}${button(t("Kişiyi kaldır"), "remove-confirm", "trash", "danger", idattr(id))}</div>`,
+          `<h2 id="dialog-title">${t("Bu kişi kaldırılsın mı?")}</h2><p>${t("Profilin geçmişi, günlük istatistikleri, görsel ve hikâye arşivi, bildirimleri, notları ve kendi listeleri silinir. Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar buna dahil değildir. Instagram hesabında işlem yapılmaz.")}</p><div class="dialog-buttons">${button(t("Vazgeç"), "close")}${button(t("Kişiyi kaldır"), "remove-confirm", "trash", "danger", idattr(id))}</div>`,
         );
         break;
       case "remove-confirm":
         closeDialog();
-        await command("remove_person", { id }, t("Kişi kaldırıldı."));
+        await command("remove_person", { id }, t("Profil ve arşivleri silindi."));
         break;
       case "history":
         historyDialog(id || data.account?.id);

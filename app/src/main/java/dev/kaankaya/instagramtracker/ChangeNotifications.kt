@@ -36,7 +36,8 @@ class ChangeNotifications(context: Context, private val preview: Boolean = false
     private fun rule(owner: String,target: String,expected: Session?=null): NoticeRule? = try {
         val vault=vaultForOwner(owner)
         var result: NoticeRule?=null
-        vault.inspect {saved -> if(saved?.session?.userId==owner && (expected==null || saved.session==expected))result=vault.journal.rule(saved.session,target)}
+        vault.inspect {saved -> if(saved?.session?.userId==owner && (expected==null || saved.session==expected) &&
+            (saved.profile.userId==target || saved.people.any {it.latest.userId==target}))result=vault.journal.rule(saved.session,target)}
         result
     } catch (_: Exception) {null}
     fun post(observation: ObservedProfileChange) {

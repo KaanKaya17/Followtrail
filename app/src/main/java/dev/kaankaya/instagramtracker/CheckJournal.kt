@@ -107,6 +107,12 @@ class CheckJournal(context: Context, slot: String) {
         val value = load(session); require(value.owner == session.userId)
         write(value.copy(events = value.events.filterNot { it.target == target }, rules = value.rules - target))
     }
+    fun prune(session: Session, before: Long) = synchronized(lock) {
+        if (before != 0L && record.exists()) {
+            val value=load(session); require(value.owner==session.userId)
+            write(value.copy(events=value.events.filter { it.analyzedAt>=before }))
+        }
+    }
     fun clear() = synchronized(lock) { record.clear(); cache.remove(identity); failures.remove(identity); Unit }
 
     private fun encode(value: CheckEvent) = JSONObject().put("target", value.target).put("username", value.username)

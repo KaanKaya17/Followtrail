@@ -26,6 +26,7 @@ import list_preparation
 import profile_search
 import profile_links
 import hashlib
+import data_privacy
 from instagrapi import config as instagram_config
 from login_identity import LoginIdentity, device_settings
 
@@ -42,7 +43,7 @@ PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'foll
 
 
 def blank(gate=None):
-    return {'version': 1, 'account': None, 'session': None, 'people': {},
+    result = {'version': 1, 'account': None, 'session': None, 'people': {},
             'history': {}, 'lists': {}, 'events': [], 'gate': gate or {},
             'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60,
                          'investigateMissing': False, 'language': 'tr', 'theme': 'system', 'automaticLists': False},
@@ -51,6 +52,8 @@ def blank(gate=None):
             'wayback': {'profiles': {}, 'images': {}},
             'automaticAttempts': {}, 'lastInvestigationAt': 0,
             'lastError': None, 'lastAutomatic': 0}
+    data_privacy.initialize(result)
+    return result
 
 
 def compare(previous, current):
@@ -112,8 +115,8 @@ class Engine:
         if changed:
             self.save()
 
-    def save(self):
-        self.vault.save(self.data)
+    def save(self, *, replace_previous=False):
+        self.vault.save(self.data, replace_previous=replace_previous)
 
     def load_vault(self):
         data = self.vault.load() or blank()
@@ -124,6 +127,7 @@ class Engine:
         initialize_schedule(data)
         list_preparation.initialize(data)
         wayback.initialize(data)
+        data_privacy.initialize(data)
         validate_archive(data)
         return data
 
@@ -132,7 +136,45 @@ class Engine:
         key = (self.vault.path.parent, owner)
         if self._daily_current is None or self._daily_current[0] != key or self._daily_current[1].closed:
             self._daily_current = (key, daily_stats.DailyStore(key[0], owner))
+        days=self.data['settings']['dailyRetentionDays']
+        self._daily_current[1].retention_after=max(0,(int(self.clock()*1000)//daily_stats.DAY-days+1)*daily_stats.DAY-1) if days else 0
         return self._daily_current[1]
+
+    def maintain_privacy(self, *, force=False):
+        owner=(self.data['account'] or {}).get('id')
+        settings=self.data['settings']
+        if not owner or not any(settings[key] for key in data_privacy.FIELDS):
+            return
+        now=self.clock()
+        if not force and now-self.data['privacyMaintenance']['at'] < data_privacy.DAY:
+            return
+        self.data['privacyMaintenance']={'at':now,'failed':False}
+        try:
+            archive_before=data_privacy.cutoff(settings['historyRetentionDays'],now)
+            daily_before=self.daily_store().retention_after+1 if settings['dailyRetentionDays'] else 0
+            # External owners finish their own erasure before the account publishes trimmed facts.
+            self.daily_store().prune(daily_before)
+            stories.StoryStore(self.vault.path.parent,owner).prune(archive_before)
+            self.data=data_privacy.retained(self.data,archive_before)
+            self.save(replace_previous=True)
+        except (OSError,ValueError,StorageFailure,AppFailure):
+            self.data['privacyMaintenance']['failed']=True
+            self.save()
+
+    def erase_person(self, identity):
+        if not re.fullmatch(r'[1-9][0-9]{0,29}',identity) or identity==(self.data['account'] or {}).get('id') or not self.data['account']:
+            raise AppFailure('input','Silmek için kayıtlı bir profil seç.')
+        # Explicit erasure may be retried even if an earlier attempt already removed part of the data.
+        times=[p['observedAt'] for p in self.data['history'].get(identity,[])]
+        self.daily_store().clear(identity,max([round(self.clock()*1000),*[round(at*1000) for at in times]]))
+        stories.StoryStore(self.vault.path.parent,self.data['account']['id']).clear(identity)
+        data_privacy.erase(self.data,identity)
+        if self.wayback_id==identity:self.wayback_id=None
+        self.profile_detail_result=None
+        self.story_detail=None
+        self.search_results=None
+        self.search_pictures={}
+        self.save(replace_previous=True)
 
     def daily_query(self, args):
         view = self._daily_view
@@ -176,7 +218,7 @@ class Engine:
                 'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
                 'history': d['history'], 'lists': records, 'listsRevision': published['revision'], 'events': d['events'],
                 'dailyRevision': {identity:store.revisions.get(identity,store.revision) for identity in seeds} if store else {}, 'dailyWarning': store.warning if store else False,
-                'gate': d['gate'], 'settings': d['settings'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
+                'gate': d['gate'], 'settings': d['settings'], 'privacyMaintenance': d['privacyMaintenance'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
                 'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
                 'monitor': self.monitor_status(),
@@ -190,7 +232,7 @@ class Engine:
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
                 'storyDetail': self.story_detail,
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.47'}
+                'storagePath': str(self.vault.path.parent), 'version': '0.2.48'}
 
     def story_target(self, args):
         owner = (self.data['account'] or {}).get('id')
@@ -808,24 +850,40 @@ class Engine:
         self.save()
 
     def settings(self, args):
+        settings=copy.deepcopy(self.data['settings'])
+        for key in data_privacy.FIELDS:
+            if key in args and (type(args[key]) is not int or args[key] not in data_privacy.CHOICES):
+                raise AppFailure('input','Saklama süresi geçersiz.')
+        if 'applyRetention' in args and args['applyRetention'] is not True:
+            raise AppFailure('input','Saklama tercihi geçersiz.')
+        for key in data_privacy.FIELDS:
+            if key in args:settings[key]=args[key]
         if 'theme' in args:
             if type(args['theme']) is not str or args['theme'] not in ('system', 'light', 'dark', 'oled'):
                 raise AppFailure('input', 'Ayar değeri geçersiz.')
-            self.data['settings']['theme'] = args['theme']
+            settings['theme'] = args['theme']
         if 'language' in args:
             if type(args['language']) is not str or args['language'] not in localization.LANGUAGES:
                 raise AppFailure('input', 'Dil değeri geçersiz.')
-            self.data['settings']['language'] = args['language']
+            settings['language'] = args['language']
         for key in ('compact', 'notifications', 'automatic', 'automaticLists', 'investigateMissing'):
             if key in args:
                 if type(args[key]) is not bool:
                     raise AppFailure('input', 'Ayar değeri geçersiz.')
-                self.data['settings'][key] = args[key]
+                settings[key] = args[key]
         if 'interval' in args:
             if type(args['interval']) is not int or args['interval'] not in CONTROL_INTERVALS:
                 raise AppFailure('input', 'Kontrol aralığı geçersiz.')
-            self.data['settings']['interval'] = args['interval']
+            settings['interval'] = args['interval']
+        self.data['settings']=settings
         self.save()
+
+        if args.get('applyRetention') or any(key in args for key in data_privacy.FIELDS):
+            self.data['privacyMaintenance']={'at':0,'failed':False}
+            self.maintain_privacy(force=True)
+            self.save()
+            if self.data['privacyMaintenance']['failed']:
+                raise AppFailure('storage','Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.')
 
     def notification_rule(self, args):
         identity = str(args.get('id', ''))
@@ -949,6 +1007,7 @@ class Engine:
             initialize_schedule(restored)
             list_preparation.initialize(restored)
             wayback.initialize(restored)
+            data_privacy.initialize(restored)
             validate_archive(restored)
             documents = value.get('daily', [])
             owner = (restored['account'] or {}).get('id')
@@ -962,6 +1021,9 @@ class Engine:
         except Exception as exc:
             raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
         self.prepare_restore(restored)
+        # Loading an old backup cannot silently disable current retention preferences.
+        for key in data_privacy.FIELDS:restored['settings'][key]=self.data['settings'][key]
+        restored['privacyMaintenance']={'at':0,'failed':False}
         if documents:self.daily_store(owner).restore(documents)
         old_gate = self.data['gate']
         gate = restored['gate']
@@ -974,6 +1036,7 @@ class Engine:
         restored['settings']['automatic'] = False
         self.data = restored
         self.save()
+        self.maintain_privacy(force=True)
 
     def export_list(self, args):
         if args.get('accountId') != (self.data['account'] or {}).get('id'):
@@ -998,6 +1061,7 @@ class Engine:
             raise AppFailure('backup', 'Yedek başka bir hesaba ait. Önce ilgili hesabı seç.')
 
     def run(self, operation, args, *, group_id=None, project=True):
+        self.maintain_privacy()
         self.operation = operation
         self.search_results = None
         self.search_pictures = {}
@@ -1025,9 +1089,7 @@ class Engine:
                 return self.snapshot() if project else None
             if operation == 'remove_person':
                 identity = str(args.get('id', ''))
-                self.data['people'].pop(identity, None)
-                self.data['automaticAttempts'].pop(identity, None)
-                self.save()
+                self.erase_person(identity)
             elif operation == 'disconnect':
                 self.data['session'] = None
                 self.data['settings']['automatic'] = False
@@ -1084,6 +1146,7 @@ def initialize_schedule(d):
 
 
 def validate_archive(d):
+    data_privacy.validate(d)
     """Validate the owning representation before it reaches UI or scheduling."""
     if (not isinstance(d, dict) or d.get('version') != 1 or not isinstance(d.get('people'), dict)
             or len(d['people']) > 200 or not isinstance(d.get('lists'), dict)

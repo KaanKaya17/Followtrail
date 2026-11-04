@@ -24,15 +24,17 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-**Windows 0.2.47:** Yerel işlev paketi; kayıtlı oturumlarla canlı profil/liste okumaları görülmüş, son paket kontrolleri tamamlanmıştır. Bütün hesaplarda uyumluluk garantisi değildir.
+**Windows 0.2.48:** Yerel işlev paketi; kayıtlı oturumlarla canlı profil/liste okumaları görülmüş, son paket kontrolleri tamamlanmıştır. Bütün hesaplarda uyumluluk garantisi değildir.
 
-**Android 0.1.76:** İmzalı APK; profil, özet ve yerel bildirim/geçmiş görünümü güncellendi. Ekran testleri henüz tamamlanmadı ([kapsam](docs/ANDROID-UI-ALIGNMENT.md)). Kod sonrasında bekleyen oturumu koruma doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
+**Android 0.1.77:** İmzalı APK; profil, özet ve yerel bildirim/geçmiş görünümü güncellendi. Ekran testleri henüz tamamlanmadı ([kapsam](docs/ANDROID-UI-ALIGNMENT.md)). Kod sonrasında bekleyen oturumu koruma doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 
 Paket adları, doğrulama kapsamı ve açık işler [sürüm sayfasında](docs/wiki/Surum-ve-Destek.md) açıklanır. APK/EXE'ler kaynak depoya eklenmez; bir kaynak etiketi tek başına indirilebilir paket anlamına gelmez.
 
 ## Gizlilik
+
+Her iki platformda hesap başına veri saklama süresi ve profil arşivini silme kontrolleri bulunur. [Kapsam, veri envanteri ve açık işler](docs/DATA-LIFECYCLE.md).
 
 Windows'ta DPAPI, Android'de Keystore/AES-GCM ile yerel şifreleme kullanılır. Uygulamanın kendi veri sunucusu, reklam veya analitik SDK'sı yoktur. Canlı istekler Instagram/Meta'ya gider; isteğe bağlı güvenlik sayfaları ve açtığınız bağlantılar ayrıca ağ erişimi gerektirir.
 
