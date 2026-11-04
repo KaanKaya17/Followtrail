@@ -52,3 +52,30 @@ test('editing spaces while the same normalized query is in flight does not repla
  live.input('first');await timer.advance(650);live.input(' first ');finish({ok:true,users:['first']});await timer.advance(15000);
  assert.deepEqual(calls,['first']);assert.deepEqual(seen,['first']);live.close();
 });
+
+test('shared dialog cache survives close, expires at sixty seconds and stores no whole state',async()=>{
+ const timer=clock(),cache=search.createCache({now:timer.now}),calls=[],seen=[];
+ const open=()=>search.live({...timer,cache,owner:'100',local:()=>{},status:()=>{},results:r=>seen.push(r),
+  search:async q=>{calls.push(q);return {ok:true,token:'synthetic',users:[{id:'200',username:'qa.person',name:'QA'}],state:{private:'never retain'}};}});
+ let live=open();live.input('qa');await timer.advance(650);live.close();
+ live=open();live.input('qa');assert.equal(seen.length,2);assert.equal(calls.length,1);
+ assert.equal('state' in seen[1],false);await timer.advance(60000);live.close();
+ live=open();live.input('qa');assert.equal(calls.length,1);await timer.advance(650);assert.equal(calls.length,2);live.close();
+});
+
+test('cache bounds empty results, account isolation and delayed replies after invalidation',()=>{
+ let now=0;const cache=search.createCache({now:()=>now});const first=cache.bind('100');
+ cache.put('100','empty',{ok:true,users:[]},first);assert.deepEqual(cache.get('100','empty').users,[]);
+ for(let i=0;i<6;i++)cache.put('100','q'+i,{ok:true,users:[]},first);
+ assert.equal(cache.get('100','empty'),null);
+ cache.clear();cache.bind('300');cache.put('100','late',{ok:true,users:[]},first);
+ assert.equal(cache.get('100','late'),null);assert.equal(cache.get('300','q1'),null);
+});
+
+test('remaining backend lifetime bounds renderer cache and cache hits bypass a network pause',async()=>{
+ const timer=clock(),cache=search.createCache({now:timer.now});const ticket=cache.bind('100');
+ cache.put('100','qa',{ok:true,users:[],remainingMs:500},ticket);
+ const seen=[];const live=search.live({...timer,cache,owner:'100',local:()=>{},status:()=>{},results:r=>seen.push(r),
+  availability:()=>({stop:{code:'cooldown'}}),search:async()=>{throw Error('No network');}});
+ live.input('qa');assert.equal(seen.length,1);await timer.advance(500);assert.equal(cache.get('100','qa'),null);live.close();
+});

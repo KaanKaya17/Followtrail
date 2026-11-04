@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.50 / Android 0.1.78 — 2026-11-04 (Tekrar açılan aramada sonuçları kullanma)
+
+- Profil ekleme aramasında aynı hesaba ait son 6 sorgu, 60 saniye içinde pencere kapatılıp açıldığında yeniden kullanılır. Sonuca bakmak süreyi uzatmaz; sorgu başına en fazla 20 aday, yalnız bellekte saklanır. Ortak politika dosyası ve üretim kontrolü iki platformun sınırlarını eşit tutar.
+- Hesap/oturum değişimi, bağlantı kaldırma ve profil silme sonuçları temizler. Gecikmiş yanıtlar temizlenen önbelleği yeniden oluşturamaz. Hatalar saklanmaz; geçerli boş sonuçlar tekrar istek göndermez.
+- Windows'ta önbellekten açılan adayın fotoğrafı, başka arama veya yerel işlemden sonra da geçerli hesap/belirteç bağlamıyla yüklenebilir. Arama önbelleğinde bütün uygulama durumu saklanmaz. Dosyaya arama geçmişi yazılmaz; giriş/429 ve tarama ayarları değişmedi.
+- [Davranış, gizlilik ve test kapsamı](docs/SEARCH-CACHE-PARITY.md).
+- Doğrulama: 266 Python, 68 masaüstü JavaScript ve 151 Android JVM testi; 13 arayüz ve 36 paketli Windows kontrolü geçti. Android release/lint ve imza/manifest kontrolleri geçti. Yerel Android diyalog testi derlendi; cihazda çalıştırılmadı.
+
 ## Windows 0.2.49 — 2026-11-04 (Windows kısayol ve görev çubuğu simgesi)
 
 - Başlat kısayolu, EXE simge önbelleğine bağlı kalmak yerine paketteki Tracker ICO dosyasını kullanır. Pencereye Windows uygulama kimliği, yeniden açma adı/komutu ve ICO simgesi açıkça atanır.

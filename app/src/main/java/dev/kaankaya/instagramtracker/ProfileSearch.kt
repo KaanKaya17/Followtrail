@@ -31,7 +31,7 @@ object ProfileSearch {
             val username=(user.opt("username") as? String)?.takeIf(ProfileInput::validUsername) ?: throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
             val name=(user.opt("full_name") as? String)?.takeIf {it.length<=1000}.orEmpty()
             val picture=(user.opt("profile_pic_url") as? String)?.takeIf {it.length<=8192 && AvatarPolicy.url(it)!=null}
-            if(results.size<20)results[id]=ProfileCandidate(id,username,name,picture)
+            if(results.size<SearchCachePolicy.MAX_RESULTS)results[id]=ProfileCandidate(id,username,name,picture)
         }
         return results.values.toList()
     }

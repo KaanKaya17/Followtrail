@@ -42,8 +42,9 @@ class ProfileSearchTests(unittest.TestCase):
         payload['users'][1]['profile_pic_url']='https://cdninstagram.com.evil.test/avatar.jpg'
         with patch.object(self.e,'client',return_value=PacedClient(self.e,[payload])):
             state=self.e.run('search_people',{'query':'deniz'})
-        self.assertEqual(self.e.search_pictures['200'],'https://scontent.cdninstagram.com/avatar.jpg')
-        self.assertIsNone(self.e.search_pictures['201'])
+        token=state['searchResults']['token']
+        self.assertEqual(self.e.search_cache.picture('100',token,'200')[1]['200'],'https://scontent.cdninstagram.com/avatar.jpg')
+        self.assertIsNone(self.e.search_cache.picture('100',token,'201'))
         self.assertNotIn('avatar.jpg',str(state))
         self.assertEqual(len(state['searchResults']['token']),32)
         self.assertNotIn('search_pictures',self.e.vault.load())

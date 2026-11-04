@@ -96,6 +96,7 @@ class MainActivity : LocalizedActivity() {
     private var watchDetailsExpanded = false
     private var peopleQuery = ""
     private var personSearch: ProfileSearchDialog? = null
+    private val searchCache=SearchResultsCache()
     private var selectedPersonId: String? = null
     private var visiblePeople = 20
     private var rangeDays = 0
@@ -803,6 +804,7 @@ class MainActivity : LocalizedActivity() {
         if (preview) { android.widget.Toast.makeText(this, getString(R.string.ui_account_connection_is_unavailable_in_demo_mode), android.widget.Toast.LENGTH_SHORT).show(); return }
         val labels = arrayOf(getString(R.string.web_connection_menu), getString(R.string.phone_menu), getString(R.string.ui_connect_from_computer_mobile_session))
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_connect_your_account)).setItems(labels) { _, index ->
+            searchCache.clear()
             if (replacePending && index != 1) {
                 try { MobileSessions(this).discardPending(); DesktopLink(this).clear(); pendingMobile = false }
                 catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)); render(); return@setItems }
@@ -1166,6 +1168,7 @@ class MainActivity : LocalizedActivity() {
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_remove_this_person)).setMessage(getString(R.string.retention_remove_scope, profile.username))
                 .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_remove)) { _, _ ->
                     if (account?.session != session) return@setPositiveButton
+                    searchCache.clear()
                     if (quickWatch.target == profile.userId) quickWatch.stop(false)
                     queuedRead.cancel(false);preparation.pause();loading=true;render()
                     worker.execute {
@@ -1241,7 +1244,7 @@ class MainActivity : LocalizedActivity() {
             saved.people.map {ProfileCandidate(it.latest.userId,it.latest.username,it.latest.name.orEmpty(),it.latest.details?.pictureUrl?.value)},
             search={q->if(preview)throw ApiFailure(ApiFailure.Kind.CONNECTION) else reader.search(saved.session,q)},
             cancel=reader::cancel,
-            gate=gate,owner=saved.session.userId,
+            gate=gate,session=saved.session,cache=searchCache,
             select={candidate->if(account?.session==saved.session)readPerson(userId=candidate.id)},
             direct={username->if(account?.session==saved.session)readPerson(username=username)},
             dismissed={personSearch=null;needsConnection=gate.requiresConnection();if(visible && !isDestroyed && !isFinishing)render()}).also {it.show()}
@@ -1542,6 +1545,7 @@ class MainActivity : LocalizedActivity() {
                 worker.execute {
                     val ok = try {
                         ViewedProfiles.clear()
+                        searchCache.clear()
                         avatars.remove(if(preview)null else removedOwner)
                         if (preview) PreviewMode.cancel(this) else MonitorScheduler.cancel(this)
                         if (!preview) { DesktopLink(this).clear(); if(AccountCatalog(this).entries().size<=1)PhoneIdentity.clear(this); gate.setPhoneLoginActive(false) }
@@ -2075,6 +2079,7 @@ class MainActivity : LocalizedActivity() {
     }
 
     override fun onDestroy() {
+        searchCache.clear()
         loginSecurityReset=false
         loginChallenge?.close(); loginChallenge = null
         autoVerifyLogin = false; loginAuthenticating = false

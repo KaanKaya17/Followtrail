@@ -2,6 +2,7 @@
 import re
 from urllib.parse import urlsplit
 from network import AppFailure, parse_page
+from search_cache_policy import MAX_RESULTS
 
 RESERVED = {'accounts', 'explore', 'reels', 'reel', 'stories', 'direct', 'p'}
 
@@ -37,4 +38,4 @@ def query(value):
 def results(payload):
     # The same owner validates identities and display names for lists and search.
     members=parse_page(payload).members
-    return list(members.values())[:20]
+    return list(members.values())[:MAX_RESULTS]

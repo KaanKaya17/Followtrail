@@ -2,6 +2,10 @@
 
 Güncel kullanıcı açıklaması: [Gizlilik ve veriler](wiki/Gizlilik-ve-Veriler.md). Aşağıdaki sürümlü bölümler teknik davranış ve gelişim geçmişini kaydeder.
 
+## Windows 0.2.50 / Android 0.1.78 geçici arama sonuçları
+
+Son 6 arama sorgusunun başarılı aday sonuçları 60 saniye tekrar kullanılabilir; arama penceresini kapatmak bunları silmez. Aramalar yalnız bellektedir, hesap/oturum değişimi ve silme işlemlerinde temizlenir. Süre, görsel kaynakları ve yaşam döngüsü ayrıntıları [arama önbelleği notunda](SEARCH-CACHE-PARITY.md) açıklanır. Şifreli kasaya arama geçmişi eklenmez; yeni sunucu veya izin yoktur.
+
 ## Windows 0.2.48 / Android 0.1.77 saklama ve silme
 
 Hesap başına ayrıntılı geçmiş ve günlük istatistikler için ayrı süre tercihleri eklendi. Varsayılan kayıtları kullanıcı silene kadar korur; 30/90/365 gün seçenekleri onayla uygulanır. Güncel profil ve son liste karşılaştırma kaydı korunur. Kaydedilen profili kaldırmak ilgili günlük/görsel/olay/liste arşivlerini de siler; Windows hikâyeleri dahildir. Başka hesapların liste üyeliği ve dışa aktarılan kopyalar bu kapsamın dışındadır.
