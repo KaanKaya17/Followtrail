@@ -41,7 +41,7 @@ try {
   const result=await desktop.evaluate(({app,shell},{home,executablePath})=>{
     const require=process.getBuiltinModule('module').createRequire(app.getAppPath()+'/package.json');
     const path=require('node:path'), fs=require('node:fs');
-    const {ensureShortcut,APP_ID}=require(path.join(app.getAppPath(),'desktop/notifications.cjs'));
+    const {ensureShortcut,APP_ID,appIconPath}=require(path.join(app.getAppPath(),'desktop/notifications.cjs'));
     const link=path.join(home,'shortcuts/InstagramTracker Desktop.lnk');
     const initial=shell.readShortcutLink(link);
     const options={app,shell,testHome:home,dataDir:home};
@@ -53,12 +53,22 @@ try {
     const legacyBytes=fs.readFileSync(legacyLink);
     ensureShortcut(options);
     const legacyMoved=!fs.existsSync(legacyLink);
-    const legacyBackup=fs.readdirSync(home).find(name=>name.startsWith('legacy-electron-shortcut-'));
+    const legacyBackup=fs.readdirSync(home).find(name=>name.startsWith('legacy-tracker-shortcut-'));
     const legacyPreserved=legacyBytes.equals(fs.readFileSync(path.join(home,legacyBackup,'Electron.lnk')));
     shell.writeShortcutLink(legacyLink,{...initial,appUserModelId:'foreign.qa.app'});
     const foreignLegacy=fs.readFileSync(legacyLink);
     ensureShortcut(options);
     const foreignLegacyPreserved=foreignLegacy.equals(fs.readFileSync(legacyLink));
+    const oldName=path.join(home,'shortcuts/InstagramTracker.lnk');
+    shell.writeShortcutLink(oldName,{...initial,icon:'',target:path.join(home,'old-release/InstagramTracker.exe')});
+    const oldBytes=fs.readFileSync(oldName);
+    ensureShortcut(options);
+    const oldNameRetired=!fs.existsSync(oldName) && fs.readdirSync(home).filter(name=>name.startsWith('legacy-tracker-shortcut-'))
+      .some(name=>{const file=path.join(home,name,'InstagramTracker.lnk');return fs.existsSync(file) && oldBytes.equals(fs.readFileSync(file));});
+    shell.writeShortcutLink(oldName,{...initial,appUserModelId:'foreign.qa.app'});
+    const foreignAlias=fs.readFileSync(oldName);
+    ensureShortcut(options);
+    const foreignAliasPreserved=foreignAlias.equals(fs.readFileSync(oldName));
     shell.writeShortcutLink(link,{...initial,icon:'',iconIndex:0});
     const legacy=fs.readFileSync(link);
     ensureShortcut(options);
@@ -70,14 +80,15 @@ try {
     try { ensureShortcut(options); } catch { foreignRejected=true; }
     const foreignUnchanged=foreign.equals(fs.readFileSync(link));
     shell.writeShortcutLink(link,updated);
-    return {initial,updated,idempotent,backedUp,foreignRejected,foreignUnchanged,legacyMoved,legacyPreserved,foreignLegacyPreserved,appId:APP_ID,executablePath};
+    return {initial,updated,idempotent,backedUp,foreignRejected,foreignUnchanged,legacyMoved,legacyPreserved,foreignLegacyPreserved,oldNameRetired,foreignAliasPreserved,appId:APP_ID,executablePath,icon:appIconPath(app)};
   },{home,executablePath});
   assert.equal(result.initial.target,executablePath);
-  assert.equal(result.initial.icon,executablePath);
+  assert.equal(result.initial.icon,result.icon);
+  assert.equal(result.icon,path.join(packagePath,'resources/app/desktop/app-icon.ico'));
   assert.equal(result.initial.iconIndex,0);
   assert.equal(result.initial.appUserModelId,result.appId);
-  assert.equal(result.updated.icon,executablePath);
-  for (const key of ['idempotent','backedUp','foreignRejected','foreignUnchanged','legacyMoved','legacyPreserved','foreignLegacyPreserved']) assert.equal(result[key],true,key);
+  assert.equal(result.updated.icon,result.icon);
+  for (const key of ['idempotent','backedUp','foreignRejected','foreignUnchanged','legacyMoved','legacyPreserved','foreignLegacyPreserved','oldNameRetired','foreignAliasPreserved']) assert.equal(result[key],true,key);
   console.log('PASS native Start shortcut is branded with notifications off; updates preserve backup and respect ownership');
 } finally {
   if (desktop) await desktop.close();

@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.49 — 2026-11-04 (Windows kısayol ve görev çubuğu simgesi)
+
+- Başlat kısayolu, EXE simge önbelleğine bağlı kalmak yerine paketteki Tracker ICO dosyasını kullanır. Pencereye Windows uygulama kimliği, yeniden açma adı/komutu ve ICO simgesi açıkça atanır.
+- Aynı uygulama kimliği ve EXE adıyla doğrulanan eski InstagramTracker.lnk ve Electron.lnk kısayolları, güncel kısayol oluşturulduktan sonra yedeğe taşınır. Başka uygulamalara ait kısayollar korunur; tekrar çalıştırma değişiklik üretmez.
+- Android 0.1.77 ve hesap/giriş/veri davranışı değişmedi.
+- Doğrulama: paketli EXE'nin adı/sürümü ve yedi simge boyutu, gerçek Windows kısayolunun ICO yolu, iki eski adın yedekli kaldırılması, tekrar çalıştırma ve başka uygulamaların kısayollarının korunması geçti. Paketli uygulamadaki 36 genel kontrol de sentetik kayıtlarla geçti. Gerçek hesap kasası açılmadı.
+
 ## Windows 0.2.48 / Android 0.1.77 — 2026-11-04 (Veri saklama ve profil arşivini silme)
 
 - Hesap başına ayrıntılı geçmiş ve günlük istatistikler için ayrı Ben silene kadar / 30 / 90 / 365 gün tercihleri eklendi. Onaydan sonra yerel temizlik uygulanır; güncel profil ve son liste kaydı korunur. Başarısız temizlik görünür ve yeniden denenebilir.

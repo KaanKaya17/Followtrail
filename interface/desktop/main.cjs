@@ -25,6 +25,7 @@ const profileLinks = require('../web/profile-links.js');
 const t = (message, ...values) => i18n.translate(message, values, backend?.state?.settings.language || 'tr');
 const {
   APP_ID,
+  appIconPath,
   TOAST_ID,
   ensureShortcut,
   showNotification,
@@ -208,6 +209,13 @@ function open() {
       webSecurity: true,
       spellcheck: false,
     },
+  });
+  if(process.platform==='win32')window.setAppDetails({
+    appId:APP_ID,
+    appIconPath:appIconPath(app),
+    appIconIndex:0,
+    relaunchDisplayName:'InstagramTracker',
+    relaunchCommand:`"${process.execPath}"${testHome ? ` --tracker-test-home="${testHome}"` : app.isPackaged ? '' : ` "${app.getAppPath()}"`}`,
   });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on('before-input-event', (_event, input) => {
