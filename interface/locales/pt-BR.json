@@ -1206,5 +1206,9 @@
   "Tarihi bilinmiyor": "Data desconhecida",
   "Filtreleri temizle": "Limpar filtros",
   "Daha fazla kontrol göster": "Mostrar mais verificações",
-  "{0} hesap": "{0} contas"
+  "{0} hesap": "{0} contas",
+  "Kayıtlar yükleniyor…": "Carregando registros…",
+  "Kayıtlar yüklenemedi.": "Não foi possível carregar os registros.",
+  "Geçersiz geçmiş isteği.": "Solicitação de histórico inválida.",
+  "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "O histórico mudou. Carregando o registro atual."
 }

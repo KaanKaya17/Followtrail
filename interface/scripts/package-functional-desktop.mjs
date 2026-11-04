@@ -74,6 +74,8 @@ for (const name of [
   "profile-search.js",
   "list-photos.js",
   "list-pages.js",
+  "history-pages.js",
+  "dom-updates.js",
   "daily-chart.js",
   "stories.js",
   "profile-details.js",

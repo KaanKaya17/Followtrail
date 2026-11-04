@@ -1,3 +1,4 @@
+import {historyDetail,waitHistory,readHistory} from './read-history.mjs';
 import {waitForState} from './wait-for-account.mjs';
 import { _electron as electron } from "playwright-core";
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
@@ -611,6 +612,7 @@ try {
     await page
       .getByRole("button", { name: "Profil farkları", exact: true })
       .click();
+    await waitHistory(page);
     assert.equal(await page.locator(".timeline-events .event-row").count(), 4);
     await page.locator(".timeline-events .event-row").first().click();
     assert.equal(
@@ -734,8 +736,7 @@ try {
         true,
       );
       assert.equal(await page.evaluate(() => window.logInjected), undefined);
-      await waitForState(page, reply => (reply.state.notificationLog.find((e) => e.id === "qa-multi-change")
-            .readAt != null));
+      assert.equal((await historyDetail(page,'notification','qa-multi-change')).readAt!=null,true);
       await page.screenshot({
         path: path.join(output, "notification-detail.png"),
         fullPage: true,
@@ -756,9 +757,7 @@ try {
         window.TrackerDesktop.command("state"),
       );
       assert.equal(
-        reopened.state.notificationLog.find(
-          (entry) => entry.id === "qa-multi-change",
-        ).readAt != null,
+        (await historyDetail(page,'notification','qa-multi-change')).readAt != null,
         true,
       );
       assert.equal(
@@ -833,6 +832,7 @@ try {
       await review
         .getByRole("button", { name: "Profil kontrol geçmişi", exact: true })
         .click();
+      await waitHistory(page);
       assert.equal(
         await page.locator(".timeline-events .event-row").count(),
         1,
@@ -936,6 +936,7 @@ try {
   await check("English and Turkish cover six routes, preserve user text, and persist after restart", async () => {
     await page.locator('.sidebar nav a[href="#settings"]').click();
     const before = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
+    const beforeLogs=await readHistory(page,'notifications',before);
     await page.locator('#app-language').selectOption('en');
     await page.waitForFunction(() => document.documentElement.lang === 'en');
     await page.getByRole('heading', { name: 'Small settings, a smoother experience.', exact: true }).waitFor();
@@ -944,7 +945,7 @@ try {
     assert.deepEqual(after.people, before.people);
     assert.deepEqual(after.history, before.history);
     assert.deepEqual(after.notificationRules, before.notificationRules);
-    assert.deepEqual(after.notificationLog, before.notificationLog);
+    assert.deepEqual(await readHistory(page,'notifications',after), beforeLogs);
     assert.equal(after.notificationTypes.followers, 'Follower count');
     assert.equal(await page.evaluate(() => window.TrackerI18n.formats('en').number.format(1200)), '1,200');
     const note = 'Özet · Kaydet · İstanbul <img src=x onerror=alert(1)>';

@@ -1214,7 +1214,11 @@
     "Tarihi bilinmiyor": "Unknown date",
     "Filtreleri temizle": "Clear filters",
     "Daha fazla kontrol göster": "Show more checks",
-    "{0} hesap": "{0} accounts"
+    "{0} hesap": "{0} accounts",
+    "Kayıtlar yükleniyor…": "Loading records…",
+    "Kayıtlar yüklenemedi.": "Could not load records.",
+    "Geçersiz geçmiş isteği.": "Invalid history request.",
+    "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "History changed. Loading the current record."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2424,7 +2428,11 @@
     "Tarihi bilinmiyor": "Fecha desconocida",
     "Filtreleri temizle": "Borrar filtros",
     "Daha fazla kontrol göster": "Mostrar más comprobaciones",
-    "{0} hesap": "{0} cuentas"
+    "{0} hesap": "{0} cuentas",
+    "Kayıtlar yükleniyor…": "Cargando registros…",
+    "Kayıtlar yüklenemedi.": "No se pudieron cargar los registros.",
+    "Geçersiz geçmiş isteği.": "Solicitud de historial no válida.",
+    "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "El historial cambió. Cargando el registro actual."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3634,7 +3642,11 @@
     "Tarihi bilinmiyor": "Data desconhecida",
     "Filtreleri temizle": "Limpar filtros",
     "Daha fazla kontrol göster": "Mostrar mais verificações",
-    "{0} hesap": "{0} contas"
+    "{0} hesap": "{0} contas",
+    "Kayıtlar yükleniyor…": "Carregando registros…",
+    "Kayıtlar yüklenemedi.": "Não foi possível carregar os registros.",
+    "Geçersiz geçmiş isteği.": "Solicitação de histórico inválida.",
+    "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "O histórico mudou. Carregando o registro atual."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

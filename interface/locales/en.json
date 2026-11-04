@@ -1206,5 +1206,9 @@
   "Tarihi bilinmiyor": "Unknown date",
   "Filtreleri temizle": "Clear filters",
   "Daha fazla kontrol göster": "Show more checks",
-  "{0} hesap": "{0} accounts"
+  "{0} hesap": "{0} accounts",
+  "Kayıtlar yükleniyor…": "Loading records…",
+  "Kayıtlar yüklenemedi.": "Could not load records.",
+  "Geçersiz geçmiş isteği.": "Invalid history request.",
+  "Geçmiş güncellendi. Güncel kayıt yükleniyor.": "History changed. Loading the current record."
 }

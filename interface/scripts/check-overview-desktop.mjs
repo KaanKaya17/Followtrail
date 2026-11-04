@@ -22,7 +22,7 @@ const project=state=>app.evaluate(({BrowserWindow},state)=>BrowserWindow.getAllW
 try {
  await page.locator('.overview-account').waitFor();await page.locator('#daily-chart-root .chart-point').first().waitFor();
  const before=(await command('state')).state;
- assert.deepEqual(await page.locator('.stat-value').allTextContents(),['82','50',String(before.events.filter(e=>e.type==='profile').length)]);
+ assert.deepEqual(await page.locator('.stat-value').allTextContents(),['82','50',String(before.historyMeta.profileCount)]);
  assert.match(await page.locator('.stat-card').first().innerText(),/\+1 son kontrole göre/);
  assert.match(await page.locator('.stat-card').nth(1).innerText(),/Son kontrole göre aynı/);
  assert.equal(await page.locator('#overview-operation #operation-root').count(),1);

@@ -158,6 +158,35 @@ class BackendTests(unittest.TestCase):
         self.assertEqual(session.get.call_args.kwargs['headers'],{'Accept':'image/*'})
         self.assertFalse(session.get.call_args.kwargs['allow_redirects'])
 
+    def test_profile_refresh_reuses_only_known_matching_picture_and_keeps_fresh_counts(self):
+        e=self.engine
+        saved=parse_profile(profile(profile_pic_id='123'))
+        saved['avatar']='data:image/jpeg;base64,QA=='
+        e.record_profile(saved,True)
+        client=Mock(user_id=100)
+        client.private_request.return_value=profile(followers=42,profile_pic_id='123',profile_pic_url='https://a.cdninstagram.com/rotated')
+        with patch('engine.read_avatar') as reader:
+            result=e.read_profile(client,'100')
+        reader.assert_not_called()
+        self.assertEqual(result['followers'],42)
+        self.assertEqual(result['avatar'],saved['avatar'])
+        for picture in ('456',None):
+            client.private_request.return_value=profile(profile_pic_id=picture)
+            with patch('engine.read_avatar') as reader:e.read_profile(client,'100')
+            reader.assert_called_once()
+        e.data['account']['avatar']=None
+        client.private_request.return_value=profile(profile_pic_id='123')
+        with patch('engine.read_avatar') as reader:e.read_profile(client,'100')
+        reader.assert_called_once()
+
+    def test_picture_cache_does_not_cross_numeric_identities(self):
+        e=self.engine
+        saved=parse_profile(profile(profile_pic_id='123'));saved['avatar']='data:image/jpeg;base64,QA=='
+        e.record_profile(saved,True)
+        client=Mock(user_id=100);client.private_request.return_value=profile('200',profile_pic_id='123')
+        with patch('engine.read_avatar') as reader:e.read_profile(client,'200')
+        reader.assert_called_once()
+
     def test_actual_caa_code_path_never_prints_or_uses_console(self):
         e=self.engine;e.request_code=Mock(return_value='654321')
         client=new_client(e)

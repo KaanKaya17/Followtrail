@@ -15,6 +15,8 @@ test('list notification previews frozen names in four languages and respects mut
  }
  const muted=changeNotification({...entry,selectedChangeIds:[]});
  assert.doesNotMatch(muted.body,/@ada|@eski\.ad/);
+ const compact={...list,after:{...list.after,added:103,removed:1,membersAdded:membersAdded.slice(0,2)}};
+ assert.match(changeNotification({...entry,changes:[compact]}).body,/101 hesap daha/);
 });
 
 test('notification click switches to owning account before opening its log and never opens a foreign log while busy',async()=>{

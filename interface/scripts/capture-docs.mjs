@@ -5,24 +5,28 @@ import {mkdir} from 'node:fs/promises';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {memoryHistoryFixture} from './local-list-fixture.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const python=process.env.TRACKER_BUILD_PYTHON || 'python';
 const executable=process.env.TRACKER_DOCS_BROWSER || path.join(process.env['ProgramFiles(x86)'] || 'C:/Program Files (x86)','Microsoft/Edge/Application/msedge.exe');
-const state=JSON.parse(execFileSync(python,[path.join(root,'scripts/wiki-demo-state.py')],{encoding:'utf8'}));
+const history=await memoryHistoryFixture(python,JSON.parse(execFileSync(python,[path.join(root,'scripts/wiki-demo-state.py')],{encoding:'utf8'})));
+const state=history.state;
 assert.equal(state.connected,true);
 assert.equal(state.gate.status,200);
-const output=path.join(root,'docs/wiki/assets');
+const output=process.env.TRACKER_DOCS_OUTPUT || path.join(root,'docs/wiki/assets');
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({executablePath:executable,headless:true});
 const errors=[],external=[];
 try {
     const page=await browser.newPage({viewport:{width:1440,height:1000},locale:'tr-TR',timezoneId:'Europe/Istanbul'});
+    await page.exposeFunction('qaHistory',(args,operation)=>history.request(args,operation));
     await page.clock.install({time:new Date('2026-11-02T15:00:00Z')});
     await page.route(/^https?:/,route=>{external.push(route.request().url());return route.abort();});
     page.on('pageerror',error=>errors.push(error.message));
     await page.addInitScript(({state})=>{
         window.TrackerDesktop={subscribe:()=>{},openLink:async()=>({ok:true}),command:async(operation,args={})=>{
+            if(['history_page','history_detail','read_notification'].includes(operation))return window.qaHistory(args,operation);
             if(operation==='daily_stats') {
                 const points=(state.history[args.id] || []).filter(p=>typeof p[args.metric]==='number').map(p=>({
                     bucket:Math.floor(p.observedAt/86400),day:Math.floor(p.observedAt/86400)*86400000,at:p.observedAt*1000,
@@ -30,10 +34,7 @@ try {
                 return {ok:true,daily:{...args,points,bucketDays:1,observedDays:points.length,samples:points.length,timezone:'UTC'}};
             }
             if(operation==='profile_detail') state.profileDetail={accountId:'100',profile:state.people.find(p=>p.id===args.id)};
-            else if(operation==='read_notification') {
-                const entry=state.notificationLog.find(item=>item.id===args.id);
-                if(entry)entry.readAt=Date.now()/1000;
-            } else if(!['state','cancel_list_images','list_avatar','search_avatar'].includes(operation))
+            else if(!['state','cancel_list_images','list_avatar','search_avatar'].includes(operation))
                 throw new Error('Documentation renderer does not implement '+operation);
             return {ok:true,state,avatar:null};
         }};
@@ -62,4 +63,4 @@ try {
     assert.deepEqual(errors,[]);
     assert.deepEqual(external,[]);
     console.log('3 documentation screenshots captured; synthetic state, zero external requests, zero script errors.');
-} finally {await browser.close();}
+} finally {await browser.close();await history.close();}

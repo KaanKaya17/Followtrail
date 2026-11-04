@@ -70,6 +70,7 @@ const rendererUpdates = new RendererUpdates({
   }),
 });
 const allowed = new Set([
+  "history_page", "history_detail",
   "state",
   "switch_account",
   "login",
@@ -122,6 +123,8 @@ function validate(operation, args) {
   if (Buffer.byteLength(JSON.stringify(args)) > 12000)
     throw new Error("Command too large");
   const fields = {
+    history_page: ['accountId','revision','kind','type','personId','section','read','offset'],
+    history_detail: ['accountId','revision','kind','id'],
     state: [],
     switch_account: ["id"],
     login: ["username", "password"],

@@ -2,8 +2,15 @@
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import path from 'node:path';
-export async function localListFixture(python,backend,home) {
-  const child=spawn(python,['-X','utf8',path.join(backend,'worker.py'),'--data-dir',home,'--offline'],{windowsHide:true,stdio:['pipe','pipe','pipe']});
+import {fileURLToPath} from 'node:url';
+export function localListFixture(python,backend,home) {
+  return localFixture(python,[path.join(backend,'worker.py'),'--data-dir',home,'--offline']);
+}
+export function memoryHistoryFixture(python,state) {
+  return localFixture(python,[path.join(path.dirname(fileURLToPath(import.meta.url)),'history-memory-fixture.py')],state);
+}
+async function localFixture(python,args,initial) {
+  const child=spawn(python,['-X','utf8',...args],{windowsHide:true,stdio:['pipe','pipe','pipe']});
   child.stderr.resume();
   const pending=new Map();let counter=0;
   let ready,fail;
@@ -17,6 +24,7 @@ export async function localListFixture(python,backend,home) {
     if(waiter){pending.delete(message.id);waiter.resolve(message);}
   });
   child.on('error',fail);
+  if(initial)child.stdin.write(JSON.stringify(initial)+'\n');
   child.on('exit',()=>{fail(Error('Fixture worker exited'));for(const p of pending.values())p.reject(Error('Fixture worker exited'));pending.clear();});
   const timer=setTimeout(()=>{fail(Error('Fixture worker startup timeout'));child.kill();},15000);
   try {
