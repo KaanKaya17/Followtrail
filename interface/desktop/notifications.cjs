@@ -4,14 +4,20 @@ const i18n = require('../web/i18n.js');
 const APP_ID = "dev.kaankaya.instagramtracker.desktop";
 const TOAST_ID = "{D3085DD3-667D-4514-BD5F-1C8C0C8A5927}";
 
-function retireLegacyShortcut({shell,shortcut,dataDir}) {
-  const legacy=path.join(path.dirname(shortcut),'Electron.lnk');
-  if (!fs.existsSync(legacy)) return;
-  const previous=shell.readShortcutLink(legacy);
-  if (previous.appUserModelId!==APP_ID || path.basename(previous.target).toLowerCase()!=='instagramtracker.exe') return;
-  fs.mkdirSync(dataDir,{recursive:true});
-  const backup=fs.mkdtempSync(path.join(dataDir,'legacy-electron-shortcut-'));
-  fs.renameSync(legacy,path.join(backup,'Electron.lnk'));
+function retireLegacyShortcuts({shell,shortcut,dataDir}) {
+  for(const name of ['Electron.lnk','InstagramTracker.lnk']) {
+    const legacy=path.join(path.dirname(shortcut),name);
+    if (!fs.existsSync(legacy)) continue;
+    const previous=shell.readShortcutLink(legacy);
+    if (previous.appUserModelId!==APP_ID || path.basename(previous.target).toLowerCase()!=='instagramtracker.exe') continue;
+    fs.mkdirSync(dataDir,{recursive:true});
+    const backup=fs.mkdtempSync(path.join(dataDir,'legacy-tracker-shortcut-'));
+    fs.renameSync(legacy,path.join(backup,name));
+  }
+}
+
+function appIconPath(app) {
+  return path.join(app.getAppPath(), app.isPackaged ? 'desktop' : '.cache', 'app-icon.ico');
 }
 
 function changeNotification(entry, language = 'tr') {
@@ -69,7 +75,7 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
     description: t("InstagramTracker — yerel hesap gözlemleri"),
     appUserModelId: APP_ID,
     toastActivatorClsid: TOAST_ID,
-    icon: process.execPath,
+    icon: appIconPath(app),
     iconIndex: 0,
   };
   fs.mkdirSync(path.dirname(shortcut), { recursive: true });
@@ -86,7 +92,7 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
       previous.iconIndex === options.iconIndex &&
       previous.toastActivatorClsid?.toUpperCase() === TOAST_ID.toUpperCase()
     ) {
-      retireLegacyShortcut({shell,shortcut,dataDir});
+      retireLegacyShortcuts({shell,shortcut,dataDir});
       return;
     }
     fs.mkdirSync(dataDir, { recursive: true });
@@ -97,7 +103,7 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
   }
   if (!shell.writeShortcutLink(shortcut, options))
     throw new Error(t("Notification shortcut could not be written"));
-  retireLegacyShortcut({shell,shortcut,dataDir});
+  retireLegacyShortcuts({shell,shortcut,dataDir});
 }
 
 function showNotification({ Notification, title, body, onClick, onFailure }) {
@@ -125,6 +131,7 @@ async function openAccountNotification({entry, backend, showWindow, send, onBusy
 }
 module.exports = {
   APP_ID,
+  appIconPath,
   TOAST_ID,
   ensureShortcut,
   showNotification,

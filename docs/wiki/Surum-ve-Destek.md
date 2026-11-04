@@ -6,13 +6,15 @@
 
 ## Windows
 
-**Güncel önizleme: 0.2.48 · kaynak etiketi: `desktop-v0.2.48`**
+**Güncel önizleme: 0.2.49 · kaynak etiketi: `desktop-v0.2.49`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.48`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.49`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.
+
+0.2.49, Windows kısayolunda ve görev çubuğunda Tracker ICO simgesini açıkça kullanır; uygulamaya ait eski kısayolları yedekleyerek kaldırır.
 
 ## Android
 
