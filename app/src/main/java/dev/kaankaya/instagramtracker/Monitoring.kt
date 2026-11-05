@@ -82,7 +82,7 @@ class MonitorEngine(private val vault: SessionVault, private val gate: RequestGa
     private val clock: () -> Long = System::currentTimeMillis) {
     fun tick(now: Long = System.currentTimeMillis(), cancelled: () -> Boolean = { false }, targetId: String? = null,
         reserved: Boolean = false) {
-        if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now) return
+        if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now || gate.profileBudgetNextAt(now) > now) return
         val saved = vault.read() ?: return
         val selected = if (targetId == null) MonitorPolicy.due(saved.people, now) else
             saved.people.firstOrNull { it.latest.userId == targetId && it.watching && it.nextCheckAt <= now }

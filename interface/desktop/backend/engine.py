@@ -28,6 +28,7 @@ import profile_links
 import hashlib
 import data_privacy
 from search_cache import SearchCache
+from profile_basis import ProfileBasis
 from story_limits import CAPABILITIES_JSON
 from login_identity import LoginIdentity, device_settings
 
@@ -94,6 +95,7 @@ class Engine:
         self.wayback_id = None
         self.search_results = None
         self.search_cache = SearchCache()
+        self.profile_basis = ProfileBasis()
         self.profile_detail_result = None
         self.story_detail = None
         self.list_pages = list_pages.ListPages()
@@ -429,6 +431,7 @@ class Engine:
         else:
             self.data['people'][identity] = profile
         self.event('check', f"@{profile['username']} profili kontrol edildi", identity)
+        self.profile_basis.record(self.data, profile)
 
     def read_profile(self, client, identity, avatar=True):
         self.progress('profile', personId=identity)
@@ -601,7 +604,7 @@ class Engine:
         finally:
             close_client(client)
 
-    def scan(self, args, *, one_page=False, resume=False):
+    def scan(self, args, *, one_page=False, resume=False, reuse_profile=False):
         direction = args.get('direction')
         if direction not in ('followers', 'following'):
             raise AppFailure('input', 'Liste yönü geçersiz.')
@@ -635,8 +638,10 @@ class Engine:
             schedule.update(after=0, error=None)
             self.save()
             if not continuing:
-                profile = self.read_profile(client, identity, avatar=False)
-                self.record_profile(profile, own=identity == self.data['account']['id'])
+                profile = self.profile_basis.recent(self.data, identity, self.clock()) if reuse_profile else None
+                if profile is None:
+                    profile = self.read_profile(client, identity, avatar=False)
+                    self.record_profile(profile, own=identity == self.data['account']['id'])
                 owner = profile
                 draft['expected'] = profile[direction]
                 self.scan_progress.update(username=profile['username'], expected=draft['expected'], step='page')
@@ -889,7 +894,8 @@ class Engine:
         d = self.data
         candidates = ([d['account']] if d['account'] else []) + [p for p in d['people'].values() if p.get('watching')]
         interval = d['settings']['interval'] * 60
-        profiles = sorted([(max(p.get('observedAt') or 0, d['automaticAttempts'].get(p['id'], 0)) + interval, p['id'])
+        budget_at = request_budget.profile_next_at(d['gate'], self.budget_owner(), self.clock())
+        profiles = sorted([(max(max(p.get('observedAt') or 0, d['automaticAttempts'].get(p['id'], 0)) + interval, budget_at), p['id'])
                            for p in candidates])
         pending = [c for c in d['access'].values() if c['stage'] == 'pending' and c['id'] in d['people']] if d['settings']['investigateMissing'] else []
         investigation = ('access', min(pending, key=lambda c: c['detectedAt'])['id']) if pending else None
@@ -909,6 +915,8 @@ class Engine:
                   'restricted' if d['gate'].get('manualOnly') else None)
         return {'enabled': d['settings']['automatic'], 'held': reason is not None, 'reason': reason, 'listPlanVersion': list_preparation.PLAN_VERSION,
                 'budgetPolicy': request_budget.policy(), 'profileCount': len(profiles), 'intervalSeconds': interval,
+                'profileDemandDaily': len(profiles) * 86400 / interval,
+                'profileBudgetDaily': request_budget.PROFILE_ACCOUNT[1],
                 'estimatedCycleSeconds': max(interval, sum(REQUEST_SPACING) / 2 * len(profiles)),
                 'accessPending': len(pending), 'followerScanPending': bool(investigation and investigation[0] == 'followers_scan'),
                 'nextAt': None if reason or not deadlines else max(min(deadlines), self.budget_available_at(),
@@ -925,7 +933,7 @@ class Engine:
         if lists and lists['dueAt'] <= now and (not profile_due or d['lastAutomaticTask'] != 'lists'):
             d['lastAutomatic'] = now
             d['lastAutomaticTask'] = 'lists'
-            self.scan({'id':lists['ownerId'], 'direction':lists['direction']}, one_page=True, resume=True)
+            self.scan({'id':lists['ownerId'], 'direction':lists['direction']}, one_page=True, resume=True, reuse_profile=True)
             return
         investigation_due = investigation and d['lastInvestigationAt'] + d['settings']['interval'] * 60 <= now
         d['lastAutomatic'] = now
@@ -1053,6 +1061,8 @@ class Engine:
         if operation in ('login','import_counter','disconnect','delete_all','import_backup'):
             self.search_cache.clear()
         self.operation = operation
+        if operation in ('login', 'import_counter', 'disconnect', 'delete_all', 'remove_person', 'import_backup'):
+            self.profile_basis.clear()
         self.search_results = None
         self.profile_detail_result = None
         self.story_detail = None

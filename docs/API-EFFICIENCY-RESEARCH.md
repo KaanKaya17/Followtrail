@@ -2,6 +2,8 @@
 
 5 Kasım 2026 · Kaynak tabanı: `67dcae1` · Windows 0.2.53 / Android 0.1.83.
 
+Bu belge ilk araştırmanın kaydıdır. Sonraki Windows 0.2.54 / Android 0.1.84 uygulaması ve ölçülen paylaşım sonuçları [doğrulama notundadır](API-EFFICIENCY-TEST.md).
+
 Bu incelemede gerçek hesaba yeni istek gönderilmedi, bekleme kayıtları değiştirilmedi ve uygulama davranışı değiştirilmedi. Bulgular kaynak incelemesi, masaüstünün üretim sınırında sentetik taşıyıcıyla yapılan ölçüm ve birincil kaynak araştırmasına dayanıyor. Meta'nın özel uç noktalarındaki gerçek kotası, güvenli istek sıklığı ve Android'deki 429'un kesin nedeni bu çalışmayla belirlenmiş değildir.
 
 ## En büyük bulgu: sıklık, günlük bütçeyle birlikte planlanmalı

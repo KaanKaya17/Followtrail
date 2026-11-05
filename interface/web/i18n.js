@@ -1236,7 +1236,8 @@
     "Silmek için kayıtlı bir profil seç.": "Select a saved profile to delete.",
     "Günlük istatistikler": "Daily statistics",
     "Hesabının son kontrolü": "Your account last checked",
-    "Sıradaki otomatik işlem": "Next automatic task"
+    "Sıradaki otomatik işlem": "Next automatic task",
+    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Continuous profile checking: about {0} requests/day · local profile allowance {1}."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2468,7 +2469,8 @@
     "Silmek için kayıtlı bir profil seç.": "Selecciona un perfil guardado para eliminarlo.",
     "Günlük istatistikler": "Estadísticas diarias",
     "Hesabının son kontrolü": "Última consulta de tu cuenta",
-    "Sıradaki otomatik işlem": "Próxima tarea automática"
+    "Sıradaki otomatik işlem": "Próxima tarea automática",
+    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Comprobación continua de perfiles: unas {0} solicitudes/día · cuota local para perfiles {1}."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3700,7 +3702,8 @@
     "Silmek için kayıtlı bir profil seç.": "Selecione um perfil salvo para excluir.",
     "Günlük istatistikler": "Estatísticas diárias",
     "Hesabının son kontrolü": "Última verificação da sua conta",
-    "Sıradaki otomatik işlem": "Próxima tarefa automática"
+    "Sıradaki otomatik işlem": "Próxima tarefa automática",
+    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Verificação contínua de perfis: cerca de {0} solicitações/dia · cota local para perfis {1}."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

@@ -31,7 +31,28 @@ class ListPreparationTests(unittest.TestCase):
 
     def work(self,*responses):
         self.now[0]=max(self.now[0],self.e.data['gate'].get('nextAt',0))
-        client=PacedClient(self.e,responses)
+        # Route fixtures by the requested resource. A shared fresh basis can
+        # legitimately omit a profile request; it must not feed a profile body
+        # into the next list request, or turn a parser failure into a false pass.
+        engine=self.e; case=self
+        class ResourceClient(PacedClient):
+            def __init__(self):
+                super().__init__(engine,[]);self.remaining=list(responses)
+            def private_request(self,endpoint,**kwargs):
+                profile_request=endpoint.startswith('users/')
+                index=next((i for i,v in enumerate(self.remaining) if not isinstance(v,dict) or
+                            ('user' in v)==profile_request),None)
+                case.assertIsNotNone(index,'Missing fixture for '+endpoint)
+                if not profile_request:
+                    for skipped in self.remaining[:index]:
+                        expected=parse_profile(skipped);identity=expected['id']
+                        known=engine.data['account'] if identity==engine.active_id else engine.data['people'].get(identity)
+                        case.assertIsNotNone(known)
+                        case.assertEqual((known['followers'],known['following']),(expected['followers'],expected['following']),
+                                         'A changed server profile needs an expired basis or an explicit profile read')
+                value=self.remaining.pop(index);self.responses=iter([value])
+                return super().private_request(endpoint,**kwargs)
+        client=ResourceClient()
         with patch.object(self.e,'client',return_value=client):self.e.run('automatic',{})
         return client
 
@@ -85,7 +106,12 @@ class ListPreparationTests(unittest.TestCase):
         with self.assertRaises(AppFailure):self.e.scan({'direction':'followers'},one_page=True,resume=True)
         self.assertFalse(self.e.data['settings']['automaticLists'])
         self.e.cancel.clear();self.e.settings({'automaticLists':True})
-        with self.assertRaises(AppFailure):self.work(page(['201']))
+        # Isolate the resumed follower direction from the still-unread following
+        # baseline; otherwise an arbitrary parser error could satisfy this test.
+        self.e.data['lists']['100:following']={'snapshots':[],'schedule':{'after':self.now[0]+3600}}
+        self.e.save()
+        with self.assertRaises(AppFailure) as failure:self.work(page(['201']))
+        self.assertEqual(failure.exception.code,'list_count')
         record=self.e.data['lists']['100:followers']
         self.assertEqual(record['snapshots'],[]);self.assertFalse(record['draft']['complete'])
         self.assertFalse(self.e.snapshot()['listPreparation']['ready'])
@@ -110,6 +136,7 @@ class ListPreparationTests(unittest.TestCase):
         self.e.data['settings']['automaticLists']=True
         self.e.data['lists']={}
         self.e.settings({'automatic':True})
+        self.now[0]+=60  # The next fixture intentionally returns a changed count.
         self.work(profile(followers=3,following=1),page(['200'],'cursor-one'))
         path=self.home.name+'/backup';self.e.export_backup(path)
         from pathlib import Path
@@ -288,6 +315,7 @@ class ListPreparationTests(unittest.TestCase):
         for direction,ids in [('followers',['200','201','202']),('following',['300'])]:
             client=PacedClient(self.e,[profile(followers=3,following=1),page(ids)])
             with patch.object(self.e,'client',return_value=client):self.e.run('scan',{'direction':direction})
+        self.now[0]+=60  # A changed count must be observed after the short basis expires.
         self.work(profile('200',followers=2,following=1),page(['301'],'qa-next'))
         with self.assertRaises(AppFailure):self.work(429)
         before=copy.deepcopy(self.e.data['gate'])

@@ -5,6 +5,8 @@
   "accountDaily": 1200,
   "deviceHourly": 240,
   "deviceDaily": 2400,
+  "automaticProfileBudgetPercent": 80,
+  "profileBasisFreshnessSeconds": 60,
   "defaultIntervalMinutes": 5,
   "intervalMinutes": [1, 5, 15, 30, 60, 180, 360, 720, 1440]
 }

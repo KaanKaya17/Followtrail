@@ -878,6 +878,13 @@ class MainActivity : LocalizedActivity() {
     }
     private fun refreshSettings() {
         val page = stack().apply { setPadding(dp(24), dp(12), dp(24), dp(12)) }
+        fun budgetSummary(): String {
+            val demand = (account?.people?.filter { it.watching }?.sumOf { 1440.0 / it.intervalMinutes } ?: 0.0) +
+                if (gate.backgroundOwnEnabled()) 1440.0 / gate.monitorIntervalMinutes() else 0.0
+            return getString(R.string.monitor_budget_forecast, kotlin.math.ceil(demand).toInt(),
+                RequestDefaults.ACCOUNT_DAILY * RequestDefaults.AUTO_PROFILE_PERCENT / 100)
+        }
+        val budgetInfo = text(budgetSummary(), 12f, muted)
         page.addView(text(getString(R.string.monitor_settings_body), 13f, muted)); page.gap(12)
         page.addView(android.widget.CheckBox(this).apply {
             text = getString(R.string.ui_refresh_automatically_on_launch); setTextColor(ink)
@@ -892,7 +899,7 @@ class MainActivity : LocalizedActivity() {
             buttonTintList = android.content.res.ColorStateList.valueOf(accent)
             isChecked = gate.backgroundOwnEnabled(); isEnabled = account != null && !needsConnection
             setOnCheckedChangeListener { _, enabled ->
-                try { gate.setBackgroundOwnEnabled(enabled); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
+                    try { gate.setBackgroundOwnEnabled(enabled); budgetInfo.text = budgetSummary(); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
             }
         })
         lateinit var interval: android.widget.Button
@@ -900,11 +907,12 @@ class MainActivity : LocalizedActivity() {
             val values = WatchIntervals.minutes
             AlertDialog.Builder(this).setTitle(R.string.monitor_own_interval)
                 .setSingleChoiceItems(values.map { intervalLabel(it, true) }.toTypedArray(), values.indexOf(gate.monitorIntervalMinutes())) { dialog, index ->
-                    try { gate.setMonitorIntervalMinutes(values[index]); interval.text = getString(R.string.monitor_own_interval) + " · " + intervalLabel(values[index]); dialog.dismiss(); render() }
+                    try { gate.setMonitorIntervalMinutes(values[index]); interval.text = getString(R.string.monitor_own_interval) + " · " + intervalLabel(values[index]); budgetInfo.text = budgetSummary(); dialog.dismiss(); render() }
                     catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
                 }.setNegativeButton(R.string.ui_cancel, null).show()
         }
         page.gap(12); page.addView(interval)
+        page.gap(8); page.addView(budgetInfo)
         AlertDialog.Builder(this).setTitle(R.string.ui_refresh_settings).setView(page).setPositiveButton(R.string.ui_ok, null).show()
     }
 
@@ -1378,7 +1386,7 @@ class MainActivity : LocalizedActivity() {
     private fun renderWatchStatus(page: LinearLayout, person: TrackedPerson, saved: SavedAccount) {
         val now = System.currentTimeMillis()
         val conditions = WatchConditions(ChangeNotifications(this, preview).allowed(), AppUi.offline(this) == true,
-            gate.requiresConnection(), gate.automationHeld(), gate.blockedUntil(), gate.manualOnly(), gate.automaticNextAllowedAt(),
+            gate.requiresConnection(), gate.automationHeld(), gate.blockedUntil(), gate.manualOnly(), maxOf(gate.automaticNextAllowedAt(), gate.profileBudgetNextAt()),
             notificationsRequired = !saved.automation.enabled)
         val status = WatchStatusPolicy.status(person, saved.people, conditions, now)
         val card = AppUi.card(this)

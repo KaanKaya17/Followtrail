@@ -79,7 +79,8 @@ class ProfileStatusCards(private val context: Context, private val vault: Sessio
     private fun profile(saved: SavedAccount, id: String) = if (saved.profile.userId == id) saved.profile
         else saved.people.firstOrNull { it.latest.userId == id }?.latest
     private fun conditions() = WatchConditions(ChangeNotifications(context, preview).allowed(), AppUi.offline(context) == true,
-        gate.requiresConnection(), gate.automationHeld(), gate.blockedUntil(), gate.manualOnly(), gate.automaticNextAllowedAt())
+        gate.requiresConnection(), gate.automationHeld(), gate.blockedUntil(), gate.manualOnly(),
+        maxOf(gate.automaticNextAllowedAt(), if (quick().first == null) gate.profileBudgetNextAt() else 0))
     private fun status(saved: SavedAccount, id: String, now: Long): WatchStatus {
         val person = saved.people.firstOrNull { it.latest.userId == id } ?: TrackedPerson(listOf(saved.profile),
             watching = saved.automation.enabled && id in saved.automation.targets,
