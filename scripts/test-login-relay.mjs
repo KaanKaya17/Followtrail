@@ -7,10 +7,16 @@ import test from 'node:test';
 const captchaIdentity=await readFile(new URL('../app/src/main/java/dev/kaankaya/instagramtracker/AuthPlatformCaptchaContent.kt',import.meta.url),'utf8');
 const captchaDocument=captchaIdentity.match(/const val DOCUMENT = "([0-9]+)"/)[1];
 const captchaOperation=captchaIdentity.match(/const val OPERATION = "([A-Za-z0-9_]+)"/)[1];
-const captchaInspector=(await readFile(new URL('../app/src/main/assets/web_security_schema.js',import.meta.url),'utf8'))
-  .replaceAll('__DOCUMENT__',captchaDocument).replaceAll('__OPERATION__',captchaOperation).replaceAll('__KIND__','query');
+const rawInspector=await readFile(new URL('../app/src/main/assets/web_security_schema.js',import.meta.url),'utf8');
+const verificationSource=await readFile(new URL('../app/src/main/java/dev/kaankaya/instagramtracker/AuthPlatformVerification.kt',import.meta.url),'utf8');
+const captchaMutations=[...verificationSource.matchAll(/val captcha(?:Render|Submit) = Operation\("([0-9]+)", "([A-Za-z0-9_]+)"\)/g)].map(m=>[m[1],m[2],'mutation']);
+assert.equal(captchaMutations.length,2);
+const schemaEntries=[[captchaDocument,captchaOperation,'query'],...captchaMutations].map(([doc,name,kind])=>{
+  const inspector=rawInspector.replaceAll('__DOCUMENT__',doc).replaceAll('__OPERATION__',name).replaceAll('__KIND__',kind);
+  return JSON.stringify(doc+'|'+name)+':()=>{return '+inspector+'}';
+}).join(',');
 const source=(await readFile(new URL('../app/src/main/assets/web_login_relay.js',import.meta.url),'utf8'))
-  .replaceAll('__CAPTCHA_SCHEMA__',captchaInspector).replaceAll('__CAPTCHA_DOCUMENT__',captchaDocument).replaceAll('__CAPTCHA_OPERATION__',captchaOperation);
+  .replaceAll('__SECURITY_SCHEMAS__','{'+schemaEntries+'}');
 const schemaSource=(await readFile(new URL('../app/src/main/assets/web_security_schema.js',import.meta.url),'utf8'))
   .replaceAll('__DOCUMENT__','34414353874878894').replaceAll('__OPERATION__','AuthPlatformCodeEntryViewQuery').replaceAll('__KIND__','query');
 test('security schema reads static names and never argument values',()=>{
@@ -63,17 +69,17 @@ test('CAPTCHA module evidence is lazy, query-specific and contains no argument d
   const b=browser('/auth_platform/synthetic/',name=>{
     assert.equal(name,captchaOperation+'.graphql');loads++;
     return {params:{id:captchaDocument,name:captchaOperation,operationKind:'query'},operation:{
-      argumentDefinitions:[{name:'apc',get defaultValue(){throw Error('Private context read');}}],
-      selections:[{kind:'LinkedField',name:'xfb_auth_platform_synthetic_recaptcha_content'}]}};
+      argumentDefinitions:[],
+      selections:[{kind:'LinkedField',name:'xfb_auth_platform_anti_scripting_content'}]}};
   });
   try {
     assert.equal(loads,0);
     const pending=b.window.fetch('https://www.instagram.com/api/graphql',{method:'POST',
       body:new URLSearchParams({doc_id:captchaDocument,fb_api_req_friendly_name:captchaOperation,
-        variables:JSON.stringify({apc:'private-context'})}).toString()});
+        variables:'{}'}).toString()});
     await tick();assert.equal(loads,1);assert.equal(b.messages.length,1);
     const schema=b.messages[0].securitySchema;
-    assert.equal(schema.kind,'query');assert.deepEqual(schema.arguments,['apc']);
+    assert.equal(schema.kind,'query');assert.deepEqual(schema.arguments,[]);
     assert.equal(JSON.stringify(schema).includes('private-context'),false);
     b.reply(b.messages[0],false);await pending;
   }finally{b.close();}
@@ -94,15 +100,18 @@ test('all known same-origin GraphQL paths are delivered with their original path
   try {
     const paths=['/api/graphql','/api/graphql/','/graphql/query/','/graphql_www'];
     const pending=paths.map(path=>b.window.fetch('https://www.instagram.com'+path,{method:'POST',body:'doc_id=123'}).catch(()=>null));
-    await tick();assert.equal(b.messages.length,4);assert.deepEqual(b.messages.map(m=>m.path),paths);assert.equal(b.fallback.length,0);
-    b.messages.forEach(m=>b.reply(m));await Promise.all(pending);
+    await tick();assert.equal(b.messages.length,1);
+    for(let i=0;i<4;i++){assert.equal(b.messages[i].path,paths[i]);b.reply(b.messages[i]);await tick();}
+    assert.equal(b.messages.length,4);assert.equal(b.fallback.length,0);await Promise.all(pending);
   } finally {b.close();}
 });
 test('security observation is bounded to four concurrent messages',async()=>{
   const b=browser('/auth_platform/synthetic/');
   try {
     const pending=Array.from({length:5},()=>b.window.fetch('https://www.instagram.com/api/graphql',{method:'POST',body:'doc_id=123'}).catch(()=>null));
-    await tick();assert.equal(b.messages.length,4);b.messages.forEach(m=>b.reply(m));await Promise.all(pending);
+    await tick();assert.equal(b.messages.length,1);
+    for(let i=0;i<4;i++){b.reply(b.messages[i]);await tick();}
+    assert.equal(b.messages.length,4);await Promise.all(pending);
   } finally {b.close();}
 });
 test('initial login still admits only one pending bridge message',async()=>{
@@ -111,6 +120,20 @@ test('initial login still admits only one pending bridge message',async()=>{
     const pending=Array.from({length:2},()=>b.window.fetch('https://www.instagram.com/api/graphql',{method:'POST',body:'synthetic'}).catch(()=>null));
     await tick();assert.equal(b.messages.length,1);b.reply(b.messages[0]);await Promise.all(pending);
   } finally {b.close();}
+});
+
+test('Cancelling a queued security request cannot make the next request overtake the active one',async()=>{
+  const b=browser('/auth_platform/synthetic/');const abort=new AbortController();
+  try {
+    const first=b.window.fetch('https://www.instagram.com/api/graphql',{method:'POST',body:'first'});
+    const second=b.window.fetch('https://www.instagram.com/api/graphql',{method:'POST',body:'second',signal:abort.signal}).catch(()=>null);
+    const third=b.window.fetch('https://www.instagram.com/api/graphql',{method:'POST',body:'third'});
+    await tick();assert.equal(b.messages.filter(m=>m.body).length,1);
+    abort.abort();await tick();assert.equal(b.messages.filter(m=>m.body).length,1);
+    b.reply(b.messages.find(m=>m.body==='first'),false);await tick();
+    assert.deepEqual(b.messages.filter(m=>m.body).map(m=>m.body),['first','third']);
+    b.reply(b.messages.find(m=>m.body==='third'),false);await Promise.all([first,second,third]);
+  }finally{b.close();}
 });
 test('foreign URLs, queries, fragments and GET never reach the native bridge',async()=>{
   const b=browser('/auth_platform/synthetic/');
@@ -127,7 +150,7 @@ test('XHR keeps its actual GraphQL path and response lifecycle',async()=>{
   try {
     const xhr=new b.window.XMLHttpRequest();let ended=0;xhr.addEventListener('loadend',()=>ended++);
     xhr.open('POST','https://www.instagram.com/graphql/query/');xhr.send('doc_id=123');
-    assert.equal(b.messages[0].path,'/graphql/query/');b.reply(b.messages[0],false);await tick();
+    await tick();assert.equal(b.messages[0].path,'/graphql/query/');b.reply(b.messages[0],false);await tick();
     assert.equal(xhr.responseURL,'https://www.instagram.com/graphql/query/');assert.equal(xhr.status,200);assert.equal(ended,1);
     assert.equal(b.fallback.length,0);
   } finally {b.close();}

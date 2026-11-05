@@ -26,7 +26,7 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 **Windows 0.2.53:** Yerel işlev paketi; kayıtlı oturumlarla canlı profil/liste okumaları görülmüş, son paket kontrolleri tamamlanmıştır. Bütün hesaplarda uyumluluk garantisi değildir.
 
-**Android 0.1.82:** İmzalı APK; profil, özet ve yerel bildirim/geçmiş görünümü güncellendi. Ekran testleri henüz tamamlanmadı ([kapsam](docs/ANDROID-UI-ALIGNMENT.md)). Kod sonrasında bekleyen oturumu koruma doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
+**Android 0.1.83:** İmzalı APK; profil, özet ve yerel bildirim/geçmiş görünümü güncellendi. Ekran testleri henüz tamamlanmadı ([kapsam](docs/ANDROID-UI-ALIGNMENT.md)). Kod sonrasında bekleyen oturumu koruma doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

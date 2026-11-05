@@ -1,4 +1,8 @@
 <resources>
     <string name="diagnostics_copy">Tanıyı kopyala</string>
     <string name="diagnostics_copied">Tanı kopyalandı. Parola, kod veya çerez içermez.</string>
+    <string name="captcha_loading">CAPTCHA hazırlanıyor…</string>
+    <string name="captcha_submitting">CAPTCHA sonucu Instagram’a gönderiliyor…</string>
+    <string name="captcha_result_sent">CAPTCHA sonucu gönderildi. Instagram sayfasındaki sonraki adımı tamamla.</string>
+    <string name="captcha_repeat_stopped">CAPTCHA sonucu bu denemede zaten gönderildi. Tekrar tekrar çözmeye devam etme; tanı bilgilerini inceleyelim.</string>
 </resources>

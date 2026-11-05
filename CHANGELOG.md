@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.83 — 2026-11-05
+
+- 0.1.82 canlı tanısında görülen gerçek CAPTCHA içerik şemasına uyuldu: boş argümanlar ve `xfb_auth_platform_anti_scripting_content`. Önceki guard bu sorguyu reddediyordu; CAPTCHA görüntüsünün açılması içerik isteğinin geçtiği anlamına gelmiyordu.
+- Gözlenen CAPTCHA render bildirimi ve insanın aldığı CAPTCHA sonucunu gönderme işlemlerine, yalnız tam belge/işlem/modül şeması ve açık doğrulama bağlamı kapsamında destek eklendi. Bu girişte tekrar gönderim durdurulur. Parola, kod, CAPTCHA tokenı veya opaque bağlam kaydedilmez; genel sosyal işlem/GraphQL yetkisi açılmaz.
+- Eşzamanlı güvenlik istekleri mevcut dört mesaj sınırında sıraya alınır; sonraki işlem öncekinin istek sahipliği bırakıldıktan sonra başlar. CAPTCHA durum metinleri ve ayrı render/sonuç tanısı eklendi. [Gözlem, bağlama kuralı ve sınırlar](docs/ANDROID-CAPTCHA-CONTENT.md).
+- Doğrulama: 174 JVM / 12 JavaScript testi geçti; dört dilde 789 Android kaynağı tutarlı. Lint 0 hata / 54 uyarı; imzalı APK ve test paketi derlendi, APK doğrulandı ve test telefonuna kuruldu. Yeni gerçek WebView senaryosu çalıştırılmadı; canlı giriş sonucu bekleniyor.
+
 ## Android 0.1.82 — 2026-11-05
 
 - Yeni cihazdaki tanıda CAPTCHA sayfasının `AuthPlatformReCaptchaContentQuery` isteğinin yerel filtre tarafından engellendiği görüldü. Yalnız bu sabit okuma sorgusuna, aynı doğrulama sayfasının query şeması ve APC bağlamı eşleştiğinde destek eklendi. Genel GraphQL/mutation yetkisi açılmadı; gerçek giriş henüz doğrulanmadı.

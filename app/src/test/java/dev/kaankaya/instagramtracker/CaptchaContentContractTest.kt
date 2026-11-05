@@ -9,17 +9,15 @@ import org.junit.Test
 
 /** Synthetic schemas model the boundary; they do not establish the current live module's exact fields. */
 class CaptchaContentContractTest {
-    private val root = "xfb_auth_platform_synthetic_recaptcha_content"
-    private fun schema(device: Boolean=true) = JSONObject().put("document",AuthPlatformCaptchaContent.DOCUMENT)
+    private val root = "xfb_auth_platform_anti_scripting_content"
+    private fun schema() = JSONObject().put("document",AuthPlatformCaptchaContent.DOCUMENT)
         .put("operation",AuthPlatformCaptchaContent.OPERATION).put("kind","query").put("incomplete",false)
-        .put("arguments",JSONArray(if(device)listOf("apc","device_id") else listOf("apc")))
+        .put("arguments",JSONArray())
         .put("rootFields",JSONArray(listOf(root)))
-    private fun body(device: Boolean=true,context: String="private-context") =
-        "doc_id=${AuthPlatformCaptchaContent.DOCUMENT}&fb_api_req_friendly_name=${AuthPlatformCaptchaContent.OPERATION}&variables="+
-        java.net.URLEncoder.encode(JSONObject().put("apc",context).apply { if(device)put("device_id",JSONObject.NULL) }.toString(),"UTF-8")
+    private fun body() = "doc_id=${AuthPlatformCaptchaContent.DOCUMENT}&fb_api_req_friendly_name=${AuthPlatformCaptchaContent.OPERATION}&variables=%7B%7D"
     @Test fun exactQueryRequiresCurrentContextAndMatchingCompleteRuntimeQuerySchema() {
-        for(device in listOf(true,false)) for(path in WebGraphqlForm.PATHS) {
-            val capability = WebSecurityViewContract.authorize(body(device),path,"private-context",schema(device))
+        for(path in WebGraphqlForm.PATHS) {
+            val capability = WebSecurityViewContract.authorize(body(),path,"private-context",schema())
             val request = capability.apply(Request.Builder()).build()
             assertTrue(WebPlatformRequestPolicy.allowed(request))
             assertFalse(WebPlatformRequestPolicy.allowed(request.newBuilder().post(FormBody.Builder().add("other","never").build()).build()))
@@ -34,8 +32,8 @@ class CaptchaContentContractTest {
             schema().put("arguments",JSONArray(listOf("apc","code"))))) {
             assertThrows(IllegalArgumentException::class.java) { WebSecurityViewContract.authorize(body(),"/api/graphql","private-context",proof) }
         }
-        assertThrows(IllegalArgumentException::class.java) { WebSecurityViewContract.authorize(body(context="wrong-context"),"/api/graphql","private-context",schema()) }
-        assertThrows(IllegalArgumentException::class.java) { WebSecurityViewContract.authorize(body(false),"/api/graphql","private-context",schema()) }
+        assertThrows(IllegalArgumentException::class.java) { WebSecurityViewContract.authorize(body(),"/api/graphql",null,schema()) }
+        assertThrows(IllegalArgumentException::class.java) { WebSecurityViewContract.authorize(body().replace("%7B%7D","%7B%22apc%22%3A%22unexpected%22%7D"),"/api/graphql","private-context",schema()) }
     }
     @Test fun captchaResponseCannotBeReplacedWithLoginCodeViewOrUnexpectedGraphqlFields() {
         val capability=WebSecurityViewContract.authorize(body(),"/api/graphql","private-context",schema())
@@ -45,7 +43,7 @@ class CaptchaContentContractTest {
     }
     @Test fun captchaAndUnknownAuthPlatformDiagnosticsKeepOnlyBoundedNamesAndTypes() {
         val facts=WebDocumentFacts.inspect(body()).json().toString()
-        assertTrue(facts.contains("STRING"));assertFalse(facts.contains("private-context"))
+        assertTrue(facts.contains("variableTypes"));assertFalse(facts.contains("private-context"))
         val unknown="doc_id=123&fb_api_req_friendly_name=AuthPlatformUnknownMutation&variables="+
             java.net.URLEncoder.encode("""{"input":{"code":"private-code","context":"private-context"}}""","UTF-8")
         val metadata=WebDocumentFacts.inspect(unknown).json().toString()
