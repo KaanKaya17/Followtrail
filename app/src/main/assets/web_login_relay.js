@@ -2,6 +2,8 @@
   'use strict';
   if (window.top !== window || location.origin !== 'https://www.instagram.com' || !window.trackerLoginRelay) return;
   const bridge = window.trackerLoginRelay, pending = new Map();
+  // Injected from the shared names-only schema inspector, evaluated only when the query is actually requested.
+  const captchaSchema = () => { return __CAPTCHA_SCHEMA__; };
   let next = 0;
   const target = value => { try { const u = new URL(value, location.href); return u.origin === 'https://www.instagram.com' && !u.search && !u.hash && ['/api/graphql','/api/graphql/','/graphql/query/','/graphql_www'].includes(u.pathname) ? u.pathname : null; } catch (_) { return null; } };
   const send = (body, headers, path) => {
@@ -13,7 +15,13 @@
     cancel = () => { if (pending.delete(id)) { clearTimeout(timer); bridge.postMessage(JSON.stringify({cancel:id})); reject(new DOMException('Aborted', 'AbortError')); } };
     const timer = setTimeout(cancel, 35000);
     pending.set(id, {resolve, reject, timer});
-    bridge.postMessage(JSON.stringify({id, body, headers, path}));
+    const envelope = {id, body, headers, path};
+    if (location.pathname.startsWith('/auth_platform/')) {
+      const form = new URLSearchParams(body);
+      if (form.get('doc_id') === '__CAPTCHA_DOCUMENT__' && form.get('fb_api_req_friendly_name') === '__CAPTCHA_OPERATION__')
+        envelope.securitySchema = captchaSchema();
+    }
+    bridge.postMessage(JSON.stringify(envelope));
     });
     promise.cancel = () => cancel(); return promise;
   };

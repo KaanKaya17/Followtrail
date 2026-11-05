@@ -36,7 +36,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private var installed = false
     private var closed = false
     private var submitted = false
-    private var securitySubmitted=false
+    private val submittedSecurityViews = hashSetOf<String>()
     private var codeSubmitted=false
     private var schemaInspected=false
     var sessionClaim: String = "0"
@@ -44,7 +44,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private val inspectedVerification = hashSetOf<String>()
     @Volatile private var active: Pending? = null
     private class Pending(val id: String, val reply: JavaScriptReplyProxy, val lease: AutoCloseable, val securityRequest: Boolean,
-        val codeSubmission: Boolean) {
+        val codeSubmission: Boolean,val securityView: WebSecurityViewAuthorization? = null) {
         val stage get() = if (codeSubmission) "CODE_SUBMISSION" else if (securityRequest) "SECURITY_VIEW" else "AUTH"
         @Volatile var call: Call? = null
         var future: Future<*>? = null
@@ -58,7 +58,12 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
         }
         installed = true
         try {
+            val captchaSchema = context.assets.open("web_security_schema.js").bufferedReader().use { it.readText() }
+                .replace("__DOCUMENT__",AuthPlatformCaptchaContent.DOCUMENT).replace("__OPERATION__",AuthPlatformCaptchaContent.OPERATION)
+                .replace("__KIND__","query")
             val source = context.assets.open("web_login_relay.js").bufferedReader().use { it.readText() }
+                .replace("__CAPTCHA_SCHEMA__",captchaSchema)
+                .replace("__CAPTCHA_DOCUMENT__",AuthPlatformCaptchaContent.DOCUMENT).replace("__CAPTCHA_OPERATION__",AuthPlatformCaptchaContent.OPERATION)
             script = WebViewCompat.addDocumentStartJavaScript(browser, source, origins)
             return true
         } catch (_: Exception) { close(); return false }
@@ -73,7 +78,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
     private fun recordSecurity(pending: Pending, status: Int,parsed: Boolean,valid: Boolean,applied: Boolean?=null) {
         try {
             if (pending.codeSubmission) trace.codeSubmission(status,parsed,valid,applied)
-            else trace.securityView(status,parsed,valid,applied)
+            else trace.securityView(status,parsed,valid,applied,pending.securityView?.document)
         } catch(_: Exception){throw ApiFailure(ApiFailure.Kind.STORAGE)}
     }
     private fun inspectSecuritySchema(page: String) {
@@ -109,15 +114,21 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 return
             }
             id = envelope.getString("id"); require(id.matches(Regex("[1-9][0-9]{0,5}")))
-            val fields=envelope.keys().asSequence().toSet()
+            val fields=envelope.keys().asSequence().toSet()-"securitySchema"
             require(fields==setOf("id","body","headers") || fields==setOf("id","body","headers","path"))
             val path=if(envelope.has("path")) envelope.get("path") as? String else "/api/graphql"
             require(path in WebGraphqlForm.PATHS)
             val body=envelope.getString("body")
+            val suppliedSchema = if(envelope.has("securitySchema")) {
+                require(security)
+                val identity = WebDocumentFacts.inspect(body)
+                require(AuthPlatformCaptchaContent.matches(identity.document,identity.operation))
+                envelope.getJSONObject("securitySchema").also { trace.captchaSchema(it.toString()) }
+            } else null
             var codeAuthorization: WebCodeSubmissionAuthorization? = null
             val securityAuthorization=if(security) {
                 inspectSecuritySchema(page)
-                val approved=try{WebSecurityViewContract.authorize(body,requireNotNull(path),securityContext(page))}catch(_: Exception){null}
+                val approved=try{WebSecurityViewContract.authorize(body,requireNotNull(path),securityContext(page),suppliedSchema)}catch(_: Exception){null}
                 if (approved == null) codeAuthorization = try {
                     WebVerificationContract.authorizeCode(body, requireNotNull(path), securityContext(page))
                 } catch (_: Exception) { null }
@@ -132,7 +143,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                         securityBlocked()
                     return
                 }
-                if((if(codeAuthorization!=null)codeSubmitted else securitySubmitted) || active!=null){reply(proxy,id,JSONObject().put("error",true));return}
+                if((if(codeAuthorization!=null)codeSubmitted else approved?.document in submittedSecurityViews) || active!=null){reply(proxy,id,JSONObject().put("error",true));return}
                 approved
             } else null
             val authorized=if(!security){require(path=="/api/graphql");WebLoginContract.authorize(body)}else null
@@ -157,8 +168,8 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 }.build())
             val lease = gate.claim()
             if(!security)try { gate.beginWebAuthentication() } catch (error: Exception) { lease.close(); throw error }
-            if(security) { if(codeAuthorization!=null)codeSubmitted=true else securitySubmitted=true } else submitted=true
-            val pending = Pending(id, proxy, lease,security,codeAuthorization!=null); active = pending
+            if(security) { if(codeAuthorization!=null)codeSubmitted=true else submittedSecurityViews.add(requireNotNull(securityAuthorization).document) } else submitted=true
+            val pending = Pending(id, proxy, lease,security,codeAuthorization!=null,securityAuthorization); active = pending
             try {
                 if(security) { if(pending.codeSubmission)codeStarted() else securityStarted() } else {
                     trace.resource("POST", LoginBrowserPolicy.ResourceDecision(true, LoginBrowserPolicy.ResourceKind.AUTH)); trace.flush();started()
@@ -216,7 +227,7 @@ class WebLoginRelay(private val context: Context, private val browser: WebView, 
                 val inspected = if(!pending.securityRequest)WebLoginResponseFacts.inspect(response.code, json, parsedCookies.filterNotNull(), parsedCookies.all { it != null }, gate.now()) else null
                 val assessment = if(inspected!=null && json!=null)WebLoginChallenge.assess(json, inspected) else null
                 val facts = inspected?.copy(challengeStatus = assessment?.status, challengeRoute = assessment?.route)
-                val validSecurityData = json?.let { if(pending.codeSubmission)WebVerificationContract.validData(it) else WebSecurityViewContract.validData(it) }==true
+                val validSecurityData = json?.let { if(pending.codeSubmission)WebVerificationContract.validData(it) else pending.securityView?.validData(it)==true }==true
                 if(facts!=null)record(facts) else recordSecurity(pending,response.code,json!=null,validSecurityData)
                 if (json == null) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
                 val issue = InstagramResponsePolicy.issue(response.code, json)

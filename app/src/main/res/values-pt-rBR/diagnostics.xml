@@ -1,0 +1,4 @@
+<resources>
+    <string name="diagnostics_copy">Copiar diagnóstico</string>
+    <string name="diagnostics_copied">Diagnóstico copiado. Não inclui senha, código nem cookies.</string>
+</resources>
