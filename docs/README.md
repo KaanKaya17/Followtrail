@@ -13,6 +13,15 @@ Bu dizindeki teknik belgeler araştırma, uygulama ve test geçmişini korur. Do
 - [Katkı kuralları](../CONTRIBUTING.md)
 - [Önceki README ve tarihçe](history/README-2026-11-02.md)
 
+## Güncel verimlilik ve platform durumu
+
+- [Windows 0.2.56 / Android 0.1.86 yanıt ve görsel işi paylaşımı](RESPONSE-SHARING-TEST.md)
+- [Yanıt paylaşımı ilk envanteri ve kapanan boşluklar](RESPONSE-REUSE-AUDIT.md)
+- [Günlük yerel bütçe güncellemesi](DAILY-BUDGET-UPDATE.md)
+- [API verimlilik uygulaması ve ölçülen kapsam](API-EFFICIENCY-TEST.md)
+- [Android / Windows ortak politika ve kalan farklar](PLATFORM-PARITY.md)
+- [Hikâye arşivi doğrulaması ve cihaz testi sınırları](STORY-ARCHIVE-TEST.md)
+
 ## Hesap ve güvenlik
 
 - [Android CAPTCHA içerik sorgusu](ANDROID-CAPTCHA-CONTENT.md)

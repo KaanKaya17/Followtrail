@@ -2,6 +2,10 @@
 
 Güncel kullanıcı açıklaması: [Gizlilik ve veriler](wiki/Gizlilik-ve-Veriler.md). Aşağıdaki sürümlü bölümler teknik davranış ve gelişim geçmişini kaydeder.
 
+## Windows 0.2.56 / Android 0.1.86 geçici paylaşım
+
+Windows hesap/oturum kapsamında en fazla 20 normalize profil kaydını süreç belleğinde tutar. Otomatik liste için 60 saniye, panel/kaydetme için 5 dakika tazelik gerekir; hesap/bağlantı değişimi ve silmede temizlenir. Ham yanıt, parola, kod, fotoğraf adresi/dosyası veya kullanıcı notları bu profil önbelleğine kopyalanmaz. Windows ve Android aynı görsel yükleyicisindeki eşzamanlı tüketiciler için indirme işini paylaşır; Android farklı yükleyici örnekleri arasında süreç genelinde tek indirme garantisi vermez. Yeni üçüncü taraf servis veya veri aktarımı eklenmez. [Sahiplik, iptal ve doğrulama](RESPONSE-SHARING-TEST.md).
+
 ## Windows 0.2.50 / Android 0.1.78 geçici arama sonuçları
 
 Son 6 arama sorgusunun başarılı aday sonuçları 60 saniye tekrar kullanılabilir; arama penceresini kapatmak bunları silmez. Aramalar yalnız bellektedir, hesap/oturum değişimi ve silme işlemlerinde temizlenir. Süre, görsel kaynakları ve yaşam döngüsü ayrıntıları [arama önbelleği notunda](SEARCH-CACHE-PARITY.md) açıklanır. Şifreli kasaya arama geçmişi eklenmez; yeni sunucu veya izin yoktur.

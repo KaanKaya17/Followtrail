@@ -1,5 +1,7 @@
 # Doğrulama kaydı
 
+Bu dosya tarihsel doğrulama kayıtlarını korur; aşağıdaki eski paketler güncel sürüm değildir. Son Windows 0.2.56 / Android 0.1.86 kapsamı [yanıt paylaşımı doğrulamasında](RESPONSE-SHARING-TEST.md), paket adları ve açık canlı işler [sürüm sayfasında](wiki/Surum-ve-Destek.md) bulunur.
+
 ## Windows/web 0.2.6 — Türkçe ve İngilizce
 
 - Paket `artifacts/InstagramTracker-Desktop-0.2.6.zip`: **186.399.600 bayt**, 675 dosya, SHA-256 `c286c96aaadd3ff641336fba9ecd98bd6b9b3d4fc7554c2d2a13f5c048ed6e8c`, kaynak commit `e556af9427713ac6939570eca50c8e8bb2009b88`. Dağıtım JS/CSS ve worker çeviri kataloğu kaynakla eşleşti, ZIP bütünlüğü geçti. Türkçe ONCE-OKU ve İngilizce START-HERE içerir; kullanıcı verisi/oturumu pakete alınmadı.

@@ -36,9 +36,15 @@ Profil kaldırma, hesap silme ve ayrıntılı geçmiş saklama süresi medya dos
 
 Android'in önceki Özet, profil, bildirim, zaman çizelgesi, dil, tema, liste arama/fotoğraf, günlük ve görsel geçmiş çalışmaları korunur. Native Android ile Electron'un ekran yerleşimi, işletim sistemi bildirimleri ve klavye davranışları farklıdır. Android'in 100 kayıtlı kişi, 90 ayrıntılı profil gözlemi ve 2 MiB ana kasa sınırı; Windows'un farklı kaynak sınırları bu değişiklikte körlemesine yükseltilmez. Kalıcı günlük özetler ayrıntılı gözlemlerden bağımsızdır. Bu nedenle eksiksiz birebir eşitlik denmez.
 
-Bu sürümde Instagram'a canlı istek gönderilmedi, gerçek kullanıcı kasası açılmadı, uygulama/telefon kurulumu yapılmadı ve emülatör başlatılmadı. Kotlin/Python/JavaScript birim testleri, kaynak/çeviri tutarlılığı ve paket kontrolleri uygulanır; çalıştırılmış sonuçlar değişiklik kaydında kaydedilir. Android Keystore/disk/iptal instrumentasyon testleri pakete eklenip derlenir; kullanıcı cihaz testini ertelediği için çalıştırılmaz. Android görsel kalite ve video oynatımı cihazda henüz doğrulanmadı. Telefon içinden giriş ve profil/liste 429 sorunu ayrı, açık canlı doğrulama işidir; mevcut bekleyen oturum ve mola korunur.
+İlk 0.2.52 / 0.1.81 eşitlemesinin aşağıdaki çevrimdışı doğrulamasında Instagram'a canlı istek gönderilmedi, gerçek kullanıcı kasası açılmadı, uygulama/telefon kurulumu yapılmadı ve emülatör başlatılmadı. Bu cümle sonraki bütün sürümlerin çalışma koşullarını tanımlamaz. Kotlin/Python/JavaScript birim testleri, kaynak/çeviri tutarlılığı ve paket kontrolleri uygulanır; çalıştırılmış sonuçlar değişiklik kaydında kaydedilir. Android Keystore/disk/iptal instrumentasyon testleri pakete eklenip derlenir; kullanıcı cihaz testini ertelediği için çalıştırılmaz. Android görsel kalite ve video oynatımı cihazda henüz doğrulanmadı. Telefon içinden giriş ve profil/liste 429 sorunu ayrı, açık canlı doğrulama işidir; mevcut bekleyen oturum ve mola korunur.
 
-## Bu çalışma sırasında tamamlanan çevrimdışı kontroller
+## Güncel paket doğrulaması — 0.2.56 / 0.1.86
+
+160 seçili Python, 183 JVM, 6 profil paneli JavaScript testi ve 36 paketli Windows kontrolü geçti. Android lint 0 hata / 56 uyarı; release ve test APK'sı derlendi, imza/manifest denetlendi. Windows 0.2.56 gerçek kasayla açıldı; normal otomasyonu ayrı çalışır. Yeni Android cihaz/emülatör ve canlı giriş testi yapılmadı. [APK özeti, kapsam ve sınırlamalar](RESPONSE-SHARING-TEST.md).
+
+## Tarihsel eşitleme kontrolleri — 0.2.52 / 0.1.81
+
+Aşağıdaki sayılar ve APK özeti ilk eşitleme paketine aittir; güncel sürümün tüm testleri yeniden çalıştırılmış gibi okunmamalıdır.
 
 - Windows Python: **271 test geçti**; sentetik ağ yanıtları ve ayrı geçici şifreli kasalar kullanıldı.
 - JavaScript: **69 test geçti**. Ortak politika üretimi, tema/arama/bağlantı kaynakları ve dört dilde 1166 masaüstü mesajı tutarlı.

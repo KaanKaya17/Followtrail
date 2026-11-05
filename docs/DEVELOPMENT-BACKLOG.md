@@ -1,5 +1,9 @@
 # Geliştirme notları
 
+## Güncel durum — 5 Kasım 2026
+
+Windows 0.2.56 / Android 0.1.86: [profil yanıtı ve eşzamanlı görsel paylaşımındaki üç boşluk kapandı](RESPONSE-SHARING-TEST.md). Ortak bütçe, %80 otomatik profil eşiği ve 6–10 saniye rezervasyonu uygulandı. Android CAPTCHA sonrası oturum oluşması görüldü; profil HTTP 429 aldığı için uçtan uca bağlantı/liste okuması ve yeni cihaz testleri açık. Aşağıdaki tarihli notlar karar geçmişini korur; uygulama durumu için [sürüm sayfası](wiki/Surum-ve-Destek.md) önceliklidir. Resmî ZIP içe aktarma ve işlevsel web hizmeti henüz yapılmadı.
+
 ## Resmî Instagram arşivi ve veri taşınabilirliği — 1 Kasım 2026
 
 Kullanıcı bu konuya daha sonra dönülmesini istedi; ZIP içe aktarma veya resmî veri taşıma entegrasyonu henüz geliştirilmedi. Seçili takipçi/takip edilen JSON dosyalarını yerel okuyup arşivler arasında karşılaştırma değerlendirilecek. Kendi hesabının dışa aktarımı, izlenen başka kişilerin bütün listelerini sağlamaz. Arşivlerde sayısal kimlik ve tarih anlamları gerçek dosyadan doğrulanmalı; mevcut API kimlikleriyle kullanıcı adına bakarak sessizce birleştirilmemeli. Meta Data Portability için uygulama/onay süreci var; takipçi/takip edilen kapsamı ile tamamen cihazda çalışma uyumluluğu doğrulanmadı. Kaynak: https://developers.facebook.com/docs/data-portability .

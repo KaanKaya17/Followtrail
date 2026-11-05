@@ -4,6 +4,8 @@ Güncel: **Windows 0.2.56 / Android 0.1.86**. İki platformda 6–10 saniye iste
 
 [Günlük bütçe artışı ve doğrulama](DAILY-BUDGET-UPDATE.md).
 
+Windows panel/kaydetme için aynı bağlantının doğrulanmış profil alanları en fazla 5 dakika yeniden kullanılır; otomatik liste başlangıcı 60 saniyelik daha kısa tazelik koşulunu korur. Açık yenileme bu önbelleği atlar. Aynı fotoğrafın eşzamanlı tüketicileri ortak indirme kullanabilir; bu CDN tasarrufudur, her görsel için profil API sorgusu yapıldığı anlamına gelmez. [Kapsam ve testler](RESPONSE-SHARING-TEST.md).
+
 Aşağıdaki sürüm başlıkları kararların tarihçesidir; eski süre/kota değerleri güncel politika olarak okunmamalıdır.
 
 ## Windows 0.2.17 / Android 0.1.37 otomatik başlangıç

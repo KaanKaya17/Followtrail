@@ -15,6 +15,7 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 - Takipçi/takip edilen kayıtları ve uygun tam listeler arasında üye karşılaştırması. Windows'ta kaydırdıkça yüklenen listeler ve bütün yerel listede arama.
 - Kaydedilen profillerde arama, favoriler, notlar ve izleme.
 - Sayaç, kullanıcı adı, biyografi ve avatar değişikliklerinin geçmişi.
+- [İsteğe bağlı hikâye arşivi](docs/wiki/Hikaye-Arsivi.md): yerel takvim ve kaydedilmiş fotoğraf/video görüntüleme.
 - [Kalıcı günlük istatistikler](docs/wiki/Gunluk-Istatistikler.md): şifreli yıllık arşiv ve hafta/ay/yıl grafikleri.
 - Windows'ta kontrol başına gruplanan değişiklik kayıtları ve bildirim tercihleri.
 - Birbirinden ayrı şifreli kayıtlarla çoklu hesap altyapısı.
@@ -24,9 +25,9 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-**Windows 0.2.53:** Yerel işlev paketi; kayıtlı oturumlarla canlı profil/liste okumaları görülmüş, son paket kontrolleri tamamlanmıştır. Bütün hesaplarda uyumluluk garantisi değildir.
+**Windows 0.2.56:** Yerel işlev paketi; profil bilgilerinin ve eşzamanlı görsel işlerinin tekrar kullanımı geliştirildi. Kayıtlı oturumlarla canlı profil/liste okumaları daha önce görülmüştür; son pakette 36 çevrimdışı işlev kontrolü geçmiştir. Bütün hesaplarda uyumluluk garantisi değildir.
 
-**Android 0.1.83:** İmzalı APK; profil, özet ve yerel bildirim/geçmiş görünümü güncellendi. Ekran testleri henüz tamamlanmadı ([kapsam](docs/ANDROID-UI-ALIGNMENT.md)). Kod sonrasında bekleyen oturumu koruma doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
+**Android 0.1.86 / kod 87:** İmzalı APK; ortak istek politikası, hikâye arşivi ve aynı görsel yükleyicisinde ortak indirme bulunur. Son paket ve JVM kontrolleri tamamlandı; yeni cihaz/ekran testi ertelendi ([doğrulama kapsamı](docs/RESPONSE-SHARING-TEST.md)). CAPTCHA sonrası bekleyen oturumun korunması doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

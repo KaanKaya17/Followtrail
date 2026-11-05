@@ -14,6 +14,7 @@
 - [Takip listeleri](Takip-Listeleri.md)
 - [Otomatik kontrol ve bildirimler](Otomatik-Kontrol-ve-Bildirimler.md)
 - [Geçmiş ve analiz](Gecmis-ve-Analiz.md)
+- [Hikâye arşivi](Hikaye-Arsivi.md)
 - [Günlük istatistikler](Gunluk-Istatistikler.md)
 
 **Yardım**

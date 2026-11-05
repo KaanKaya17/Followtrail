@@ -1,6 +1,6 @@
 # Yerel veri yaşam döngüsü
 
-Windows 0.2.52 / Android 0.1.81. Bu belge ürünün teknik davranışını açıklar; hukuki uygunluk görüşü değildir.
+5 Kasım 2026 içerik denetimi: Windows 0.2.56 / Android 0.1.86. Saklama/silme yapısı 0.2.52 / 0.1.81 eşitlemesinden korunur; güncel geçici paylaşım ayrıca aşağıda belirtilir. Bu belge ürünün teknik davranışını açıklar; hukuki uygunluk görüşü değildir.
 
 ## Kullanıcı kontrolleri
 
@@ -19,6 +19,10 @@ Kaydedilen profili kaldırmak artık yalnız izlemeyi durdurmaz: o profile ait g
 Silinen günlük özetlerin eldeki eski yakın geçmişten geri doldurulmaması için hesap/hedef kimliği ve son silme sınırı şifreli olarak korunur. Bunlar sayaç veya biyografi içermez. Hesabın bütün yerel verileri kaldırıldığında bu işaretler de kaldırılır. Kayıtlı güvenlik molaları ve istek bütçeleri profil silmeyle sıfırlanmaz. Windows'un otomatik kurtarma kopyası da temizlenmiş içerikle değiştirilir.
 
 Silme, uygulamanın erişebildiği dosya ve anahtarları yönetir; SSD üzerinde adli yöntemlerle kurtarılamaz fiziksel üzerine yazma veya başka cihazlardaki kopyaları yok etme garantisi değildir.
+
+## Geçici profil ve görsel paylaşımı
+
+Windows'ta en fazla 20 normalize profil kaydı süreç belleğindedir: otomatik liste başlangıcında 60 saniye, panel/kaydetmede 5 dakika tazelik koşulu kullanılır. Ham yanıt, parola/kod, fotoğraf URL'si/dosyası ve not/grup bu önbelleğe alınmaz. Hesap/bağlantı değişimi ve silme kapsamı temizler. İki platformun görsel işlerinde tüketiciler aynı indirmeyi paylaşabilir; son tüketici ayrılınca iş iptal edilir. Bu paylaşım mevcut şifreli arşiv/saklama süresini uzatmaz veya yeni kalıcı ham veri deposu oluşturmaz. [Kesin kapsam ve testler](RESPONSE-SHARING-TEST.md).
 
 ## Veri envanteri
 

@@ -57,6 +57,6 @@ Bağlantı kaldırma, uygulamadaki yerel oturum kopyasını yönetir. Instagram 
 
 Seçili hesabı kaldırmak ile bütün yerel kayıtları temizlemek farklı kapsamlardır; onay metnini okuyun. Yerel veriyi silmek mevcut güvenlik molasını sıfırlamak için kullanılmaz.
 
-Kaydedilen profili kaldırmak, o kişinin geçmişini, günlük/görsel arşivini, uygulama içi bildirimlerini, notlarını ve kendi liste kayıtlarını da siler; Windows'ta hikâyeleri de dahildir. **Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar ayrıca yönetilir.** Silinen günlüklerin eski gözlemlerden geri oluşmaması için şifreli silme sınırı korunur. Diğer bağlı hesabın deposu etkilenmez. Ayrıntılar: [veri yaşam döngüsü](../DATA-LIFECYCLE.md).
+Kaydedilen profili kaldırmak, o kişinin geçmişini, günlük/görsel arşivini, uygulama içi bildirimlerini, notlarını ve kendi liste kayıtlarını da siler; Windows ve Android hikâye arşivleri de dahildir. **Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar ayrıca yönetilir.** Silinen günlüklerin eski gözlemlerden geri oluşmaması için şifreli silme sınırı korunur. Diğer bağlı hesabın deposu etkilenmez. Ayrıntılar: [veri yaşam döngüsü](../DATA-LIFECYCLE.md).
 
 Güvenlik açığı bildirimi için [güvenlik politikasını](../../SECURITY.md) izleyin; parola, kod, çerez ve anahtarları issue'ya eklemeyin.
