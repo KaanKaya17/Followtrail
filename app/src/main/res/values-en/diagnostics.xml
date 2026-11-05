@@ -1,0 +1,4 @@
+<resources>
+    <string name="diagnostics_copy">Copy diagnostics</string>
+    <string name="diagnostics_copied">Diagnostics copied. No password, code or cookies included.</string>
+</resources>

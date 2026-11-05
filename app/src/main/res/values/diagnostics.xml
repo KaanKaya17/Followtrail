@@ -1,0 +1,4 @@
+<resources>
+    <string name="diagnostics_copy">Tanıyı kopyala</string>
+    <string name="diagnostics_copied">Tanı kopyalandı. Parola, kod veya çerez içermez.</string>
+</resources>

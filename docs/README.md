@@ -15,6 +15,8 @@ Bu dizindeki teknik belgeler araştırma, uygulama ve test geçmişini korur. Do
 
 ## Hesap ve güvenlik
 
+- [Android CAPTCHA içerik sorgusu](ANDROID-CAPTCHA-CONTENT.md)
+
 - [Güncel Android giriş araştırması](CAPTCHA-FLOW-INVESTIGATION.md)
 - [Hesap güvenliği sınırları ve testleri](ACCOUNT-SAFETY-TEST.md)
 - [İstek politikası](REQUEST-POLICY.md)

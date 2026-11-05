@@ -28,8 +28,10 @@ class WebDocumentFacts private constructor(val document: String?, val operation:
                     }
                     if(key=="variables")variables=pair[1]
                 }
-                val knownView = document==AuthPlatformCodeEntry.DOCUMENT && operation==AuthPlatformCodeEntry.OPERATION
-                if(!knownView && AuthPlatformVerification.find(document, operation)==null)return WebDocumentFacts(document,operation)
+                val knownView = document==AuthPlatformCodeEntry.DOCUMENT && operation==AuthPlatformCodeEntry.OPERATION ||
+                    AuthPlatformCaptchaContent.matches(document,operation)
+                val authPlatformOperation = operation?.matches(Regex("(?:use)?AuthPlatform[A-Za-z0-9_]*(?:Query|Mutation)")) == true
+                if(!knownView && AuthPlatformVerification.find(document, operation)==null && !authPlatformOperation)return WebDocumentFacts(document,operation)
                 val types=JSONObject();var incomplete=false
                 val inputTypes=JSONObject()
                 try {

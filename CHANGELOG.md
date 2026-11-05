@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Android 0.1.82 — 2026-11-05
+
+- Yeni cihazdaki tanıda CAPTCHA sayfasının `AuthPlatformReCaptchaContentQuery` isteğinin yerel filtre tarafından engellendiği görüldü. Yalnız bu sabit okuma sorgusuna, aynı doğrulama sayfasının query şeması ve APC bağlamı eşleştiğinde destek eklendi. Genel GraphQL/mutation yetkisi açılmadı; gerçek giriş henüz doğrulanmadı.
+- CAPTCHA ve mail kodu içerik sorgularına ayrı birer gönderim hakkı verildi; aynı sorgu tekrarlanmaz. Tanıya CAPTCHA şeması ve görünüm belgesi eklendi, bilinmeyen AuthPlatform parametrelerinde yalnız sınırlı ad/tür bilgisi tutulur.
+- İstek bilgilerine dört dilde “Tanıyı kopyala” eklendi. Panoya yalnız kullanıcı dokunuşuyla güvenli tanı metni alınır; parola, kod ve çerez değerleri dahil edilmez. Mevcut molalar ve şifreli kayıtlar korunur. [Kanıt ve test sınırı](docs/ANDROID-CAPTCHA-CONTENT.md).
+- Doğrulama: 171 JVM ve 11 JavaScript testi geçti; 785 Android kaynağı tutarlı; lint 0 hata / 54 uyarı. İmzalı APK ve instrumentasyon paketi derlendi, APK doğrulandı ve test telefonuna kuruldu. Yeni WebView instrumentasyon senaryoları çalıştırılmadı; canlı giriş sonucu henüz bekleniyor.
+
 ## Windows 0.2.53 — 2026-11-05
 
 - Özet ekranında kendi hesabının son profil okumasıyla bütün profil/liste işlerinin en erken zamanı aynı kontrolün iki zamanı gibi gösteriliyordu. Alanlar “Hesabının son kontrolü” ve “Sıradaki otomatik işlem” olarak ayrıldı; dört dilde saniye hassasiyeti eklendi. Gerçek rutin profil aralığı ve API bütçeleri değiştirilmedi.

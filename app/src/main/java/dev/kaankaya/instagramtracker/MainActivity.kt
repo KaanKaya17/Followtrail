@@ -1004,6 +1004,11 @@ class MainActivity : LocalizedActivity() {
         }
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_request_information))
             .setView(ScrollView(this).apply { addView(details); AppUi.scrollStyle(this) })
+            .setNeutralButton(R.string.diagnostics_copy) { _, _ ->
+                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(getString(R.string.ui_request_information),lines.joinToString("\n\n")))
+                android.widget.Toast.makeText(this,R.string.diagnostics_copied,android.widget.Toast.LENGTH_SHORT).show()
+            }
             .setPositiveButton(getString(R.string.ui_ok), null).show()
     }
     private fun openLab() {

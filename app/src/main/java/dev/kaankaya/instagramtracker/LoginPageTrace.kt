@@ -13,6 +13,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     private val blockedDocuments = linkedMapOf<String, WebDocumentFacts>()
     private var securitySchema: JSONObject?=null
     private var securityView: JSONObject?=null
+    private var captchaSchema: JSONObject?=null
     private var codeSubmission: JSONObject?=null
     private val verificationSchemas = linkedMapOf<String, JSONObject>()
     private val startedAt = clock()
@@ -58,15 +59,20 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
         blockedDocuments[facts.json().toString()]=facts
     } }
     @Synchronized fun securitySchema(raw: String) {if(active){securitySchema=AuthPlatformCodeEntry.schema(raw);flush()}}
+    @Synchronized fun captchaSchema(raw: String) {if(active){
+        captchaSchema=AuthPlatformSchema.inspect(raw,AuthPlatformCaptchaContent.DOCUMENT,AuthPlatformCaptchaContent.OPERATION,"query");flush()
+    }}
     @Synchronized internal fun verificationSchema(operation: AuthPlatformVerification.Operation, raw: String) {
         if (active) {
             verificationSchemas[operation.name] = AuthPlatformSchema.inspect(raw, operation.document, operation.name, "mutation")
             flush()
         }
     }
-    @Synchronized fun securityView(status: Int,parsed: Boolean,validData: Boolean,applied: Boolean?) {if(active){
+    @Synchronized fun securityView(status: Int,parsed: Boolean,validData: Boolean,applied: Boolean?,document: String? = null) {if(active){
         require(status in 100..599)
+        require(document == null || document in setOf(AuthPlatformCodeEntry.DOCUMENT,AuthPlatformCaptchaContent.DOCUMENT))
         securityView=JSONObject().put("status",status).put("jsonParsed",parsed).put("validData",validData).put("cookiesApplied",applied ?: JSONObject.NULL)
+            .put("document",document ?: JSONObject.NULL)
         flush()
     }}
     @Synchronized fun codeSubmission(status: Int, parsed: Boolean, validData: Boolean, applied: Boolean?) { if(active) {
@@ -85,6 +91,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
             .put("blockedDocuments",org.json.JSONArray(blockedDocuments.values.map {it.json()}))
             .put("securitySchema",securitySchema ?: JSONObject.NULL)
             .put("securityView",securityView ?: JSONObject.NULL)
+            .put("captchaSchema",captchaSchema ?: JSONObject.NULL)
             .put("codeSubmission",codeSubmission ?: JSONObject.NULL)
             .put("verificationSchemas", JSONObject(verificationSchemas as Map<*, *>))
             .put("authentication", authentication?.json() ?: JSONObject.NULL)

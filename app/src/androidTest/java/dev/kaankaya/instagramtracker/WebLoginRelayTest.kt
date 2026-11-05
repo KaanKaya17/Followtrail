@@ -92,6 +92,37 @@ class WebLoginRelayTest {
     }
     private fun viewBody()=JSONObject.quote("doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables="+
         java.net.URLEncoder.encode("""{"apc":"synthetic-apc","device_id":null}""","UTF-8"))
+    private fun captchaBody()=JSONObject.quote("doc_id=${AuthPlatformCaptchaContent.DOCUMENT}&fb_api_req_friendly_name=${AuthPlatformCaptchaContent.OPERATION}&variables="+
+        java.net.URLEncoder.encode("""{"apc":"synthetic-apc","device_id":null}""","UTF-8"))
+    private fun captchaModule(kind: String="query") = """window.require=()=>({params:{id:'${AuthPlatformCaptchaContent.DOCUMENT}',name:'${AuthPlatformCaptchaContent.OPERATION}',operationKind:'$kind'},operation:{argumentDefinitions:[{name:'apc'},{name:'device_id'}],selections:[{kind:'LinkedField',name:'xfb_auth_platform_synthetic_recaptcha_content'}]}});"""
+    @Test fun captchaContentThenCodeViewCanEachRunOnceWithinTheSameConsentedLogin() {
+        response={request->
+            val root=if(request.tag(WebSecurityViewAuthorization::class.java)?.document==AuthPlatformCaptchaContent.DOCUMENT)
+                "xfb_auth_platform_synthetic_recaptcha_content" else "xfb_auth_platform_enter_code_content"
+            Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture")
+                .body(JSONObject().put("data",JSONObject().put(root,JSONObject())).toString().toResponseBody()).build()
+        }
+        open(security=true)
+        js(captchaModule()+"fetch('/api/graphql',{method:'POST',body:${captchaBody()}}).then(r=>r.json()).then(()=>window.__captchaReady=true)")
+        until("window.__captchaReady===true","true");assertEquals(1,calls.get())
+        val report=LoginPageTrace.read(context)!!
+        assertTrue(JSONObject(report).getJSONObject("captchaSchema").getBoolean("available"))
+        assertFalse(report.contains("synthetic-apc"))
+        now+=16000
+        js("fetch('/graphql/query/',{method:'POST',body:${viewBody()}}).then(r=>r.json()).then(()=>window.__codeViewReady=true)")
+        until("window.__codeViewReady===true","true");assertEquals(2,calls.get());assertEquals(2L,gate.attempts())
+        now+=16000
+        js("fetch('/api/graphql',{method:'POST',body:${captchaBody()}}).catch(()=>window.__captchaDuplicate=true)")
+        until("window.__captchaDuplicate===true","true");assertEquals(2,calls.get())
+    }
+    @Test fun captchaViewWithUnavailableOrWrongKindModuleNeverReservesOrSends() {
+        open(security=true)
+        js(captchaModule("mutation")+"fetch('/api/graphql',{method:'POST',body:${captchaBody()}}).catch(()=>window.__badCaptchaSchema=true)")
+        until("window.__badCaptchaSchema===true","true")
+        assertEquals(0,calls.get());assertEquals(0L,gate.attempts())
+        assertFalse(JSONObject(LoginPageTrace.read(context)!!).getJSONObject("captchaSchema").getBoolean("available"))
+        assertFalse(LoginPageTrace.read(context)!!.contains("synthetic-apc"))
+    }
     @Test fun codeSubmissionFollowsTheViewOnceAndReturnsCookiesWithoutReplayingThePassword() {
         gate.beginWebAuthentication(now-16000);val authenticationAt=gate.nextWebAuthenticationAt()
         response={request->

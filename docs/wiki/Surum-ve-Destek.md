@@ -78,3 +78,5 @@ Resmî Instagram ZIP içe aktarma, işlevsel web hizmeti, geniş Threads/Faceboo
 ## Son eşitleme
 
 [Android / Windows eşitlemesi ve test sınırları](../PLATFORM-PARITY.md): ortak istek politikası ve Android hikâye arşivi eklendi. Android cihaz/ekran ve yeni canlı giriş kontrolü ertelendi; eksiksiz platform eşitliği veya çözülmüş giriş iddiası yoktur.
+
+Android 0.1.82 CAPTCHA içerik sorgusu ve tanı kopyalama düzeltmesi: [kanıt/test kapsamı](../ANDROID-CAPTCHA-CONTENT.md). Girişten profil okumaya canlı doğrulama henüz tamamlanmadı.
