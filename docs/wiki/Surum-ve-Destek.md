@@ -82,3 +82,5 @@ Resmî Instagram ZIP içe aktarma, işlevsel web hizmeti, geniş Threads/Faceboo
 Android 0.1.82 CAPTCHA içerik sorgusu ve tanı kopyalama düzeltmesi: [kanıt/test kapsamı](../ANDROID-CAPTCHA-CONTENT.md). Girişten profil okumaya canlı doğrulama henüz tamamlanmadı.
 
 Android 0.1.83, CAPTCHA’nın gerçek içerik şemasını ve gözlenen sonuç gönderme adımlarını ekler; [canlı kanıt ve bekleyen doğrulama](../ANDROID-CAPTCHA-CONTENT.md).
+
+0.1.83 fiziksel testinde CAPTCHA sonrasında şifreli bekleyen Instagram oturumu oluştu; sonraki profil okuması HTTP 429 aldı. Tracker profil/liste bağlantısı henüz tamamlanmadı. [Son canlı sonuç](../ANDROID-CAPTCHA-CONTENT.md).
