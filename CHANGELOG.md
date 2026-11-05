@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.53 — 2026-11-05
+
+- Özet ekranında kendi hesabının son profil okumasıyla bütün profil/liste işlerinin en erken zamanı aynı kontrolün iki zamanı gibi gösteriliyordu. Alanlar “Hesabının son kontrolü” ve “Sıradaki otomatik işlem” olarak ayrıldı; dört dilde saniye hassasiyeti eklendi. Gerçek rutin profil aralığı ve API bütçeleri değiştirilmedi.
+- Bir dakikalık otomasyonda aynı profilin 60 saniyeden önce yeniden planlanmadığı, farklı profillerin ortak istek sırasını kullandığı çevrimdışı motor testinde doğrulandı. Liste başlangıcındaki profil okuması ve elle kontroller ayrı işlemlerdir. Kullanıcının gerçek 09:27–09:29 istek kaydı incelenmedi; dakika gösterimi tek başına erken profil tekrarı kanıtı değildir.
+- Doğrulama: 7 zamanlama testi, 70 JavaScript testi, kaynak/dört dil tutarlılığı, paketli Windows’ta 6 Özet + 36 işlev kontrolü geçti. Aynı dakikadaki 05/15 saniyelik farklı işleri ayıran UI senaryosu sınandı; Instagram isteği yapılmadı.
+
 ## Windows 0.2.52 / Android 0.1.81 — 2026-11-05
 
 - Ortak JSON kaynağından üretilen 6–10 saniye istek rezervasyonu, hesap başına 120/1200 ve cihaz başına 240/2400 saat/gün bütçeleri; mevcut deneme kayıtları ve uzun molalar korunur. Android hesap bütçesi ayrıldı, bilinmeyen kimlikli giriş yanlış seçili hesaba yazılmaz.

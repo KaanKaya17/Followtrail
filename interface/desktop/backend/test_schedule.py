@@ -78,6 +78,17 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(self.e.monitor_status()['nextAt'], 1800003660)
         self.assertEqual(len(self.e.data['history']['100']), 2)
 
+    def test_one_minute_timer_never_rechecks_the_same_profile_before_sixty_seconds(self):
+        self.e.settings({'interval':1})
+        for offset,identity in [(60,'100'),(75,'200'),(90,'300')]:
+            self.tick(offset,identity)
+        self.now=1800000119
+        with patch.object(self.e,'client') as client:
+            self.e.run('automatic',{});client.assert_not_called()
+        self.tick(120,'100')
+        times=[row['observedAt'] for row in self.e.data['history']['100']][-2:]
+        self.assertEqual(times[1]-times[0],60)
+
     def test_schedule_migration_and_invalid_timestamps_are_rejected(self):
         old = copy.deepcopy(self.e.data)
         old.pop('automaticAttempts'); old.pop('lastInvestigationAt')

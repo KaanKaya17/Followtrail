@@ -571,10 +571,11 @@
   }
   function overviewMonitor() {
     const now=Date.now()/1000,monitor=data.monitor || {},gate=data.gate;
+    const preciseDate=value=>value?i18n.formats(language).preciseDate.format(new Date(value*1000)):t("Henüz yok");
     const held=gate.manualOnly || monitor.held || !monitor.enabled || !data.connected;
     const next=held ? t("Planlanmadı") :
-      Number.isFinite(monitor.nextAt) ? monitor.nextAt<=now?t("Sırada"):date(monitor.nextAt) : t("Planlanmadı");
-    return `<section class="overview-monitor card" aria-label="${t("Kontrol durumu")}"><div class="monitor-heading"><span class="monitor-symbol">${icon('clock')}</span><div><span class="eyebrow">${t("Kontrol durumu")}</span><h2 class="overview-monitor-title">${busy?t("Kontrol sürüyor"):monitorLabel()}</h2></div></div><dl class="monitor-times"><div><dt>${t("Son kontrol")}</dt><dd>${esc(date(data.account?.observedAt))}</dd></div><div><dt>${t("Sonraki kontrol")}</dt><dd>${esc(next)}</dd></div></dl><div class="monitor-actions">${button(t("İstek bilgileri"),'requests','info','secondary monitor-details-button')}<a class="text-button monitor-settings" href="#settings">${t("Kontrol ayarları")}${icon('arrow')}</a></div><div id="overview-operation"></div></section>`;
+      Number.isFinite(monitor.nextAt) ? monitor.nextAt<=now?t("Sırada"):preciseDate(monitor.nextAt) : t("Planlanmadı");
+    return `<section class="overview-monitor card" aria-label="${t("Kontrol durumu")}"><div class="monitor-heading"><span class="monitor-symbol">${icon('clock')}</span><div><span class="eyebrow">${t("Kontrol durumu")}</span><h2 class="overview-monitor-title">${busy?t("Kontrol sürüyor"):monitorLabel()}</h2></div></div><dl class="monitor-times"><div><dt>${t("Hesabının son kontrolü")}</dt><dd>${esc(preciseDate(data.account?.observedAt))}</dd></div><div><dt>${t("Sıradaki otomatik işlem")}</dt><dd>${esc(next)}</dd></div></dl><div class="monitor-actions">${button(t("İstek bilgileri"),'requests','info','secondary monitor-details-button')}<a class="text-button monitor-settings" href="#settings">${t("Kontrol ayarları")}${icon('arrow')}</a></div><div id="overview-operation"></div></section>`;
   }
   function overviewEventRow(e) {
     const username=e.type==='list' ? e.new?.ownerUsername || person(e.personId)?.username : person(e.personId)?.username;

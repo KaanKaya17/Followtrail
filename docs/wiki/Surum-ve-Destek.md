@@ -2,14 +2,14 @@
 
 [Kılavuz ana sayfası](Home.md) · [Değişiklik kaydı](../../CHANGELOG.md)
 
-**Son içerik denetimi: 4 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+**Son içerik denetimi: 5 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
 ## Windows
 
-**Güncel önizleme: 0.2.52 · kaynak etiketi: `desktop-v0.2.52`**
+**Güncel önizleme: 0.2.53 · kaynak etiketi: `desktop-v0.2.53`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.52`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.53`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.
@@ -29,7 +29,7 @@
 
 0.1.81: Android web okuyucusunun uygulama kimliği, resmî masaüstü giriş yapılandırmasıyla eşleştirildi. [Gözlem, değişiklik ve canlı test sınırı](../ANDROID-WEB-APP-ID.md).
 
-0.1.79 / Windows 0.2.52: arka planda hesap kontrolü sırasında arama/listenin fotoğrafları korunur; sınırlanan Android listesi açık bir yeniden deneme bekler. [Hata düzeltmeleri ve kapsam](../BUG-CHECK-2026-11-04.md).
+0.1.79 / Windows 0.2.53: arka planda hesap kontrolü sırasında arama/listenin fotoğrafları korunur; sınırlanan Android listesi açık bir yeniden deneme bekler. [Hata düzeltmeleri ve kapsam](../BUG-CHECK-2026-11-04.md).
 
 0.1.78 / Windows 0.2.50: profil aramasında pencereyi yeniden açınca aynı hesabın kısa süreli sonuçları kullanılır. [Ortak davranış ve test kapsamı](../SEARCH-CACHE-PARITY.md).
 

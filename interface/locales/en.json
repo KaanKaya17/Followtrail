@@ -1226,5 +1226,7 @@
   "Saklama tercihi geçersiz.": "Invalid retention preference.",
   "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "Some archives could not be cleaned up. Preferences were saved; you can retry cleanup.",
   "Silmek için kayıtlı bir profil seç.": "Select a saved profile to delete.",
-  "Günlük istatistikler": "Daily statistics"
+  "Günlük istatistikler": "Daily statistics",
+  "Hesabının son kontrolü": "Your account last checked",
+  "Sıradaki otomatik işlem": "Next automatic task"
 }

@@ -37,6 +37,14 @@ try {
  await project({...before,monitor:{...before.monitor,enabled:true,held:false,reason:null,nextAt:Date.now()/1000+300}});
  await page.getByRole('heading',{name:'Otomatik kontrol açık',exact:true}).waitFor();
  assert.doesNotMatch(await page.locator('.monitor-times').innerText(),/Planlanmadı/);
+ const minute=Math.floor(Date.now()/60000)*60+120;
+ await project({...before,account:{...before.account,observedAt:minute+5},
+   monitor:{...before.monitor,enabled:true,held:false,reason:null,nextAt:minute+15}});
+ await page.waitForFunction(()=>document.querySelector('.monitor-times dd')?.textContent.includes(':05'));
+ assert.deepEqual(await page.locator('.monitor-times dt').allTextContents(),['Hesabının son kontrolü','Sıradaki otomatik işlem']);
+ const expected=await page.evaluate(minute=>[5,15].map(seconds=>window.TrackerI18n.formats('tr').preciseDate.format(new Date((minute+seconds)*1000))),minute);
+ assert.deepEqual(await page.locator('.monitor-times dd').allTextContents(),expected);
+ checks.push('Account observation and next queue task have distinct labels and retain seconds within the same minute');
  await project({...before,account:{...before.account,name:'<img src=x onerror=window.overviewInjected=true>'},history:{...before.history,'100':[]}});
  await page.getByText('<img src=x onerror=window.overviewInjected=true>',{exact:true}).waitFor();
  assert.equal(await page.evaluate(()=>window.overviewInjected),undefined);
