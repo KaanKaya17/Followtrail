@@ -57,3 +57,11 @@ Mutasyon yanıtlarının gerçek kök alanları önceki tanıda yoktu; gönderim
 - Sıradaki isteğin iptalinin aktif isteği atlatmadığı JavaScript testinde doğrulandı. CAPTCHA içerik + render isteklerinin sıraya alınması ve insan sonucunun yalnız bir kez gönderilmesi için gerçek WebView instrumentasyon senaryosu derlendi; cihazda çalıştırılmadı. Sentetik ağ/kök alanları gerçek Meta sonucunun kanıtı değildir.
 - 789 Android kaynağı dört dilde tutarlı. Lint: 0 hata / 54 uyarı. Release ve instrumentasyon APK’ları derlendi. İmzalı 0.1.83 / 84 APK manifest/mimari doğrulaması geçti: 2.614.715 bayt, SHA-256 `f1d9e454b6fd0691cc61e061f3387f8a6caef5f8c0568721814ca4875cdb140c`.
 - Yeni test telefonuna veri silmeden kuruldu. Kayıtlı giriş aralığı, 429 veya bütçe geçmişi sıfırlanmadı. Yeni canlı CAPTCHA/giriş sonucu kullanıcıdan bekleniyor.
+
+### 0.1.83 fiziksel cihaz sonucu — 5 Kasım 2026, 10:32
+
+Kullanıcı yeni sürümde “Son adım: hesabını bağla” ekranına ulaştığını bildirdi. USB üzerinden okunan devam ekranı, şifreli bekleyen Instagram oturumunun bulunduğunu ve profil okuma düğmesinin mola nedeniyle kapalı olduğunu gösterdi. Bu, ilk CAPTCHA içerik ekranından ileriye ve oturum saklamaya geçildiği gözlemidir; bütün hesaplarda uyumluluk iddiası değildir.
+
+Aynı devam ekranındaki salt yerel İstek bilgileri: toplam sayaç **9**, son sayaçlı HTTP **429**, son deneme ve son sınırlama **5 Kasım 10:32:29**, sunucu bekleme bilgisi **Belirtilmedi**, uygulamanın yerel molası **5 Kasım 11:32:29**. Taşıyıcı Android HttpEngine / Chromium, uygulama kimliği `936619743392459`. Önceki denemede sayaç 4 idi; bu fark tek başına her aşamanın ayrı HTTP durumunu kanıtlamaz. Son 429, pending bağlantı akışında profil okumasının tamamlanamadığı aşamadadır.
+
+Yeni parola/CAPTCHA denemesi, alternatif endpoint/taşıyıcıya geçerek sınırlamayı aşma veya mola sıfırlama yapılmadı. Yeni giriş istemeden mevcut şifreli pending oturum korunur. Yerel saat erişim garantisi değildir; süre bitince aynı pending oturumla yalnız bir profil denemesi yapılmalı. Tracker hesabı, sayılar ve listeler henüz başarıyla bağlanmış sayılmaz. İlk sorun olan doğrulama isteklerinin engellenmesiyle sonraki profil 429’u ayrı bulgular olarak tutulur.
