@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 import threading
 import time
+from dataclasses import dataclass, field
 from network import AppFailure, read_avatar
 
 
@@ -23,6 +24,14 @@ class ImageContext:
         pass
 
 
+@dataclass(eq=False)
+class Flight:
+    key: tuple
+    cancelled: threading.Event = field(default_factory=threading.Event)
+    subscribers: list = field(default_factory=list)
+    future: object = None
+
+
 class Thumbnails:
     def __init__(self, emit, *, reader=read_avatar):
         self.emit, self.reader = emit, reader
@@ -31,6 +40,7 @@ class Thumbnails:
         self.groups = {}
         self.cache = OrderedDict()
         self.jobs = {}
+        self.inflight = {}
         self.closed = False
 
     def cancel(self, group=None, *, clear_cache=False):
@@ -38,8 +48,19 @@ class Thumbnails:
             for key in list(self.groups):
                 if group is None or group == key:
                     self.groups.pop(key)[1].set()
-            for future, (_, kind) in list(self.jobs.items()):
-                if group is None or group == kind:future.cancel()
+            for flight in list(self.jobs.values()):
+                remaining = []
+                for kind, cancelled, reply in flight.subscribers:
+                    if group is None or group == kind:
+                        reply()
+                    else:
+                        remaining.append((kind, cancelled, reply))
+                flight.subscribers = remaining
+                if not remaining:
+                    flight.cancelled.set()
+                    if self.inflight.get(flight.key) is flight:
+                        self.inflight.pop(flight.key)
+                    flight.future.cancel()
             if clear_cache:self.cache.clear()
 
     def request(self, request, result, pictures, *, namespace=None, group='search', offline=False):
@@ -66,16 +87,27 @@ class Thumbnails:
                 return
             # Include active and queued work in the bound, including old work
             # whose socket is still finishing cancellation.
+            if sum(len(job.subscribers) for job in self.jobs.values()) >= 20:
+                reply()
+                return
+            flight = self.inflight.get(key)
+            if flight is not None:
+                flight.subscribers.append((group, cancelled, reply))
+                return
             if len(self.jobs) >= 20:
                 reply()
                 return
+            flight = Flight(key)
+            flight.subscribers.append((group, cancelled, reply))
             def load():
                 image = {'avatarUrl':pictures[identity]}
-                context = ImageContext(cancelled)
+                context = ImageContext(flight.cancelled)
                 self.reader(image, context)
-                return image.get('avatar') if not cancelled.is_set() else None
+                return image.get('avatar') if not flight.cancelled.is_set() else None
             future = self.pool.submit(load)
-            self.jobs[future] = (cancelled, group)
+            flight.future = future
+            self.jobs[future] = flight
+            self.inflight[key] = flight
             def done(completed):
                 try:
                     avatar = completed.result()
@@ -83,10 +115,14 @@ class Thumbnails:
                     avatar = None
                 with self.lock:
                     self.jobs.pop(completed, None)
-                    if not cancelled.is_set() and isinstance(avatar,str) and len(avatar)<=100000:
+                    if self.inflight.get(key) is flight:
+                        self.inflight.pop(key)
+                    if not flight.cancelled.is_set() and isinstance(avatar,str) and len(avatar)<=100000:
                         self.cache[key] = (time.monotonic(),avatar)
                         while len(self.cache)>64:self.cache.popitem(last=False)
-                    reply(avatar if not cancelled.is_set() else None)
+                    subscribers, flight.subscribers = flight.subscribers, []
+                    for _, cancelled, reply_to in subscribers:
+                        reply_to(avatar if not cancelled.is_set() else None)
             future.add_done_callback(done)
 
     def close(self):

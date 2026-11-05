@@ -15,6 +15,21 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /** Real bitmap decoding and private disk cache. Every image exchange is synthetic. */
 class AvatarImagesTest {
+    @Test fun simultaneousViewsShareDecodedImageAndCancellingOneDoesNotCancelTheOther() {
+        val entered=CountDownLatch(1);val release=CountDownLatch(1);val done=CountDownLatch(1)
+        val reads=AtomicInteger();val cancels=AtomicInteger();val stale=AtomicInteger()
+        val images=loader(AvatarFetcher { object : AvatarDownload {
+            override fun cancel() {cancels.incrementAndGet();release.countDown()}
+            override fun read(): ByteArray {reads.incrementAndGet();entered.countDown();release.await(5,TimeUnit.SECONDS);return png(Color.GREEN)}
+        } })
+        val first=images.load(source) {stale.incrementAndGet()}!!
+        try {
+            assertTrue(entered.await(5,TimeUnit.SECONDS))
+            assertNotNull(images.load(source) {assertEquals(Color.GREEN,it.getPixel(10,10));done.countDown()})
+            first.cancel();assertEquals(0,cancels.get());release.countDown()
+            assertTrue(done.await(5,TimeUnit.SECONDS));assertEquals(1,reads.get());assertEquals(0,stale.get())
+        } finally {release.countDown()}
+    }
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val cache = AvatarCache(context, "avatarstest")
     private val loaders = mutableListOf<AvatarImages>()
@@ -61,8 +76,8 @@ class AvatarImagesTest {
             override fun cancel()=Unit
             override fun read(): ByteArray? {calls.incrementAndGet();return if(url.queryParameter("valid")=="yes")bytes else null}
         } })
-        images.load(source){fail("Expired URL")}!!.future.get(5,TimeUnit.SECONDS);drain()
-        images.load(source){fail("Repeated expired URL")}!!.future.get(5,TimeUnit.SECONDS);drain();assertEquals(1,calls.get())
+        assertTrue(images.load(source){fail("Expired URL")}!!.await(5,TimeUnit.SECONDS));drain()
+        assertTrue(images.load(source){fail("Repeated expired URL")}!!.await(5,TimeUnit.SECONDS));drain();assertEquals(1,calls.get())
         assertEquals(Color.GREEN,result(images,source.copy(url="https://cdninstagram.com/photo.png?valid=yes")).getPixel(10,10));assertEquals(2,calls.get())
     }
     @Test fun aCancelledLateDownloadCannotDeliverOrRecreateDeletedCache() {
@@ -81,10 +96,10 @@ class AvatarImagesTest {
     @Test fun missingMalformedOversizeAndUntrustedImagesStayOptionalWithoutRetryLoops() {
         val calls = AtomicInteger(); val images = loader(fetcher(byteArrayOf(1, 2, 3), calls))
         assertNull(images.load(source.copy(url = "https://instagram.com/api/")) { fail("Untrusted image") })
-        val first = images.load(source) { fail("Malformed image") }!!; first.future.get(5, TimeUnit.SECONDS); drain()
-        images.load(source) { fail("Malformed cached image") }!!.future.get(5, TimeUnit.SECONDS); drain(); assertEquals(1, calls.get())
+        val first = images.load(source) { fail("Malformed image") }!!; assertTrue(first.await(5, TimeUnit.SECONDS)); drain()
+        assertTrue(images.load(source) { fail("Malformed cached image") }!!.await(5, TimeUnit.SECONDS)); drain(); assertEquals(1, calls.get())
         val oversize = loader(fetcher(ByteArray(AvatarPolicy.MAX_BYTES + 1), calls))
-        oversize.load(source) { fail("Oversize image") }!!.future.get(5, TimeUnit.SECONDS); drain()
+        assertTrue(oversize.load(source) { fail("Oversize image") }!!.await(5, TimeUnit.SECONDS)); drain()
         assertNull(cache.read(source.key))
     }
     @Test fun diskBudgetAndTargetRemovalPreserveOtherCachedPeople() {

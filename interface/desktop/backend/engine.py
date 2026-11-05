@@ -28,7 +28,7 @@ import profile_links
 import hashlib
 import data_privacy
 from search_cache import SearchCache
-from profile_basis import ProfileBasis
+from profile_facts import ProfileFacts, PROFILE_DETAILS_SECONDS
 from story_limits import CAPABILITIES_JSON
 from login_identity import LoginIdentity, device_settings
 
@@ -95,7 +95,7 @@ class Engine:
         self.wayback_id = None
         self.search_results = None
         self.search_cache = SearchCache()
-        self.profile_basis = ProfileBasis()
+        self.profile_facts = ProfileFacts()
         self.profile_detail_result = None
         self.story_detail = None
         self.list_pages = list_pages.ListPages()
@@ -394,12 +394,15 @@ class Engine:
         del self.data['events'][2000:]
         notification_log.record(self.data, record, group_id or self.observation_group or uuid.uuid4().hex)
 
-    def record_profile(self, profile, own=False):
+    def record_profile(self, profile, own=False, *, observed_at=None, emit_events=True):
         identity = profile['id']
         previous = self.data['account'] if own else self.data['people'].get(identity)
         previous = previous or {}
         history = self.data['history'].setdefault(identity, [])
-        profile = {**profile, 'observedAt': self.clock(),
+        at = self.clock() if observed_at is None else observed_at
+        if not 0 <= at <= self.clock() or at < (previous.get('observedAt') or 0):
+            raise AppFailure('cancelled', 'Daha yeni profil gözlemi korundu.')
+        profile = {**profile, 'observedAt': at,
                    **{k: previous.get(k, default) for k, default in
                       (('favorite', False), ('watching', False), ('group', ''), ('note', ''))}}
         group_id = self.observation_group or uuid.uuid4().hex
@@ -408,7 +411,7 @@ class Engine:
         for key in PROFILE_FIELDS:
             old = next((h[key] for h in reversed(history) if h.get(key) is not None), None)
             new = profile.get(key)
-            if old is not None and new is not None and old != new:
+            if emit_events and old is not None and new is not None and old != new:
                 self.event('profile', f"@{profile['username']} · {key}", identity, {key: old}, {key: new}, group_id=group_id)
         owner = identity if own else (self.data['account'] or {}).get('id')
         if owner:
@@ -430,8 +433,9 @@ class Engine:
                                            'triggerAt': self.clock(), 'followers': profile['followers']}
         else:
             self.data['people'][identity] = profile
-        self.event('check', f"@{profile['username']} profili kontrol edildi", identity)
-        self.profile_basis.record(self.data, profile)
+        if emit_events:
+            self.event('check', f"@{profile['username']} profili kontrol edildi", identity)
+        self.profile_facts.record(self.data, profile)
 
     def read_profile(self, client, identity, avatar=True):
         self.progress('profile', personId=identity)
@@ -532,17 +536,26 @@ class Engine:
         owner=(self.data['account'] or {}).get('id')
         if args.get('accountId') != owner or not isinstance(identity,str) or not (identity==owner or self.known_person(identity)):
             raise AppFailure('input','Profil kaydı bulunamadı.')
+        if type(args.get('fresh', False)) is not bool:
+            raise AppFailure('input', 'Profil yenileme tercihi geçersiz.')
+        cached = None if args.get('fresh') else self.profile_facts.recent(self.data, identity, self.clock(), max_age=PROFILE_DETAILS_SECONDS)
+        if cached is not None:
+            known = self.data['account'] if identity == owner else self.data['people'].get(identity)
+            profile = known if known and (known.get('observedAt') or 0) >= cached['observedAt'] else cached
+            self.profile_detail_result = {'accountId':owner, 'profile':public_person(profile)}
+            return
         client=self.client()
         try:
             profile=self.read_profile(client,identity,avatar=False)
             self.check_cancel()
             profile.pop('avatarUrl',None)
+            self.data['session']=client.get_settings()
             if identity==owner or identity in self.data['people']:
                 self.record_profile(profile,own=identity==owner)
                 profile=self.data['account'] if identity==owner else self.data['people'][identity]
             else:
                 profile['observedAt']=self.clock()
-            self.data['session']=client.get_settings()
+                self.profile_facts.record(self.data, profile)
             self.save()
             self.profile_detail_result={'accountId':owner,'profile':public_person(profile)}
         finally:
@@ -638,7 +651,7 @@ class Engine:
             schedule.update(after=0, error=None)
             self.save()
             if not continuing:
-                profile = self.profile_basis.recent(self.data, identity, self.clock()) if reuse_profile else None
+                profile = self.profile_facts.recent(self.data, identity, self.clock()) if reuse_profile else None
                 if profile is None:
                     profile = self.read_profile(client, identity, avatar=False)
                     self.record_profile(profile, own=identity == self.data['account']['id'])
@@ -782,8 +795,15 @@ class Engine:
             health = {'ownCheckedAt': self.clock(), 'ownHTTP': access_checks.response_status(client)}
             self.check_cancel()
             self.progress('access_target', personId=identity)
-            outcome = access_checks.probe(client, identity)
+            probe = access_checks.probe(client, identity)
             self.check_cancel()
+            outcome = probe.visibility
+            self.data['session'] = client.get_settings()
+            if probe.profile is not None:
+                if identity in self.data['people']:
+                    self.record_profile(probe.profile)
+                else:
+                    self.profile_facts.record(self.data, {**probe.profile, 'observedAt':self.clock()})
             anonymous = None
             if outcome['status'] == 'unavailable':
                 self.progress('access_anonymous', personId=identity)
@@ -822,6 +842,17 @@ class Engine:
 
     def save_person(self, args):
         identity = str(args.get('id', ''))
+        updates = {}
+        for field, limit in (('note', 2000), ('group', 80)):
+            if field in args:
+                if not isinstance(args[field], str) or len(args[field]) > limit:
+                    raise AppFailure('input', 'Not veya grup uzunluğu geçersiz.')
+                updates[field] = args[field]
+        for field in ('favorite', 'watching'):
+            if field in args:
+                if type(args[field]) is not bool:
+                    raise AppFailure('input', 'Tercih değeri geçersiz.')
+                updates[field] = args[field]
         p = self.data['people'].get(identity)
         if not p:
             # A list member can be locally saved without a profile request.
@@ -829,17 +860,13 @@ class Engine:
             p = dict(known) if known else None
             if not p or len(self.data['people']) >= 200:
                 raise AppFailure('input', 'Kişi bulunamadı veya kişi kapasitesi doldu.')
-            self.data['people'][identity] = p
-        for field, limit in (('note', 2000), ('group', 80)):
-            if field in args:
-                if not isinstance(args[field], str) or len(args[field]) > limit:
-                    raise AppFailure('input', 'Not veya grup uzunluğu geçersiz.')
-                p[field] = args[field]
-        for field in ('favorite', 'watching'):
-            if field in args:
-                if type(args[field]) is not bool:
-                    raise AppFailure('input', 'Tercih değeri geçersiz.')
-                p[field] = args[field]
+            cached = self.profile_facts.recent(self.data, identity, self.clock(), max_age=PROFILE_DETAILS_SECONDS)
+            if cached is not None:
+                self.record_profile(cached, observed_at=cached['observedAt'], emit_events=False)
+                p = self.data['people'][identity]
+            else:
+                self.data['people'][identity] = p
+        p.update(updates)
         self.save()
 
     def settings(self, args):
@@ -1062,7 +1089,7 @@ class Engine:
             self.search_cache.clear()
         self.operation = operation
         if operation in ('login', 'import_counter', 'disconnect', 'delete_all', 'remove_person', 'import_backup'):
-            self.profile_basis.clear()
+            self.profile_facts.clear()
         self.search_results = None
         self.profile_detail_result = None
         self.story_detail = None

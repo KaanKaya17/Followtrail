@@ -47,7 +47,7 @@ class ProfileDetailTests(unittest.TestCase):
         self.engine.data['gate']['nextAt']=self.now[0]+8
         client=PacedClient(self.engine,[profile('200',followers=9)])
         with patch.object(self.engine,'client',return_value=client):
-            state=self.engine.run('profile_detail',{'accountId':'100','id':'200'})
+            state=self.engine.run('profile_detail',{'accountId':'100','id':'200','fresh':True})
         self.assertEqual(state['people'][0]['followers'],9)
         self.assertEqual(self.engine.cancel.waits,[8])
         self.assertTrue(state['gate']['manualOnly'])
