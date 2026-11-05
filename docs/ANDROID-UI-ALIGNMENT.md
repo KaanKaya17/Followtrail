@@ -37,3 +37,7 @@ Bu çalışma bütün Windows özelliklerinin Android'e taşındığı anlamına
 - Önceki `Medium_Phone` sanal cihazı açılışında EXT4 hatası ve kernel panic görüldü. Verileri silinmedi. Ayrı `TrackerUiParity` test cihazı oluşturuldu; sonraki çalışma bellek daraldığı için durduruldu. Kullanıcı ekran testini sonraya bıraktı; emülatör kapatıldı. Bağlı gerçek telefona kurulum yapılmadı.
 
 Cihaz testleri ayrı debug paketinde sentetik veri kullanır; gerçek Instagram hesabı/taşıyıcısı test edilmez. Genel CPU/batarya kazancı veya yüzdelik hızlanma ölçümü yapılmadı. Tamamlanmış ekran testi ve canlı hesap bağlantısı bu sürümün doğrulanmış kapsamı değildir.
+
+## Sonraki sürüm notu: 0.1.81
+
+Yukarıdaki 0.1.76 kapsamına sonradan hikâye arşivi, ortak kontrol aralıkları ve istek bütçeleri eklendi. Güncel farklar ve ertelenmiş cihaz doğrulaması için [platform eşitlemesine](PLATFORM-PARITY.md) bakın.

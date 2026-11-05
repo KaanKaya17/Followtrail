@@ -4,7 +4,7 @@
     <string name="web_compare_browser">A · Tarayıcı içinde doğrula</string>
     <string name="web_compare_native">B · Uygulama ile bağlan</string>
     <string name="web_compare_reading">A · Aynı tarayıcı oturumundan profil okunuyor…</string>
-    <string name="web_compare_browser_success">A başarılı · %1$s takipçi · %2$s takip edilen. Hesap henüz uygulamaya bağlanmadı. Yaklaşık 15 saniyelik istek aralığı dolunca B düğmesine bir kez bas.</string>
+    <string name="web_compare_browser_success">A başarılı · %1$s takipçi · %2$s takip edilen. Hesap henüz uygulamaya bağlanmadı. %3$d–%4$d saniyelik istek aralığı dolunca B düğmesine bir kez bas.</string>
     <string name="web_compare_native_ready">A başarılı. B adımı hazır; kendiliğinden istek gönderilmedi. Devam etmek için B düğmesine bir kez bas.</string>
     <string name="web_compare_cancelled">Bağlantı karşılaştırması durdu. Başka sayfaya veya arka plana geçildi; yeni hesap bağlanmış sayılmaz. Sonucu İstek bilgileri bölümünden incele.</string>
     <string name="web_compare_journal_failed">Web bağlantısı tanı kaydı okunamadı veya yazılamadı.</string>

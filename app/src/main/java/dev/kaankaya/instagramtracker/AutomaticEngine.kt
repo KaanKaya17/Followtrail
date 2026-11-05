@@ -8,7 +8,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
     private val runtime: ReadRuntime = SystemReadRuntime) {
     companion object { const val MAX_PAGES = 6; const val ROUND_MS = 90_000L }
     private fun selected(account: SavedAccount?, session: Session, id: String) = account?.session == session &&
-        account.automation.enabled && id in account.automation.targets
+        (account.automation.enabled && id in account.automation.targets || id == account.profile.userId && gate.backgroundOwnEnabled())
     fun tick(now: Long = runtime.now(), cancelled: () -> Boolean = { false }) {
         dispatch(now, cancelled, false, MAX_PAGES, runtime.elapsed())
     }
@@ -21,7 +21,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
         val interrupted = { cancelled() || gate.quickWatchActive() }
         if (!permitted(cancelled) || gate.quickWatchActive() || gate.preparationActive() || gate.automaticNextAllowedAt() > now) return
         val saved = vault.read() ?: return
-        if (AutomaticQueue.next(saved, lists.archive(saved.session), now) == null) return
+        if (AutomaticQueue.next(saved, lists.archive(saved.session), now, ownIntervalMillis = gate.monitorIntervalMillis(), ownEnabled = gate.backgroundOwnEnabled()) == null) return
         if (!gate.reserveAutomatic(now)) return
         val started = runtime.elapsed(); val attempts = gate.attempts()
         repeat(MAX_PAGES) {
@@ -49,14 +49,14 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
     private fun dispatch(now: Long, cancelled: () -> Boolean, reserved: Boolean, pages: Int, started: Long, preferProfile: Boolean = false): Boolean {
         if (!permitted(cancelled) || (if (reserved) gate.nextAllowedAt() else gate.automaticNextAllowedAt()) > now) return false
         val saved = vault.read() ?: return false
-        if (!saved.automation.enabled) {
+        if (!saved.automation.enabled && !gate.backgroundOwnEnabled()) {
             MonitorEngine(vault, gate, api, canNotify, notifyProfile, runtime::now).tick(now, cancelled, reserved = reserved); return true
         }
-        val task = AutomaticQueue.next(saved, lists.archive(saved.session), now, preferProfile) ?: return false
+        val task = AutomaticQueue.next(saved, lists.archive(saved.session), now, preferProfile, gate.monitorIntervalMillis(), gate.backgroundOwnEnabled()) ?: return false
         try {
             if (task is AutomaticTask.Person) {
                 vault.update(saved.session) { current ->
-                    if (cancelled() || !current.automation.enabled) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                    if (cancelled() || !current.automation.enabled && !gate.backgroundOwnEnabled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                     current.copy(automation = current.automation.copy(lastWorkWasList = false))
                 }
                 MonitorEngine(vault, gate, api, canNotify, notifyProfile, runtime::now).tick(now, cancelled, task.target, reserved)
@@ -66,7 +66,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
             vault.update(saved.session) { current ->
                 if (cancelled() || !selected(current, saved.session, task.target)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 current.copy(automation = current.automation.copy(lastWorkWasList = task is AutomaticTask.Page,
-                    ownNextCheckAt = if (task is AutomaticTask.Own) now + ListAutomationPolicy.OWN_PROFILE_MS else current.automation.ownNextCheckAt))
+                    ownNextCheckAt = if (task is AutomaticTask.Own) now + gate.monitorIntervalMillis() else current.automation.ownNextCheckAt))
             }
             if (task is AutomaticTask.Own) {
                 if (cancelled()) return false

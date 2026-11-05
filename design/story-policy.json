@@ -1,0 +1,8 @@
+{
+  "maxItems": 200,
+  "maxMediaBytes": 16777216,
+  "maxArchiveBytes": 268435456,
+  "maxIndexBytes": 2097152,
+  "maxPixels": 40000000,
+  "maxSide": 8192
+}

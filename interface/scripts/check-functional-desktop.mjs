@@ -15,6 +15,7 @@ const home = await mkdtemp(path.join(os.tmpdir(), "TrackerQA-"));
 const version = JSON.parse(
   await readFile(path.join(root, "interface/package.json"), "utf8"),
 ).version;
+const requestPolicy=JSON.parse(await readFile(path.join(root,'design/request-policy.json'),'utf8'));
 const output = path.join(root, `artifacts/desktop-${version}-qa`);
 await mkdir(output, { recursive: true });
 const python =
@@ -457,7 +458,7 @@ try {
       const options = await page
         .locator("#auto-interval option")
         .evaluateAll((nodes) => nodes.map((n) => n.value));
-      assert.deepEqual(options, ["1", "5", "15", "30", "60", "180", "360"]);
+      assert.deepEqual(options, requestPolicy.intervalMinutes.map(String));
       for (const value of ["1", "5"]) {
         await page.locator("#auto-interval").selectOption(value);
         await page.waitForFunction(
@@ -475,9 +476,17 @@ try {
       }
       assert.equal(await page.locator(".monitor-summary").isVisible(), true);
       assert.match(await page.locator(".monitor-summary").innerText(), /Her profil kendi son kontrolünden yaklaşık 5 dakika/);
-      const monitor = (await page.evaluate(() => window.TrackerDesktop.command("state"))).state.monitor;
+      const state = (await page.evaluate(() => window.TrackerDesktop.command("state"))).state;
+      assert.equal(state.version,version);
+      assert.deepEqual(state.controlIntervals,requestPolicy.intervalMinutes);
+      assert.equal(state.requestBudget.accountHourly,requestPolicy.accountHourly);
+      assert.equal(state.requestBudget.accountDaily,requestPolicy.accountDaily);
+      assert.equal(state.requestBudget.sharedHourly,requestPolicy.deviceHourly);
+      assert.equal(state.requestBudget.sharedDaily,requestPolicy.deviceDaily);
+      const monitor = state.monitor;
       assert.equal(monitor.intervalSeconds, 300);
-      assert.equal(monitor.estimatedCycleSeconds, Math.max(300, monitor.profileCount * 15));
+      assert.equal(monitor.estimatedCycleSeconds, Math.max(300, monitor.profileCount *
+        (requestPolicy.minimumSpacingMilliseconds+requestPolicy.maximumSpacingMilliseconds)/2000));
     },
   );
   await check(

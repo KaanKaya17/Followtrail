@@ -821,6 +821,7 @@ class MainActivity : LocalizedActivity() {
         if(!preview)options.add(0,R.string.accounts_title)
         if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
+        if (account != null) options.add(R.string.story_title)
         if (account != null) options.add(R.string.retention_title)
         if (BuildConfig.DEBUG && !preview) options.add(R.string.ui_open_offline_demo)
         AlertDialog.Builder(this).setTitle(R.string.ui_options).setItems(options.map { getString(it) }.toTypedArray()) { _, index ->
@@ -836,11 +837,7 @@ class MainActivity : LocalizedActivity() {
                         }.setNegativeButton(R.string.ui_close, null).show()
                     }catch (_: Exception) {showFailure(ApiFailure(ApiFailure.Kind.STORAGE))}
                 }
-                R.string.ui_refresh_settings -> AlertDialog.Builder(this).setTitle(R.string.ui_refresh_settings)
-                    .setMultiChoiceItems(arrayOf(getString(R.string.ui_refresh_automatically_on_launch)), booleanArrayOf(gate.ownAutoRefresh())) { _, _, enabled ->
-                        try { gate.setOwnAutoRefresh(enabled) } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
-                    }
-                    .setPositiveButton(R.string.ui_ok, null).show()
+                R.string.ui_refresh_settings -> refreshSettings()
                 R.string.language_menu -> languagePicker()
                 R.string.appearance_title -> appearancePicker()
                 R.string.timeline_menu -> openTimeline()
@@ -849,6 +846,7 @@ class MainActivity : LocalizedActivity() {
                 R.string.usage_notes_title -> UsageNotes.open(this)
                 R.string.ui_advanced -> AlertDialog.Builder(this).setTitle(R.string.ui_advanced).setItems(arrayOf(getString(R.string.web_compare_menu),getString(R.string.ui_web_connection_experiment))) { _, item -> if(item == 0) startLogin(compare = true) else openLab() }.setNegativeButton(R.string.ui_close, null).show()
                 R.string.ui_my_lists -> account?.profile?.let(::openLists)
+                R.string.story_title -> account?.let { openStories(it.session.userId,it.profile.userId) }
                 R.string.ui_open_offline_demo -> startActivity(Intent(this, MainActivity::class.java).putExtra("offline_preview", true))
             }
         }.setNegativeButton(R.string.ui_close, null).show()
@@ -878,6 +876,38 @@ class MainActivity : LocalizedActivity() {
             }
         }
     }
+    private fun refreshSettings() {
+        val page = stack().apply { setPadding(dp(24), dp(12), dp(24), dp(12)) }
+        page.addView(text(getString(R.string.monitor_settings_body), 13f, muted)); page.gap(12)
+        page.addView(android.widget.CheckBox(this).apply {
+            text = getString(R.string.ui_refresh_automatically_on_launch); setTextColor(ink)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            isChecked = gate.ownAutoRefresh()
+            setOnCheckedChangeListener { _, enabled ->
+                try { gate.setOwnAutoRefresh(enabled) } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
+            }
+        })
+        page.addView(android.widget.CheckBox(this).apply {
+            text = getString(R.string.monitor_own_background); setTextColor(ink)
+            buttonTintList = android.content.res.ColorStateList.valueOf(accent)
+            isChecked = gate.backgroundOwnEnabled(); isEnabled = account != null && !needsConnection
+            setOnCheckedChangeListener { _, enabled ->
+                try { gate.setBackgroundOwnEnabled(enabled); syncMonitoring() } catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
+            }
+        })
+        lateinit var interval: android.widget.Button
+        interval = button(getString(R.string.monitor_own_interval) + " · " + intervalLabel(gate.monitorIntervalMinutes()), false) {
+            val values = WatchIntervals.minutes
+            AlertDialog.Builder(this).setTitle(R.string.monitor_own_interval)
+                .setSingleChoiceItems(values.map { intervalLabel(it, true) }.toTypedArray(), values.indexOf(gate.monitorIntervalMinutes())) { dialog, index ->
+                    try { gate.setMonitorIntervalMinutes(values[index]); interval.text = getString(R.string.monitor_own_interval) + " · " + intervalLabel(values[index]); dialog.dismiss(); render() }
+                    catch (_: Exception) { showFailure(ApiFailure(ApiFailure.Kind.STORAGE)) }
+                }.setNegativeButton(R.string.ui_cancel, null).show()
+        }
+        page.gap(12); page.addView(interval)
+        AlertDialog.Builder(this).setTitle(R.string.ui_refresh_settings).setView(page).setPositiveButton(R.string.ui_ok, null).show()
+    }
+
     private fun languagePicker() {
         val choices = arrayOf(getString(R.string.language_turkish), getString(R.string.language_english),
             getString(R.string.language_spanish), getString(R.string.language_portuguese_brazil))
@@ -910,7 +940,7 @@ class MainActivity : LocalizedActivity() {
             getString(R.string.web_compare_last_counted_http, gate.lastHttpStatus()?.toString() ?: getString(R.string.ui_no_response_yet)))
         lines += getString(R.string.web_transport_selected, getString(if(WebRequestClients.platformAvailable()) R.string.web_transport_android else R.string.web_transport_standard))
         lines += getString(R.string.web_transport_app_id, WebRequests.APP_ID)
-        lines += getString(R.string.security_budget_info, RequestBudgetPolicy.HOURLY, RequestBudgetPolicy.DAILY)
+        lines += getString(R.string.security_budget_info, RequestDefaults.ACCOUNT_HOURLY, RequestDefaults.ACCOUNT_DAILY, RequestDefaults.DEVICE_HOURLY, RequestDefaults.DEVICE_DAILY)
         if (gate.budgetNextAt() > now) lines += getString(R.string.security_budget_next, date(gate.budgetNextAt()))
         if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))
         if (!preview) {
@@ -1141,11 +1171,12 @@ class MainActivity : LocalizedActivity() {
 
     private fun profileMenu(saved: SavedAccount, person: TrackedPerson) {
         val p=person.latest
-        val options=listOf(R.string.timeline_title,R.string.parity_notifications,R.string.parity_preferences_short,R.string.daily_title,
+        val options=listOf(R.string.timeline_title,R.string.story_title,R.string.parity_notifications,R.string.parity_preferences_short,R.string.daily_title,
             R.string.visual_title,R.string.profile_history,R.string.ui_edit_note_and_group,R.string.watch_status_title,R.string.quick_start,R.string.ui_remove_person)
         AlertDialog.Builder(this).setTitle(R.string.parity_more).setItems(options.map {getString(it)}.toTypedArray()) { _,index ->
             when(options[index]) {
                 R.string.timeline_title -> openTimeline(p.userId)
+                R.string.story_title -> openStories(saved.session.userId,p.userId)
                 R.string.parity_notifications -> openNotifications(p.userId)
                 R.string.parity_preferences_short -> HistoryViews.preferences(this,vault.journal,saved.session,p)
                 R.string.daily_title -> openDaily(p.userId)
@@ -1191,6 +1222,10 @@ class MainActivity : LocalizedActivity() {
                 }.show()
     }
 
+    private fun openStories(owner: String, target: String) {
+        startActivity(Intent(this,StoryArchiveActivity::class.java).putExtra("viewer_id",owner)
+            .putExtra("target_id",target).putExtra("offline_preview",preview))
+    }
     private fun retentionSettings() {
         val saved=account ?: return
         if(loading || web!=null)return
@@ -1935,7 +1970,7 @@ class MainActivity : LocalizedActivity() {
                 browserProof = proof; loginAttempted = false
                 loginProgress?.visibility = View.GONE
                 completionButton?.setText(R.string.web_compare_native)
-                loginStatus?.text = getString(R.string.web_compare_browser_success,number(profile.followers),number(profile.following))
+                loginStatus?.text = getString(R.string.web_compare_browser_success,number(profile.followers),number(profile.following),RequestDefaults.MIN_SPACING_MS / 1000,RequestDefaults.MAX_SPACING_MS / 1000)
                 updateLoginCompletion()
                 scheduleGateWake()
             }.onFailure { webLoginFailed(it as? ApiFailure ?: ApiFailure(ApiFailure.Kind.INVALID_RESPONSE),gate.lastHttpStatus()) }

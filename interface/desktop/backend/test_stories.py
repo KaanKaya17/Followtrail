@@ -188,4 +188,22 @@ class StoryTests(unittest.TestCase):
         e.run('delete_all',{});self.assertFalse(self.store.path.exists());self.assertFalse(self.store.asset_path('300').exists())
 
 
+    def test_metadata_retry_preserves_first_capture_and_saved_asset(self):
+        item=stories.parse(self.payload,'200')[0]
+        self.store.record('200',item,self.now[0])
+        self.store.record('200',item,self.now[0]+100,media=(self.raw,'image/jpeg'))
+        self.assertEqual(self.store.load()['targets']['200']['items']['300']['capturedAt'],self.now[0])
+        self.store.record('200',item,self.now[0]+200)
+        self.assertEqual(self.store.load()['targets']['200']['items']['300']['status'],'saved')
+
+    def test_duplicate_story_cannot_hide_foreign_owner_and_oversized_candidate_is_metadata_only(self):
+        value=copy.deepcopy(self.payload)
+        foreign=copy.deepcopy(value['reel']['items'][0]);foreign['user']={'pk':'999'}
+        value['reel']['items'].append(foreign)
+        with self.assertRaises(AppFailure):stories.parse(value,'200')
+        value=copy.deepcopy(self.payload)
+        value['reel']['items'][0]['image_versions2']['candidates'][0]['width']=stories.MAX_SIDE+1
+        self.assertIsNone(stories.parse(value,'200')[0]['mediaUrl'])
+
+
 if __name__=='__main__':unittest.main()

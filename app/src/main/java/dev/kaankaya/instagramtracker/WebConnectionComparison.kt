@@ -94,7 +94,7 @@ class BrowserProfileProbe(private val context: Context, private val browser: Web
                     request.header(name)?.let { put(name,it) }
             })
         val claimed=gate.claim()
-        try {gate.beginPrototype();journal.begin(WebConnectionJournal.Step.BROWSER);lease=claimed}
+        try {gate.forAccount(state.owner).beginPrototype();journal.begin(WebConnectionJournal.Step.BROWSER);lease=claimed}
         catch(error: Exception) {claimed.close();throw error}
         session=state;started=SystemClock.elapsedRealtime()
         val key="__tracker_connection_"+UUID.randomUUID().toString().replace("-","");slot=key

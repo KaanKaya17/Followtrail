@@ -44,7 +44,7 @@ class WebPendingConnectionActivity : LocalizedActivity() {
         val reference = try { sessions.pending() } catch (_: Exception) {
             status = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this); null
         }
-        val next = try { gate.nextPrototypeAt() } catch (_: Exception) {
+        val next = try { (reference?.let { gate.forAccount(it.userId) } ?: gate).nextPrototypeAt() } catch (_: Exception) {
             status = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this); Long.MAX_VALUE
         }
         val page = LinearLayout(this).apply {

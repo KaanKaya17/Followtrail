@@ -6,10 +6,10 @@
 
 ## Windows
 
-**Güncel önizleme: 0.2.51 · kaynak etiketi: `desktop-v0.2.51`**
+**Güncel önizleme: 0.2.52 · kaynak etiketi: `desktop-v0.2.52`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.51`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.52`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.
@@ -18,18 +18,18 @@
 
 ## Android
 
-**Güncel APK: 0.1.80 · sürüm kodu: 81 · kaynak etiketi: `android-v0.1.80`**
+**Güncel APK: 0.1.81 · sürüm kodu: 81 · kaynak etiketi: `android-v0.1.81`**
 
-- Dosya: `InstagramTracker-0.1.80.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.81.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
 - **Telefon içinden uçtan uca başarılı hesap bağlantısı ve liste okuması henüz tamamlanmış sayılmıyor.** Araştırılan açık konu girişten sonraki profil okumasıdır.
 - E-posta/kod akışı üzerinde çalışılmıştır; her CAPTCHA, TOTP ve başka cihazdan onay yönteminin desteklendiği varsayılmamalıdır. Cihaz onayı sonucunu periyodik sorgulayan yöntem hâlâ sınırlıdır.
 - Yeni günlük geçmiş ekranı ve Keystore dosyaları için altı cihaz testi derlendi; cihazda çalıştırılmadı.
 - 0.1.76: profil/özet/liste sahibi ve yerel Bildirimler/Zaman Çizelgesi görünümü güncellendi. 142 JVM testi, release derlemesi, lint ve imzalı paket kontrolü geçti; emülatör ekran testi tamamlanmadı. [Doğrulama ve kalan kapsam](../ANDROID-UI-ALIGNMENT.md).
 
-0.1.80: Android web okuyucusunun uygulama kimliği, resmî masaüstü giriş yapılandırmasıyla eşleştirildi. [Gözlem, değişiklik ve canlı test sınırı](../ANDROID-WEB-APP-ID.md).
+0.1.81: Android web okuyucusunun uygulama kimliği, resmî masaüstü giriş yapılandırmasıyla eşleştirildi. [Gözlem, değişiklik ve canlı test sınırı](../ANDROID-WEB-APP-ID.md).
 
-0.1.79 / Windows 0.2.51: arka planda hesap kontrolü sırasında arama/listenin fotoğrafları korunur; sınırlanan Android listesi açık bir yeniden deneme bekler. [Hata düzeltmeleri ve kapsam](../BUG-CHECK-2026-11-04.md).
+0.1.79 / Windows 0.2.52: arka planda hesap kontrolü sırasında arama/listenin fotoğrafları korunur; sınırlanan Android listesi açık bir yeniden deneme bekler. [Hata düzeltmeleri ve kapsam](../BUG-CHECK-2026-11-04.md).
 
 0.1.78 / Windows 0.2.50: profil aramasında pencereyi yeniden açınca aynı hesabın kısa süreli sonuçları kullanılır. [Ortak davranış ve test kapsamı](../SEARCH-CACHE-PARITY.md).
 
@@ -74,3 +74,7 @@ Normal hata bildirimi için proje sahibinin belirttiği destek kanalını kullan
 ## Sonraya bırakılan geliştirmeler
 
 Resmî Instagram ZIP içe aktarma, işlevsel web hizmeti, geniş Threads/Facebook entegrasyonu ve AI içerik analizi henüz tamamlanmış özellikler değildir. [Geliştirme notları](../DEVELOPMENT-BACKLOG.md) güncel kapsamı korur; listedeki bir fikir yayın tarihi taahhüdü değildir.
+
+## Son eşitleme
+
+[Android / Windows eşitlemesi ve test sınırları](../PLATFORM-PARITY.md): ortak istek politikası ve Android hikâye arşivi eklendi. Android cihaz/ekran ve yeni canlı giriş kontrolü ertelendi; eksiksiz platform eşitliği veya çözülmüş giriş iddiası yoktur.

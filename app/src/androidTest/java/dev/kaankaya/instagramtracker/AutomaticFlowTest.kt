@@ -22,7 +22,7 @@ class AutomaticFlowTest {
     private val vault = SessionVault(context, "autotest")
     private val lists = FollowListVault(context, "autolists")
     private val preferences = context.getSharedPreferences("auto_test_gate", 0)
-    private fun gate() = RequestGate(context, "auto_test_gate")
+    private fun gate() = RequestGate(context, "auto_test_gate", System::currentTimeMillis, { RequestDefaults.MAX_SPACING_MS })
     private val session = Session("100", "", "test-UA", "a".repeat(32))
     private var now = System.currentTimeMillis()
     private var phase = 0
@@ -121,7 +121,7 @@ class AutomaticFlowTest {
         }
         engine(transport).tick(now)
         assertEquals(listOf(FollowDirection.FOLLOWERS, FollowDirection.FOLLOWING, FollowDirection.FOLLOWERS), order.map { it.first })
-        assertEquals(listOf(start, start + 15000, start + 30000), order.map { it.second })
+        assertEquals(listOf(start, start + 10000, start + 20000), order.map { it.second })
         val snapshot = lists.read(session, "200")!!
         assertEquals(100, snapshot.followers!!.users.size); assertEquals(FollowCoverage.END_OBSERVED, snapshot.followers!!.coverage())
         assertEquals(FollowCoverage.END_OBSERVED, snapshot.following!!.coverage())

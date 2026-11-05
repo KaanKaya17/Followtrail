@@ -11,6 +11,26 @@ import org.json.JSONObject
 
 /** Debug-only transport. Every response is synthetic; no sockets or real account credentials. */
 object PreviewMode {
+    fun seedStories(context: Context, enabled: Boolean, account: SavedAccount, store: StoryArchiveStore, target: String) {
+        if (!enabled || store.read(target).items.isNotEmpty()) return
+        val bitmap = android.graphics.Bitmap.createBitmap(540,960,android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+        canvas.drawColor(android.graphics.Color.rgb(96,68,180))
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        paint.color = android.graphics.Color.rgb(74,210,181); canvas.drawCircle(270f,400f,180f,paint)
+        paint.color = android.graphics.Color.WHITE; paint.textSize = 44f
+        canvas.drawText(context.getString(R.string.story_image),40f,730f,paint)
+        val bytes = java.io.ByteArrayOutputStream().use { out -> bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,out); out.toByteArray() }
+        bitmap.recycle()
+        val now = System.currentTimeMillis()
+        listOf(0L,86_400_000L,32L*86_400_000L).forEachIndexed { index,age ->
+            val facts = StoryFacts((9000+index).toString(),target,now-age,now-age+86_400_000L,StoryKind.IMAGE,
+                listOf(StoryMention(account.session.userId,account.profile.username)),
+                listOf("https://www.instagram.com/${account.profile.username}/"),listOf("demo"),listOf("Istanbul"),emptyList(),emptySet())
+            store.metadata(facts,now-age); store.saveMedia(facts,bytes)
+        }
+        store.checked(target,now,StorySummary(3,3,0,0))
+    }
     fun avatarFetcher(enabled: Boolean): AvatarFetcher = if (enabled) DemoAvatarFetcher() else CdnAvatarFetcher()
     const val JOB_ID = 1402
     fun sync(context: Context, account: SavedAccount?, gate: RequestGate) = MonitorScheduler.sync(context, account, gate, JOB_ID, DemoMonitorJobService::class.java)

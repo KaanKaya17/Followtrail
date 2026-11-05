@@ -155,13 +155,13 @@ class AccountSafetyTests(unittest.TestCase):
         self.assertFalse(self.e.catalog['limitedHold'])
         self.assertEqual(self.e.data['gate'].get('attempts',0),0)
 
-    def test_doubled_budget_reuses_old_history_and_keeps_server_pause(self):
+    def test_lower_shared_policy_keeps_old_history_and_server_pause(self):
         p=parse_profile(profile());self.e.select_connection_account(p);self.e.record_profile(p,own=True)
         self.e.data['gate'].update(requestTimes=[self.now[0]]*120,accountRequestTimes={'100':[self.now[0]]*120},
                                    blockedUntil=self.now[0]+1800,nextAt=self.now[0]+17,attempts=120)
         self.e.save()
         reopened=Accounts(self.home.name,clock=lambda:self.now[0])
-        self.assertEqual(reopened.budget_available_at(),0)
+        self.assertEqual(reopened.budget_available_at(),self.now[0]+3600)
         self.assertEqual(len(reopened.data['gate']['accountRequestTimes']['100']),120)
         before=copy.deepcopy(reopened.data['gate'])
         with self.assertRaises(AppFailure) as caught:reopened.before_request()
@@ -174,10 +174,10 @@ class AccountSafetyTests(unittest.TestCase):
         p=parse_profile(profile());self.e.select_connection_account(p);self.e.record_profile(p,own=True)
         self.e.data['session']={'cookies':{'ds_user_id':'100','sessionid':'SYNTHETIC'}}
         self.e.data['settings'].update(automatic=True,automaticLists=False,interval=1)
-        self.e.data['gate'].update(requestTimes=[self.now[0]]*120,accountRequestTimes={'100':[self.now[0]]*120})
+        self.e.data['gate'].update(requestTimes=[self.now[0]]*60,accountRequestTimes={'100':[self.now[0]]*60})
         self.e.save()
         self.e.catalog['accounts']['100']['monitor'].update(nextAt=self.now[0]+3600,
-            budgetPolicy={'sharedHourly':240,'sharedDaily':2400,'accountHourly':120,'accountDaily':1200})
+            budgetPolicy={'sharedHourly':120,'sharedDaily':1200,'accountHourly':60,'accountDaily':600})
         self.e.persist_catalog()
         counts=copy.deepcopy(self.e.data['gate'])
         with patch('requests.Session.send') as send:

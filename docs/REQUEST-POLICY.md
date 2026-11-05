@@ -1,4 +1,8 @@
-# Profil okuma politikası — 0.1.7
+# Profil okuma politikası
+
+Güncel: **Windows 0.2.52 / Android 0.1.81**. İki platformda 6–10 saniye istek rezervasyonu, hesap başına 120/1200 ve cihaz başına 240/2400 kayan saat/gün bütçesi vardır. Yeni kontrol varsayılanı 5 dakika; Android sistem arka plan işi 15 dakika veya daha geçtir. Kayıtlı mola/geçmiş sıfırlanmaz. [Güncel eşitleme ve sınırlar](PLATFORM-PARITY.md).
+
+Aşağıdaki sürüm başlıkları kararların tarihçesidir; eski süre/kota değerleri güncel politika olarak okunmamalıdır.
 
 ## Windows 0.2.17 / Android 0.1.37 otomatik başlangıç
 

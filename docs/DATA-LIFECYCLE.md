@@ -1,6 +1,6 @@
 # Yerel veri yaşam döngüsü
 
-Windows 0.2.48 / Android 0.1.77. Bu belge ürünün teknik davranışını açıklar; hukuki uygunluk görüşü değildir.
+Windows 0.2.52 / Android 0.1.81. Bu belge ürünün teknik davranışını açıklar; hukuki uygunluk görüşü değildir.
 
 ## Kullanıcı kontrolleri
 
@@ -12,7 +12,7 @@ Windows 0.2.48 / Android 0.1.77. Bu belge ürünün teknik davranışını açı
 
 ## Profil ve arşivlerini silmek
 
-Kaydedilen profili kaldırmak artık yalnız izlemeyi durdurmaz: o profile ait geçmiş, not/favori/izleme tercihi, günlük özetler, görsel arşiv, uygulama içi bildirim/olay kayıtları ve o kişinin kendi liste arşivleri de temizlenir. Windows'ta o kişinin hikâye arşivi de silinir. Android sistem bildirimleri iptal edilir; işletim sisteminin kendi bildirim geçmişi veya ekran görüntüleri bu uygulamanın kontrolünde değildir.
+Kaydedilen profili kaldırmak artık yalnız izlemeyi durdurmaz: o profile ait geçmiş, not/favori/izleme tercihi, günlük özetler, görsel arşiv, uygulama içi bildirim/olay kayıtları ve o kişinin kendi liste arşivleri de temizlenir. Her iki platformda o kişinin hikâye arşivi de silinir. Android sistem bildirimleri iptal edilir; işletim sisteminin kendi bildirim geçmişi veya ekran görüntüleri bu uygulamanın kontrolünde değildir.
 
 **Kapsam sınırı:** Bir kişinin başka hesapların takipçi/takip edilen listelerinde görünmesi, o listenin tarihli üyelik olgusudur; profili silmek bu listeleri değiştirmez. Başka bağlı hesabın deposu etkilenmez. Kullanıcının dışa aktardığı yedek/CSV dosyaları, paylaşılan kopyalar ve işletim sistemi yedekleri ayrıca yönetilmelidir. Instagram hesabında takip/beğeni/mesaj işlemi yapılmaz.
 
@@ -26,7 +26,7 @@ Silme, uygulamanın erişebildiği dosya ve anahtarları yönetir; SSD üzerinde
 - **Profil ve listeler:** bilinen isim, sayaç, biyografi, herkese açık profil bağlantıları, gizlilik bilgisi, fotoğraf kaynağı, liste üyeleri, kontrol zamanları, kullanıcı notları ve tercihler. Ayrıntılı geçmiş süre seçimine ve ayrıca mevcut adet/boyut sınırlarına tabidir. Güncel karşılaştırma kayıtları korunur.
 - **Günlük istatistik:** hesap/hedef kimliği, UTC gün, ilk/son/minimum/maksimum sayaçlar ve gözlem sayısı. Ayrı şifreli profil/yıl dosyaları; günlük istatistik süresi ve hedefe özel temizleme uygulanır.
 - **Görsel zaman tüneli:** yalnız açılan profillerin değişiklik kayıtları ve eldeki küçük resimleri. Şifreli, boyut/adet sınırlı; ayrıntılı geçmiş süresi uygulanır. Biyografideki metinden hassas kişilik, inanç veya sağlık sınıflandırması yapılmaz.
-- **Windows hikâye arşivi:** erişilebilen hikâyelerin yapılandırılmış bilgisi ve indirilebilen medyası şifreli tutulur. Ayrıntılı geçmiş süresi, yakalanma zamanına uygulanır. Her hikâyenin yakalanacağı veya bütün etiket/yeniden paylaşım bilgisinin sağlanacağı garanti edilmez. Android'de bu arşiv henüz yoktur.
+- **Hikâye arşivi (Windows / Android):** erişilebilen hikâyelerin yapılandırılmış bilgisi ve indirilebilen medyası şifreli tutulur. Ayrıntılı geçmiş süresi, yakalanma zamanına uygulanır. Her hikâyenin yakalanacağı veya bütün etiket/yeniden paylaşım bilgisinin sağlanacağı garanti edilmez. Android karşılığı 0.1.81 ile eklendi; cihaz testi ertelendi ([kapsam](PLATFORM-PARITY.md)).
 - **Geçici fotoğraflar:** Windows sınırlı bellek önbelleği; Android sınırlı özel disk/bellek önbelleği. Android disk küçük resimleri artık ayrı Keystore anahtarıyla AES-GCM kullanır; dosya kimliği doğrulanır. Eski düz PNG önbelleği uygulamanın görsel yükleyicisi açıldığında arka planda temizlenir. Bu temizlik başarısızsa Veri saklama ekranından tekrar denenebilir. Eski fotoğraflar gerektiğinde yeniden indirilir; görsel arşiv bundan ayrıdır.
 - **Tanı ve istek sınırları:** sınırlı HTTP sonuçları, işlem türü/zamanı ve bekleme kayıtları. Ham ağ gövdesi, parola, kod veya oturum anahtarı destek için istenmez. Mevcut sınırlı kayıt politikası ve hesap/cihaz güvenlik kuralları sürer; arşiv süresi bunları silmez.
 - **Kullanıcı dışa aktarımları:** Windows DPAPI yedeği oturum içermez; CSV şifresizdir. Bunlar uygulama dışındaki kullanıcı seçimiyle üretilmiş kopyalardır ve süre temizliği dışında kalır.

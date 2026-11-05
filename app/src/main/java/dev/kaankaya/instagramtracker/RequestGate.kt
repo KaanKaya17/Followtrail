@@ -27,7 +27,11 @@ object RetryPolicy {
     }
 }
 
-class RequestGate(context: Context, private val name: String = "request_gate", private val clock: () -> Long = System::currentTimeMillis) {
+class RequestGate internal constructor(context: Context, private val name: String, private val clock: () -> Long,
+    private val delayMillis: () -> Long) {
+    // Preserve the original third/trailing lambda as the caller's clock.
+    constructor(context: Context, name: String = "request_gate", clock: () -> Long = System::currentTimeMillis) :
+        this(context, name, clock, { kotlin.random.Random.nextLong(RequestDefaults.MIN_SPACING_MS, RequestDefaults.MAX_SPACING_MS + 1) })
     private var owner: String?=null
     fun now(): Long = clock()
     internal val context: Context = context.applicationContext
@@ -35,22 +39,38 @@ class RequestGate(context: Context, private val name: String = "request_gate", p
     // Reserve requests across those instances, not only within one instance.
     companion object {
         private val lock = Any(); private val active = mutableSetOf<String>(); private val quickOwners = mutableMapOf<String, Any>(); private val preparationOwners = mutableMapOf<String, Any>()
-        const val AUTO_INTERVAL_MS = MonitorPolicy.POLL_MS
+        const val AUTH_INTERVAL_MS = 15 * 60 * 1000L
     }
     private val identity = "${context.packageName}:$name"
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
     private fun settings() = if(name!="request_gate")preferences else this.context.getSharedPreferences(
         "account_flags_"+((owner ?: AccountCatalog.selected(this.context))?.let(AccountCatalog::slot) ?: "empty"),Context.MODE_PRIVATE)
-    fun forAccount(id: String)=RequestGate(context,name,clock).also {it.owner=InstagramIdentity.id(id)}
+    fun forAccount(id: String)=RequestGate(context,name,clock,delayMillis).also {it.owner=InstagramIdentity.id(id)}
+    private fun budgetOwner() = owner ?: if (name == "request_gate") AccountCatalog.selected(context) else null
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
     private fun budgetTimes(): List<Long> = try {
-        val json = org.json.JSONArray(preferences.getString("budget_times", "[]"))
-        require(json.length() <= RequestBudgetPolicy.DAILY)
-        (0 until json.length()).map { json.get(it).let { value -> require(value is Long || value is Int); (value as Number).toLong() } }
+        RequestBudgetCodec.times(preferences.getString("budget_times", "[]")!!)
     } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
-    fun budgetNextAt(now: Long = clock()): Long = synchronized(lock) { try { RequestBudgetPolicy.nextAt(budgetTimes(), now) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) } }
-    fun nextAllowedAt(): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0), budgetNextAt()) }
-    fun automaticNextAllowedAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("auto_after", 0)) }
+    private fun accountBudgets() = try { RequestBudgetCodec.accounts(preferences.getString("budget_accounts", "{}")!!) }
+        catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    fun budgetNextAt(now: Long = clock(), account: String? = budgetOwner()): Long = synchronized(lock) {
+        try { RequestBudgetPolicy.nextAt(budgetTimes(), now, account?.let { accountBudgets()[RequestBudgetPolicy.ownerKey(it)] }.orEmpty()) }
+        catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    }
+    fun nextAllowedAt(account: String? = budgetOwner()): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0), budgetNextAt(account = account)) }
+    fun monitorIntervalMinutes(): Int = synchronized(lock) {
+        settings().getInt("monitor_interval_minutes", RequestDefaults.DEFAULT_INTERVAL_MINUTES).also {
+            if (it !in RequestDefaults.INTERVAL_MINUTES) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        }
+    }
+    fun monitorIntervalMillis(): Long = monitorIntervalMinutes() * 60_000L
+    fun setMonitorIntervalMinutes(minutes: Int) = synchronized(lock) {
+        require(minutes in RequestDefaults.INTERVAL_MINUTES)
+        if (!settings().edit().putInt("monitor_interval_minutes", minutes).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
+    fun automaticNextAllowedAt(): Long = synchronized(lock) {
+        maxOf(nextAllowedAt(), settings().getLong("auto_after", 0), preferences.getLong("auto_after", 0))
+    }
     fun quickWatchActive(): Boolean = synchronized(lock) { identity in quickOwners }
     fun preparationActive(): Boolean = synchronized(lock) { identity in preparationOwners }
     fun claimPreparation(): AutoCloseable = synchronized(lock) {
@@ -74,6 +94,10 @@ class RequestGate(context: Context, private val name: String = "request_gate", p
     fun restrictionPending(): Boolean = blockedUntil() > 0
     fun serverRetryAt(): Long? = synchronized(lock) { preferences.getLong("server_retry_at", 0).takeIf { it > 0 } }
     fun ownAutoRefresh(): Boolean = synchronized(lock) { settings().getBoolean("own_auto_refresh", false) }
+    fun backgroundOwnEnabled(): Boolean = synchronized(lock) { settings().getBoolean("own_background", false) }
+    fun setBackgroundOwnEnabled(enabled: Boolean) = synchronized(lock) {
+        if (!settings().edit().putBoolean("own_background", enabled).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+    }
     fun setOwnAutoRefresh(enabled: Boolean) = synchronized(lock) {
         if (!settings().edit().putBoolean("own_auto_refresh", enabled).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
@@ -103,21 +127,21 @@ class RequestGate(context: Context, private val name: String = "request_gate", p
     fun setPrototypeActive(active: Boolean) = synchronized(lock) {
         if (!preferences.edit().putBoolean("prototype_active", active).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
-    fun nextPrototypeAt(): Long = synchronized(lock) { maxOf(nextAllowedAt(), preferences.getLong("prototype_after", 0)) }
-    fun nextWebAuthenticationAt(): Long = synchronized(lock) { maxOf(nextPrototypeAt(), preferences.getLong("web_auth_after", 0)) }
+    fun nextPrototypeAt(account: String? = budgetOwner()): Long = synchronized(lock) { maxOf(nextAllowedAt(account), preferences.getLong("prototype_after", 0)) }
+    fun nextWebAuthenticationAt(): Long = synchronized(lock) { maxOf(nextPrototypeAt(null), preferences.getLong("web_auth_after", 0)) }
     fun beginWebAuthentication(now: Long = clock()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
-        if (budgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
+        if (budgetNextAt(now, null) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
         if (nextWebAuthenticationAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
-        begin(now)
-        if (!preferences.edit().putLong("web_auth_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        begin(now, null)
+        if (!preferences.edit().putLong("web_auth_after", now + AUTH_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
-    fun beginPrototype(now: Long = clock()) = synchronized(lock) {
+    fun beginPrototype(now: Long = clock(), account: String? = budgetOwner()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
-        if (budgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
-        if (nextPrototypeAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
-        begin(now)
-        if (!preferences.edit().putLong("prototype_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if (budgetNextAt(now, account) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
+        if (nextPrototypeAt(account) > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        begin(now, account)
+        if (!preferences.edit().putLong("prototype_after", now + AUTH_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun pauseForConnection() = synchronized(lock) {
         if (!settings().edit().putBoolean("requires_connection", true).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
@@ -128,20 +152,27 @@ class RequestGate(context: Context, private val name: String = "request_gate", p
         AutoCloseable { synchronized(lock) { if (!closed) { active.remove(identity); closed = true }; Unit } }
     }
     fun autoAllowed(profile: Profile, now: Long = clock()): Boolean = synchronized(lock) {
-        ownAutoRefresh() && !automationHeld() && !manualOnly() && !requiresConnection() && PeoplePolicy.needsRefresh(profile, now) && automaticNextAllowedAt() <= now
+        ownAutoRefresh() && !automationHeld() && !manualOnly() && !requiresConnection() && now >= profile.observedAt + monitorIntervalMillis() && automaticNextAllowedAt() <= now
     }
     fun reserveAutomatic(now: Long = clock()): Boolean = synchronized(lock) {
         if (quickWatchActive() || automationHeld() || manualOnly() || requiresConnection() || automaticNextAllowedAt() > now) return false
-        if (!preferences.edit().putLong("auto_after", now + AUTO_INTERVAL_MS).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if (!settings().edit().putLong("auto_after", now + monitorIntervalMillis()).commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
+        if (preferences.getLong("auto_after", 0) <= now && !preferences.edit().remove("auto_after").commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
         true
     }
-    fun begin(now: Long = clock()) = synchronized(lock) {
+    fun begin(now: Long = clock(), account: String? = budgetOwner()) = synchronized(lock) {
         if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
-        if (budgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
-        if (nextAllowedAt() > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        if (budgetNextAt(now, account) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
+        if (nextAllowedAt(account) > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        val delay = delayMillis()
+        require(delay in RequestDefaults.MIN_SPACING_MS..RequestDefaults.MAX_SPACING_MS)
         val count = attempts()
-        if (!preferences.edit().putLong("next_read_at", now + 15000)
+        val accounts = accountBudgets().mapValues { (_, times) -> times.filter { it > now - RequestBudgetPolicy.DAY } }
+            .filterValues { it.isNotEmpty() }.toMutableMap()
+        account?.let { val key = RequestBudgetPolicy.ownerKey(it); accounts[key] = RequestBudgetPolicy.reserve(accounts[key].orEmpty(), now) }
+        if (!preferences.edit().putLong("next_read_at", now + delay)
                 .putString("budget_times", org.json.JSONArray(RequestBudgetPolicy.reserve(budgetTimes(), now)).toString())
+                .putString("budget_accounts", RequestBudgetCodec.encode(accounts))
                 .putLong("attempt_count", if (count == Long.MAX_VALUE) count else count + 1)
                 .putLong("last_attempt_at", now).remove("last_http_status").commit()) {
             throw ApiFailure(ApiFailure.Kind.STORAGE)

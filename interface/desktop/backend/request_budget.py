@@ -1,8 +1,12 @@
 """Bounded rolling local budgets, not claimed Instagram quotas."""
 import math
+from request_defaults import ACCOUNT_BUDGET, DEVICE_BUDGET
 
-SHARED = (480, 4800)
-ACCOUNT = (240, 2400)
+SHARED = DEVICE_BUDGET
+ACCOUNT = ACCOUNT_BUDGET
+# Old vaults may contain more reservations than the new policy permits. Keep
+# them counted until they age out; lowering a quota must never invalidate/reset it.
+MAX_STORED = 4800
 
 
 def policy():
@@ -45,11 +49,11 @@ def record(gate, owner, now):
 
 
 def validate_gate(gate):
-    validate(gate.get('requestTimes', []), SHARED[1])
+    validate(gate.get('requestTimes', []), MAX_STORED)
     accounts = gate.get('accountRequestTimes', {})
     if not isinstance(accounts, dict):
         raise ValueError('account budget')
     for owner, times in accounts.items():
         if not isinstance(owner, str) or not owner.isascii() or not owner.isdigit() or not 1 <= len(owner) <= 30:
             raise ValueError('budget owner')
-        validate(times, ACCOUNT[1])
+        validate(times, MAX_STORED)

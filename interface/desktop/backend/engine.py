@@ -28,7 +28,7 @@ import profile_links
 import hashlib
 import data_privacy
 from search_cache import SearchCache
-from instagrapi import config as instagram_config
+from story_limits import CAPABILITIES_JSON
 from login_identity import LoginIdentity, device_settings
 
 from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
@@ -38,15 +38,14 @@ from network import read_avatar, avatar_url
 
 MAX_MEMBERS = 20000
 MAX_PAGES = 400
-CONTROL_INTERVALS = (1, 5, 15, 30, 60, 180, 360)
-REQUEST_SPACING = (6, 10)
+from request_defaults import CONTROL_INTERVALS, REQUEST_SPACING, DEFAULT_INTERVAL_MINUTES
 PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'followers', 'following', 'posts', 'picture')
 
 
 def blank(gate=None):
     result = {'version': 1, 'account': None, 'session': None, 'people': {},
             'history': {}, 'lists': {}, 'events': [], 'gate': gate or {},
-            'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': 60,
+            'settings': {'compact': False, 'notifications': False, 'automatic': False, 'interval': DEFAULT_INTERVAL_MINUTES,
                          'investigateMissing': False, 'language': 'tr', 'theme': 'system', 'automaticLists': False},
             'access': {}, 'accessPlan': {'status': 'idle'}, 'lastAutomaticTask': 'profile',
             'notificationRules': {}, 'notificationLog': [],
@@ -221,6 +220,7 @@ class Engine:
                 'dailyRevision': {identity:store.revisions.get(identity,store.revision) for identity in seeds} if store else {}, 'dailyWarning': store.warning if store else False,
                 'gate': d['gate'], 'settings': d['settings'], 'privacyMaintenance': d['privacyMaintenance'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
+                'controlIntervals': list(CONTROL_INTERVALS),
                 'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
                 'monitor': self.monitor_status(),
                 'listPreparation': list_preparation.view(d, self.clock()),
@@ -233,7 +233,7 @@ class Engine:
                 'profileDetail': self.profile_detail_result,
                 'counterAvailable': (Path(os.environ.get('LOCALAPPDATA', '')) / 'InstagramCounter/session.dat').is_file(),
                 'storyDetail': self.story_detail,
-                'storagePath': str(self.vault.path.parent), 'version': '0.2.50'}
+                'storagePath': str(self.vault.path.parent)}
 
     def story_target(self, args):
         owner = (self.data['account'] or {}).get('id')
@@ -254,7 +254,7 @@ class Engine:
                     # One chosen mobile GET; the library's automatic public
                     # fallback, seen events and media-info helpers are not used.
                     payload = client.private_request('feed/user/'+target+'/story/', params={
-                        'supported_capabilities_new':json.dumps(instagram_config.SUPPORTED_CAPABILITIES)})
+                        'supported_capabilities_new':CAPABILITIES_JSON})
                     items = stories.parse(payload,target)
                     summary = {'returned':len(items),'saved':0,'existing':0,'metadata':0}
                     for index,item in enumerate(items):
@@ -736,7 +736,8 @@ class Engine:
             draft['finishedAt'] = self.clock()
             if code == 'cancelled':
                 self.data['settings']['automaticLists'] = False
-            schedule.update(error=code, after=self.clock() + (0 if code in ('budget','cooldown','cancelled') else 1800))
+            schedule.update(error=code, after=self.clock() + (
+                0 if code in ('budget','cooldown','cancelled') else list_preparation.DAY if code == 'list_count' else 1800))
             self.save()
             raise
         finally:

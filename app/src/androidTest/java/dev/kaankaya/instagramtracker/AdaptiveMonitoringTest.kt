@@ -22,7 +22,7 @@ class AdaptiveMonitoringTest {
         override fun elapsed() = now
         override fun pause(milliseconds: Long, cancelled: () -> Boolean): Boolean { now += milliseconds; return !cancelled() }
     }
-    private val gate = RequestGate(context, "adaptive_gate") { now }
+    private val gate = RequestGate(context, "adaptive_gate", { now }, { RequestDefaults.MAX_SPACING_MS })
     private var followers = 2L
     private var following = 1L
     private var http = 200
@@ -91,12 +91,12 @@ class AdaptiveMonitoringTest {
         followers = 3
         val start = now; engine().quickCycle(session, "200")
         assertEquals(1, profileCalls); assertEquals(listOf(FollowDirection.FOLLOWERS), listCalls.map { it.first })
-        assertEquals(start + 15000, listCalls.single().second); assertEquals(before, lists.read(session, "200")!!.following)
+        assertEquals(start + RequestDefaults.MAX_SPACING_MS, listCalls.single().second); assertEquals(before, lists.read(session, "200")!!.following)
         assertEquals(3L, lists.target(session, "200")!!.followers.basisCount)
         val difference = ListAutomationPolicy.difference(lists.target(session, "200")!!, FollowDirection.FOLLOWERS)!!
         assertEquals(listOf("4"), difference.added.map { it.id }); assertTrue(difference.missing.isEmpty())
         val journal = vault.journal.read(session); assertEquals(listOf(CheckKind.PROFILE, CheckKind.LIST), journal.map { it.kind })
-        assertEquals(1, journal.last().added); assertEquals(0, journal.last().missing); assertEquals(start + 15000, journal.last().analyzedAt)
+        assertEquals(1, journal.last().added); assertEquals(0, journal.last().missing); assertEquals(start + RequestDefaults.MAX_SPACING_MS, journal.last().analyzedAt)
         assertEquals(listOf("4"), journal.last().newlySeen.map { it.id })
     }
     @Test fun equalCountMembershipChangesAreFoundByDailyScan() {
@@ -120,7 +120,7 @@ class AdaptiveMonitoringTest {
         val noLists = object : FollowListSource { override fun cancel() = Unit; override fun read(session: Session, target: String, direction: FollowDirection, cursor: String?): FollowPage = error("No list expected") }
         val start = now
         AutomaticEngine(vault, lists, gate, api, noLists, { true }, {}, { _, _, _ -> }, runtime).cycle()
-        assertEquals(listOf(start, start + 15000), starts); assertEquals(2L, gate.attempts())
+        assertEquals(listOf(start, start + RequestDefaults.MAX_SPACING_MS), starts); assertEquals(2L, gate.attempts())
         assertEquals(start + MonitorPolicy.POLL_MS, gate.automaticNextAllowedAt())
         assertEquals(2, vault.journal.read(session).size)
     }
@@ -136,7 +136,7 @@ class AdaptiveMonitoringTest {
         baseline(); followers = 3; val start = now
         engine().cycle()
         assertEquals(1, profileCalls); assertEquals(listOf(FollowDirection.FOLLOWERS), listCalls.map { it.first })
-        assertEquals(start + 15000, listCalls.single().second)
+        assertEquals(start + RequestDefaults.MAX_SPACING_MS, listCalls.single().second)
         assertEquals(2L, gate.attempts()); assertEquals(1L, changes.single().followersDelta)
     }
     @Test fun journalIsBoundedOwnerScopedAndDeletedWithAccount() {
