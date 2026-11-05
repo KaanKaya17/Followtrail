@@ -181,4 +181,5 @@
     <string name="monitor_own_interval">Intervalo de verificação da minha conta</string>
     <string name="monitor_settings_body">Altere os intervalos dos perfis monitorados nas configurações de cada perfil. O Android pode realizar verificações em segundo plano depois do intervalo escolhido.</string>
     <string name="monitor_own_background">Verificar minha conta em segundo plano</string>
+    <string name="monitor_budget_forecast">Verificação contínua de perfis: cerca de %1$d solicitações/dia · cota local para perfis %2$d.</string>
 </resources>

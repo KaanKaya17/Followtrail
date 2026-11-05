@@ -181,4 +181,5 @@
     <string name="monitor_own_interval">Intervalo de control de mi cuenta</string>
     <string name="monitor_settings_body">Los intervalos de los perfiles seguidos se cambian en sus ajustes. Android puede ejecutar los controles en segundo plano después del intervalo elegido.</string>
     <string name="monitor_own_background">Comprobar mi cuenta en segundo plano</string>
+    <string name="monitor_budget_forecast">Comprobación continua de perfiles: unas %1$d solicitudes/día · cuota local para perfiles %2$d.</string>
 </resources>

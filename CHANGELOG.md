@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.54 / Android 0.1.84 — 2026-11-05
+
+- Windows otomatik liste başlangıcı aynı bağlantıda yeni kaydedilmiş profil sonucunu 60 saniye paylaşır; gereksiz yeni kontrol olayı üretmez. Elle yeni tarama, bağlantı değişimi ve eskimiş bilgi taze okuma gerektirir. Küçük sentetik 82/50 örneğinde 6 → 4, büyük 3000/2000 örneğinde 103 → 102 istek ölçüldü.
+- İki platformda otomatik profil işleri hareketli yerel bütçenin %80'inde bekler; listeler ve elle yapılan işlemler aynı tam bütçeyi kullanır. Sayaç geçmişi, toplam kota, 6–10 saniyelik sıra ve 429/Retry-After davranışı korunur.
+- Ayarlara Türkçe, İngilizce, İspanyolca ve Brezilya Portekizcesinde günlük profil talebi tahmini eklendi. Android'in mevcut profil/liste paylaşımı korunur; sistem arka plan aralığı değişmedi. [Doğrulama ve sınırlamalar](docs/API-EFFICIENCY-TEST.md).
+
 ## Android 0.1.83 — 2026-11-05
 
 - 0.1.82 canlı tanısında görülen gerçek CAPTCHA içerik şemasına uyuldu: boş argümanlar ve `xfb_auth_platform_anti_scripting_content`. Önceki guard bu sorguyu reddediyordu; CAPTCHA görüntüsünün açılması içerik isteğinin geçtiği anlamına gelmiyordu.

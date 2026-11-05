@@ -1228,5 +1228,6 @@
   "Silmek için kayıtlı bir profil seç.": "Selecciona un perfil guardado para eliminarlo.",
   "Günlük istatistikler": "Estadísticas diarias",
   "Hesabının son kontrolü": "Última consulta de tu cuenta",
-  "Sıradaki otomatik işlem": "Próxima tarea automática"
+  "Sıradaki otomatik işlem": "Próxima tarea automática",
+  "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Comprobación continua de perfiles: unas {0} solicitudes/día · cuota local para perfiles {1}."
 }

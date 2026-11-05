@@ -1,6 +1,6 @@
 # Profil okuma politikası
 
-Güncel: **Windows 0.2.52 / Android 0.1.81**. İki platformda 6–10 saniye istek rezervasyonu, hesap başına 120/1200 ve cihaz başına 240/2400 kayan saat/gün bütçesi vardır. Yeni kontrol varsayılanı 5 dakika; Android sistem arka plan işi 15 dakika veya daha geçtir. Kayıtlı mola/geçmiş sıfırlanmaz. [Güncel eşitleme ve sınırlar](PLATFORM-PARITY.md).
+Güncel: **Windows 0.2.54 / Android 0.1.84**. İki platformda 6–10 saniye istek rezervasyonu, hesap başına 120/1200 ve cihaz başına 240/2400 kayan saat/gün bütçesi vardır. Otomatik profil işleri hareketli bütçenin %80'inde ertelenir; kalan pay listeler ve elle yapılan işlemlerin ortak kullanımına kalır. Toplam sayaç/kota değişmez. Windows otomatik liste başlangıcı aynı bağlantının bu süreçte doğrulanmış profil bilgisini 60 saniye içinde paylaşabilir; elle yeni tarama taze okuma yapar. [Ölçüm ve kapsam](API-EFFICIENCY-TEST.md). Yeni kontrol varsayılanı 5 dakika; Android sistem arka plan işi 15 dakika veya daha geçtir. Sürüm güncellemesi kayıtlı mola/geçmişi sıfırlamaz. [Güncel eşitleme ve sınırlar](PLATFORM-PARITY.md).
 
 Aşağıdaki sürüm başlıkları kararların tarihçesidir; eski süre/kota değerleri güncel politika olarak okunmamalıdır.
 

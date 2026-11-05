@@ -7,6 +7,9 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
     private val notifyList: (Session, Profile, ListDifference) -> Unit,
     private val runtime: ReadRuntime = SystemReadRuntime) {
     companion object { const val MAX_PAGES = 6; const val ROUND_MS = 90_000L }
+    private fun next(saved: SavedAccount, now: Long, preferProfile: Boolean = false) = AutomaticQueue.next(
+        saved, lists.archive(saved.session), now, preferProfile, gate.monitorIntervalMillis(), gate.backgroundOwnEnabled(),
+        gate.profileBudgetNextAt(now))
     private fun selected(account: SavedAccount?, session: Session, id: String) = account?.session == session &&
         (account.automation.enabled && id in account.automation.targets || id == account.profile.userId && gate.backgroundOwnEnabled())
     fun tick(now: Long = runtime.now(), cancelled: () -> Boolean = { false }) {
@@ -21,12 +24,12 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
         val interrupted = { cancelled() || gate.quickWatchActive() }
         if (!permitted(cancelled) || gate.quickWatchActive() || gate.preparationActive() || gate.automaticNextAllowedAt() > now) return
         val saved = vault.read() ?: return
-        if (AutomaticQueue.next(saved, lists.archive(saved.session), now, ownIntervalMillis = gate.monitorIntervalMillis(), ownEnabled = gate.backgroundOwnEnabled()) == null) return
+        if (next(saved, now) == null) return
         if (!gate.reserveAutomatic(now)) return
         val started = runtime.elapsed(); val attempts = gate.attempts()
         repeat(MAX_PAGES) {
             val current = vault.read() ?: return
-            if (current.session != saved.session || AutomaticQueue.next(current, lists.archive(current.session), runtime.now()) == null) return
+            if (current.session != saved.session || next(current, runtime.now()) == null) return
             if (!waitForSlot(started, interrupted)) return
             val remaining = MAX_PAGES - (gate.attempts() - attempts).coerceAtMost(MAX_PAGES.toLong()).toInt()
             if (remaining <= 0) return
@@ -52,7 +55,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
         if (!saved.automation.enabled && !gate.backgroundOwnEnabled()) {
             MonitorEngine(vault, gate, api, canNotify, notifyProfile, runtime::now).tick(now, cancelled, reserved = reserved); return true
         }
-        val task = AutomaticQueue.next(saved, lists.archive(saved.session), now, preferProfile, gate.monitorIntervalMillis(), gate.backgroundOwnEnabled()) ?: return false
+        val task = next(saved, now, preferProfile) ?: return false
         try {
             if (task is AutomaticTask.Person) {
                 vault.update(saved.session) { current ->

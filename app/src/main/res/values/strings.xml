@@ -160,4 +160,5 @@
     <string name="monitor_own_interval">Kendi hesabımın kontrol aralığı</string>
     <string name="monitor_settings_body">İzlediğin kişilerin aralıkları profil ayarlarından değiştirilir. Android arka plan kontrollerini seçilen aralıktan daha geç çalıştırabilir.</string>
     <string name="monitor_own_background">Kendi hesabımı arka planda kontrol et</string>
+    <string name="monitor_budget_forecast">Kesintisiz profil kontrolü: yaklaşık %1$d istek/gün · yerel profil payı %2$d.</string>
 </resources>

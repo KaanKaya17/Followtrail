@@ -8,6 +8,8 @@ object RequestDefaults {
     const val ACCOUNT_DAILY = 1200
     const val DEVICE_HOURLY = 240
     const val DEVICE_DAILY = 2400
+    const val AUTO_PROFILE_PERCENT = 80
+    const val PROFILE_BASIS_MS = 60000L
     const val DEFAULT_INTERVAL_MINUTES = 5
     val INTERVAL_MINUTES = listOf(1, 5, 15, 30, 60, 180, 360, 720, 1440)
 }

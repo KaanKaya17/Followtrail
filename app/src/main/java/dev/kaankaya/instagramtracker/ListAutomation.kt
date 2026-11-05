@@ -89,13 +89,14 @@ object AutomaticQueue {
             run?.latest?.observedAt, basis)
     }
     fun next(account: SavedAccount, archive: ListArchive, now: Long, preferProfile: Boolean = false,
-        ownIntervalMillis: Long = ListAutomationPolicy.OWN_PROFILE_MS, ownEnabled: Boolean = false): AutomaticTask? {
+        ownIntervalMillis: Long = ListAutomationPolicy.OWN_PROFILE_MS, ownEnabled: Boolean = false,
+        profileAllowedAt: Long = 0): AutomaticTask? {
         require(archive.matches(account.session))
         require(ownIntervalMillis > 0)
-        val tasks = account.people.filter { it.watching }.map { AutomaticTask.Person(it.latest.userId, it.nextCheckAt) }.toMutableList<AutomaticTask>()
+        val tasks = account.people.filter { it.watching }.map { AutomaticTask.Person(it.latest.userId, maxOf(it.nextCheckAt, profileAllowedAt)) }.toMutableList<AutomaticTask>()
         if (ownEnabled || account.automation.enabled && account.session.userId in account.automation.targets)
             tasks += AutomaticTask.Own(account.session.userId,
-                maxOf(account.automation.ownNextCheckAt, account.profile.observedAt + ownIntervalMillis))
+                maxOf(account.automation.ownNextCheckAt, account.profile.observedAt + ownIntervalMillis, profileAllowedAt))
         if (account.automation.enabled) {
             for (id in account.automation.targets) for (direction in FollowDirection.entries) {
                 val target = archive.targets.firstOrNull { it.target == id } ?: ListTarget(id)

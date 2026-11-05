@@ -58,6 +58,10 @@ class RequestGate internal constructor(context: Context, private val name: Strin
         catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
     }
     fun nextAllowedAt(account: String? = budgetOwner()): Long = synchronized(lock) { maxOf(blockedUntil(), preferences.getLong("next_read_at", 0), budgetNextAt(account = account)) }
+    fun profileBudgetNextAt(now: Long = clock(), account: String? = budgetOwner()): Long = synchronized(lock) {
+        try { RequestBudgetPolicy.profileNextAt(budgetTimes(), now, account?.let { accountBudgets()[RequestBudgetPolicy.ownerKey(it)] }.orEmpty()) }
+        catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    }
     fun monitorIntervalMinutes(): Int = synchronized(lock) {
         settings().getInt("monitor_interval_minutes", RequestDefaults.DEFAULT_INTERVAL_MINUTES).also {
             if (it !in RequestDefaults.INTERVAL_MINUTES) throw ApiFailure(ApiFailure.Kind.STORAGE)
@@ -152,7 +156,7 @@ class RequestGate internal constructor(context: Context, private val name: Strin
         AutoCloseable { synchronized(lock) { if (!closed) { active.remove(identity); closed = true }; Unit } }
     }
     fun autoAllowed(profile: Profile, now: Long = clock()): Boolean = synchronized(lock) {
-        ownAutoRefresh() && !automationHeld() && !manualOnly() && !requiresConnection() && now >= profile.observedAt + monitorIntervalMillis() && automaticNextAllowedAt() <= now
+        ownAutoRefresh() && !automationHeld() && !manualOnly() && !requiresConnection() && now >= profile.observedAt + monitorIntervalMillis() && automaticNextAllowedAt() <= now && profileBudgetNextAt(now) <= now
     }
     fun reserveAutomatic(now: Long = clock()): Boolean = synchronized(lock) {
         if (quickWatchActive() || automationHeld() || manualOnly() || requiresConnection() || automaticNextAllowedAt() > now) return false

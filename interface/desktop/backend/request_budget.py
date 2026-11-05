@@ -1,9 +1,11 @@
 """Bounded rolling local budgets, not claimed Instagram quotas."""
 import math
-from request_defaults import ACCOUNT_BUDGET, DEVICE_BUDGET
+from request_defaults import ACCOUNT_BUDGET, DEVICE_BUDGET, AUTO_PROFILE_PERCENT
 
 SHARED = DEVICE_BUDGET
 ACCOUNT = ACCOUNT_BUDGET
+PROFILE_ACCOUNT = tuple(max(1, limit * AUTO_PROFILE_PERCENT // 100) for limit in ACCOUNT)
+PROFILE_SHARED = tuple(max(1, limit * AUTO_PROFILE_PERCENT // 100) for limit in SHARED)
 # Old vaults may contain more reservations than the new policy permits. Keep
 # them counted until they age out; lowering a quota must never invalidate/reset it.
 MAX_STORED = 4800
@@ -11,7 +13,8 @@ MAX_STORED = 4800
 
 def policy():
     return {'sharedHourly': SHARED[0], 'sharedDaily': SHARED[1],
-            'accountHourly': ACCOUNT[0], 'accountDaily': ACCOUNT[1]}
+            'accountHourly': ACCOUNT[0], 'accountDaily': ACCOUNT[1],
+            'automaticProfilePercent': AUTO_PROFILE_PERCENT}
 
 
 def validate(times, maximum):
@@ -46,6 +49,12 @@ def record(gate, owner, now):
     if owner:
         accounts[owner] = reserve(accounts.get(owner, []), now)
     gate['accountRequestTimes'] = accounts
+
+
+def profile_next_at(gate, owner, now):
+    """Leave headroom for lists and explicit work; never modify the full ledger."""
+    return max(available_at(gate.get('requestTimes', []), now, PROFILE_SHARED),
+               available_at(gate.get('accountRequestTimes', {}).get(owner, []), now, PROFILE_ACCOUNT) if owner else 0)
 
 
 def validate_gate(gate):

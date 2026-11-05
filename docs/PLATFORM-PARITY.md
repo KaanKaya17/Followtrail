@@ -1,6 +1,6 @@
 # Android / Windows eşitlemesi — 5 Kasım 2026
 
-Kaynak sürümleri: Windows **0.2.52**, Android **0.1.81 / 82**. Bu çalışma canlı Instagram girişinin çözüldüğü veya bütün platformların birebir aynı olduğu iddiasını taşımaz.
+Kaynak sürümleri: Windows **0.2.54**, Android **0.1.84 / 85**. Bu çalışma canlı Instagram girişinin çözüldüğü veya bütün platformların birebir aynı olduğu iddiasını taşımaz. İki platformda otomatik profil işleri hareketli bütçenin %80'inde ertelenir; tam bütçe listeler ve elle yapılan işlemlerle ortaktır. Ayarlarda kesintisiz kontrol talebi gösterilir. Windows'a otomatik liste başlangıcında kısa profil paylaşımı eklendi; Android mevcut ListBasis paylaşımını sürdürür. [Verimlilik kapsamı ve doğrulama](API-EFFICIENCY-TEST.md).
 
 ## Ortak kontrol politikası
 

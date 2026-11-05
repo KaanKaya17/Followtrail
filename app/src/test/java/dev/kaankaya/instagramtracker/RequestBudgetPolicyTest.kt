@@ -5,6 +5,19 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class RequestBudgetPolicyTest {
+    @Test fun automaticProfilesLeaveSharedHeadroomWithoutResettingTheLedger() {
+        val count = RequestDefaults.ACCOUNT_HOURLY * RequestDefaults.AUTO_PROFILE_PERCENT / 100
+        val times = List(count) { now }
+        assertEquals(now + RequestBudgetPolicy.HOUR, RequestBudgetPolicy.profileNextAt(times, now, times))
+        assertEquals(0L, RequestBudgetPolicy.nextAt(times, now, times))
+        assertEquals(0L, RequestBudgetPolicy.profileNextAt(times, now, emptyList()))
+        val shared = List(RequestDefaults.DEVICE_HOURLY * RequestDefaults.AUTO_PROFILE_PERCENT / 100) { now }
+        assertEquals(now + RequestBudgetPolicy.HOUR, RequestBudgetPolicy.profileNextAt(shared, now))
+        assertEquals(now + RequestBudgetPolicy.HOUR, RequestBudgetPolicy.profileNextAt(shared, now - 30))
+        assertEquals(0L, RequestBudgetPolicy.nextAt(shared, now))
+        val daily = List(RequestDefaults.ACCOUNT_DAILY * RequestDefaults.AUTO_PROFILE_PERCENT / 100) { now - 2 * RequestBudgetPolicy.HOUR }
+        assertEquals(now + 22 * RequestBudgetPolicy.HOUR, RequestBudgetPolicy.profileNextAt(daily, now, daily))
+    }
     private val now = 2_000_000_000_000L
     @Test fun oneAccountBudgetDoesNotSpendAnotherAccountsReservationsButDeviceStillBoundsBoth() {
         val first = List(RequestDefaults.ACCOUNT_HOURLY) { now }

@@ -5,6 +5,17 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ListAutomationTest {
+    @Test fun profileHeadroomDefersProfilesButStillDispatchesListPages() {
+        val account = saved().copy(people=saved().people.map { it.copy(watching=true,nextCheckAt=1000) })
+        val archive = ListArchive(account.session.userId, account.session.connectionBinding)
+        val now = 10000L
+        assertNull(AutomaticQueue.next(account.copy(automation=ListAutomation()),archive,now,
+            ownEnabled=true,ownIntervalMillis=1000,profileAllowedAt=now+1000))
+        val lists = account.copy(automation=ListAutomation(true,setOf("200")))
+        assertTrue(AutomaticQueue.next(lists,archive,now,preferProfile=true,profileAllowedAt=now+1000) is AutomaticTask.Page)
+        assertTrue(AutomaticQueue.next(account.copy(automation=ListAutomation()),archive,now+1000,
+            profileAllowedAt=now+1000) is AutomaticTask.Person)
+    }
     @Test fun ownProfileIntervalRequiresExplicitBackgroundPermissionAndDoesNotEnableLists() {
         val account = saved().copy(people=emptyList(),automation=ListAutomation())
         val archive = ListArchive(account.session.userId,account.session.connectionBinding)

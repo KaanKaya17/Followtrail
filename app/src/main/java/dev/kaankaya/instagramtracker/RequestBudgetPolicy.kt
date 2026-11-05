@@ -16,6 +16,11 @@ object RequestBudgetPolicy {
     fun nextAt(times: List<Long>, now: Long, account: List<Long> = emptyList()): Long = maxOf(
         availableAt(times, now, RequestDefaults.DEVICE_HOURLY, RequestDefaults.DEVICE_DAILY),
         availableAt(account, now, RequestDefaults.ACCOUNT_HOURLY, RequestDefaults.ACCOUNT_DAILY))
+    fun profileNextAt(times: List<Long>, now: Long, account: List<Long> = emptyList()): Long = maxOf(
+        availableAt(times, now, RequestDefaults.DEVICE_HOURLY * RequestDefaults.AUTO_PROFILE_PERCENT / 100,
+            RequestDefaults.DEVICE_DAILY * RequestDefaults.AUTO_PROFILE_PERCENT / 100),
+        availableAt(account, now, RequestDefaults.ACCOUNT_HOURLY * RequestDefaults.AUTO_PROFILE_PERCENT / 100,
+            RequestDefaults.ACCOUNT_DAILY * RequestDefaults.AUTO_PROFILE_PERCENT / 100))
     fun ownerKey(owner: String): String = java.security.MessageDigest.getInstance("SHA-256")
         .digest(InstagramIdentity.id(owner).toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
     fun reserve(times: List<Long>, now: Long) = (times.filter { it > now - DAY } + now).sorted()

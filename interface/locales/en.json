@@ -1228,5 +1228,6 @@
   "Silmek için kayıtlı bir profil seç.": "Select a saved profile to delete.",
   "Günlük istatistikler": "Daily statistics",
   "Hesabının son kontrolü": "Your account last checked",
-  "Sıradaki otomatik işlem": "Next automatic task"
+  "Sıradaki otomatik işlem": "Next automatic task",
+  "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Continuous profile checking: about {0} requests/day · local profile allowance {1}."
 }
