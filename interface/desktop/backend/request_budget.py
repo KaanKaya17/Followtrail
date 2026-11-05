@@ -8,7 +8,7 @@ PROFILE_ACCOUNT = tuple(max(1, limit * AUTO_PROFILE_PERCENT // 100) for limit in
 PROFILE_SHARED = tuple(max(1, limit * AUTO_PROFILE_PERCENT // 100) for limit in SHARED)
 # Old vaults may contain more reservations than the new policy permits. Keep
 # them counted until they age out; lowering a quota must never invalidate/reset it.
-MAX_STORED = 4800
+MAX_STORED = max(4800, SHARED[1])
 
 
 def policy():

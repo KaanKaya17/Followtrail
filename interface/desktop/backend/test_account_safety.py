@@ -140,7 +140,7 @@ class AccountSafetyTests(unittest.TestCase):
 
     def test_budget_deadlines_rolling_day_clock_rollback_and_pruning(self):
         now=self.now[0]
-        self.assertEqual(request_budget.available_at([now-7200]*2400,now,request_budget.ACCOUNT),now-7200+86400)
+        self.assertEqual(request_budget.available_at([now-7200]*request_budget.ACCOUNT[1],now,request_budget.ACCOUNT),now-7200+86400)
         self.assertEqual(request_budget.available_at([now]*240,now-1,request_budget.ACCOUNT),now+3600)
         self.assertEqual(request_budget.available_at([now-3600]*240,now,request_budget.ACCOUNT),0)
         gate={'requestTimes':[now-86400],'accountRequestTimes':{'100':[now-86400]}}

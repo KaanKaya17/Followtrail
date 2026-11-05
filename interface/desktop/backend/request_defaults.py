@@ -1,7 +1,7 @@
 # Generated from design/request-policy.json; run node interface/scripts/generate-request-policy.mjs.
 REQUEST_SPACING = (6, 10)
-ACCOUNT_BUDGET = (120, 1200)
-DEVICE_BUDGET = (240, 2400)
+ACCOUNT_BUDGET = (120, 3000)
+DEVICE_BUDGET = (240, 6000)
 AUTO_PROFILE_PERCENT = 80
 PROFILE_BASIS_SECONDS = 60
 DEFAULT_INTERVAL_MINUTES = 5

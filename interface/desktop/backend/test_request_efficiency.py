@@ -10,6 +10,20 @@ import request_budget
 
 
 class EfficiencyTests(unittest.TestCase):
+    def test_full_device_day_is_retained_and_blocks_before_an_extra_reservation(self):
+        now = self.now[0]
+        count = request_budget.SHARED[1]
+        times = [now - 7200] * count
+        gate = self.engine.data['gate']
+        gate.update(requestTimes=times.copy(), accountRequestTimes={
+            '100':times[:count // 2], '200':times[count // 2:]})
+        request_budget.validate_gate(gate)
+        with self.assertRaises(AppFailure) as failure: self.engine.before_request()
+        self.assertEqual(failure.exception.code, 'budget')
+        self.assertEqual(len(gate['requestTimes']), count)
+        self.assertEqual(sum(map(len, gate['accountRequestTimes'].values())), count)
+        self.assertEqual(request_budget.next_at(gate, '100', now), now + 79200)
+
     def setUp(self):
         self.home = tempfile.TemporaryDirectory(prefix='TrackerQA-')
         self.addCleanup(self.home.cleanup)

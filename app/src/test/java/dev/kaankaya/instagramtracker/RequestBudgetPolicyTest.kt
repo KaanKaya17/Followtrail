@@ -5,6 +5,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class RequestBudgetPolicyTest {
+    @Test fun fullDeviceDayRoundtripsWithoutTruncatingAccountReservations() {
+        val count = RequestDefaults.DEVICE_DAILY
+        val times = List(count) { now - 2 * RequestBudgetPolicy.HOUR }
+        assertEquals(count, RequestBudgetCodec.times(org.json.JSONArray(times)).size)
+        val accounts = mapOf(RequestBudgetPolicy.ownerKey("100") to times.take(count / 2),
+            RequestBudgetPolicy.ownerKey("200") to times.drop(count / 2))
+        assertEquals(accounts, RequestBudgetCodec.accounts(RequestBudgetCodec.encode(accounts)))
+        assertEquals(now + 22 * RequestBudgetPolicy.HOUR, RequestBudgetPolicy.nextAt(times, now))
+        assertThrows(Exception::class.java) { RequestBudgetCodec.times(org.json.JSONArray(times + now)) }
+    }
     @Test fun automaticProfilesLeaveSharedHeadroomWithoutResettingTheLedger() {
         val count = RequestDefaults.ACCOUNT_HOURLY * RequestDefaults.AUTO_PROFILE_PERCENT / 100
         val times = List(count) { now }
@@ -28,7 +38,7 @@ class RequestBudgetPolicyTest {
     }
     @Test fun largerLegacyHistoryRemainsCountedAfterLoweringTheQuota() {
         val legacy = List(4000) { now - RequestBudgetPolicy.HOUR * 2 }
-        assertEquals(now + RequestBudgetPolicy.HOUR * 22, RequestBudgetPolicy.nextAt(legacy, now))
+        assertEquals(now + RequestBudgetPolicy.HOUR * 22, RequestBudgetPolicy.nextAt(legacy, now, legacy))
         assertEquals(legacy.size + 1, RequestBudgetPolicy.reserve(legacy, now).size)
         assertEquals(emptyList<Long>(), RequestBudgetPolicy.reserve(legacy, now + RequestBudgetPolicy.DAY).dropLast(1))
     }
