@@ -140,7 +140,7 @@ class PhoneLoginFlowTest {
         val ready = client(t).login("own", password) as PhoneLoginResult.Ready
         assertTrue(password.all { it == '\u0000' }); assertEquals("123", ready.session.owner); assertEquals(5L, ready.profile.followers)
         MobileSessionCodec.decode(MobileSessionCodec.encode(ready.session))
-        assertEquals(7, t.requests.size); assertTrue(t.times.zipWithNext().all { (a, b) -> b - a >= 15_000 })
+        assertEquals(7, t.requests.size); assertTrue(t.times.zipWithNext().all { (a, b) -> b - a >= RequestDefaults.MIN_SPACING_MS })
         assertEquals("b.i.instagram.com", t.requests.first().url.host)
         assertEquals(start + MonitorPolicy.POLL_MS, gate.nextPrototypeAt())
         assertEquals(old, vault.read()); assertFalse(sessions.exists())
@@ -192,7 +192,7 @@ class PhoneLoginFlowTest {
         assertEquals("csrftoken=private-csrf", password.header("Cookie"))
         assertEquals("private-mid", password.header("X-MID")); assertEquals("private-claim", password.header("X-IG-WWW-Claim"))
         assertEquals("private-csrf", ready.session.cookies["csrftoken"])
-        assertEquals(7, t.requests.size); assertTrue(t.times.zipWithNext().all { (a, b) -> b - a >= 15_000 })
+        assertEquals(7, t.requests.size); assertTrue(t.times.zipWithNext().all { (a, b) -> b - a >= RequestDefaults.MIN_SPACING_MS })
         assertEquals(old, vault.read()); assertFalse(sessions.exists())
     }
     @Test fun restrictionAndUnsupportedResponseStopWithoutAlternateRoutesOrAccountChanges() {

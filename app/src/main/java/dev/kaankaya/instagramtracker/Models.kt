@@ -16,7 +16,7 @@ data class SavedAccount(val session: Session, val profile: Profile, val people: 
     val automation: ListAutomation = ListAutomation())
 
 data class TrackedPerson(val history: List<Profile>, val note: String = "", val group: String = "",
-    val watching: Boolean = false, val intervalMinutes: Int = 15, val nextCheckAt: Long = 0, val favorite: Boolean = false) {
+    val watching: Boolean = false, val intervalMinutes: Int = RequestDefaults.DEFAULT_INTERVAL_MINUTES, val nextCheckAt: Long = 0, val favorite: Boolean = false) {
     val latest: Profile get() = history.last()
 }
 

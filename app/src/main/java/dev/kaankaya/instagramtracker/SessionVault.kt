@@ -53,6 +53,10 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     val visual get()=VisualHistoryStore(context,storage())
     val journal get()=CheckJournal(context,"${storage()}checks")
     val privacy get()=PrivacyStore(context,storage())
+    internal fun storyStore(session: Session): StoryArchiveStore = synchronized(lock) {
+        if (catalog != null && currentOwner() != session.userId) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        StoryArchiveStore(context,session.userId,storage())
+    }
     private fun lists()=if(slot=="account")FollowListVault(context,owner=currentOwner()) else FollowListVault(context,if(slot=="previewaccount")"previewlists" else storage()+"lists")
     fun record(session: Session, event: CheckEvent) = synchronized(lock) {
         val current = try { read() } catch (_: Exception) { null }
@@ -98,6 +102,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
             daily.observe(saved,null)
             daily.prune(saved.session.userId,policy.dailyBefore(now))
             visual.prune(saved.session.userId,policy.historyBefore(now))
+            storyStore(saved.session).prune(policy.historyBefore(now))
             journal.prune(saved.session,policy.historyBefore(now))
             lists().prunePast(saved.session,policy.historyBefore(now))
             val retained=policy.retain(saved,now)
@@ -118,6 +123,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
         val person=current.people.firstOrNull {it.latest.userId==target} ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
         daily.clear(expected.userId,target,maxOf(System.currentTimeMillis(),person.latest.observedAt))
         visual.clear(expected.userId,target)
+        storyStore(expected).clearTarget(target)
         journal.clearTarget(expected,target)
         followLists.clearTarget(expected,target)
         AvatarCache(context,if(slot=="previewaccount")"previewavatars" else "avatars").clear(expected.userId,target)
@@ -166,6 +172,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
             FollowListVault(context,owner=id).clear()
             check(context.getSharedPreferences("account_flags_"+AccountCatalog.slot(id),Context.MODE_PRIVATE).edit().clear().commit())
         }
+        StoryArchiveStore.clearNamespace(context,storage())
         record.clear()
         journal.clear()
         visual.clearAll()

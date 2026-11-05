@@ -12,7 +12,7 @@ class ForegroundListScanTest {
     private val lists = FollowListVault(context, "forelists")
     private val preferences = context.getSharedPreferences("foregate", 0)
     private val session = Session("100", "", "synthetic", "a".repeat(32))
-    private fun gate() = RequestGate(context, "foregate")
+    private fun gate() = RequestGate(context, "foregate", System::currentTimeMillis, { RequestDefaults.MAX_SPACING_MS })
     private var now = System.currentTimeMillis()
     private var count = 0
     private var pause: () -> Unit = {}
@@ -41,7 +41,7 @@ class ForegroundListScanTest {
         val before = vault.read(); val starts = mutableListOf<Long>(); val progress = mutableListOf<Int>()
         val result = scan { cursor -> starts += now; page(cursor, (if (cursor == null) 1..50 else 51..100).map { it.toString() }, if (cursor == null) "second" else null) }
             .read(session, "200", FollowDirection.FOLLOWERS, null, cancelled = { cancelled }, progress = { progress += it.followers!!.users.size })
-        assertEquals(listOf(50, 100), progress); assertEquals(15000L, starts[1] - starts[0]); assertEquals(2, count)
+        assertEquals(listOf(50, 100), progress); assertEquals(RequestDefaults.MAX_SPACING_MS, starts[1] - starts[0]); assertEquals(2, count)
         assertEquals(FollowCoverage.END_OBSERVED, result.followers!!.coverage()); assertEquals(before, vault.read())
         assertEquals(result, FollowListVault(context, "forelists").read(session, "200"))
     }

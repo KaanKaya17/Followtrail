@@ -8,7 +8,7 @@ Son 6 arama sorgusunun başarılı aday sonuçları 60 saniye tekrar kullanılab
 
 ## Windows 0.2.48 / Android 0.1.77 saklama ve silme
 
-Hesap başına ayrıntılı geçmiş ve günlük istatistikler için ayrı süre tercihleri eklendi. Varsayılan kayıtları kullanıcı silene kadar korur; 30/90/365 gün seçenekleri onayla uygulanır. Güncel profil ve son liste karşılaştırma kaydı korunur. Kaydedilen profili kaldırmak ilgili günlük/görsel/olay/liste arşivlerini de siler; Windows hikâyeleri dahildir. Başka hesapların liste üyeliği ve dışa aktarılan kopyalar bu kapsamın dışındadır.
+Hesap başına ayrıntılı geçmiş ve günlük istatistikler için ayrı süre tercihleri eklendi. Varsayılan kayıtları kullanıcı silene kadar korur; 30/90/365 gün seçenekleri onayla uygulanır. Güncel profil ve son liste karşılaştırma kaydı korunur. Kaydedilen profili kaldırmak ilgili günlük/görsel/olay/liste arşivlerini de siler; Windows ve Android hikâye arşivleri dahildir. Başka hesapların liste üyeliği ve dışa aktarılan kopyalar bu kapsamın dışındadır.
 
 Android geçici disk küçük resimleri de Keystore/AES-GCM ile şifrelenir. Eski düz küçük resimlerin temizliği, temizlik başarısızlığı/tekrar deneme davranışı, silme sınırları, veri envanteri ve hukuki açık işler [yerel veri yaşam döngüsünde](DATA-LIFECYCLE.md) açıklanır. Önceki bölümlerdeki süresiz günlük arşiv ifadesi artık **varsayılan tercih** için geçerlidir.
 
@@ -193,3 +193,7 @@ Liste kayıtlarını temizleme bütün liste başlangıçlarını ve liste farkl
 Kayıtlı profil panelindeki hikâye arşivi yalnız kullanıcı **Hikâyeleri kontrol et** dediğinde okur; arka plan hikâye taraması yoktur. Erişilebilir hikâye kimliği/tarihleri, medya ve varsa etiket/bağlantı/konum/hashtag/gönderi referansları hesabın ayrı Windows DPAPI arşivinde saklanır. Ham API yanıtları ve süresi dolabilen CDN adresleri arşive veya arayüze gönderilmez. Fotoğraf/video yalnız kullanıcı açınca bellekte çözülür; paylaşım sunucusu, bulut/OCR/AI servisi kullanılmaz. Meta CDN indirmeleri IP/standart ağ bilgisini Meta'ya iletir, oturum çerezi/yetkilendirme başlığı taşımaz. Kullanıcının seçtiği dış bağlantı normal tarayıcıda açılır. Görüldü, yanıt, beğeni veya oy isteği gönderilmez; canlı izleyenler listesi davranışı henüz doğrulanmadı.
 
 Arşiv hesap başına 200 kayıt/256 MiB, dosya başına 16 MiB ile sınırlıdır; kendiliğinden geçmiş silmez. Arşivi temizle seçilen profil hikâyelerini, hesabı tamamen sil hesabın bütün hikâyelerini temizler. Hikâyeler mevcut gözlem yedeğine dahil değildir. [Test ve kapsam](STORY-ARCHIVE-TEST.md).
+
+## Android 0.1.81 hikâye arşivi
+
+Android arşivi, hesap başına Keystore/AES-GCM şifreli indeks ve medya dosyaları kullanır. Medya noBackupFilesDir/storymedia hesap alanında saklanır, oynatma için şifresiz geçici dosya/dış uygulama kullanılmaz. Kayıtlı profili kaldırma, hesabı silme ve ayrıntılı geçmiş saklama süresi hikâye kayıtlarını da kapsar. Arşiv elle başlatılan onaylı kontrolde, yalnız mevcut hesabın erişebildiği hikâyeleri okur; görüldü/beğeni/yanıt göndermez. CDN adresleri indekse yazılmaz ve CDN isteğine oturum çerezi taşınmaz. Teknik sınır ve doğrulama kapsamı [platform eşitlemesinde](PLATFORM-PARITY.md) açıklanır.

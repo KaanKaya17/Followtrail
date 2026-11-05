@@ -2,6 +2,15 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {Backend} = require('./service.cjs');
 
+test('All published and requested states use the owning Electron package version',async()=>{
+  const events=[];
+  const backend=new Backend({appVersion:'0.2.52',onEvent:event=>events.push(event)});
+  backend.message({type:'ready',state:{settings:{},version:'obsolete'}});
+  assert.equal((await backend.command('state',{})).state.version,'0.2.52');
+  backend.message({type:'state',state:{settings:{}}});
+  assert.equal(events.at(-1).state.version,'0.2.52');
+});
+
 test('Cancellation intent survives late worker progress until operation result',async()=>{
   const events=[], writes=[];
   const backend=new Backend({onEvent:event=>events.push(event)});

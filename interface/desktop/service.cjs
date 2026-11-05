@@ -1,6 +1,7 @@
 const { spawn } = require("node:child_process");
 class Backend {
-  constructor({ executable, dataDir, onEvent, offline = false }) {
+  constructor({ executable, dataDir, onEvent, offline = false, appVersion = null }) {
+    this.appVersion = appVersion;
     this.offline = offline;
     this.executable = executable;
     this.dataDir = dataDir;
@@ -99,6 +100,8 @@ class Backend {
                 entry.desktopEligible,
             )
           : []);
+      // Package identity belongs to Electron; the worker must not duplicate it.
+      if (this.appVersion !== null) message.state = {...message.state, version:this.appVersion};
       this.state = message.state;
       this.onNotifications?.(entries);
     }

@@ -6,7 +6,7 @@ import okhttp3.Request
 
 /** Exact transport contracts. A trusted host alone never authorizes a write. */
 object AccountRequestPolicy {
-    private val read = Regex("/api/v1/(users/([1-9][0-9]{0,29}/info|[A-Za-z0-9._]{1,30}/usernameinfo)|friendships/[1-9][0-9]{0,29}/(followers|following))/")
+    private val read = Regex("/api/v1/(users/([1-9][0-9]{0,29}/info|[A-Za-z0-9._]{1,30}/usernameinfo)|friendships/[1-9][0-9]{0,29}/(followers|following)|feed/user/[1-9][0-9]{0,29}/story)/")
     private fun address(url: String): URI? = try {
         URI(url).takeIf { it.scheme == "https" && it.rawUserInfo == null && it.port in listOf(-1, 443) &&
             it.fragment == null && !it.rawPath.contains('%') && !it.rawPath.contains("..") && !it.rawPath.contains('\\') }

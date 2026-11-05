@@ -4,7 +4,7 @@
     <string name="web_compare_browser">A · Verify inside browser</string>
     <string name="web_compare_native">B · Connect with app</string>
     <string name="web_compare_reading">A · Reading the profile in the same browser session…</string>
-    <string name="web_compare_browser_success">A succeeded · %1$s followers · %2$s following. The account is not connected to the app yet. Press B once when the request interval of about 15 seconds ends.</string>
+    <string name="web_compare_browser_success">A succeeded · %1$s followers · %2$s following. The account is not connected yet. Press B once when the %3$d–%4$d second request interval ends.</string>
     <string name="web_compare_native_ready">A succeeded. B is ready; no request was sent automatically. Press B once to continue.</string>
     <string name="web_compare_cancelled">Connection comparison stopped after navigating or leaving the app. This does not establish a new connection. Review the result in Request information.</string>
     <string name="web_compare_journal_failed">Could not read or write web connection diagnostics.</string>

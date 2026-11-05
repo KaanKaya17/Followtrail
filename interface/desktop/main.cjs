@@ -281,6 +281,7 @@ else
       executable: worker,
       dataDir,
       onEvent: send,
+      appVersion: app.getVersion(),
       offline: !!testHome,
     });
     ipcMain.handle("tracker:command", async (event, operation, args = {}) => {

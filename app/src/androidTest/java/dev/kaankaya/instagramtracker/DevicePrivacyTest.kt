@@ -86,7 +86,7 @@ class DevicePrivacyTest {
             assertFalse(gate.reserveAutomatic(gate.blockedUntil() + 1))
             gate.succeeded()
             assertTrue(gate.reserveAutomatic(now)); assertFalse(gate.reserveAutomatic(now + 16000))
-            assertTrue(gate.reserveAutomatic(now + RequestGate.AUTO_INTERVAL_MS))
+            assertTrue(gate.reserveAutomatic(now + gate.monitorIntervalMillis()))
         } finally { settings.edit().clear().commit() }
     }
 }

@@ -1,5 +1,15 @@
 # Değişiklikler
 
+## Windows 0.2.52 / Android 0.1.81 — 2026-11-05
+
+- Ortak JSON kaynağından üretilen 6–10 saniye istek rezervasyonu, hesap başına 120/1200 ve cihaz başına 240/2400 saat/gün bütçeleri; mevcut deneme kayıtları ve uzun molalar korunur. Android hesap bütçesi ayrıldı, bilinmeyen kimlikli giriş yanlış seçili hesaba yazılmaz.
+- Ortak kontrol seçenekleri ve yeni 5 dakika varsayılanı. Android kendi hesabının aralığı ve ayrı arka plan tercihi eklendi; sistemin 15 dakika veya daha geç çalışabilme sınırı devam eder. Mevcut tercihler zorla açılmaz.
+- Android'e şifreli yerel hikâye arşivi, ay geçişli takvim, gün görüntüleyicisi, fotoğraf/video ve bilinen etiket/bağlantı/paylaşılan içerik bilgileri eklendi. Açılış yereldir; okuma yalnız kullanıcı onayıyla yapılır. Görüldü/beğeni/yanıt işlemi yoktur. Saklama, profil/hesap silme ve iptal akışları arşivi kapsar.
+- Windows sayı uyuşmazlığıyla biten aynı listeyi yarım saatte bir yeniden okumaz; günlük hedef veya yeni profil sayısı kanıtı beklenir. Kısmi kayıtlar/başlangıç listesi korunur. Hikâye ilk yakalanma zamanı ve tekrar sahipliği kontrolü düzeltildi; Ayarlar sürümü çalışan Electron paketinden gelir.
+- Android 167 JVM testi geçti; lint 0 hata / 54 uyarı. İmzalı release APK ve instrumentasyon APK’sı derlendi; manifest/mimari doğrulama geçti. Cihaz testleri çalıştırılmadı. Bozuk hesap kaydının arşiv silmesini engelleyen bağımlılık kaldırıldı.
+- Çevrimdışı doğrulama: Python 271, JavaScript 69, paketli Windows 36 işlev + 7 hikâye senaryosu geçti. Dört dilde 783 Android kaynağı tutarlı. Gerçek hesap kasası kullanılmadı, Instagram isteği gönderilmedi.
+- [Eşitleme, kalan farklar ve doğrulama kapsamı](docs/PLATFORM-PARITY.md). Android cihaz/görsel/video ve canlı giriş testi ertelendi; telefon bağlantısının çözüldüğü iddiası yoktur.
+
 ## Android 0.1.80 — 2026-11-04 (Masaüstü web girişinden profil okumaya geçiş)
 
 - Profil/liste/arama web GET isteklerinin ortak uygulama kimliği, giriş ekranının masaüstü UA biçimiyle eşleştirildi. Instagram'ın oturumsuz resmî giriş sayfasındaki `CurrentUserInitialData.APP_ID` gözlemi `936619743392459`; önceki sabit `1217981644879628` idi. [Birincil kaynak gözlemi ve test sınırı](docs/ANDROID-WEB-APP-ID.md).

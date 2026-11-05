@@ -33,7 +33,7 @@
     <string name="timeline_open_profile">Profili aç</string>
     <string name="timeline_unavailable">İşlem geçmişi açılamadı. Profil ve liste kayıtları ayrı tutulur.</string>
     <string name="timeline_write_failed">Son işlem geçmişe yazılamadı; profil ve liste kayıtlarını ayrıca kontrol edebilirsin.</string>
-    <string name="adaptive_scope">Önce profil sayıları kontrol edilir. Sayı değiştiğinde ilgili liste öne alınır; tamamlanmış listelerde günlük kontrol de korunur. Sayı aynı kalsa da kişiler değişebilir. Bir arka plan turu en fazla altı istek ve 90 saniyelik başlatma penceresi kullanır; istekler en az 15 saniye aralıklıdır. Android geciktirebilir. Hızlı izleme yalnız uygulama görünürken çalışır ve ilk hatada durur; 429 molaları korunur.</string>
+    <string name="adaptive_scope">Profil sayıları önce kontrol edilir; sayı değişince ilgili liste öne alınır. Sayı aynı kalsa da kişiler değişebileceği için günlük kontrol korunur. Bir arka plan turu en fazla 6 istek ve 90 saniyelik başlatma penceresi kullanır. Yeni istek rezervasyonları 6–10 saniye aralıklıdır; mevcut daha uzun bekleme korunur. Android geciktirebilir. Hızlı izleme yalnız uygulama görünürken çalışır ve ilk hatada durur.</string>
     <string name="journal_privacy">Kontrol geçmişi bu cihazda şifrelenir. En fazla 2000 kayıt, 2 MB sınırı içinde tutulur; parola ve ham yanıt kaydedilmez.</string>
     <plurals name="timeline_member_sample">
         <item quantity="one">Geçmişte her yöndeki ilk %1$d hesap saklanır; toplam fark sayısı yukarıdadır. Son okumanın tüm kayıtlarına liste ekranından ulaşabilirsin.</item>

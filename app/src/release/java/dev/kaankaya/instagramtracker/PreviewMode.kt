@@ -5,6 +5,8 @@ import android.content.Context
 
 /** Production builds cannot enable the debug preview or synthetic transport. */
 object PreviewMode {
+    @Suppress("UNUSED_PARAMETER")
+    fun seedStories(context: Context, enabled: Boolean, account: SavedAccount, store: StoryArchiveStore, target: String) = Unit
     fun avatarFetcher(@Suppress("UNUSED_PARAMETER") enabled: Boolean): AvatarFetcher = CdnAvatarFetcher()
     fun sync(@Suppress("UNUSED_PARAMETER") context: Context, @Suppress("UNUSED_PARAMETER") account: SavedAccount?,
         @Suppress("UNUSED_PARAMETER") gate: RequestGate) = false

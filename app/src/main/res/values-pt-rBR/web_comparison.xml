@@ -5,7 +5,7 @@
     <string name="web_compare_browser">A · Verifique dentro do navegador</string>
     <string name="web_compare_native">B · Conecte-se com o aplicativo</string>
     <string name="web_compare_reading">A · Lendo o perfil na mesma sessão do navegador…</string>
-    <string name="web_compare_browser_success">Um sucesso · %1$s seguidores · %2$s seguidores. A conta ainda não está conectada ao aplicativo. Pressione B uma vez quando o intervalo de solicitação de cerca de 15 segundos terminar.</string>
+    <string name="web_compare_browser_success">A concluído · %1$s seguidores · %2$s seguindo. A conta ainda não está conectada. Toque em B uma vez após o intervalo de %3$d–%4$d segundos.</string>
     <string name="web_compare_native_ready">Um sucesso. B está pronto; nenhuma solicitação foi enviada automaticamente. Pressione B uma vez para continuar.</string>
     <string name="web_compare_cancelled">A comparação de conexão foi interrompida após navegar ou sair do aplicativo. Isso não estabelece uma nova conexão. Revise o resultado em Solicitar informações.</string>
     <string name="web_compare_journal_failed">Não foi possível ler ou gravar diagnósticos de conexão da Web.</string>

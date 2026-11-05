@@ -33,7 +33,7 @@
     <string name="timeline_open_profile">Open profile</string>
     <string name="timeline_unavailable">Could not open check history. Profile and list records are stored separately.</string>
     <string name="timeline_write_failed">The last action could not be added to history; check profile and list records separately.</string>
-    <string name="adaptive_scope">Profile counts are checked first. A count change prioritizes the relevant list; completed lists also retain a daily check. People can change even when counts stay the same. A background round uses up to six requests and a 90-second window for starting requests, at least 15 seconds apart. Android may delay work. Quick watch only runs while the app is visible and stops on the first error; 429 cooldowns are preserved.</string>
+    <string name="adaptive_scope">Profile counts are checked first; changes prioritize the relevant list. Daily checks remain because membership can change without a count change. A background round allows up to 6 requests within a 90-second start window. New reservations are 6–10 seconds apart; existing longer waits are preserved. Android may delay work. Quick watch only runs while the app is visible and stops on the first error.</string>
     <string name="journal_privacy">Check history is encrypted on this device. Up to 2,000 records are retained within a 2 MB limit; passwords and raw responses are not recorded.</string>
     <plurals name="timeline_member_sample">
         <item quantity="one">History retains the first %1$d account in each direction; total differences are shown above. Open the list screen for all retained records from the latest read.</item>

@@ -28,7 +28,7 @@ data class ListPageCommit(val target: ListTarget, val difference: ListDifference
 
 object ListAutomationPolicy {
     const val RESCAN_MS = 24 * 60 * 60 * 1000L
-    const val OWN_PROFILE_MS = MonitorPolicy.POLL_MS
+    const val OWN_PROFILE_MS = RequestDefaults.DEFAULT_INTERVAL_MINUTES * 60_000L
     /** A restricted committed run needs an explicit retry. Reconnecting resets its scan state. */
     fun coverageHeld(target: ListTarget, direction: FollowDirection): Boolean {
         val state = target.scan(direction)
@@ -88,12 +88,15 @@ object AutomaticQueue {
         return AutomaticTask.Page(target.target, dueAt, direction, if (state.continuing && run != null && now - run.latest.observedAt < ListAutomationPolicy.RESCAN_MS) run.cursor() else null,
             run?.latest?.observedAt, basis)
     }
-    fun next(account: SavedAccount, archive: ListArchive, now: Long, preferProfile: Boolean = false): AutomaticTask? {
+    fun next(account: SavedAccount, archive: ListArchive, now: Long, preferProfile: Boolean = false,
+        ownIntervalMillis: Long = ListAutomationPolicy.OWN_PROFILE_MS, ownEnabled: Boolean = false): AutomaticTask? {
         require(archive.matches(account.session))
+        require(ownIntervalMillis > 0)
         val tasks = account.people.filter { it.watching }.map { AutomaticTask.Person(it.latest.userId, it.nextCheckAt) }.toMutableList<AutomaticTask>()
+        if (ownEnabled || account.automation.enabled && account.session.userId in account.automation.targets)
+            tasks += AutomaticTask.Own(account.session.userId,
+                maxOf(account.automation.ownNextCheckAt, account.profile.observedAt + ownIntervalMillis))
         if (account.automation.enabled) {
-            if (account.session.userId in account.automation.targets) tasks += AutomaticTask.Own(account.session.userId,
-                maxOf(account.automation.ownNextCheckAt, account.profile.observedAt + ListAutomationPolicy.OWN_PROFILE_MS))
             for (id in account.automation.targets) for (direction in FollowDirection.entries) {
                 val target = archive.targets.firstOrNull { it.target == id } ?: ListTarget(id)
                 val profile = if (id == account.profile.userId) account.profile else account.people.first { it.latest.userId == id }.latest

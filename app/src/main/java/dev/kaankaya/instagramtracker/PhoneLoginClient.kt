@@ -54,16 +54,16 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
     private fun slot() {
         current()
         if (gate.blockedUntil() > runtime.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
-        if (gate.budgetNextAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
-        if (first && gate.nextPrototypeAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        if (gate.budgetNextAt(account = null) > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
+        if (first && gate.nextPrototypeAt(null) > runtime.now()) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
         var lastSecond = -1L
-        while (gate.nextAllowedAt() > runtime.now()) {
+        while (gate.nextAllowedAt(null) > runtime.now()) {
             current()
             if (gate.blockedUntil() > runtime.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
-            if (gate.budgetNextAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
-            val second = (gate.nextAllowedAt() - runtime.now() + 999) / 1000
+            if (gate.budgetNextAt(account = null) > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
+            val second = (gate.nextAllowedAt(null) - runtime.now() + 999) / 1000
             if (lastSecond != second) { progress(step, second); lastSecond = second }
-            if (!runtime.pause(minOf(250, gate.nextAllowedAt() - runtime.now()), { cancelled })) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+            if (!runtime.pause(minOf(250, gate.nextAllowedAt(null) - runtime.now()), { cancelled })) throw ApiFailure(ApiFailure.Kind.CANCELLED)
         }
         current(); progress(step, 0)
     }
@@ -73,7 +73,7 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
         slot(); gate.claim().use {
             current()
             if (calls >= 18) throw PhoneLoginFailure(PhoneLoginFailure.Reason.EXPIRED)
-            if (first) { gate.beginPrototype(); first = false } else gate.begin()
+            if (first) { gate.beginPrototype(account = null); first = false } else gate.begin(account = null)
             calls++
             diagnostic = PhoneLoginDiagnostic(operation)
             val attemptedAt = runtime.now()
@@ -203,7 +203,7 @@ class PhoneLoginClient(private val context: Context, private val gate: RequestGa
             if (contact.isBlank() || contact.length > 254 || contact.any { it.code < 32 } || password.isEmpty() || password.size > 1024)
                 throw PhoneLoginFailure(PhoneLoginFailure.Reason.INPUT)
             if (gate.blockedUntil() > runtime.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
-            if (gate.nextPrototypeAt() > runtime.now()) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+            if (gate.nextPrototypeAt(null) > runtime.now()) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
             username = contact.trim(); expires = runtime.elapsed() + 10 * 60_000
             device = try { PhoneIdentity.load(context, identitySlot) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
             register()

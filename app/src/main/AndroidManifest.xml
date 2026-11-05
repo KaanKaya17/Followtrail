@@ -19,6 +19,7 @@
         <activity android:name=".UsageNotesActivity" android:exported="false" />
         <activity android:name=".DailyStatsActivity" android:exported="false" />
         <activity android:name=".VisualHistoryActivity" android:exported="false" />
+        <activity android:name=".StoryArchiveActivity" android:exported="false" />
         <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>

@@ -18,10 +18,7 @@ from network import AppFailure, avatar_url
 from profile_links import web_url
 from storage import StorageFailure, atomic_write, protect
 
-MAX_MEDIA = 16 * 1024 * 1024
-MAX_BYTES = 256 * 1024 * 1024
-MAX_ITEMS = 200
-MAX_INDEX = 2 * 1024 * 1024
+from story_limits import MAX_MEDIA, MAX_BYTES, MAX_ITEMS, MAX_INDEX, MAX_PIXELS, MAX_SIDE
 
 
 def identity(value):
@@ -92,11 +89,11 @@ def parse(payload, target):
         if not isinstance(item,dict) or not source_id(item.get('pk')):
             raise AppFailure('story_response', 'Hikâye yanıtı okunamadı. Önceki kayıtlar korundu.')
         pk = source_id(item['pk'])
+        if isinstance(item.get('user'),dict) and source_id(item['user'].get('pk')) != target:
+            raise AppFailure('identity', 'Hikâyeyi paylaşan hesap doğrulanamadı.')
         if pk in seen:
             continue
         seen.add(pk)
-        if isinstance(item.get('user'),dict) and source_id(item['user'].get('pk')) != target:
-            raise AppFailure('identity', 'Hikâyeyi paylaşan hesap doğrulanamadı.')
         kind = {1:'image',2:'video'}.get(item.get('media_type'),'unsupported') if type(item.get('media_type')) is int else 'unsupported'
         if kind == 'video':
             candidates = item.get('video_versions')
@@ -106,7 +103,7 @@ def parse(payload, target):
             candidates = []
         candidates = candidates if isinstance(candidates,list) else []
         usable = [c for c in candidates if isinstance(c,dict) and avatar_url(c.get('url')) and
-                  type(c.get('width')) is int and type(c.get('height')) is int and 0 < c['width'] <= 8192 and 0 < c['height'] <= 8192]
+                  type(c.get('width')) is int and type(c.get('height')) is int and 0 < c['width'] <= MAX_SIDE and 0 < c['height'] <= MAX_SIDE and c['width'] * c['height'] <= MAX_PIXELS]
         url = max(usable,key=lambda c:c['width']*c['height'])['url'] if usable else None
         incomplete = []
         links = collection(item,'story_link_stickers',lambda e:web_url((e.get('story_link') or {}).get('url')) if isinstance(e.get('story_link'),dict) else None,incomplete)
@@ -135,7 +132,7 @@ def media_mime(raw, kind):
     if kind == 'image':
         try:
             with Image.open(BytesIO(raw)) as picture:
-                if picture.width * picture.height > 40_000_000:
+                if picture.width * picture.height > MAX_PIXELS:
                     raise ValueError('image size')
                 picture.verify()
                 if picture.format in ('JPEG','PNG','WEBP'):
@@ -228,7 +225,10 @@ class StoryStore:
         if item['id'] not in entry['items'] and sum(len(e['items']) for e in value['targets'].values()) >= MAX_ITEMS:
             raise AppFailure('story_capacity', 'Hikâye arşivi sınırına ulaşıldı. Yer açıp yeniden deneyebilirsin.')
         row = {k:copy.deepcopy(v) for k,v in item.items() if k != 'mediaUrl'}
-        row.update(capturedAt=now,status='metadata',bytes=None,mime=None,digest=None)
+        previous = entry['items'].get(item['id'])
+        if previous and previous['status'] == 'saved' and self.asset_path(item['id']).is_file():
+            return
+        row.update(capturedAt=previous['capturedAt'] if previous else now,status='metadata',bytes=None,mime=None,digest=None)
         asset = self.asset_path(item['id'])
         existed = asset.exists()
         if media:

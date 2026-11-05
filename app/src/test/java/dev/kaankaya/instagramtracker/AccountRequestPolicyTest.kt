@@ -78,12 +78,15 @@ class AccountRequestPolicyTest {
     }
     @Test fun rollingBudgetHonorsHourDayBoundariesAndClockRollback() {
         val now=2_000_000_000_000L
-        assertEquals(now+RequestBudgetPolicy.HOUR,RequestBudgetPolicy.nextAt(List(120){now},now))
-        assertEquals(0L,RequestBudgetPolicy.nextAt(List(120){now-RequestBudgetPolicy.HOUR},now))
-        assertEquals(now+22*RequestBudgetPolicy.HOUR,RequestBudgetPolicy.nextAt(List(1200){now-2*RequestBudgetPolicy.HOUR},now))
-        assertEquals(now+RequestBudgetPolicy.HOUR,RequestBudgetPolicy.nextAt(List(120){now},now-1000))
+        val account = List(RequestDefaults.ACCOUNT_HOURLY) { now }
+        assertEquals(0L,RequestBudgetPolicy.nextAt(account,now))
+        assertEquals(now+RequestBudgetPolicy.HOUR,RequestBudgetPolicy.nextAt(account,now,account))
+        assertEquals(now+RequestBudgetPolicy.HOUR,RequestBudgetPolicy.nextAt(List(RequestDefaults.DEVICE_HOURLY){now},now))
+        assertEquals(0L,RequestBudgetPolicy.nextAt(List(RequestDefaults.DEVICE_HOURLY){now-RequestBudgetPolicy.HOUR},now))
+        assertEquals(now+22*RequestBudgetPolicy.HOUR,RequestBudgetPolicy.nextAt(List(RequestDefaults.DEVICE_DAILY){now-2*RequestBudgetPolicy.HOUR},now))
+        assertEquals(now+RequestBudgetPolicy.HOUR,RequestBudgetPolicy.nextAt(account,now-1000,account))
         assertEquals(listOf(now),RequestBudgetPolicy.reserve(listOf(now-RequestBudgetPolicy.DAY),now))
         assertThrows(IllegalArgumentException::class.java){RequestBudgetPolicy.nextAt(listOf(now,now-1),now)}
-        assertThrows(IllegalArgumentException::class.java){RequestBudgetPolicy.nextAt(List(1201){now},now)}
+        assertThrows(IllegalArgumentException::class.java){RequestBudgetPolicy.nextAt(List(RequestBudgetPolicy.MAX_STORED+1){now},now)}
     }
 }

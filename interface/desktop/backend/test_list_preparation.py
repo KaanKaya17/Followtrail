@@ -27,6 +27,7 @@ class ListPreparationTests(unittest.TestCase):
         client.login=lambda *_:True
         with patch('engine.new_client',return_value=client):self.e.run('login',{'username':'qa.owner','password':'SYNTHETIC'})
         self.assertTrue(self.e.data['settings']['automatic']);self.assertTrue(self.e.data['settings']['automaticLists'])
+        self.e.run('settings',{'interval':60})  # These list fixtures isolate the list queue from profile refreshes.
 
     def work(self,*responses):
         self.now[0]=max(self.now[0],self.e.data['gate'].get('nextAt',0))
@@ -355,7 +356,7 @@ class ListPreparationTests(unittest.TestCase):
                 self.assertFalse(record['draft']['complete'])
                 self.assertIsNone(record['draft']['nextCursor'])
                 self.assertEqual(record['schedule']['error'],'list_count')
-                self.assertEqual(record['schedule']['after'],self.now[0]+1800)
+                self.assertEqual(record['schedule']['after'],self.now[0]+list_preparation.DAY)
                 self.assertNotIn('comparison',self.e.snapshot()['lists'][key])
                 # Incomplete reads never claim the six missing identities left.
                 self.assertFalse(any(c['category']=='lists' for entry in self.e.data['notificationLog'] for c in entry['changes']))
@@ -364,7 +365,7 @@ class ListPreparationTests(unittest.TestCase):
                 self.e=Accounts(self.home.name,clock=lambda:self.now[0],request_delay=lambda:15)
                 self.e.cancel=ClockWait(self.now)
                 self.assertEqual(self.e.data['lists'][key],record)
-                self.now[0]+=1800
+                self.now[0]+=list_preparation.DAY
                 # The next complete scan owns a fresh snapshot, not a union of
                 # identities observed during incompatible partial attempts.
                 scan(profile(identity,followers=82),page(ids[:76],'qa-last'),page(ids[76:]))
@@ -388,6 +389,19 @@ class ListPreparationTests(unittest.TestCase):
         self.assertFalse(self.e.data['settings']['automaticLists'])
         self.assertEqual(self.e.data['lists']['100:followers']['draft']['pages'],1)
         self.assertFalse(self.e.data['lists']['100:followers']['draft']['complete'])
+
+
+    def test_old_count_mismatch_waits_daily_but_new_count_evidence_can_advance_it(self):
+        data={'account':{'id':'100','followers':82,'following':1,'observedAt':1000},'people':{},
+              'lists':{'100:followers':{'draft':{'status':'partial','finishedAt':1000,'startedAt':900,
+                  'members':{},'pages':2,'expected':82,'nextCursor':None},
+                  'schedule':{'error':'list_count','after':2800}}}}
+        task=list_preparation.plan(data,2801)[0]
+        self.assertEqual(task['dueAt'],1000+list_preparation.DAY)
+        data['account'].update(followers=83,observedAt=3000)
+        self.assertEqual(list_preparation.plan(data,3000)[0]['dueAt'],3000)
+        data['account']['observedAt']=999
+        self.assertEqual(list_preparation.plan(data,3000)[0]['dueAt'],1000+list_preparation.DAY)
 
 
 if __name__=='__main__':unittest.main()

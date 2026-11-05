@@ -5,6 +5,21 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ListAutomationTest {
+    @Test fun ownProfileIntervalRequiresExplicitBackgroundPermissionAndDoesNotEnableLists() {
+        val account = saved().copy(people=emptyList(),automation=ListAutomation())
+        val archive = ListArchive(account.session.userId,account.session.connectionBinding)
+        val due = account.profile.observedAt + 60_000
+        assertNull(AutomaticQueue.next(account,archive,due))
+        assertNull(AutomaticQueue.next(account,archive,due-1,ownIntervalMillis=60_000,ownEnabled=true))
+        assertTrue(AutomaticQueue.next(account,archive,due,ownIntervalMillis=60_000,ownEnabled=true) is AutomaticTask.Own)
+        assertNull(AutomaticQueue.next(account,archive,due,ownIntervalMillis=300_000,ownEnabled=true))
+    }
+    @Test fun savedOwnReservationRemainsLaterThanANewShorterInterval() {
+        val account = saved().copy(people=emptyList(),automation=ListAutomation(ownNextCheckAt=900_000))
+        val archive = ListArchive(account.session.userId,account.session.connectionBinding)
+        assertNull(AutomaticQueue.next(account,archive,899_999,ownIntervalMillis=60_000,ownEnabled=true))
+        assertEquals(900_000L,(AutomaticQueue.next(account,archive,900_000,ownIntervalMillis=60_000,ownEnabled=true) as AutomaticTask.Own).dueAt)
+    }
     private val session = Session("100", "ds_user_id=100; sessionid=synthetic", "test-UA", "a".repeat(32))
     private val profile = Profile("200", "synthetic", 2, 1, 1000)
     private fun saved() = SavedAccount(session.copy(cookie = ""), profile.copy(userId = "100"),

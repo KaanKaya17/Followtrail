@@ -8,7 +8,7 @@ RESUME_AGE = 86400
 RECOVERY_AGE = 600
 RECOVERY_PASSES = 3
 ATTENTION = {'capacity', 'pagination', 'list_coverage', 'network_policy'}
-PLAN_VERSION = 4
+PLAN_VERSION = 5
 
 
 def initialize(data):
@@ -47,8 +47,17 @@ def plan(data, now, account=None):
             due = 0
         elif latest and latest.get('expected') is not None and account.get(direction) != latest['expected']:
             due = min(due, max(latest['startedAt'] + MIN_RESCAN, account.get('observedAt') or now))
-        due = max(due, schedule.get('after', 0))
         error = schedule.get('error')
+        if error == 'list_count' and draft and draft.get('finishedAt') is not None:
+            # A fresh changed count is new evidence; repeating the identical
+            # exhausted scan every half hour is not. Apply to old schedules too.
+            finished = draft['finishedAt']
+            changed = (account.get(direction) is not None and account.get(direction) != draft.get('expected') and
+                       (account.get('observedAt') or 0) > finished)
+            due = max(finished + MIN_RESCAN, account['observedAt']) if changed else max(
+                due, schedule.get('after', 0), finished + DAY)
+        else:
+            due = max(due, schedule.get('after', 0))
         result.append({'ownerId': account['id'], 'direction': direction, 'ready': latest is not None,
                        'count': len((draft or latest or {}).get('members', {})),
                        'pages': (draft or latest or {}).get('pages', 0),

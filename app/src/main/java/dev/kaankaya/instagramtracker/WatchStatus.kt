@@ -1,7 +1,7 @@
 package dev.kaankaya.instagramtracker
 
 object WatchIntervals {
-    val minutes = listOf(15, 30, 60, 360, 720, 1440)
+    val minutes = RequestDefaults.INTERVAL_MINUTES
     fun durationMs(minutes: Int): Long {
         require(minutes in this.minutes)
         return minutes * 60000L

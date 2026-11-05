@@ -47,6 +47,10 @@ object WebRequests {
         InstagramIdentity.id(id)
         return request(state, "/api/v1/users/$id/info/")
     }
+    fun stories(state: WebSession, target: String): Request {
+        InstagramIdentity.id(target)
+        return request(state, "/api/v1/feed/user/$target/story/", mapOf("supported_capabilities_new" to StoryLimits.CAPABILITIES_JSON))
+    }
     fun search(state: WebSession, query: String): Request = request(state,"/api/v1/users/search/",
         mapOf("query" to ProfileSearch.query(query),"count" to "20"))
     fun username(state: WebSession, username: String): Request {
