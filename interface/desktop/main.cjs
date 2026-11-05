@@ -144,7 +144,7 @@ function validate(operation, args) {
     story_clear: ["accountId","id"],
     list_page: ["accountId","revision","ownerId","direction","scanId","previousScanId","comparison","relation","query","offset"],
     list_avatar: ["accountId", "ownerId", "direction", "scanId", "id"],
-    profile_detail: ["accountId", "id"],
+    profile_detail: ["accountId", "id", "fresh"],
     cancel_list_images: [],
     save_person: ["id", "favorite", "watching", "group", "note"],
     remove_person: ["id"],

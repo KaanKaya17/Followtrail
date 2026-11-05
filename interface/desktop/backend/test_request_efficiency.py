@@ -104,7 +104,7 @@ class EfficiencyTests(unittest.TestCase):
         self.assertEqual(request_budget.next_at(gate, '200', now), 0)
 
     def test_basis_is_bounded_and_rejects_future_and_unbound_observations(self):
-        basis = self.engine.profile_basis
+        basis = self.engine.profile_facts
         for n in range(21):
             p = parse_profile(profile(str(200 + n)))
             p.update(observedAt=self.now[0], avatar='not retained', biography='not retained')

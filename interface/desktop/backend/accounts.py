@@ -170,7 +170,7 @@ class Accounts(Engine):
             raise StorageFailure('Hesap kasası bulunamadı. Mevcut kayıtlar korundu.')
         old_vault, old_data, old_id = self.vault, self.data, self.active_id
         if identity != old_id:
-            self.profile_basis.clear()
+            self.profile_facts.clear()
         try:
             self.vault = vault
             self.data = self.load_vault()

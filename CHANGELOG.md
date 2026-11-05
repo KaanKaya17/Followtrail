@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.56 / Android 0.1.86 — 2026-11-05
+
+- Windows'ta başarılı erişim kontrolünün doğrulanmış hedef profili diğer profil tüketicilerine aktarılır. Eksik profil alanı geçerli görünürlük sonucunu bozmaz; sağlık sorgusu korunur.
+- Panelde okunmuş liste kişisi kaydedilirken backend'in bağlantı kapsamlı bilgisi, ilk gözlem zamanı korunarak kullanılır; ek sorgu veya yeni kontrol bildirimi üretilmez. Açık yenileme yeni okuma yapar.
+- Windows ve Android görsel yükleyicilerinde aynı kaynak için eşzamanlı tüketiciler tek indirmeyi paylaşır; iptaller bağımsızdır. Eski iş yeni aynı anahtarlı işi silemez. Android'in mevcut profil kaydetme aktarımı korunur.
+- [Doğrulama ve cihaz testi sınırı](docs/RESPONSE-SHARING-TEST.md). Günlük/saatlik sınırlar ve 429 davranışı değişmedi.
+
 ## Windows 0.2.55 / Android 0.1.85 — 2026-11-05
 
 - Kullanıcının isteğiyle hesap başına yerel günlük bütçe 1.200 → 3.000, cihaz toplamı 2.400 → 6.000 olarak ortak kaynaktan artırıldı. Saatlik 120/240 sınırları, otomatik profil işleri için %80 eşiği, 6–10 saniyelik sıra ve 429/Retry-After duruşu korunur. Bu değerler Meta kotası veya güvenli istek garantisi değildir.

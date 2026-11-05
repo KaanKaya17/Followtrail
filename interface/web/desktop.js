@@ -156,7 +156,7 @@
         (data.requestBudget.nextAt || 0)*1000>Date.now() ? {code:'budget'} : null}),
     load:async ({manual,...args})=>{
       const refresh=manual && (args.id===data.account?.id || data.people.some(p=>p.id===args.id));
-      const response=await command(refresh?'refresh':'profile_detail',refresh?{id:args.id}:args,'',false);
+      const response=await command(refresh?'refresh':'profile_detail',refresh?{id:args.id}:{...args,fresh:!!manual},'',false);
       const detail=refresh ? {accountId:response?.state?.activeAccountId,profile:response?.state?.account?.id===args.id ? response.state.account : response?.state?.people.find(p=>p.id===args.id)} : response?.state?.profileDetail;
       return {...response,accountId:detail?.accountId,profile:detail?.profile};
     },

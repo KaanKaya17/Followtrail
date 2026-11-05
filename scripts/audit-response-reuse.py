@@ -18,6 +18,9 @@ from thumbnails import Thumbnails
 def setup(home):
     now = [1800000000.0]
     engine = Engine(home, clock=lambda: now[0], request_delay=lambda: 8)
+    def forbidden():
+        raise AssertionError('A synthetic client fixture is required; live transport is disabled')
+    engine.client = forbidden
     engine.cancel = ClockWait(now)
     engine.record_profile(parse_profile(profile()), own=True)
     engine.data['session'] = {'cookies': {'ds_user_id': '100', 'sessionid': 'SYNTHETIC-SECRET'}}
@@ -45,7 +48,7 @@ def projections():
             'avatarDownload': 'suppressed synthetic test; separate CDN resource'}
 
 
-def access_gap():
+def access_reuse():
     with tempfile.TemporaryDirectory(prefix='TrackerReuseQA-') as home:
         engine, now = setup(home)
         engine.record_profile(parse_profile(profile('200', followers=2, biography='Old bio')))
@@ -59,15 +62,17 @@ def access_gap():
         client = Client(engine, [profile(), target])
         with patch.object(engine, 'client', return_value=client):
             engine.run('check_access', {'id':'200'})
+            state = engine.run('profile_detail', {'accountId':'100','id':'200'})
         assert len(client.calls) == 2
         assert engine.data['access']['200']['checks'][-1]['status'] == 'accessible'
-        assert engine.data['people']['200']['followers'] == 2
-        assert engine.data['people']['200']['bio'] == 'Old bio'
-        return {'apiRequests': 2, 'returnedTargetFollowers':77, 'retainedTargetFollowers':2,
-                'targetDetailsReused':False, 'healthRead':'fresh authenticated own-profile proof; not automatically redundant'}
+        assert engine.data['people']['200']['followers'] == 77
+        assert engine.data['people']['200']['bio'] == 'New bio'
+        assert state['profileDetail']['profile']['followers'] == 77
+        return {'apiRequestsIncludingDrawer': 2, 'returnedTargetFollowers':77, 'retainedTargetFollowers':77,
+                'targetDetailsReused':True, 'healthRead':'fresh authenticated own-profile proof retained'}
 
 
-def save_gap():
+def save_reuse():
     with tempfile.TemporaryDirectory(prefix='TrackerReuseQA-') as home:
         engine, now = setup(home)
         engine.data['lists']['100:followers'] = {'snapshots':[{'id':'synthetic', 'complete':True,
@@ -78,21 +83,21 @@ def save_gap():
         assert state['profileDetail']['profile']['followers'] == 77
         engine.run('save_person', {'id':'200','watching':True})
         stored = engine.data['people']['200']
-        assert stored.get('followers') is None and stored.get('bio') is None
+        assert stored.get('followers') == 77 and stored.get('bio') == 'New bio'
         assert len(client.calls) == 1
         return {'apiRequests':1, 'drawerReceivedFollowers':77, 'savedFollowers':stored.get('followers'),
-                'savedPersonReceivesPreviouslyFetchedDetails':False,
-                'scope':'backend transfer boundary; renderer may still display its own transient cache'}
+                'savedPersonReceivesPreviouslyFetchedDetails':True,
+                'scope':'backend-owned facts; original observation time, no new API request'}
 
 
-def thumbnail_gap():
+def thumbnail_reuse():
     release, entered, finished = threading.Event(), threading.Event(), threading.Event()
     lock = threading.Lock()
     counts = {'reads':0,'replies':0}
     def reader(image, context):
         with lock:
             counts['reads'] += 1
-            if counts['reads'] == 2: entered.set()
+            if counts['reads'] == 1: entered.set()
         if not release.wait(3): raise TimeoutError('Synthetic release not delivered')
         image['avatar'] = 'data:image/jpeg;base64,QA=='
     def emit(event):
@@ -104,11 +109,11 @@ def thumbnail_gap():
     try:
         for number in (1,2):
             pool.request({'id':number,'args':{'token':'synthetic','id':'200'}}, result, pictures, namespace='100')
-        assert entered.wait(2), 'Both identical requests should reach the fake reader in current code'
+        assert entered.wait(2), 'The shared producer should reach the fake reader'
         release.set()
         assert finished.wait(2)
         pool.request({'id':3,'args':{'token':'synthetic','id':'200'}}, result, pictures, namespace='100')
-        assert counts == {'reads':2,'replies':3}
+        assert counts == {'reads':1,'replies':3}
         return {'simultaneousConsumers':2, 'syntheticCdnDownloads':counts['reads'],
                 'thirdConsumerUsesCompletedCache':True, 'instagramApiRequests':0}
     finally:
@@ -117,8 +122,8 @@ def thumbnail_gap():
 
 
 if __name__ == '__main__':
-    print(json.dumps({'mode':'offline source-boundary audit, no real HTTP', 'sourceBase':'a33802a',
-        'oneResponseManyConsumers':projections(), 'accessProbeGap':access_gap(),
-        'savePersonGap':save_gap(), 'inFlightThumbnailGap':thumbnail_gap(),
+    print(json.dumps({'mode':'offline source-boundary audit, no real HTTP', 'baseline':'baba293',
+        'oneResponseManyConsumers':projections(), 'accessProbeReuse':access_reuse(),
+        'savePersonReuse':save_reuse(), 'inFlightThumbnailReuse':thumbnail_reuse(),
         'limits':'Native Android source inspected; no emulator/device runtime. Forced synthetic overlaps do not '
-                 'measure real-world frequency or whole-application savings. Production behavior unchanged.'}, indent=2))
+                 'measure real-world frequency or whole-application savings. This offline run does not mutate the running app or its real vault.'}, indent=2))

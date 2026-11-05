@@ -2,9 +2,10 @@
 import math
 import re
 import uuid
+from dataclasses import dataclass
 
 from instagrapi.exceptions import ClientNotFoundError
-from network import AppFailure, failure
+from network import AppFailure, failure, parse_profile
 import anonymous_visibility
 
 MAX_CASES = 200
@@ -112,11 +113,25 @@ def parse_visibility(payload, expected_id):
             'reason': 'own_block' if blocking is True else 'profile_visible', 'username': username}
 
 
+@dataclass(frozen=True)
+class ProfileProbe:
+    visibility: dict
+    profile: dict | None = None
+
+
 def probe(client, identity):
     try:
         payload = client.private_request(f'users/{identity}/info/',
                                          params={'is_prefetch': 'false', 'from_module': 'profile'})
-        return {**parse_visibility(payload, identity), 'targetHTTP': response_status(client)}
+        visibility = {**parse_visibility(payload, identity), 'targetHTTP': response_status(client)}
+        profile = None
+        if visibility['status'] == 'accessible' and visibility['targetHTTP'] == 200:
+            try:
+                profile = parse_profile(payload, identity)
+            except AppFailure:
+                # A valid visibility result need not contain a complete profile.
+                pass
+        return ProfileProbe(visibility, profile)
     except Exception as exc:
         error = failure(exc)
         if error['code'] in ('limited', 'cooldown', 'session', 'verification', 'cancelled', 'storage'):
@@ -125,10 +140,10 @@ def probe(client, identity):
         # A bare "Not Found" is a masked challenge in the pinned client and is
         # raised as ChallengeRequired, never interpreted here as profile absence.
         if isinstance(exc, ClientNotFoundError) and status == 404:
-            return {'status': 'unavailable', 'reason': 'profile_not_found', 'targetHTTP': 404}
-        return {'status': 'unknown', 'reason': 'access_denied' if status == 403 else
+            return ProfileProbe({'status': 'unavailable', 'reason': 'profile_not_found', 'targetHTTP': 404})
+        return ProfileProbe({'status': 'unknown', 'reason': 'access_denied' if status == 403 else
                 'server_error' if type(status) is int and status >= 500 else 'connection',
-                'targetHTTP': status if type(status) is int else response_status(client)}
+                'targetHTTP': status if type(status) is int else response_status(client)})
 
 
 def response_status(client):

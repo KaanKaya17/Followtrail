@@ -16,8 +16,6 @@ import okhttp3.Request
 import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.FutureTask
-import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -157,56 +155,50 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
     private val memory = object : LruCache<String, Bitmap>(2 * 1024 * 1024) {
         override fun sizeOf(key: String, value: Bitmap) = value.byteCount
     }
-    private val jobs = mutableSetOf<Job>()
+    private val shared = SharedImageWork<Bitmap>(executor, { main.post(it) }, { cleanup.execute(it) })
     private val failures = LruCache<String, Boolean>(128)
     @Volatile private var closed = false
     init { if(cache!=null)executor.execute {try {cache.migrateLegacy()}catch (_: Exception){ /* Reported in data settings; optional images stay optional. */ }} }
     fun retryCacheCleanup() {cache?.migrateLegacy()}
-    inner class Job internal constructor(val source: AvatarSource, private val deliver: (Bitmap) -> Unit) {
-        private val cancelled = AtomicBoolean(false)
-        @Volatile private var download: AvatarDownload? = null
-        lateinit var future: FutureTask<Unit>
-        fun active() = !cancelled.get() && !closed
-        fun cancel() {
-            cancelled.set(true); download?.let { exchange -> cleanup.execute { exchange.cancel() } }
-            future.cancel(true); executor.remove(future)
-            synchronized(jobs) { jobs.remove(this) }
-        }
-        fun run() {
-            try {
-                if (!active()) return
-                var bitmap = memory.get(source.key)
-                if (bitmap == null) {
-                    bitmap = cache?.read(source.key)?.let(::decode)
-                    if (bitmap == null && active() && failures.get(source.requestKey) != true) {
-                        val exchange = fetcher.open(AvatarPolicy.url(source.url) ?: return)
-                        download = exchange
-                        if (!active()) { exchange.cancel(); return }
+    inner class Job internal constructor(val source: AvatarSource, private val ticket: SharedImageWork<Bitmap>.Ticket) {
+        fun cancel() = ticket.cancel()
+        fun active() = ticket.active()
+        internal fun await(timeout: Long, unit: TimeUnit) = ticket.await(timeout, unit)
+    }
+    private fun read(source: AvatarSource, work: SharedImageWork<Bitmap>.Context): Bitmap? {
+        try {
+            if (!work.active()) return null
+            var bitmap = memory.get(source.key)
+            if (bitmap == null) {
+                bitmap = cache?.read(source.key)?.let(::decode)
+                if (bitmap == null && work.active() && failures.get(source.requestKey) != true) {
+                    val exchange = fetcher.open(AvatarPolicy.url(source.url) ?: return null)
+                    work.onCancel { exchange.cancel() }
+                    try {
+                        if (!work.active()) return null
                         bitmap = exchange.read()?.let(::decode)
-                        if (bitmap != null && active() && !transient) {
-                            val output = java.io.ByteArrayOutputStream()
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
-                            cache?.write(source.key, output.toByteArray(), ::active)
-                        }
+                    } finally { work.release() }
+                    if (bitmap != null && work.active() && !transient) {
+                        val output = java.io.ByteArrayOutputStream()
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
+                        cache?.write(source.key, output.toByteArray(), work::active)
                     }
                 }
-                val image = bitmap ?: run { if (active()) failures.put(source.requestKey, true); return }
-                if (active()) {
-                    // Only an already-selected public thumbnail of the current observation.
-                    // No extra request and no archive record for an untracked list member.
-                    if(!transient)try {
-                        val archiveVault=SessionVault(archiveContext,if(previewArchive)"previewaccount" else "account",if(previewArchive)null else source.owner)
-                        val saved = if (archiveVault.visual.exists()) archiveVault.read()?.takeIf { it.session.userId == source.owner } else null
-                        val profile = saved?.let { if (it.profile.userId == source.target) it.profile else it.people.firstOrNull { p -> p.latest.userId == source.target }?.latest }
-                        if (profile?.details?.pictureUrl?.value == source.url && profile.details.pictureId.value == source.revision)
-                            archiveVault.visual.avatar(source.owner, profile, image)
-                    } catch (_: Exception) { /* Optional archive cannot break avatar rendering. */ }
-                    memory.put(source.key, image)
-                    main.post { if (active()) deliver(image) }
-                }
-            } catch (_: Exception) { if (active()) failures.put(source.key, true) }
-            finally { download = null; synchronized(jobs) { jobs.remove(this) } }
-        }
+            }
+            val image = bitmap ?: run { if (work.active()) failures.put(source.requestKey, true); return null }
+            if (!work.active()) return null
+            // The shared download owns one archive/cache write; views own only delivery.
+            if(!transient)try {
+                val archiveVault=SessionVault(archiveContext,if(previewArchive)"previewaccount" else "account",if(previewArchive)null else source.owner)
+                val saved = if (archiveVault.visual.exists()) archiveVault.read()?.takeIf { it.session.userId == source.owner } else null
+                val profile = saved?.let { if (it.profile.userId == source.target) it.profile else it.people.firstOrNull { p -> p.latest.userId == source.target }?.latest }
+                if (profile?.details?.pictureUrl?.value == source.url && profile.details.pictureId.value == source.revision)
+                    archiveVault.visual.avatar(source.owner, profile, image)
+            } catch (_: Exception) { /* Optional archive cannot break avatar rendering. */ }
+            if (!work.active()) return null
+            memory.put(source.key, image)
+            return image
+        } catch (_: Exception) { if (work.active()) failures.put(source.requestKey, true); return null }
     }
     private fun decode(bytes: ByteArray): Bitmap? {
         if (bytes.size > AvatarPolicy.MAX_BYTES) return null
@@ -219,24 +211,20 @@ class AvatarImages(context: Context, private val fetcher: AvatarFetcher = CdnAva
     }
     fun load(source: AvatarSource, deliver: (Bitmap) -> Unit): Job? {
         if (closed || AvatarPolicy.url(source.url) == null) return null
-        val job = Job(source, deliver)
-        job.future = FutureTask { job.run(); Unit }
-        synchronized(jobs) { jobs.add(job) }
-        try { executor.execute(job.future) } catch (_: RejectedExecutionException) { job.cancel(); return null }
-        return job
+        val ticket = shared.subscribe(source.requestKey, { read(source, it) }, deliver) ?: return null
+        return Job(source, ticket)
     }
-    fun cancelAll() { synchronized(jobs) { jobs.toList() }.forEach { it.cancel() } }
+    fun cancelAll() = shared.cancelAll()
     fun remove(owner: String? = null, target: String? = null) {
-        synchronized(jobs) { jobs.filter { owner == null || (it.source.owner == owner && (target == null || it.source.target == target)) } }
-            .forEach { it.cancel() }
         val prefix = owner?.let { AvatarPolicy.prefix(it, target) }
+        shared.cancelWhere { prefix == null || it.startsWith(prefix) }
         memory.snapshot().keys.filter { prefix == null || it.startsWith(prefix) }.forEach { memory.remove(it) }
         failures.snapshot().keys.filter { prefix == null || it.startsWith(prefix) }.forEach { failures.remove(it) }
         cache?.clear(owner, target)
     }
     override fun close() {
         if (closed) return
-        closed = true; cancelAll(); executor.shutdownNow(); main.removeCallbacksAndMessages(null); memory.evictAll()
+        closed = true; shared.close(); executor.shutdownNow(); main.removeCallbacksAndMessages(null); memory.evictAll()
         cleanup.execute { fetcher.close() }
     }
 }
