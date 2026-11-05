@@ -14,6 +14,8 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     private var securitySchema: JSONObject?=null
     private var securityView: JSONObject?=null
     private var captchaSchema: JSONObject?=null
+    private var captchaRender: JSONObject?=null
+    private var captchaSubmission: JSONObject?=null
     private var codeSubmission: JSONObject?=null
     private val verificationSchemas = linkedMapOf<String, JSONObject>()
     private val startedAt = clock()
@@ -47,7 +49,7 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     @Synchronized fun form(visible: Boolean?) { if (active) { formVisible = visible; flush() } }
     @Synchronized fun authentication(facts: WebLoginResponseFacts) { if (active) { authentication = facts; flush() } }
     @Synchronized internal fun exchangeFailure(stage: String, kind: ApiFailure.Kind, error: Exception) {
-        require(stage in setOf("AUTH", "SECURITY_VIEW", "CODE_SUBMISSION"))
+        require(stage in setOf("AUTH", "SECURITY_VIEW", "CODE_SUBMISSION","CAPTCHA_RENDER","CAPTCHA_SUBMISSION"))
         if (!active) return
         val transport = error as? WebTransportFailure
         exchangeFailures[stage] = JSONObject().put("kind", kind.name)
@@ -61,6 +63,13 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
     @Synchronized fun securitySchema(raw: String) {if(active){securitySchema=AuthPlatformCodeEntry.schema(raw);flush()}}
     @Synchronized fun captchaSchema(raw: String) {if(active){
         captchaSchema=AuthPlatformSchema.inspect(raw,AuthPlatformCaptchaContent.DOCUMENT,AuthPlatformCaptchaContent.OPERATION,"query");flush()
+    }}
+    @Synchronized internal fun captchaResponse(operation: AuthPlatformVerification.Operation,status: Int,parsed: Boolean,valid: Boolean,applied: Boolean?) {if(active){
+        require(operation in AuthPlatformVerification.captchaOperations && status in 100..599)
+        val facts=JSONObject().put("status",status).put("document",operation.document).put("jsonParsed",parsed)
+            .put("validData",valid).put("cookiesApplied",applied ?: JSONObject.NULL)
+        if(operation == AuthPlatformVerification.captchaRender)captchaRender=facts else captchaSubmission=facts
+        flush()
     }}
     @Synchronized internal fun verificationSchema(operation: AuthPlatformVerification.Operation, raw: String) {
         if (active) {
@@ -92,6 +101,8 @@ class LoginPageTrace(context: Context, private val clock: () -> Long = System::c
             .put("securitySchema",securitySchema ?: JSONObject.NULL)
             .put("securityView",securityView ?: JSONObject.NULL)
             .put("captchaSchema",captchaSchema ?: JSONObject.NULL)
+            .put("captchaRender",captchaRender ?: JSONObject.NULL)
+            .put("captchaSubmission",captchaSubmission ?: JSONObject.NULL)
             .put("codeSubmission",codeSubmission ?: JSONObject.NULL)
             .put("verificationSchemas", JSONObject(verificationSchemas as Map<*, *>))
             .put("authentication", authentication?.json() ?: JSONObject.NULL)

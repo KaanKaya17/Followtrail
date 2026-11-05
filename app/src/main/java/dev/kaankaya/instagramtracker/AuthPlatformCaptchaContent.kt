@@ -18,16 +18,15 @@ internal object AuthPlatformCaptchaContent {
             (0 until values.length()).map { values.getString(it) }.toSet()
         }
         val arguments = names("arguments")
-        require("apc" in arguments && arguments.all { it in setOf("apc","device_id") })
+        require(arguments.isEmpty())
         val roots = names("rootFields").also { fields ->
-            require(fields.isNotEmpty() && fields.all { it.startsWith("xfb_auth_platform_") })
-            require(fields.count { it.contains("captcha",ignoreCase=true) } == 1)
+            require(fields == setOf("xfb_auth_platform_anti_scripting_content"))
         }
         return Shape(arguments,roots)
     }
     fun validData(json: JSONObject, roots: Set<String>): Boolean {
         val data = json.optJSONObject("data") ?: return false
-        val captcha = roots.singleOrNull { it.contains("captcha",ignoreCase=true) } ?: return false
+        val captcha = roots.singleOrNull()?.takeIf { it == "xfb_auth_platform_anti_scripting_content" } ?: return false
         return data.keys().asSequence().toSet() == roots && !data.isNull(captcha) &&
             (!json.has("errors") || json.isNull("errors") || json.optJSONArray("errors")?.length() == 0)
     }

@@ -16,8 +16,10 @@ internal object WebSecurityViewContract {
         }
         val variables=JSONObject(requireNotNull(pairs["variables"]))
         require(variables.keys().asSequence().toSet()==shape.arguments)
-        val apc=variables.get("apc")
-        require(apc is String && apc.length in 1..8192 && apc.none {it.code<32||it.code==127} && apc==context)
+        if(!captcha) {
+            val apc=variables.get("apc")
+            require(apc is String && apc.length in 1..8192 && apc.none {it.code<32||it.code==127} && apc==context)
+        }
         if("device_id" in shape.arguments) require(variables.get("device_id")==JSONObject.NULL)
         pairs["variables"]=variables.toString()
         return WebSecurityViewAuthorization("https://www.instagram.com$path",WebGraphqlForm.body(pairs),requireNotNull(pairs["doc_id"]),shape.roots)

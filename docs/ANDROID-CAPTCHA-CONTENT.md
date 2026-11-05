@@ -31,3 +31,29 @@ Sentetik modüller/yanıtlar yalnız sınır davranışını doğrular; mevcut c
 - 11 JavaScript köprü/şema testi geçti. Şema yalnız ilgili CAPTCHA sorgusu istenirken okunur; argüman varsayılanları okunmaz, diğer istek ve XHR/fetch sınırları korunur.
 - 785 Android metni dört dilde tutarlı. `lintRelease`: 0 hata / 54 uyarı. Release ve instrumentasyon APK’ları derlendi. Yeni iki gerçek WebView instrumentasyon senaryosu bu turda çalıştırılmadı; derlenmeleri gerçek cihaz başarısı değildir.
 - İmzalı 0.1.82 / 83 APK manifest/mimari kontrolü geçti: 2.610.619 bayt, SHA-256 `ebad4a365a37760f3d8a4738ba0b8cedf1d05e40e6c692ef057d345b88ab34b4`. Aynı bağlı test telefonuna `adb install -r` ile kuruldu; veri silme/mola sıfırlama komutu kullanılmadı. Yeni canlı giriş sonucu bekleniyor.
+
+## 0.1.83: gerçek içerik şeması ve sonuç gönderimi
+
+0.1.82 telefon testinde kullanıcı CAPTCHA görüntülerini gördü fakat tekrar eden görevler bildirdi. Paylaşılan güvenli tanı, içerik sorgusunun hâlâ yerel filtrede reddedildiğini gösterdi: gerçek modülün argümanları **boş**, kök alanı **`xfb_auth_platform_anti_scripting_content`**. 0.1.82’nin APC/device ve captcha içeren kök alan beklentisi gerçek modüle uymuyordu. Görüntünün açılması, bu sorgunun gönderildiği anlamına gelmiyordu; sayaç yalnız yeni parola isteği için 3→4 olmuştu.
+
+Aynı tanıda şu iki engellenen işlem gözlendi:
+
+- `28372617359013204` / `AuthPlatformReCaptchaRenderOutcomeMutation`: `render_succeeded` boolean, `encrypted_context` string, `failure_reason` null, `device_id` string.
+- `9960725864052044` / `AuthPlatformReCaptchaSubmitCaptchaMutation`: `captcha_response`, `encrypted_context`, `device_id` string.
+
+Bu kayıt, CAPTCHA sonucunu iletme isteğinin Instagram’a uygulama taşıyıcısından gönderilmediğini kanıtlar. Google’ın her görsel turunu kabul ettiği veya tek döngü nedeninin bu olduğu çıkarılmaz. Önceki `authenticated=false` / CAPTCHA işareti aynı kayıtta kalır; hesap hâlâ bağlanmış sayılmaz.
+
+0.1.83 içerik sorgusunu gözlenen boş argüman/kök alanla düzeltir. Yalnız yukarıdaki iki kimlik doğrulama işlemini ekler. Her işlem, aynı izin verilmiş sayfadaki kendi derlenmiş modülünün tam ID/ad/`mutation` türü, gözlenen argüman kümesi ve sınırlı auth_platform kök alanlarıyla eşleşmelidir. Başka GraphQL belgelerine yetki verilmez. Yanıt alanları modülle eşleşir; `validData` yalnız şekil denetimidir, CAPTCHA veya giriş başarısı değildir.
+
+CAPTCHA’nın opaque `encrypted_context` ve `device_id` çifti, o açık ve onaylanmış sayfanın ilk izinli bildiriminden yalnız bellekte bağlanır; bunların URL’deki APC ile aynı olduğu varsayılmaz. Sonraki sonuç aynı sayfa bağlamına/çifte ait olmalıdır. Bağ kapanınca referans temizlenir. CAPTCHA cevabı, bağlam, cihaz ID’si ve çerez değerleri tanıya veya kalıcı kayda yazılmaz. Render ve sonuç işlemleri bu girişte birer kez gönderilir; sonuç tekrarında sayfa kapatılıp açık durma açıklaması gösterilir.
+
+Köprü ayrıca eşzamanlı güvenlik isteklerini düşürmek yerine mevcut en fazla dört bekleyen mesaj sınırında sıraya alır. İptal edilen sıradaki mesaj, daha sonraki mesajın aktif isteğin önüne geçmesine neden olmaz. İlk girişin 35 saniyelik köprü süresi korunur; dört güvenlik isteğinin sıra/ağ süreleri için üst süre 180 saniyedir. Native istek kapısı, 6–10 saniyelik rezervasyon, bütçe ve 429 kuralları değişmez. Yanıt yayımlanmadan önce native istek sahipliği bırakılır. CAPTCHA hazırlanıyor / sonucu gönderiliyor / sonuç gönderildi durumları mail kodu aşamasından ayrılır.
+
+Mutasyon yanıtlarının gerçek kök alanları önceki tanıda yoktu; gönderim ancak aynı sayfanın tam işlem modülü bunları sağlarsa yapılır. Testlerdeki mutasyon kökleri sentetiktir. Bu değişiklikler henüz canlı giriş veya çözülmüş profil 429 kanıtı değildir.
+
+### 0.1.83 doğrulaması
+
+- 174 JVM testi, 12 JavaScript testi geçti. Gerçek içerik şemasını yansıtan boş argüman/anti_scripting kök testi ve iki gözlenen CAPTCHA işleminin tip/sayfa-bağlama/istek-gövdesi yetkisi sınandı. Başka belge, yanlış şema, yanlış alan/tür ve değişen bağlam/cihaz çifti reddedildi.
+- Sıradaki isteğin iptalinin aktif isteği atlatmadığı JavaScript testinde doğrulandı. CAPTCHA içerik + render isteklerinin sıraya alınması ve insan sonucunun yalnız bir kez gönderilmesi için gerçek WebView instrumentasyon senaryosu derlendi; cihazda çalıştırılmadı. Sentetik ağ/kök alanları gerçek Meta sonucunun kanıtı değildir.
+- 789 Android kaynağı dört dilde tutarlı. Lint: 0 hata / 54 uyarı. Release ve instrumentasyon APK’ları derlendi. İmzalı 0.1.83 / 84 APK manifest/mimari doğrulaması geçti: 2.614.715 bayt, SHA-256 `f1d9e454b6fd0691cc61e061f3387f8a6caef5f8c0568721814ca4875cdb140c`.
+- Yeni test telefonuna veri silmeden kuruldu. Kayıtlı giriş aralığı, 429 veya bütçe geçmişi sıfırlanmadı. Yeni canlı CAPTCHA/giriş sonucu kullanıcıdan bekleniyor.

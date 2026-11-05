@@ -44,7 +44,7 @@ class WebLoginRelayTest {
     private val factory = Call.Factory { request ->
         calls.incrementAndGet()
         check(request.method == "POST")
-        if(request.tag(WebSecurityViewAuthorization::class.java)!=null || request.tag(WebCodeSubmissionAuthorization::class.java)!=null)check(WebPlatformRequestPolicy.allowed(request))
+        if(request.tag(WebSecurityViewAuthorization::class.java)!=null || request.tag(WebCodeSubmissionAuthorization::class.java)!=null || request.tag(WebCaptchaAuthorization::class.java)!=null)check(WebPlatformRequestPolicy.allowed(request))
         else check(request.url.toString() == WebLoginContract.URL)
         check(request.header("Origin") == "https://www.instagram.com" && request.header("Sec-Fetch-Site") == "same-origin")
         check(request.header("Sec-Fetch-Mode") == "cors" && request.header("Sec-Fetch-Dest") == "empty")
@@ -93,12 +93,57 @@ class WebLoginRelayTest {
     private fun viewBody()=JSONObject.quote("doc_id=34414353874878894&fb_api_req_friendly_name=AuthPlatformCodeEntryViewQuery&variables="+
         java.net.URLEncoder.encode("""{"apc":"synthetic-apc","device_id":null}""","UTF-8"))
     private fun captchaBody()=JSONObject.quote("doc_id=${AuthPlatformCaptchaContent.DOCUMENT}&fb_api_req_friendly_name=${AuthPlatformCaptchaContent.OPERATION}&variables="+
-        java.net.URLEncoder.encode("""{"apc":"synthetic-apc","device_id":null}""","UTF-8"))
-    private fun captchaModule(kind: String="query") = """window.require=()=>({params:{id:'${AuthPlatformCaptchaContent.DOCUMENT}',name:'${AuthPlatformCaptchaContent.OPERATION}',operationKind:'$kind'},operation:{argumentDefinitions:[{name:'apc'},{name:'device_id'}],selections:[{kind:'LinkedField',name:'xfb_auth_platform_synthetic_recaptcha_content'}]}});"""
+        java.net.URLEncoder.encode("""{}""","UTF-8"))
+    private fun captchaModule(kind: String="query") = """window.require=()=>({params:{id:'${AuthPlatformCaptchaContent.DOCUMENT}',name:'${AuthPlatformCaptchaContent.OPERATION}',operationKind:'$kind'},operation:{argumentDefinitions:[],selections:[{kind:'LinkedField',name:'xfb_auth_platform_anti_scripting_content'}]}});"""
+    private fun captchaValues(operation: AuthPlatformVerification.Operation) = JSONObject()
+        .put("encrypted_context","synthetic-encrypted-context").put("device_id","synthetic-device")
+        .apply { if(operation==AuthPlatformVerification.captchaRender)put("render_succeeded",true).put("failure_reason",JSONObject.NULL)
+            else put("captcha_response","synthetic-human-result") }
+    private fun captchaMutationBody(operation: AuthPlatformVerification.Operation) = JSONObject.quote(
+        "doc_id=${operation.document}&fb_api_req_friendly_name=${operation.name}&variables="+
+            java.net.URLEncoder.encode(captchaValues(operation).toString(),"UTF-8"))
+    private fun captchaModules(): String {
+        val modules=JSONObject()
+        fun put(document: String,name: String,kind: String,args: List<String>,root: String) {
+            modules.put("$name.graphql",JSONObject().put("params",JSONObject().put("id",document).put("name",name).put("operationKind",kind))
+                .put("operation",JSONObject().put("argumentDefinitions",org.json.JSONArray(args.map {JSONObject().put("name",it)}))
+                    .put("selections",org.json.JSONArray().put(JSONObject().put("kind","LinkedField").put("name",root)))))
+        }
+        put(AuthPlatformCaptchaContent.DOCUMENT,AuthPlatformCaptchaContent.OPERATION,"query",emptyList(),"xfb_auth_platform_anti_scripting_content")
+        for(operation in AuthPlatformVerification.captchaOperations)put(operation.document,operation.name,"mutation",
+            captchaValues(operation).keys().asSequence().toList(),"xfb_auth_platform_synthetic_${operation.document}")
+        return "window.require=(name)=>{const modules=$modules;if(!modules[name])throw Error('missing');return modules[name];};"
+    }
+    @Test fun concurrentCaptchaContentAndRenderSerializeThenHumanResultIsSubmittedOnce() {
+        response={request->
+            val captcha=request.tag(WebCaptchaAuthorization::class.java)
+            val root=if(captcha!=null)"xfb_auth_platform_synthetic_${captcha.operation.document}" else "xfb_auth_platform_anti_scripting_content"
+            now+=16000
+            Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture").apply {
+                if(captcha?.operation==AuthPlatformVerification.captchaSubmit) {
+                    addHeader("Set-Cookie","sessionid=synthetic-captcha-session; Path=/; Secure; HttpOnly")
+                    addHeader("Set-Cookie","ds_user_id=100; Path=/; Secure")
+                }
+            }.body(JSONObject().put("data",JSONObject().put(root,JSONObject())).toString().toResponseBody()).build()
+        }
+        open(security=true)
+        js(captchaModules()+"Promise.all([fetch('/api/graphql',{method:'POST',body:${captchaBody()}}),fetch('/api/graphql',{method:'POST',body:${captchaMutationBody(AuthPlatformVerification.captchaRender)}})]).then(()=>window.__rendered=true)")
+        until("window.__rendered===true","true");assertEquals(2,calls.get())
+        val submit=captchaMutationBody(AuthPlatformVerification.captchaSubmit)
+        js("fetch('/api/graphql',{method:'POST',body:$submit}).then(()=>window.__humanSent=true)")
+        until("window.__humanSent===true","true");assertEquals(3,calls.get());assertEquals(3L,gate.attempts())
+        val report=LoginPageTrace.read(context)!!
+        assertTrue(JSONObject(report).getJSONObject("captchaSubmission").getBoolean("validData"))
+        assertTrue(JSONObject(report).getJSONObject("captchaSubmission").getBoolean("cookiesApplied"))
+        assertFalse(report.contains("synthetic-human-result"));assertFalse(report.contains("synthetic-encrypted-context"));assertFalse(report.contains("synthetic-device"))
+        assertTrue(CookieManager.getInstance().getCookie("https://www.instagram.com/").contains("synthetic-captcha-session"))
+        js("fetch('/api/graphql',{method:'POST',body:$submit}).catch(()=>window.__repeatStopped=true)")
+        until("window.__repeatStopped===true","true");assertEquals(3,calls.get())
+    }
     @Test fun captchaContentThenCodeViewCanEachRunOnceWithinTheSameConsentedLogin() {
         response={request->
             val root=if(request.tag(WebSecurityViewAuthorization::class.java)?.document==AuthPlatformCaptchaContent.DOCUMENT)
-                "xfb_auth_platform_synthetic_recaptcha_content" else "xfb_auth_platform_enter_code_content"
+                "xfb_auth_platform_anti_scripting_content" else "xfb_auth_platform_enter_code_content"
             Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("fixture")
                 .body(JSONObject().put("data",JSONObject().put(root,JSONObject())).toString().toResponseBody()).build()
         }

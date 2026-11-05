@@ -28,6 +28,8 @@ internal object WebPlatformRequestPolicy {
         val u=request.url
         if (!u.isHttps || u.host!="www.instagram.com" || u.port!=443 || u.username.isNotEmpty() || u.password.isNotEmpty()) return false
         if (request.method=="POST") {
+            val captcha = request.tag(WebCaptchaAuthorization::class.java)
+            if(captcha!=null)return u.toString()==captcha.url && captcha.body===request.body
             val code = request.tag(WebCodeSubmissionAuthorization::class.java)
             if (code != null) return u.toString() == code.url && code.body === request.body
             val security=request.tag(WebSecurityViewAuthorization::class.java)

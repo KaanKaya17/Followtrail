@@ -1,4 +1,8 @@
 <resources>
     <string name="diagnostics_copy">Copiar diagnóstico</string>
     <string name="diagnostics_copied">Diagnóstico copiado. No incluye contraseña, código ni cookies.</string>
+    <string name="captcha_loading">Preparando CAPTCHA…</string>
+    <string name="captcha_submitting">Enviando el resultado del CAPTCHA a Instagram…</string>
+    <string name="captcha_result_sent">Resultado del CAPTCHA enviado. Completa el siguiente paso en Instagram.</string>
+    <string name="captcha_repeat_stopped">El resultado del CAPTCHA ya se envió en este intento. No sigas resolviendo desafíos repetidos; revisemos el diagnóstico.</string>
 </resources>

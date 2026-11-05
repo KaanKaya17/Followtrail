@@ -1774,6 +1774,21 @@ class MainActivity : LocalizedActivity() {
                 loginFeedback(R.string.web_login_step_waiting,R.string.web_login_submitting_code,true)
                 updateLoginCompletion()
             }
+        }, captchaStarted={ submitting ->
+            if(web===browser) {
+                loginAuthenticating=true;completionButton?.visibility=View.GONE
+                loginFeedback(R.string.web_login_step_captcha,if(submitting) R.string.captcha_submitting else R.string.captcha_loading,true)
+                updateLoginCompletion()
+            }
+        }, captchaCompleted={ submitted ->
+            if(web===browser) {
+                loginAuthenticating=false;autoVerifyLogin=!webComparison
+                loginFeedback(R.string.web_login_step_captcha,if(submitted) R.string.captcha_result_sent else R.string.web_login_complete_challenge)
+                updateLoginCompletion();scheduleGateWake();continueAuthenticatedLogin()
+                main.removeCallbacks(inspectPage);main.postDelayed(inspectPage,500)
+            }
+        }, captchaRepeated={
+            if(web===browser)endLoginVerificationUnavailable(R.string.captcha_repeat_stopped)
         }).also { if (!it.install()) { loginRelayIssue = true; loginFeedback(R.string.web_login_step_attention, R.string.web_relay_unavailable) } }
         browser.webViewClient = object : WebViewClient() {
             @androidx.annotation.RequiresApi(26)

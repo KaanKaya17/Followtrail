@@ -7,7 +7,10 @@ internal object AuthPlatformVerification {
     data class Operation(val document: String, val name: String)
     val submitCode = Operation("25017097917894476", "useAuthPlatformSubmitCodeMutation")
     val deviceApproval = Operation("24626773746933809", "AuthPlatformApproveFromAnotherDevicePollingMutation")
-    val operations = listOf(submitCode, deviceApproval)
+    val captchaRender = Operation("28372617359013204", "AuthPlatformReCaptchaRenderOutcomeMutation")
+    val captchaSubmit = Operation("9960725864052044", "AuthPlatformReCaptchaSubmitCaptchaMutation")
+    val captchaOperations = listOf(captchaRender,captchaSubmit)
+    val operations = listOf(submitCode, deviceApproval) + captchaOperations
     fun find(document: String?, name: String?) = operations.singleOrNull { it.document == document && it.name == name }
 }
 

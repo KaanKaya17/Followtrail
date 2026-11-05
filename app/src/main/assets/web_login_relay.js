@@ -3,26 +3,39 @@
   if (window.top !== window || location.origin !== 'https://www.instagram.com' || !window.trackerLoginRelay) return;
   const bridge = window.trackerLoginRelay, pending = new Map();
   // Injected from the shared names-only schema inspector, evaluated only when the query is actually requested.
-  const captchaSchema = () => { return __CAPTCHA_SCHEMA__; };
+  const securitySchemas = __SECURITY_SCHEMAS__;
+  let securityTail = Promise.resolve();
   let next = 0;
   const target = value => { try { const u = new URL(value, location.href); return u.origin === 'https://www.instagram.com' && !u.search && !u.hash && ['/api/graphql','/api/graphql/','/graphql/query/','/graphql_www'].includes(u.pathname) ? u.pathname : null; } catch (_) { return null; } };
   const send = (body, headers, path) => {
     let cancel = () => {};
+    let dispatch = () => {};
+    const security = location.pathname.startsWith('/auth_platform/');
     const promise = new Promise((resolve, reject) => {
-    const capacity = location.pathname.startsWith('/auth_platform/') ? 4 : 1;
+    const capacity = security ? 4 : 1;
     if (typeof body !== 'string' || body.length > 65536 || pending.size >= capacity) { reject(new TypeError('Login request rejected')); return; }
     const id = String(++next);
     cancel = () => { if (pending.delete(id)) { clearTimeout(timer); bridge.postMessage(JSON.stringify({cancel:id})); reject(new DOMException('Aborted', 'AbortError')); } };
-    const timer = setTimeout(cancel, 35000);
+    // Up to four serialized security exchanges: their shared pacing and network deadlines can exceed 35 seconds.
+    const timer = setTimeout(cancel, security ? 180000 : 35000);
     pending.set(id, {resolve, reject, timer});
     const envelope = {id, body, headers, path};
-    if (location.pathname.startsWith('/auth_platform/')) {
+    if (security) {
       const form = new URLSearchParams(body);
-      if (form.get('doc_id') === '__CAPTCHA_DOCUMENT__' && form.get('fb_api_req_friendly_name') === '__CAPTCHA_OPERATION__')
-        envelope.securitySchema = captchaSchema();
+      const key = form.get('doc_id') + '|' + form.get('fb_api_req_friendly_name');
+      if (Object.prototype.hasOwnProperty.call(securitySchemas,key)) envelope.securitySchema = securitySchemas[key]();
     }
-    bridge.postMessage(JSON.stringify(envelope));
+    dispatch = () => {
+      if (!pending.has(id)) return;
+      try { bridge.postMessage(JSON.stringify(envelope)); }
+      catch (error) { pending.delete(id); clearTimeout(timer); reject(error); }
+    };
     });
+    if (security) {
+      const previous = securityTail;
+      securityTail = previous.then(() => promise.then(() => {}, () => {}));
+      previous.then(dispatch);
+    } else dispatch();
     promise.cancel = () => cancel(); return promise;
   };
   bridge.onmessage = event => {
