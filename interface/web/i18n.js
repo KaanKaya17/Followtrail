@@ -1234,7 +1234,9 @@
     "Saklama tercihi geçersiz.": "Invalid retention preference.",
     "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "Some archives could not be cleaned up. Preferences were saved; you can retry cleanup.",
     "Silmek için kayıtlı bir profil seç.": "Select a saved profile to delete.",
-    "Günlük istatistikler": "Daily statistics"
+    "Günlük istatistikler": "Daily statistics",
+    "Hesabının son kontrolü": "Your account last checked",
+    "Sıradaki otomatik işlem": "Next automatic task"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2464,7 +2466,9 @@
     "Saklama tercihi geçersiz.": "Preferencia de conservación no válida.",
     "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "No se pudieron limpiar algunos archivos. Se guardaron las preferencias; puedes volver a intentarlo.",
     "Silmek için kayıtlı bir profil seç.": "Selecciona un perfil guardado para eliminarlo.",
-    "Günlük istatistikler": "Estadísticas diarias"
+    "Günlük istatistikler": "Estadísticas diarias",
+    "Hesabının son kontrolü": "Última consulta de tu cuenta",
+    "Sıradaki otomatik işlem": "Próxima tarea automática"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3694,7 +3698,9 @@
     "Saklama tercihi geçersiz.": "Preferência de retenção inválida.",
     "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "Não foi possível limpar alguns arquivos. As preferências foram salvas; você pode tentar novamente.",
     "Silmek için kayıtlı bir profil seç.": "Selecione um perfil salvo para excluir.",
-    "Günlük istatistikler": "Estatísticas diárias"
+    "Günlük istatistikler": "Estatísticas diárias",
+    "Hesabının son kontrolü": "Última verificação da sua conta",
+    "Sıradaki otomatik işlem": "Próxima tarefa automática"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };
@@ -3706,6 +3712,7 @@
     if (!formatterCache.has(key)) formatterCache.set(key, {
       number: new Intl.NumberFormat(locale(key)),
       date: new Intl.DateTimeFormat(locale(key), { dateStyle: 'medium', timeStyle: 'short' }),
+      preciseDate: new Intl.DateTimeFormat(locale(key), { dateStyle: 'medium', timeStyle: 'medium' }),
       day: new Intl.DateTimeFormat(locale(key), { dateStyle: 'full' }),
     });
     return formatterCache.get(key);

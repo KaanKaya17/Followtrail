@@ -3,6 +3,16 @@ const assert = require('node:assert/strict');
 const i18n = require('../web/i18n.js');
 const { changeNotification } = require('./notifications.cjs');
 
+test('Control timestamps preserve distinct seconds within the same minute in every language',()=>{
+  const first=new Date('2026-11-05T09:29:05Z'),next=new Date('2026-11-05T09:29:15Z');
+  for(const language of ['tr','en','es','pt-BR']) {
+    const formats=i18n.formats(language);
+    assert.equal(formats.date.format(first),formats.date.format(next));
+    assert.notEqual(formats.preciseDate.format(first),formats.preciseDate.format(next));
+    assert.equal(formats.preciseDate.formatToParts(first).find(part=>part.type==='second').value,'05');
+  }
+});
+
 test('four local languages preserve substitution values and format numbers', () => {
   assert.equal(i18n.translate('Özet', [], 'en'), 'Overview');
   assert.equal(i18n.translate('Özet', [], 'tr'), 'Özet');

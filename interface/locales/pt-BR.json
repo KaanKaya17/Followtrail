@@ -1226,5 +1226,7 @@
   "Saklama tercihi geçersiz.": "Preferência de retenção inválida.",
   "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "Não foi possível limpar alguns arquivos. As preferências foram salvas; você pode tentar novamente.",
   "Silmek için kayıtlı bir profil seç.": "Selecione um perfil salvo para excluir.",
-  "Günlük istatistikler": "Estatísticas diárias"
+  "Günlük istatistikler": "Estatísticas diárias",
+  "Hesabının son kontrolü": "Última verificação da sua conta",
+  "Sıradaki otomatik işlem": "Próxima tarefa automática"
 }

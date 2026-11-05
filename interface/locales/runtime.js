@@ -14,6 +14,7 @@
     if (!formatterCache.has(key)) formatterCache.set(key, {
       number: new Intl.NumberFormat(locale(key)),
       date: new Intl.DateTimeFormat(locale(key), { dateStyle: 'medium', timeStyle: 'short' }),
+      preciseDate: new Intl.DateTimeFormat(locale(key), { dateStyle: 'medium', timeStyle: 'medium' }),
       day: new Intl.DateTimeFormat(locale(key), { dateStyle: 'full' }),
     });
     return formatterCache.get(key);

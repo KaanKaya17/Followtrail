@@ -1226,5 +1226,7 @@
   "Saklama tercihi geçersiz.": "Preferencia de conservación no válida.",
   "Bazı arşivler temizlenemedi. Tercihler kaydedildi; temizlemeyi yeniden deneyebilirsin.": "No se pudieron limpiar algunos archivos. Se guardaron las preferencias; puedes volver a intentarlo.",
   "Silmek için kayıtlı bir profil seç.": "Selecciona un perfil guardado para eliminarlo.",
-  "Günlük istatistikler": "Estadísticas diarias"
+  "Günlük istatistikler": "Estadísticas diarias",
+  "Hesabının son kontrolü": "Última consulta de tu cuenta",
+  "Sıradaki otomatik işlem": "Próxima tarea automática"
 }
