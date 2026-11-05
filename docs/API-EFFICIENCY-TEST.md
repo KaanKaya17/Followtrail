@@ -1,5 +1,7 @@
 # İstek verimliliği — Windows 0.2.54 / Android 0.1.84
 
+Sonraki 0.2.55 / 0.1.85 sürümündeki günlük bütçe artışı [ayrı nottadır](DAILY-BUDGET-UPDATE.md); aşağıdaki 1.200/2.400 değerleri 0.2.54 paketinin tarihsel kaydıdır.
+
 5 Kasım 2026. Bu not [araştırmanın](API-EFFICIENCY-RESEARCH.md) ardından uygulanan ilk paketi kapsar; yeni Instagram erişimi veya 429'un çözüldüğü iddiası değildir.
 
 ## Değişen davranış

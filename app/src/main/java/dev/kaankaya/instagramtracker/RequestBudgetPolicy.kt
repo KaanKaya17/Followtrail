@@ -3,7 +3,7 @@ package dev.kaankaya.instagramtracker
 /** Rolling reservations. Persisted keys are local owner digests, never credentials. */
 object RequestBudgetPolicy {
     // Accept old Windows-sized histories during a policy transition without deleting evidence.
-    const val MAX_STORED = 4800
+    val MAX_STORED = maxOf(4800, RequestDefaults.DEVICE_DAILY)
     const val HOUR = 60 * 60 * 1000L
     const val DAY = 24 * HOUR
     fun availableAt(times: List<Long>, now: Long, hourly: Int, daily: Int): Long {

@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Windows 0.2.55 / Android 0.1.85 — 2026-11-05
+
+- Kullanıcının isteğiyle hesap başına yerel günlük bütçe 1.200 → 3.000, cihaz toplamı 2.400 → 6.000 olarak ortak kaynaktan artırıldı. Saatlik 120/240 sınırları, otomatik profil işleri için %80 eşiği, 6–10 saniyelik sıra ve 429/Retry-After duruşu korunur. Bu değerler Meta kotası veya güvenli istek garantisi değildir.
+- Sayaç geçmişi silinmez. İki platformun sınırlı kayıt kapasitesi günlük cihaz bütçesini ve eski kayıtları taşıyacak şekilde türetilir; tam günlük geçmişte sessiz kırpma veya ek isteğe izin verilmez. [Doğrulama](docs/DAILY-BUDGET-UPDATE.md).
+
 ## Windows 0.2.54 / Android 0.1.84 — 2026-11-05
 
 - Windows otomatik liste başlangıcı aynı bağlantıda yeni kaydedilmiş profil sonucunu 60 saniye paylaşır; gereksiz yeni kontrol olayı üretmez. Elle yeni tarama, bağlantı değişimi ve eskimiş bilgi taze okuma gerektirir. Küçük sentetik 82/50 örneğinde 6 → 4, büyük 3000/2000 örneğinde 103 → 102 istek ölçüldü.
