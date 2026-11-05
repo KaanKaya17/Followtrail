@@ -26,7 +26,7 @@ Bir kişiyi kayıtlarınıza eklemek Instagram'da takip isteği göndermez. Kayd
 
 ## Profil panelini okumak
 
-Windows'ta bir liste üyesinin paneli açıldığında eksik/güncel ayrıntılar için tek profil okuması sıraya alınabilir. Yakın zamanda başarıyla alınan ayrıntılar kısa süre yeniden kullanılır. Paneli açmak kişiyi otomatik kaydetmez.
+Windows'ta bir liste üyesinin paneli açıldığında eksik/güncel ayrıntılar için tek profil okuması sıraya alınabilir. Yakın zamanda başarıyla alınan ayrıntılar kısa süre yeniden kullanılır. Windows'ta panelin doğrulanmış bilgileri 5 dakika içinde kişi kaydına aktarılabilir; aynı bilgiyi kaydetmek için yeniden sorgu gönderilmez. Açık yenileme taze okuma ister. Paneli açmak kişiyi otomatik kaydetmez.
 
 Takipçi/takip edilen sayıları, gönderi sayısı ve gizlilik yalnız alınabildikleri ölçüde gösterilir. Eksik bilgi sıfır veya “açık hesap” olarak tamamlanmaz. Fotoğraf yüklenemezse baş harf gösterilebilir; bu tek başına hesabın kapandığı anlamına gelmez.
 

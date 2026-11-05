@@ -6,4 +6,6 @@
 4. Yerel anahtarla `scripts/sign-release.ps1` çalıştırın. Anahtar ve DPAPI parola dosyası yalnız yerel signing klasöründe kalır. Aynı anahtar güncellemeler için korunmalıdır. İmzayı ve APK SHA-256 değerini kaydedin.
 5. `scripts/verify-release.py` ile **imzalı** APK'yı da kontrol edin. Sürüm etiketi ve kaynak commit'i eşleşsin. APK kaynak dosyalarının yanına commit edilmez; kullanıcıya dağıtılan binary ayrıca tanımlanır.
 
+6. README, `docs/wiki/Surum-ve-Destek.md`, masaüstü rehberi ve güncel politika/platform notlarını kaynak sürümleriyle karşılaştırın. `python scripts/prepare-wiki.py --check` çalıştırın. Kaynak dalı/etiketi, GitHub Releases dosyası ve ayrı Wiki yayınının farklı durumlar olduğunu açıkça belirtin; eski doğrulama raporlarının sürüm/ölçümlerini değiştirmeyin. Wiki kullanılabiliyorsa kaynak kılavuzdan tekrar dışa aktarın.
+
 Otomatik CI hesabın parolasını veya oturumunu almaz ve üretim imza anahtarını kullanmaz. Yalnız raporlar saklanır; imzasız çıktının mağazaya otomatik yayınlanması yoktur. Store/Data Safety beyanı, lisans kararı ve bağımsız güvenlik incelemesi tamamlanmadan genel kullanıma hazır etiketi verilmez.

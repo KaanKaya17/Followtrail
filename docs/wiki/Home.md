@@ -28,6 +28,7 @@ InstagramTracker; takipçi ve takip edilen listelerini karşılaştırmanıza, s
 - [Profil takibi](Profil-Takibi.md): Arama, favoriler, notlar, gruplar ve sosyal bağlantılar.
 - [Takip listeleri](Takip-Listeleri.md): Başlangıç listesi, yeni/görünmeyen üyeler ve eksik tarama.
 - [Otomatik kontrol ve bildirimler](Otomatik-Kontrol-ve-Bildirimler.md): Zamanlama ve arka planda çalışma.
+- [Hikâye arşivi](Hikaye-Arsivi.md): İzin verdiğiniz okumalardan yerel takvim ve fotoğraf/video görüntüleme.
 - [Günlük istatistikler](Gunluk-Istatistikler.md): Kalıcı gün özetleri, ay/yıl grafikleri ve temizleme.
 - [Geçmiş ve analiz](Gecmis-ve-Analiz.md): Zaman çizelgesi, biyografi farkları ve avatar arşivi.
 - [Gizlilik ve veriler](Gizlilik-ve-Veriler.md): Yerel şifreleme, yedekler ve dışa aktarımlar.

@@ -4,12 +4,16 @@
 
 **Son içerik denetimi: 5 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Son paketin doğrulaması
+
+Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil paneli JavaScript testi ve 36 paketli Windows kontrolü geçti. Android lint 0 hata / 56 uyarı verdi; imza ve manifest denetlendi. Yeni Android cihaz testi çalıştırılmadı. Bunlar bütün testlerin bu sürümde yeniden çalıştırıldığı veya canlı Android girişinin çözüldüğü anlamına gelmez. [Ayrıntılar ve APK özeti](../RESPONSE-SHARING-TEST.md).
+
 ## Windows
 
-**Güncel önizleme: 0.2.53 · kaynak etiketi: `desktop-v0.2.53`**
+**Güncel önizleme: 0.2.56 · kaynak etiketi: `desktop-v0.2.56`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.53`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.56`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.
@@ -18,9 +22,9 @@
 
 ## Android
 
-**Güncel APK: 0.1.81 · sürüm kodu: 81 · kaynak etiketi: `android-v0.1.81`**
+**Güncel APK: 0.1.86 · sürüm kodu: 87 · kaynak etiketi: `android-v0.1.86`**
 
-- Dosya: `InstagramTracker-0.1.81.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.86.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
 - **Telefon içinden uçtan uca başarılı hesap bağlantısı ve liste okuması henüz tamamlanmış sayılmıyor.** Araştırılan açık konu girişten sonraki profil okumasıdır.
 - E-posta/kod akışı üzerinde çalışılmıştır; her CAPTCHA, TOTP ve başka cihazdan onay yönteminin desteklendiği varsayılmamalıdır. Cihaz onayı sonucunu periyodik sorgulayan yöntem hâlâ sınırlıdır.
@@ -74,6 +78,14 @@ Normal hata bildirimi için proje sahibinin belirttiği destek kanalını kullan
 ## Sonraya bırakılan geliştirmeler
 
 Resmî Instagram ZIP içe aktarma, işlevsel web hizmeti, geniş Threads/Facebook entegrasyonu ve AI içerik analizi henüz tamamlanmış özellikler değildir. [Geliştirme notları](../DEVELOPMENT-BACKLOG.md) güncel kapsamı korur; listedeki bir fikir yayın tarihi taahhüdü değildir.
+
+## Son verimlilik güncellemeleri
+
+0.2.54 / 0.1.84 ile otomatik profil işleri yerel bütçenin %80 eşiğinde ertelenir. 0.2.55 / 0.1.85 günlük sınırları hesap için 3.000, cihaz için 6.000 yaptı; saatlik sınırlar 120 / 240 olarak kaldı. 0.2.56 / 0.1.86 doğrulanmış profil bilgisini ve eşzamanlı görsel işlerini yeniden kullanır. [Ortak politika](../REQUEST-POLICY.md) · [Yanıt paylaşımı](../RESPONSE-SHARING-TEST.md).
+
+## GitHub ve dağıtım durumu
+
+5 Kasım 2026 denetiminde depo özel ve GitHub Wiki kapalıdır; kılavuz bu deponun `docs/wiki/` dizininde okunur. GitHub Releases bölümündeki son yayımlanmış paket `v0.1.46` önizlemesidir; güncel kaynak etiketleriyle aynı dağıtım değildir. Yeni APK/EXE dosyaları bu belge güncellemesiyle Releases'e yüklenmez. Güncel kaynak sürümleri yukarıda belirtilmiştir.
 
 ## Son eşitleme
 

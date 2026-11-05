@@ -10,7 +10,9 @@ Profil aralığı her hedef için ayrı değerlendirilir. Üç profilin beş dak
 
 **Profil aralığı**, aynı hedefi yeniden değerlendirme zamanıdır. **İstek aralığı**, sunucuya giden iki istek arasındaki süredir. **Liste taraması** ise birden fazla sayfa isteği içerebilir. Bu üç süreyi aynı şey olarak düşünmeyin.
 
-Güncel Windows sürümünde normal sayaçlı istekler arasında 6–10 saniyelik rastgele aralık seçilir. Bu, Instagram'ın kabul ettiği güvenli kota veya kesin yanıt süresi değildir. Saatlik/günlük yerel bütçeler ve sunucu sınırlamaları ayrıca uygulanır.
+Windows ve Android'de normal sayaçlı istekler arasında 6–10 saniyelik rastgele aralık seçilir. Bu, Instagram'ın kabul ettiği güvenli kota veya kesin yanıt süresi değildir. Saatlik/günlük yerel bütçeler ve sunucu sınırlamaları ayrıca uygulanır.
+
+Yerel sınırlar hesap başına **120/saat ve 3.000/24 saat**, aynı cihazdaki hesaplar için toplam **240/saat ve 6.000/24 saat**tir. Otomatik profil işleri aynı hareketli geçmişin %80 eşiğinde ertelenir; listeler ve elle işlemler tam ortak bütçeyi kullanabilir. Bu, her elle işlem için garanti yer olduğu anlamına gelmez. [Teknik politika](../REQUEST-POLICY.md).
 
 ## Windows arka planda nasıl çalışır?
 
