@@ -30,14 +30,14 @@ def main():
     if not args.empty:
         now=1800000000
         e.clock=lambda:now
-        def profile(identity,username,followers,following):
+        def profile(identity,username,followers,following,private=False):
             return parse_profile({'user':{'pk':identity,'username':username,'full_name':'QA '+username,
                 'follower_count':followers,'following_count':following,'biography':'Synthetic profile',
-                'media_count':1,'is_private':False,'is_verified':False}})
+                'media_count':1,'is_private':private,'is_verified':False}})
         e.record_profile(profile('100','qa.owner',2,2),True)
         now+=60
         e.record_profile(profile('100','qa.owner',3,2),True)
-        e.record_profile(profile('200','qa.deniz',10,4))
+        e.record_profile(profile('200','qa.deniz',10,4,private=True))
         e.record_profile(profile('201','qa.ada',20,5))
         e.record_profile(profile('300','qa.large',150,0))
         image=BytesIO();Image.new('RGB',(20,20),'#674bd8').save(image,format='JPEG')

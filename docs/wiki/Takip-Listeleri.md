@@ -6,7 +6,7 @@
 
 **Takip Listeleri** ekranında önce liste sahibini, ardından **Takipçiler** veya **Takip edilen** yönünü seçin. Kendi hesabınızın ve erişebildiğiniz kaydedilmiş profillerin kayıtlarını ayrı ayrı değerlendirin.
 
-Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profilin sayaçlarını görebilmek, o profilin bütün takipçi listesini okuyabileceğiniz anlamına gelmez.
+Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profilin sayaçlarını görebilmek, o profilin bütün takipçi listesini okuyabileceğiniz anlamına gelmez. Windows, gizli bir profil son tam takip edilen listenizde yoksa ve bu liste son sayaçla uyuşuyorsa liste ekranında takip isteğinin onaylanması gerektiğini açıklar.
 
 <a name="ilk-kayit-ve-sonraki-karsilastirma"></a>
 

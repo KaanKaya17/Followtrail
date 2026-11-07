@@ -210,6 +210,16 @@ class Engine:
             store = None
             self._daily_view = None
         published = self.list_pages.publish(d)
+        own_following = published['records'].get((d['account'] or {}).get('id', '') + ':following', {})
+        last_following = next((scan for scan in reversed(own_following.get('snapshots', []))
+                               if scan.get('complete')), None)
+        people = []
+        for profile in d['people'].values():
+            person = public_person(profile)
+            if (profile.get('private') is True and last_following is not None and
+                    len(last_following['members']) == d['account'].get('following')):
+                person['inLastFollowingList'] = profile['id'] in last_following['members']
+            people.append(person)
         records = {key: {'snapshots': [list_pages.metadata(s) for s in record.get('snapshots', [])],
                          'draft': list_pages.metadata(record.get('draft')),
                          'retainedPartial': list_pages.metadata(record.get('retainedPartial')),
@@ -218,7 +228,7 @@ class Engine:
                          'canResume': list_preparation.resumable(record.get('draft'), self.clock())}
                    for key, record in published['records'].items()}
         return {'account': public_person(d['account']) if d['account'] else None,
-                'connected': bool(d['session']), 'people': [public_person(p) for p in d['people'].values()],
+                'connected': bool(d['session']), 'people': people,
                 'history': d['history'], 'lists': records, 'listsRevision': published['revision'], 'events': d['events'],
                 'dailyRevision': {identity:store.revisions.get(identity,store.revision) for identity in seeds} if store else {}, 'dailyWarning': store.warning if store else False,
                 'gate': d['gate'], 'settings': d['settings'], 'privacyMaintenance': d['privacyMaintenance'], 'lastError': localization.error(d['lastError'], d['settings']['language']),

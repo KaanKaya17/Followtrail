@@ -273,7 +273,15 @@
       [t("Önce bir profil kaydet ve kontrol et."),t("Profil ayrıntısında bildirim almak istediğin değişiklik türlerini seç."),t("Windows bildirimi isteğe bağlıdır; uygulama içindeki kayıtlar bildirim kapalıyken de tutulur.")],
       button(t("Kaydedilen profilleri aç"),'guide-people','people','primary')+button(t("Bildirim ayarları"),'guide-settings','settings'),'bell');
   }
-  function userError(value) {
+  function privateListMessage(profile) {
+    if (profile?.private !== true || profile.inLastFollowingList !== false) return "";
+    return t("Bu hesap gizli. Son takip edilen listene göre bu hesabı takip etmiyorsun. Listelerini görebilmek için takip isteğinin onaylanması gerekiyor.");
+  }
+  function userError(value, listOwnerId) {
+    if (listOwnerId && ["list_count", "list_coverage"].includes(value?.code)) {
+      const message = privateListMessage(person(listOwnerId));
+      if (message) return message;
+    }
     const messages = {
       limited: t("Instagram istekleri sınırladı. Kontroller geçici olarak duraklatıldı."),
       cooldown: t("Kontroller için mola sürüyor. Yeniden deneme saatini İstek bilgileri bölümünden görebilirsin."),
@@ -285,9 +293,9 @@
     };
     return value && typeof value === 'object' ? messages[value.code] || stored(value.message || t("İşlem tamamlanamadı.")) : stored(value);
   }
-  function errorDialog(message) {
+  function errorDialog(message, listOwnerId) {
     dialog(
-      `<span class="dialog-symbol peach">${icon("info")}</span><h2 id="dialog-title">${t("İşlem tamamlanamadı")}</h2><p>${esc(userError(message))}</p>${message && typeof message === 'object' ? `<details><summary>${t("Teknik ayrıntılar")}</summary><p>${esc(message.code)}</p><p>${esc(message.message)}</p></details>` : ''}${data?.gate.blockedUntil > Date.now() / 1000 ? `<p class="dialog-note">${t("En erken {0} yeniden deneyebilirsin. Instagram daha uzun beklemeni isteyebilir.", esc(date(data.gate.blockedUntil)))}</p>` : ""}<div class="dialog-buttons">${button(t("İstek bilgileri"), "requests", "info")}${button(t("Tamam"), "close", null, "primary")}</div>`,
+      `<span class="dialog-symbol peach">${icon("info")}</span><h2 id="dialog-title">${t("İşlem tamamlanamadı")}</h2><p>${esc(userError(message, listOwnerId))}</p>${message && typeof message === 'object' ? `<details><summary>${t("Teknik ayrıntılar")}</summary><p>${esc(message.code)}</p><p>${esc(message.message)}</p></details>` : ''}${data?.gate.blockedUntil > Date.now() / 1000 ? `<p class="dialog-note">${t("En erken {0} yeniden deneyebilirsin. Instagram daha uzun beklemeni isteyebilir.", esc(date(data.gate.blockedUntil)))}</p>` : ""}<div class="dialog-buttons">${button(t("İstek bilgileri"), "requests", "info")}${button(t("Tamam"), "close", null, "primary")}</div>`,
     );
   }
   async function command(operation, args = {}, success = "", showErrors = true) {
@@ -311,7 +319,7 @@
         render();
       }
       if (!result.ok && showErrors)
-        errorDialog(result.error || t("İşlem tamamlanamadı."));
+        errorDialog(result.error || t("İşlem tamamlanamadı."), operation === "scan" ? args.id : undefined);
       else if (success) toast(success);
       return result;
     } catch {
@@ -770,6 +778,7 @@
     const initialQueued = !current && record.initialPending && !record.draft &&
       data.connected && data.settings.automatic && data.settings.automaticLists;
     const firstList = initialQueued ? t("İlk liste sırada") : t("İlk tam liste henüz hazır değil");
+    const privateNotice = !current ? privateListMessage(ownerProfile) : "";
     const draft = record.draft;
     const coverage = draft?.expected != null ? t("{0} / {1} hesap okundu", num(draft.count), num(draft.expected)) :
       draft ? t("Liste henüz tamamlanmadı · {0} hesap kaydedildi", num(draft.count)) : "";
@@ -805,7 +814,7 @@
         .join(
           "",
         )}</div><label class="search-input">${icon("search")}<input id="list-search" type="search" placeholder="${t("Listede ara")}" aria-label="${t("Listede ara")}" value="${esc(ui.listQuery)}"></label></div>
-      <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(current.count) + t(" hesap") : firstList}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${record.draft?.recoveryPass ? `<p class="field-hint">${t("Tekrarlanan hesaplar için tamamlama turu uygulanıyor.")}</p>` : ""}${current?.recoveryPass ? `<p class="field-hint">${t("Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.")}</p>` : ""}${record.draft ? `<div class="notice warning"><strong>${coverage}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : record.canResume ? t("Taramaya devam et") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
+      <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(current.count) + t(" hesap") : firstList}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${privateNotice ? `<p class="notice warning">${esc(privateNotice)}</p>` : ""}${record.draft?.recoveryPass ? `<p class="field-hint">${t("Tekrarlanan hesaplar için tamamlama turu uygulanıyor.")}</p>` : ""}${current?.recoveryPass ? `<p class="field-hint">${t("Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.")}</p>` : ""}${record.draft ? `<div class="notice warning"><strong>${coverage}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : record.canResume ? t("Taramaya devam et") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
       ${!current && record.retainedPartial && record.visiblePartialId===record.retainedPartial.id ? `<div class="notice"><strong>${t("Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.",num(record.retainedPartial.count))}</strong><p>${esc(date(record.retainedPartial.finishedAt || record.retainedPartial.startedAt))}</p></div>` : ""}<div class="comparison-controls card"><label>${t("Önceki kontrol")}<select id="previous-scan" ${scans.length < 2 ? "disabled" : ""}>${scanOptions(previous)}</select></label><label>${t("Yeni kontrol")}<select id="current-scan" ${!scans.length ? "disabled" : ""}>${scanOptions(current)}</select></label>${button(ui.comparison ? t("Listeye dön") : t("Farkları göster"), "compare", "compare", "secondary", !ready ? "disabled" : "")}</div>
       ${ui.comparison && ready ? `<div class="compare-summary"><div class="compare-stat mint"><strong id="compare-added">0</strong><span>${ui.direction === "followers" ? t("Yeni görülen takipçiler") : t("Yeni takip edilen hesaplar")}</span></div><div class="compare-stat peach"><strong id="compare-removed">0</strong><span>${t("Son kontrolde görünmeyenler")}</span></div></div>` : ""}
       <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option></select></label></div><div class="results-line"><span id="list-result-count" role="status"></span></div><div class="list-table card" id="list-rows"></div><div id="list-pagination" class="list-scroll-status" role="status" aria-live="polite"></div>${accessOverview()}`;
