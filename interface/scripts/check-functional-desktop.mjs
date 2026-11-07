@@ -317,6 +317,7 @@ try {
       await listReady();
     assert.equal(await page.locator('#list-rows .list-row').count(),76);
     await page.getByText('İlk tam liste henüz hazır değil',{exact:true}).waitFor();
+    await page.getByText(/Bu hesap gizli\. Son takip edilen listene göre/).waitFor();
     await page.getByText('0 / 82 hesap okundu',{exact:true}).waitFor();
     await page.getByText('Önceki yarım listeden 76 hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('button',{name:'Farkları göster',exact:true}).isDisabled(),true);

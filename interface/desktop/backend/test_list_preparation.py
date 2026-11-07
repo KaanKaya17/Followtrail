@@ -121,6 +121,23 @@ class ListPreparationTests(unittest.TestCase):
         self.e.run('settings', {'automaticLists': True})
         self.assertEqual(list_preparation.next_job(self.e.data, self.now[0])['ownerId'], '200')
 
+    def test_private_list_hint_uses_complete_own_following_evidence(self):
+        self.linked()
+        for identity in ('200', '300'):
+            self.e.record_profile(parse_profile(profile(identity, is_private=True)))
+        self.e.save()
+
+        def people():
+            return {p['id']: p for p in self.e.snapshot()['people']}
+
+        self.assertNotIn('inLastFollowingList', people()['200'])
+        self.work(profile(followers=3,following=1), page(['200','201','202']))
+        self.work(profile(followers=3,following=1), page(['300']))
+        self.assertIs(people()['200']['inLastFollowingList'], False)
+        self.assertIs(people()['300']['inLastFollowingList'], True)
+        self.e.record_profile(parse_profile(profile(followers=3,following=2)), own=True)
+        self.assertNotIn('inLastFollowingList', people()['200'])
+
     def test_rescan_same_count_waits_day_and_does_not_starve_profile(self):
         self.linked()
         self.work(profile(followers=3,following=1),page(['200','201','202']))

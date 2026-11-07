@@ -1010,6 +1010,7 @@
   "Profil sayıları ve takip listeleri ayrı kontrol edilir.": "Os números dos perfis e as listas de acompanhamento são verificados separadamente.",
   "Kontroller arasındaki liste değişikliklerini gör. Değişikliğin tam olarak ne zaman olduğu bilinmez.": "Veja as alterações da lista entre os controles. Não se sabe exatamente quando a mudança ocorreu.",
   "Liste henüz tamamlanmadı · {0} hesap kaydedildi": "Lista ainda não completa · {0} contas cadastradas",
+  "Bu hesap gizli. Son takip edilen listene göre bu hesabı takip etmiyorsun. Listelerini görebilmek için takip isteğinin onaylanması gerekiyor.": "Esta conta é privada. Pela sua última lista de contas seguidas, você não segue essa conta. Sua solicitação precisa ser aprovada para que você veja as listas.",
   "İlk liste sırada": "A primeira lista está na fila",
   "İlk tam liste henüz hazır değil": "A primeira lista completa ainda não está pronta",
   "{0} / {1} hesap okundu": "{0} de {1} contas lidas",

@@ -4,6 +4,10 @@
 
 **Son içerik denetimi: 7 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.58
+
+Gizli profillerde liste erişimi açıklaması eklendi. Mesaj bağlı hesabın son tam takip edilen kaydına dayanır. Liste sayısı son profil sayacıyla uyuşmuyorsa takip durumu belirsiz kalır.
+
 ## Windows 0.2.57 doğrulaması
 
 Profil ilk kez kaydedilince iki liste için hazırlık kaydı açılır. Profil ve liste otomasyonu açıkken izleme tercihi kapalı olsa da ilk listeler hazırlanabilir. 112 seçili Python testi, 36 paketli Windows kontrolü, kaynak ve dört dil denetimi geçti. Canlı Instagram testi yapılmadı.
@@ -14,10 +18,10 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Windows
 
-**Güncel önizleme: 0.2.57 · kaynak etiketi: `desktop-v0.2.57`**
+**Güncel önizleme: 0.2.58 · kaynak etiketi: `desktop-v0.2.58`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.57`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.58`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.

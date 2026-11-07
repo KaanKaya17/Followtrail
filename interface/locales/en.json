@@ -1010,6 +1010,7 @@
   "Profil sayıları ve takip listeleri ayrı kontrol edilir.": "Profile counts and follow lists are checked separately.",
   "Kontroller arasındaki liste değişikliklerini gör. Değişikliğin tam olarak ne zaman olduğu bilinmez.": "See list changes between checks. The exact time of a change is unknown.",
   "Liste henüz tamamlanmadı · {0} hesap kaydedildi": "List not finished yet · {0} accounts saved",
+  "Bu hesap gizli. Son takip edilen listene göre bu hesabı takip etmiyorsun. Listelerini görebilmek için takip isteğinin onaylanması gerekiyor.": "This account is private. Your last following list shows you are not following it. Your follow request needs to be approved before you can see its lists.",
   "İlk liste sırada": "First list is queued",
   "İlk tam liste henüz hazır değil": "The first complete list is not ready yet",
   "{0} / {1} hesap okundu": "{0} of {1} accounts read",

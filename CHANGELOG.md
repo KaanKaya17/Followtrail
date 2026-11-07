@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Windows 0.2.58 — 2026-11-07
+
+- Gizli bir profil bağlı hesabın son tam takip edilen listesinde yoksa ve liste son sayaçla uyuşuyorsa, Takip Listeleri ekranı erişim şartını açıklar. Liste kapsamı veya sayısı hatasında aynı açıklama gösterilir.
+- 73 seçili Python testi ve 36 çevrimdışı paket kontrolü geçti.
+
 ## Windows 0.2.57 — 2026-11-07
 
 - Yeni kaydedilen profillerin iki liste yönü ilk hazırlık sırasına alınır. Kullanıcının otomasyon ve izleme tercihleri korunur. İlk tam kayıt oluştuğunda yalnız izlenen profiller düzenli taranmaya devam eder.
