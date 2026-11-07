@@ -2,18 +2,22 @@
 
 [Kılavuz ana sayfası](Home.md) · [Değişiklik kaydı](../../CHANGELOG.md)
 
-**Son içerik denetimi: 5 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+**Son içerik denetimi: 7 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
-## Son paketin doğrulaması
+## Windows 0.2.57 doğrulaması
+
+Profil ilk kez kaydedilince iki liste için hazırlık kaydı açılır. Profil ve liste otomasyonu açıkken izleme tercihi kapalı olsa da ilk listeler hazırlanabilir. 112 seçili Python testi, 36 paketli Windows kontrolü, kaynak ve dört dil denetimi geçti. Canlı Instagram testi yapılmadı.
+
+## 0.2.56 / 0.1.86 doğrulaması
 
 Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil paneli JavaScript testi ve 36 paketli Windows kontrolü geçti. Android lint 0 hata / 56 uyarı verdi; imza ve manifest denetlendi. Yeni Android cihaz testi çalıştırılmadı. Bunlar bütün testlerin bu sürümde yeniden çalıştırıldığı veya canlı Android girişinin çözüldüğü anlamına gelmez. [Ayrıntılar ve APK özeti](../RESPONSE-SHARING-TEST.md).
 
 ## Windows
 
-**Güncel önizleme: 0.2.56 · kaynak etiketi: `desktop-v0.2.56`**
+**Güncel önizleme: 0.2.57 · kaynak etiketi: `desktop-v0.2.57`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.56`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.57`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.

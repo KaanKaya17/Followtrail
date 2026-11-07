@@ -299,7 +299,7 @@ try {
         .waitFor();
       assert.equal(
         await page
-          .getByText("Liste henüz tamamlanmadı · 1 hesap kaydedildi", { exact: true })
+          .getByText("1 / 3 hesap okundu", { exact: true })
           .isVisible(),
         true,
       );
@@ -316,6 +316,8 @@ try {
     await page.locator('#list-owner').selectOption('200');
       await listReady();
     assert.equal(await page.locator('#list-rows .list-row').count(),76);
+    await page.getByText('İlk tam liste henüz hazır değil',{exact:true}).waitFor();
+    await page.getByText('0 / 82 hesap okundu',{exact:true}).waitFor();
     await page.getByText('Önceki yarım listeden 76 hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('button',{name:'Farkları göster',exact:true}).isDisabled(),true);
     assert.equal(await page.locator('#list-rows .badge').count(),0);
