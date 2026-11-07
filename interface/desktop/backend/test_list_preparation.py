@@ -73,6 +73,54 @@ class ListPreparationTests(unittest.TestCase):
         self.assertNotIn('comparison',self.e.snapshot()['lists']['100:followers'])
         self.assertEqual(self.e.data['access'],{})
 
+    def test_adding_a_profile_prepares_both_lists_without_enabling_continuous_watch(self):
+        self.linked()
+        self.work(profile(followers=3,following=1), page(['200','201','202']))
+        self.work(profile(followers=3,following=1), page(['300']))
+        added = profile('200', followers=2, following=1)
+        with patch.object(self.e, 'client', return_value=PacedClient(self.e, [added])):
+            self.e.run('add_person', {'id': '200', 'username': 'qa.200'})
+        self.assertFalse(self.e.data['people']['200']['watching'])
+        self.assertTrue(self.e.snapshot()['lists']['200:followers']['initialPending'])
+        self.e = Accounts(self.home.name, clock=lambda: self.now[0], request_delay=lambda:15)
+        self.e.cancel = ClockWait(self.now)
+
+        with self.assertRaises(AppFailure) as failure:
+            self.work(added, page(['301']))
+        self.assertEqual(failure.exception.code, 'list_count')
+        first_retry = self.now[0] + list_preparation.FIRST_RETRY
+        self.assertEqual(self.e.data['lists']['200:followers']['schedule']['after'], first_retry)
+        self.assertEqual(self.e.data['lists']['200:followers']['snapshots'], [])
+        self.assertEqual(self.work(added, page(['400'])).calls[-1][0], 'friendships/200/following/')
+        self.assertFalse(self.e.snapshot()['lists']['200:following']['initialPending'])
+
+        self.now[0] = first_retry
+        with self.assertRaises(AppFailure) as failure:
+            self.work(added, page(['301']))
+        self.assertEqual(failure.exception.code, 'list_count')
+        next_day = self.now[0] + list_preparation.DAY
+        plan = list_preparation.plan(self.e.data, self.now[0], self.e.data['people']['200'])
+        self.assertEqual(plan[0]['dueAt'], next_day)
+        self.now[0] = next_day
+        with patch.object(self.e, 'client', return_value=PacedClient(self.e, [added, page(['301','302'])])):
+            self.e.run('scan', {'id': '200', 'direction': 'followers'})
+        self.assertEqual(len(self.e.data['lists']['200:followers']['snapshots']), 1)
+        self.assertFalse(self.e.snapshot()['lists']['200:followers']['initialPending'])
+        self.assertIsNone(self.e.data['lists']['200:followers']['schedule'].get('initial'))
+        self.assertFalse(any(c['category'] == 'lists' for entry in self.e.data['notificationLog'] for c in entry['changes']))
+
+    def test_saving_a_list_member_queues_preparation_and_respects_pause(self):
+        self.linked()
+        self.work(profile(followers=3,following=1), page(['200','201','202']))
+        self.work(profile(followers=3,following=1), page(['300']))
+        self.e.run('settings', {'automaticLists': False})
+        self.e.run('save_person', {'id': '200', 'favorite': True})
+        self.assertIsNone(list_preparation.next_job(self.e.data, self.now[0]))
+        for direction in list_preparation.DIRECTIONS:
+            self.assertTrue(self.e.snapshot()['lists'][f'200:{direction}']['initialPending'])
+        self.e.run('settings', {'automaticLists': True})
+        self.assertEqual(list_preparation.next_job(self.e.data, self.now[0])['ownerId'], '200')
+
     def test_rescan_same_count_waits_day_and_does_not_starve_profile(self):
         self.linked()
         self.work(profile(followers=3,following=1),page(['200','201','202']))

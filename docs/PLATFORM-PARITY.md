@@ -1,6 +1,6 @@
 # Android / Windows eşitlemesi — 5 Kasım 2026
 
-Kaynak sürümleri: Windows **0.2.56**, Android **0.1.86 / 87**. Bu çalışma canlı Instagram girişinin çözüldüğü veya bütün platformların birebir aynı olduğu iddiasını taşımaz. İki platformda otomatik profil işleri hareketli bütçenin %80'inde ertelenir; tam bütçe listeler ve elle yapılan işlemlerle ortaktır. Ayarlarda kesintisiz kontrol talebi gösterilir. Windows'a otomatik liste başlangıcında kısa profil paylaşımı eklendi; Android mevcut ListBasis paylaşımını sürdürür. [Verimlilik kapsamı ve doğrulama](API-EFFICIENCY-TEST.md).
+Bu eşitleme kaydındaki kaynak sürümleri: Windows **0.2.56**, Android **0.1.86 / 87**. Windows 0.2.57 ilk profil listelerinin hazırlığını ayrıca günceller. [Güncel sürüm durumu](wiki/Surum-ve-Destek.md). Bu çalışma canlı Instagram girişinin çözüldüğü veya bütün platformların birebir aynı olduğu iddiasını taşımaz. İki platformda otomatik profil işleri hareketli bütçenin %80'inde ertelenir; tam bütçe listeler ve elle yapılan işlemlerle ortaktır. Ayarlarda kesintisiz kontrol talebi gösterilir. Windows'a otomatik liste başlangıcında kısa profil paylaşımı eklendi; Android mevcut ListBasis paylaşımını sürdürür. [Verimlilik kapsamı ve doğrulama](API-EFFICIENCY-TEST.md).
 
 Windows erişim/panel/kaydetme arasında doğrulanmış profil bilgisini paylaşır. Android mevcut kayıt aktarımını sürdürür. İki platformun görsel yükleyicilerinde eşzamanlı tüketiciler ortak iş kullanır; [kapsam ve cihaz testi sınırı](RESPONSE-SHARING-TEST.md).
 
@@ -38,7 +38,7 @@ Android'in önceki Özet, profil, bildirim, zaman çizelgesi, dil, tema, liste a
 
 İlk 0.2.52 / 0.1.81 eşitlemesinin aşağıdaki çevrimdışı doğrulamasında Instagram'a canlı istek gönderilmedi, gerçek kullanıcı kasası açılmadı, uygulama/telefon kurulumu yapılmadı ve emülatör başlatılmadı. Bu cümle sonraki bütün sürümlerin çalışma koşullarını tanımlamaz. Kotlin/Python/JavaScript birim testleri, kaynak/çeviri tutarlılığı ve paket kontrolleri uygulanır; çalıştırılmış sonuçlar değişiklik kaydında kaydedilir. Android Keystore/disk/iptal instrumentasyon testleri pakete eklenip derlenir; kullanıcı cihaz testini ertelediği için çalıştırılmaz. Android görsel kalite ve video oynatımı cihazda henüz doğrulanmadı. Telefon içinden giriş ve profil/liste 429 sorunu ayrı, açık canlı doğrulama işidir; mevcut bekleyen oturum ve mola korunur.
 
-## Güncel paket doğrulaması — 0.2.56 / 0.1.86
+## Yanıt paylaşımı paket doğrulaması — 0.2.56 / 0.1.86
 
 160 seçili Python, 183 JVM, 6 profil paneli JavaScript testi ve 36 paketli Windows kontrolü geçti. Android lint 0 hata / 56 uyarı; release ve test APK'sı derlendi, imza/manifest denetlendi. Windows 0.2.56 gerçek kasayla açıldı; normal otomasyonu ayrı çalışır. Yeni Android cihaz/emülatör ve canlı giriş testi yapılmadı. [APK özeti, kapsam ve sınırlamalar](RESPONSE-SHARING-TEST.md).
 

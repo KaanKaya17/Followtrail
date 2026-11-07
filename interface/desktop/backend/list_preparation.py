@@ -7,8 +7,9 @@ MIN_RESCAN = 60
 RESUME_AGE = 86400
 RECOVERY_AGE = 600
 RECOVERY_PASSES = 3
+FIRST_RETRY = 1800
 ATTENTION = {'capacity', 'pagination', 'list_coverage', 'network_policy'}
-PLAN_VERSION = 5
+PLAN_VERSION = 6
 
 
 def initialize(data):
@@ -28,9 +29,18 @@ def resumable(draft, now):
                 0 <= now - draft.get('startedAt', 0) < age)
 
 
-def targets(data):
-    return ([data['account']] if data['account'] else []) + [
-        person for person in data['people'].values() if person.get('watching')]
+def queue_initial(data, identity):
+    for direction in DIRECTIONS:
+        data['lists'].setdefault(f'{identity}:{direction}', {
+            'snapshots': [], 'schedule': {'initial': 'queued'},
+        })
+
+
+def count_retry_delay(schedule):
+    if schedule.get('initial') == 'queued':
+        schedule['initial'] = 'retry'
+        return FIRST_RETRY
+    return DAY
 
 
 def plan(data, now, account=None):
@@ -42,6 +52,7 @@ def plan(data, now, account=None):
         record = data['lists'].get(account['id'] + ':' + direction, {})
         latest = next((s for s in reversed(record.get('snapshots', [])) if s.get('complete')), None)
         draft, schedule = record.get('draft'), record.get('schedule', {})
+        initial = not latest and schedule.get('initial') in ('queued', 'retry')
         due = (latest['finishedAt'] + DAY) if latest else 0
         if resumable(draft, now):
             due = 0
@@ -54,14 +65,15 @@ def plan(data, now, account=None):
             finished = draft['finishedAt']
             changed = (account.get(direction) is not None and account.get(direction) != draft.get('expected') and
                        (account.get('observedAt') or 0) > finished)
+            retry = FIRST_RETRY if initial and schedule['initial'] == 'retry' else DAY
             due = max(finished + MIN_RESCAN, account['observedAt']) if changed else max(
-                due, schedule.get('after', 0), finished + DAY)
+                due, schedule.get('after', 0), finished + retry)
         else:
             due = max(due, schedule.get('after', 0))
         result.append({'ownerId': account['id'], 'direction': direction, 'ready': latest is not None,
                        'count': len((draft or latest or {}).get('members', {})),
                        'pages': (draft or latest or {}).get('pages', 0),
-                       'resumable': resumable(draft, now), 'error': error,
+                       'resumable': resumable(draft, now), 'error': error, 'initial': initial,
                        'scanning': bool(draft),
                        'dueAt': None if error in ATTENTION else due})
     return result
@@ -70,7 +82,10 @@ def plan(data, now, account=None):
 def next_job(data, now):
     if not data['settings'].get('automaticLists'):
         return None
-    tasks = [p for owner in targets(data) for p in plan(data, now, owner) if p['dueAt'] is not None]
+    own = data['account']
+    owners = ([own] if own else []) + list(data['people'].values())
+    tasks = [task for owner in owners for task in plan(data, now, owner)
+             if task['dueAt'] is not None and (owner is own or owner.get('watching') or task['initial'])]
     # Equal baseline deadlines must advance other profiles instead of draining
     # every page of one large profile first. Completed pages own their turn time.
     def order(task):
@@ -98,7 +113,8 @@ def validate(data):
                 not math.isfinite(schedule.get('after', 0)) or schedule.get('after', 0) < 0 or
                 type(schedule.get('lastAt', 0)) not in (int, float) or
                 not math.isfinite(schedule.get('lastAt', 0)) or schedule.get('lastAt', 0) < 0 or
-                schedule.get('error') is not None and not isinstance(schedule['error'], str)):
+                schedule.get('error') is not None and not isinstance(schedule['error'], str) or
+                schedule.get('initial') not in (None, 'queued', 'retry')):
             raise ValueError('list schedule')
         draft = record.get('draft')
         if draft is not None and not isinstance(draft, dict):

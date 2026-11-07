@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.57 — 2026-11-07
+
+- Yeni kaydedilen profillerin iki liste yönü ilk hazırlık sırasına alınır. Kullanıcının otomasyon ve izleme tercihleri korunur. İlk tam kayıt oluştuğunda yalnız izlenen profiller düzenli taranmaya devam eder.
+- İlk taramada sayı uyuşmazlığı için yaklaşık 30 dakika sonra bir erken tekrar planlanır. Uyuşmazlık sürerse günlük plan geçerlidir. Kısmi liste korunur ve fark hesabına katılmaz. Liste ekranı ilk kayıt durumunu ve varsa okunan/beklenen üye sayısını gösterir.
+- 112 seçili Python testi, 36 paketli Windows kontrolü, ortak kaynak ve dört dil denetimi geçti. Canlı Instagram testi yapılmadı.
+
 ## Windows 0.2.56 / Android 0.1.86 — 2026-11-05
 
 - Windows'ta başarılı erişim kontrolünün doğrulanmış hedef profili diğer profil tüketicilerine aktarılır. Eksik profil alanı geçerli görünürlük sonucunu bozmaz; sağlık sorgusu korunur.

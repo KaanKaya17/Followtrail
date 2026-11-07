@@ -214,6 +214,7 @@ class Engine:
                          'draft': list_pages.metadata(record.get('draft')),
                          'retainedPartial': list_pages.metadata(record.get('retainedPartial')),
                          'visiblePartialId': (list_pages.visible_partial(record) or {}).get('id'),
+                         'initialPending': d['lists'][key].get('schedule', {}).get('initial') is not None,
                          'canResume': list_preparation.resumable(record.get('draft'), self.clock())}
                    for key, record in published['records'].items()}
         return {'account': public_person(d['account']) if d['account'] else None,
@@ -590,7 +591,10 @@ class Engine:
                 raise AppFailure('input', 'Kendi hesabın zaten Özet bölümünde.')
             read_avatar(profile, self)
             self.check_cancel()
+            adding = profile['id'] not in self.data['people']
             self.record_profile(profile)
+            if adding:
+                list_preparation.queue_initial(self.data, profile['id'])
             self.data['session'] = client.get_settings()
             self.save()
         finally:
@@ -720,6 +724,7 @@ class Engine:
                     del record['snapshots'][:-6]
                     record.pop('draft', None)
                     record.pop('retainedPartial', None)
+                    schedule.pop('initial', None)
                     schedule.update(after=self.clock() + list_preparation.MIN_RESCAN, error=None)
                     diff = compare(record['snapshots'][-2], record['snapshots'][-1]) if len(record['snapshots']) > 1 else None
                     changes = {'direction': direction, 'count': len(draft['members']),
@@ -754,8 +759,9 @@ class Engine:
             draft['finishedAt'] = self.clock()
             if code == 'cancelled':
                 self.data['settings']['automaticLists'] = False
-            schedule.update(error=code, after=self.clock() + (
-                0 if code in ('budget','cooldown','cancelled') else list_preparation.DAY if code == 'list_count' else 1800))
+            delay = (0 if code in ('budget', 'cooldown', 'cancelled') else
+                     list_preparation.count_retry_delay(schedule) if code == 'list_count' else 1800)
+            schedule.update(error=code, after=self.clock() + delay)
             self.save()
             raise
         finally:
@@ -866,6 +872,7 @@ class Engine:
                 p = self.data['people'][identity]
             else:
                 self.data['people'][identity] = p
+            list_preparation.queue_initial(self.data, identity)
         p.update(updates)
         self.save()
 

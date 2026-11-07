@@ -25,7 +25,7 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-**Windows 0.2.56:** Yerel işlev paketi; profil bilgilerinin ve eşzamanlı görsel işlerinin tekrar kullanımı geliştirildi. Kayıtlı oturumlarla canlı profil/liste okumaları daha önce görülmüştür; son pakette 36 çevrimdışı işlev kontrolü geçmiştir. Bütün hesaplarda uyumluluk garantisi değildir.
+**Windows 0.2.57:** Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Profil sayısı ile okunan liste uyuşmazsa kısmi kayıt korunur. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
 
 **Android 0.1.86 / kod 87:** İmzalı APK; ortak istek politikası, hikâye arşivi ve aynı görsel yükleyicisinde ortak indirme bulunur. Son paket ve JVM kontrolleri tamamlandı; yeni cihaz/ekran testi ertelendi ([doğrulama kapsamı](docs/RESPONSE-SHARING-TEST.md)). CAPTCHA sonrası bekleyen oturumun korunması doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
 

@@ -14,6 +14,8 @@ Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profil
 
 İlk tamamlanan tarama başlangıç kaydıdır. Daha sonra tamamlanan uygun bir tarama, önceki kayıtla karşılaştırılır.
 
+Windows, yeni kaydedilen bir profil için iki yönü de ilk hazırlık sırasına ekler. Otomatik profil kontrolü ve liste karşılaştırması açıksa hazırlık ortak istek sırasıyla ilerler. İlk kayıt hazır olduktan sonra düzenli tarama için profilin izleniyor olması gerekir.
+
 Örneğin ilk kayıtta A, B ve C; sonraki tam kayıtta A, C ve D varsa uygulama B'nin artık görünmediğini ve D'nin yeni göründüğünü belirleyebilir. Bu, iki kontrol arasındaki net farktır. Olayın kesin saati veya aradaki bütün hareketler bilinmez.
 
 Uygulamayı kullanmaya başlamadan önceki takipten çıkışlar bu yöntemle geriye dönük bulunamaz.
@@ -42,6 +44,8 @@ Küçük bir listede tek sayfa yeterli olabilir. Büyük bir listede bağlantı,
 - Geçerli devam bilgisi varsa tarama uygun sayfadan sürdürülebilir.
 - Devam bilgisi kullanılamıyorsa yeni tarama baştan başlayabilir; eski ve yeni kısmi üyeler tek bir tam liste gibi birleştirilmez.
 - Eksik listeden kesin takipten çıkan hesabı sonucu üretilmez.
+
+Yeni kaydedilen bir profilin ilk listesi sayı uyuşmazlığıyla biterse yaklaşık 30 dakika sonra bir erken tekrar planlanır. Uyuşmazlık sürerse günlük plan geçerli olur. Profilde yeni bir sayı gözlenmesi, kota ve Instagram molası sonraki denemeyi etkileyebilir.
 
 Ekrandaki devam veya tekrar zamanını izleyin. Listeyi sonsuza kadar durmadan sorgulamak yerine eksik durum görünür bırakılır. [Eksik liste için sorun giderme](Sorun-Giderme.md#liste-tamamlanmiyor).
 
