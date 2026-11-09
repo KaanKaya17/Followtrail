@@ -1,5 +1,13 @@
 # Geliştirme notları
 
+## En yüksek öncelik · Instagram API alan adlarının otomatik keşfi
+
+Instagram'ın profil, takipçi ve takip edilen isteklerini hangi sunucu alan adına gönderdiğini bir geliştirici aracı otomatik belirlemeli. İlk kapsam iki liste yönü. Araç, test hesabında Instagram'ın kendi arayüzünde liste açılırken ve sonraki sayfa yüklenirken oluşan ağ olaylarını karşılaştırır. Alan adı, yol, HTTP yöntemi ve varsa GraphQL sorgu kimliğini ayrı ayrı gösterir. Web ve Android bulgularının hangi istemciden geldiği belirtilir.
+
+- Çıktı, eski ve yeni alan adını ve değişen istek parçalarını gösterir. Tanı raporu yalnız istek şablonu, yanıt alanları ve sayfalama kanıtını içerir. Oturum değerleri test cihazında kalır.
+- İlk ve sonraki sayfanın doğru hesabın listesine ait olduğu, devam bilgisinin çalıştığı ve kısıtlı yanıtın tam liste sayılmadığı doğrulanır. Tracker doğrulanmış alan adı ve istek şablonunu sürüm güncellemesindeki izin listesiyle kullanır.
+- Bağlantı hatasını veya uyumsuz yanıtı algılayıp yalnız ilgili otomatik okumayı duraklatmak ayrı bir çalışma adımıdır.
+
 ## Güncel durum — 5 Kasım 2026
 
 Windows 0.2.56 / Android 0.1.86: [profil yanıtı ve eşzamanlı görsel paylaşımındaki üç boşluk kapandı](RESPONSE-SHARING-TEST.md). Ortak bütçe, %80 otomatik profil eşiği ve 6–10 saniye rezervasyonu uygulandı. Android CAPTCHA sonrası oturum oluşması görüldü; profil HTTP 429 aldığı için uçtan uca bağlantı/liste okuması ve yeni cihaz testleri açık. Aşağıdaki tarihli notlar karar geçmişini korur; uygulama durumu için [sürüm sayfası](wiki/Surum-ve-Destek.md) önceliklidir. Resmî ZIP içe aktarma ve işlevsel web hizmeti henüz yapılmadı.
