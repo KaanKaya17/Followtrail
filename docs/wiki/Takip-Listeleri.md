@@ -55,6 +55,12 @@ Windows'ta iki uygun tam liste oluştuğunda karşılaştırma alanını kullan�
 
 Yalnız “takipçi sayısı 1 azaldı” bilgisi, giden kişinin kimliğini vermez. Üye adları için ilgili listelerin okunması gerekir.
 
+## Ortak takipçiler ve takip edilenler
+
+Windows’ta **Takip Listeleri** ekranında liste sahibini seçin. **Ortak hesapları karşılaştır** alanından ikinci profili seçin. **Ortak takipçiler** iki profili de takip edenleri, **Ortak takip edilenler** iki profilin de takip ettiği hesapları gösterir.
+
+Tracker her profil için son tam listeyi kullanır. Tam liste yoksa varsa kısmi kayıtla karşılaştırır ve sonucu **Okunan hesaplar arasında** olarak etiketler. Ekranda iki listenin kayıt tarihi ve kapsamı görünür. Bir kaynak eksikse ortak hesap sayısı yerine kayıt eksikliği gösterilir. Arama ve karşılaştırma cihazda yapılır.
+
 ## Otomatik yeni taramalar
 
 Windows'ta otomatik profil kontrolü ve otomatik liste karşılaştırması açıkken kendi hesabınız ve izlenen profiller değerlendirilir. Sayaç değişimi ilgili listeyi öne alabilir. Sayı aynı kalsa da günlük tam kontrol hedefi korunur; bir kişi çıkıp başka biri eklendiğinde toplam sayı değişmeyebilir.

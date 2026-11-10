@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.59 — 2026-11-11
+
+- Takip Listeleri ekranında iki profil için ortak takipçi ve ortak takip edilen karşılaştırması. Eşleşmeler hesap kimliğiyle bulunur. Kısmi kaynaklar açıkça belirtilir ve kaydı olmayan bir liste sıfır ortak hesap olarak gösterilmez.
+- Sonuçlar kayıtlı listelerden sayfalı ve aranabilir biçimde açılır. Karşılaştırma yereldir.
+- 100 seçili Python testi, 8 JavaScript testi ve 37 çevrimdışı Windows paket kontrolü geçti.
+
 ## Windows 0.2.58 — 2026-11-07
 
 - Gizli bir profil bağlı hesabın son tam takip edilen listesinde yoksa ve liste son sayaçla uyuşuyorsa, Takip Listeleri ekranı erişim şartını açıklar. Liste kapsamı veya sayısı hatasında aynı açıklama gösterilir.

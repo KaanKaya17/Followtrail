@@ -13,6 +13,7 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 ## Neler sunar?
 
 - Takipçi/takip edilen kayıtları ve uygun tam listeler arasında üye karşılaştırması. Windows'ta kaydırdıkça yüklenen listeler ve bütün yerel listede arama.
+- Windows’ta kayıtlı listelerden ortak takipçileri ve ortak takip edilenleri karşılaştırma.
 - Kaydedilen profillerde arama, favoriler, notlar ve izleme.
 - Sayaç, kullanıcı adı, biyografi ve avatar değişikliklerinin geçmişi.
 - [İsteğe bağlı hikâye arşivi](docs/wiki/Hikaye-Arsivi.md): yerel takvim ve kaydedilmiş fotoğraf/video görüntüleme.
@@ -25,7 +26,7 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-**Windows 0.2.58:** Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
+**Windows 0.2.59:** Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
 
 **Android 0.1.86 / kod 87:** İmzalı APK; ortak istek politikası, hikâye arşivi ve aynı görsel yükleyicisinde ortak indirme bulunur. Son paket ve JVM kontrolleri tamamlandı; yeni cihaz/ekran testi ertelendi ([doğrulama kapsamı](docs/RESPONSE-SHARING-TEST.md)). CAPTCHA sonrası bekleyen oturumun korunması doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
 
