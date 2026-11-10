@@ -2,6 +2,8 @@
 
 ## En yüksek öncelik · Instagram API alan adlarının otomatik keşfi
 
+İlk çevrimdışı prototip hazır. İki HAR kaydını karşılaştırıp gözlenen alan adı ve istek şablonu adaylarını çıkarır. Canlı web kaydıyla doğrulama ve Android kayıt yolu açık. [Kullanım ve doğrulama kapsamı](API-HOST-DISCOVERY.md).
+
 Instagram'ın profil, takipçi ve takip edilen isteklerini hangi sunucu alan adına gönderdiğini bir geliştirici aracı otomatik belirlemeli. İlk kapsam iki liste yönü. Araç, test hesabında Instagram'ın kendi arayüzünde liste açılırken ve sonraki sayfa yüklenirken oluşan ağ olaylarını karşılaştırır. Alan adı, yol, HTTP yöntemi ve varsa GraphQL sorgu kimliğini ayrı ayrı gösterir. Web ve Android bulgularının hangi istemciden geldiği belirtilir.
 
 - Çıktı, eski ve yeni alan adını ve değişen istek parçalarını gösterir. Tanı raporu yalnız istek şablonu, yanıt alanları ve sayfalama kanıtını içerir. Oturum değerleri test cihazında kalır.
