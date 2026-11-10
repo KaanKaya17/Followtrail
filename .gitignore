@@ -12,6 +12,8 @@ signing.properties
 *.hprof
 .DS_Store
 artifacts/
+# Local network captures can include account data in request/response bodies.
+*.har
 __pycache__/
 *.pyc
 **/node_modules/

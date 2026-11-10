@@ -15,6 +15,7 @@ Bu dizindeki teknik belgeler araştırma, uygulama ve test geçmişini korur. Do
 
 ## Güncel verimlilik ve platform durumu
 
+- [Liste isteklerinin alan adını keşfetme](API-HOST-DISCOVERY.md)
 - [Windows 0.2.56 / Android 0.1.86 yanıt ve görsel işi paylaşımı](RESPONSE-SHARING-TEST.md)
 - [Yanıt paylaşımı ilk envanteri ve kapanan boşluklar](RESPONSE-REUSE-AUDIT.md)
 - [Günlük yerel bütçe güncellemesi](DAILY-BUDGET-UPDATE.md)
