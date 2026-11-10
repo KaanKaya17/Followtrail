@@ -2,12 +2,12 @@
   'use strict';
   function create({request,change}) {
     let context=null,key='',epoch=0,observer=null,sentinel=null,enabled=false;
-    let state={items:[],total:null,nextOffset:0,loading:false,error:null,added:0,removed:0};
+    let state={items:[],total:null,nextOffset:0,loading:false,error:null,added:0,removed:0,common:null};
     function select(value) {
       const next=JSON.stringify(value);
       if(next===key)return;
       key=next;context=value;epoch++;
-      state={items:[],total:null,nextOffset:value ? 0 : null,loading:false,error:null,added:0,removed:0};
+      state={items:[],total:null,nextOffset:value ? 0 : null,loading:false,error:null,added:0,removed:0,common:null};
     }
     async function load() {
       if(!enabled || !context || state.loading || state.nextOffset===null || state.error)return;
@@ -24,7 +24,7 @@
            (page.nextOffset!==null && (page.nextOffset!==offset+page.items.length || page.nextOffset<=offset)))
           throw {code:'service'};
         state={...state,items:[...state.items,...page.items],total:page.total,nextOffset:page.nextOffset,
-          added:page.added,removed:page.removed,loading:false,error:null};
+          added:page.added,removed:page.removed,common:page.common ?? null,loading:false,error:null};
       } catch(error) {
         if(ticket!==epoch)return;
         state={...state,loading:false,error};

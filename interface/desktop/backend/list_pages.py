@@ -13,6 +13,14 @@ def visible_partial(record):
     return max(candidates,key=lambda scan:(len(scan.get('members',{})),scan.get('finishedAt') or scan.get('startedAt') or 0),default=None)
 
 
+def comparison_source(record):
+    for scan in reversed(record.get('snapshots', [])):
+        if scan.get('complete'):
+            return scan
+    scan = visible_partial(record)
+    return scan if scan and (scan.get('pages', 0) > 0 or scan.get('members')) else None
+
+
 def text(value):
     return ''.join(c for c in unicodedata.normalize('NFKD', value.casefold()) if not unicodedata.combining(c))
 
@@ -25,7 +33,8 @@ class ListPages:
 
     def publish(self, data):
         account = (data['account'] or {}).get('id')
-        signature = (account, tuple((key, tuple((id(s), id(s['members']), len(s['members']),
+        owners = frozenset((*data['people'], account))
+        signature = (account, owners, tuple((key, tuple((id(s), id(s['members']), len(s['members']),
                             {k:v for k,v in s.items() if k not in ('members','nextCursor','seenCursors')})
                             for s in record.get('snapshots', []) +
                             [s for s in (record.get('draft'), record.get('retainedPartial')) if s]))
@@ -42,7 +51,7 @@ class ListPages:
                 records[key] = {'snapshots': [freeze(s) for s in record.get('snapshots', [])],
                                 'draft': freeze(record.get('draft')), 'retainedPartial': freeze(record.get('retainedPartial'))}
             self.sources = tuple(s for record in data['lists'].values() for s in record.get('snapshots', []) + [s for s in (record.get('draft'), record.get('retainedPartial')) if s])
-            self.view = {'accountId': account, 'revision': uuid.uuid4().hex, 'records': records}
+            self.view = {'accountId': account, 'revision': uuid.uuid4().hex, 'records': records, 'owners': owners}
             self.signature = signature
             self.cached = None
         return self.view
@@ -71,6 +80,8 @@ class ListPages:
     def page(self, args):
         fields = {'accountId','revision','ownerId','direction','scanId','previousScanId','comparison','relation','query','offset'}
         view = self.view
+        if isinstance(args, dict) and 'peerOwnerId' in args:
+            fields.add('peerOwnerId')
         if (not isinstance(args, dict) or set(args) != fields or
                 any(not isinstance(args[k], str) for k in fields - {'comparison','offset'}) or
                 type(args['comparison']) is not bool or type(args['offset']) is not int or args['offset'] < 0 or
@@ -83,6 +94,9 @@ class ListPages:
         cached = self.cached
         if cached is not None and cached[0] == key:
             rows, summary = cached[1:]
+        elif 'peerOwnerId' in args:
+            rows, summary = self.common_rows(view, args)
+            self.cached = (key, rows, summary)
         else:
             record = view['records'].get(args['ownerId'] + ':' + args['direction'], {})
             scans = record.get('snapshots', [])
@@ -120,6 +134,29 @@ class ListPages:
         return {'accountId':view['accountId'], 'revision':view['revision'], 'offset':start,
                 'items':items, 'total':len(rows), 'nextOffset': start+len(items) if start+len(items)<len(rows) else None,
                 **summary}
+
+    def common_rows(self, view, args):
+        owners = (args['ownerId'], args['peerOwnerId'])
+        if (owners[0] == owners[1] or any(owner not in view['owners'] for owner in owners) or
+                args['comparison'] or args['relation'] != 'all' or args['scanId'] or args['previousScanId']):
+            raise AppFailure('input', 'Ortak hesaplar için iki farklı kayıtlı profil seç.')
+        sources = [comparison_source(view['records'].get(f"{owner}:{args['direction']}", {}))
+                   for owner in owners]
+        report = {'sources': [metadata(scan) for scan in sources], 'count': None, 'partial': None}
+        rows = []
+        first, second = sources
+        if first is not None and second is not None:
+            report['partial'] = not (first['complete'] and second['complete'])
+            query = text(args['query'].strip())
+            common_count = 0
+            for identity, member in first['members'].items():
+                if identity not in second['members']:
+                    continue
+                common_count += 1
+                if not query or query in text((member.get('name') or '') + ' ' + member['username']):
+                    rows.append((member, '', ''))
+            report['count'] = common_count
+        return rows, {'added': 0, 'removed': 0, 'common': report}
 
 
 def metadata(scan):

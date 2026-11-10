@@ -64,6 +64,7 @@
     query: "",
     filter: "all",
     owner: "",
+    peerOwner: "",
     direction: "followers",
     listQuery: "",
     listFilter: "all",
@@ -91,7 +92,7 @@
       profileDetails.reset();
       closeDialog();
       document.querySelector('.command-palette')?.close();
-      Object.assign(ui, {page:'overview', query:'', filter:'all', owner:'', listQuery:'',
+      Object.assign(ui, {page:'overview', query:'', filter:'all', owner:'', peerOwner:'', listQuery:'',
         listFilter:'all', comparison:false, previous:null, current:null, eventType:'all', eventPerson:'', routineOpen:new Set(),
         notificationFilter:'all', notificationType:'all'});
       location.hash = '#overview';
@@ -162,7 +163,7 @@
     },
   });
   function refreshListPhotos() {
-    listPhotos.mount(windowVisible && ui.page==='lists' ? document.getElementById('list-rows') : null,
+    listPhotos.mount(windowVisible && ui.page==='lists' && !ui.peerOwner ? document.getElementById('list-rows') : null,
       {accountId:data?.activeAccountId,ownerId:ui.owner || data?.account?.id,direction:ui.direction});
   }
   function person(id) {
@@ -714,11 +715,13 @@
     };
   }
   function listContext() {
+    const scope = {accountId:data.activeAccountId || data.account?.id, revision:data.listsRevision,
+      ownerId:ui.owner || data.account?.id, direction:ui.direction, query:ui.listQuery};
+    if (ui.peerOwner) return {...scope, peerOwnerId:ui.peerOwner, scanId:'', previousScanId:'', comparison:false, relation:'all'};
     const {current,previous}=selectedScans(),record=selectedRecord();
     const shown=current || [record.draft,record.retainedPartial].find(scan=>scan && scan.id===record.visiblePartialId);
-    return shown ? {accountId:data.activeAccountId || data.account?.id,revision:data.listsRevision,
-      ownerId:ui.owner || data.account?.id,direction:ui.direction,scanId:shown.id,
-      previousScanId:previous?.id || '',comparison:ui.comparison,relation:ui.listFilter,query:ui.listQuery} : null;
+    return shown ? {...scope, scanId:shown.id, previousScanId:previous?.id || '',
+      comparison:ui.comparison,relation:ui.listFilter} : null;
   }
   function listRow(p) {
     const saved=data.people.find(x=>x.id===p.id);
@@ -740,16 +743,40 @@
       node.insertAdjacentHTML('beforeend',view.items.slice(start).map(listRow).join(''));
       node.dataset.loaded=String(view.items.length);
     } else if(!view.items.length) {
-      node.innerHTML=view.loading || view.total===null ? '' : empty(t("Bir liste taraması başlat veya arama ve filtrelerini değiştir."));
+      node.innerHTML=view.loading || view.total===null || (ui.peerOwner && !view.common?.count) ? '' :
+        empty(ui.peerOwner ? t("Aramana uyan ortak hesap yok.") : t("Bir liste taraması başlat veya arama ve filtrelerini değiştir."));
     }
     const total=document.getElementById('list-result-count');
     total.textContent=view.total===null ? '' : t("{0} / {1} hesap gösteriliyor",num(view.items.length),num(view.total));
+    total.hidden = !!ui.peerOwner && view.common?.count == null;
+    node.hidden = !!ui.peerOwner && view.common?.count === 0;
+    if (ui.peerOwner) paintCommonLists(view);
     status.innerHTML=view.error ? `<span>${t("Liste yüklenemedi.")}</span> ${button(t("Tekrar dene"),'retry-list-page','refresh')}` : view.loading ? t("Hesaplar yükleniyor…") : view.nextOffset!==null ? t("Devamı için kaydırın") : '';
     document.getElementById('list-rows').setAttribute('aria-busy',String(view.loading));
     const added=document.getElementById('compare-added'),removed=document.getElementById('compare-removed');
     if(added)added.textContent=num(view.added);
     if(removed)removed.textContent=num(view.removed);
     refreshListPhotos();
+  }
+  function paintCommonLists(view) {
+    const summary = document.getElementById('common-list-summary');
+    const sources = document.getElementById('common-list-sources');
+    if (!summary || !sources) return;
+    const report = view.common;
+    summary.textContent = !report ? '' : report.count == null ? t("Karşılaştırma için iki profilin de kayıtlı listesi gerekiyor.") :
+      report.partial ? t("Okunan hesaplar arasında {0} ortak kişi bulundu.", num(report.count)) :
+        t("Kayıtlı listelerde {0} ortak kişi bulundu.", num(report.count));
+    sources.replaceChildren();
+    if (!report) return;
+    const owners = [ui.owner || data.account?.id, ui.peerOwner];
+    report.sources.forEach((scan, index) => {
+      const row = document.createElement('li');
+      const source = !scan ? t("Kayıtlı liste yok") :
+        scan.complete ? t("Tam liste · {0} hesap", num(scan.count)) : t("Kısmi liste · {0} hesap", num(scan.count));
+      const when = scan && (scan.finishedAt || scan.startedAt);
+      row.textContent = '@' + person(owners[index])?.username + ' · ' + source + (when ? ' · ' + date(when) : '');
+      sources.append(row);
+    });
   }
   function mountListPage() {
     if(ui.page!=='lists') {listPager.mount(null,false);return;}
@@ -762,6 +789,13 @@
       ownerProfile = person(owner),
       { scans, current, previous } = selectedScans(),
       record = selectedRecord();
+    const owners = [data.account, ...data.people].filter(Boolean);
+    const peers = owners.filter(p => p.id !== owner);
+    if (!peers.some(p => p.id === ui.peerOwner)) ui.peerOwner = "";
+    const common = !!ui.peerOwner;
+    const peerPicker = peers.length ? `<label class="list-peer"><span>${t("Ortak hesapları karşılaştır")}</span><select id="list-peer" aria-label="${t("Ortak hesapları karşılaştır")}"><option value="">${t("İkinci profili seç")}</option>${peers.map(p =>
+      `<option value="${esc(p.id)}" ${p.id === ui.peerOwner ? "selected" : ""}>@${esc(p.username)}</option>`).join("")}</select></label>` : "";
+    const results = '<div class="results-line"><span id="list-result-count" role="status"></span></div><div class="list-table card" id="list-rows"></div><div id="list-pagination" class="list-scroll-status" role="status" aria-live="polite"></div>';
     const ready =
       !!current &&
       !!previous &&
@@ -789,23 +823,19 @@
             `<option value="${esc(s.id)}" ${s.id === selected?.id ? "selected" : ""}>${t("{0} · {1} hesap", esc(date(s.finishedAt)), num(s.count))}</option>`,
         )
         .join("");
-    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", button(record.canResume ? t("Taramaya devam et") : current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
+    return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", common ? "" : button(record.canResume ? t("Taramaya devam et") : current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
 
-      <section class="list-account card"><div class="list-owner-identity">${avatar(ownerProfile)}<div class="list-owner-details"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${[
-        data.account,
-        ...data.people,
-      ]
-        .filter(Boolean)
+      <section class="list-account card"><div class="list-owner-identity">${avatar(ownerProfile)}<div class="list-owner-details"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${owners
         .map(
           (p) =>
             `<option value="${esc(p.id)}" ${p.id === owner ? "selected" : ""}>@${esc(p.username)}</option>`,
         )
         .join(
           "",
-        )}</select>${ownerProfile?.name ? `<span class="list-owner-name" title="${esc(ownerProfile.name)}">${esc(ownerProfile.name)}</span>` : ""}</div></div>${button(t("CSV dışa aktar"), "export-list", "note", "secondary", !current ? "disabled" : "")}</section>
+        )}</select>${ownerProfile?.name ? `<span class="list-owner-name" title="${esc(ownerProfile.name)}">${esc(ownerProfile.name)}</span>` : ""}</div></div>${peerPicker}${common ? button(t("Listeye dön"), "leave-common", "list", "secondary") : button(t("CSV dışa aktar"), "export-list", "note", "secondary", !current ? "disabled" : "")}</section>
       <div class="toolbar"><div class="filter-tabs" role="group" aria-label="${t("Liste yönü")}">${[
-        ["followers", t("Takipçiler")],
-        ["following", t("Takip edilen")],
+        ["followers", common ? t("Ortak takipçiler") : t("Takipçiler")],
+        ["following", common ? t("Ortak takip edilenler") : t("Takip edilen")],
       ]
         .map(
           ([k, l]) =>
@@ -814,10 +844,11 @@
         .join(
           "",
         )}</div><label class="search-input">${icon("search")}<input id="list-search" type="search" placeholder="${t("Listede ara")}" aria-label="${t("Listede ara")}" value="${esc(ui.listQuery)}"></label></div>
+      ${common ? `<section class="list-coverage card"><strong id="common-list-summary" aria-live="polite"></strong><ul id="common-list-sources" class="common-list-sources"></ul></section>${results}` : `
       <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(current.count) + t(" hesap") : firstList}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${privateNotice ? `<p class="notice warning">${esc(privateNotice)}</p>` : ""}${record.draft?.recoveryPass ? `<p class="field-hint">${t("Tekrarlanan hesaplar için tamamlama turu uygulanıyor.")}</p>` : ""}${current?.recoveryPass ? `<p class="field-hint">${t("Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.")}</p>` : ""}${record.draft ? `<div class="notice warning"><strong>${coverage}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : record.canResume ? t("Taramaya devam et") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
       ${!current && record.retainedPartial && record.visiblePartialId===record.retainedPartial.id ? `<div class="notice"><strong>${t("Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.",num(record.retainedPartial.count))}</strong><p>${esc(date(record.retainedPartial.finishedAt || record.retainedPartial.startedAt))}</p></div>` : ""}<div class="comparison-controls card"><label>${t("Önceki kontrol")}<select id="previous-scan" ${scans.length < 2 ? "disabled" : ""}>${scanOptions(previous)}</select></label><label>${t("Yeni kontrol")}<select id="current-scan" ${!scans.length ? "disabled" : ""}>${scanOptions(current)}</select></label>${button(ui.comparison ? t("Listeye dön") : t("Farkları göster"), "compare", "compare", "secondary", !ready ? "disabled" : "")}</div>
       ${ui.comparison && ready ? `<div class="compare-summary"><div class="compare-stat mint"><strong id="compare-added">0</strong><span>${ui.direction === "followers" ? t("Yeni görülen takipçiler") : t("Yeni takip edilen hesaplar")}</span></div><div class="compare-stat peach"><strong id="compare-removed">0</strong><span>${t("Son kontrolde görünmeyenler")}</span></div></div>` : ""}
-      <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option></select></label></div><div class="results-line"><span id="list-result-count" role="status"></span></div><div class="list-table card" id="list-rows"></div><div id="list-pagination" class="list-scroll-status" role="status" aria-live="polite"></div>${accessOverview()}`;
+      <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option></select></label></div>${results}${accessOverview()}`}`;
   }
   function accessLabel(c) {
     const last = c.checks.at(-1);
@@ -1209,7 +1240,7 @@
         listChangesDialog(id);
         break;
       case "person-lists":
-        ui.owner=id;ui.comparison=false;ui.previous=null;ui.current=null;
+        ui.owner=id;ui.peerOwner='';ui.comparison=false;ui.previous=null;ui.current=null;
         ui.direction='followers';ui.listQuery='';ui.listFilter='all';
         navigate('lists');
         break;
@@ -1262,6 +1293,7 @@
       case "open-list":
         ui.direction = value;
         ui.owner = data.account?.id || "";
+        ui.peerOwner = "";
         ui.comparison = false;
         ui.current = null;
         ui.previous = null;
@@ -1332,6 +1364,11 @@
       case "compare":
         ui.comparison = !ui.comparison;
         ui.listFilter = "all";
+        render();
+        break;
+      case "leave-common":
+        ui.peerOwner = "";
+        ui.listQuery = "";
         render();
         break;
       case "retry-list-page":
@@ -1512,7 +1549,7 @@
       case "guide-own-lists":
       case "preparation-lists":
         if (!data.account) { accountDialog(); break; }
-        Object.assign(ui, {owner:data.account.id, direction:'followers', current:null, previous:null,
+        Object.assign(ui, {owner:data.account.id, peerOwner:'', direction:'followers', current:null, previous:null,
           comparison:false, listFilter:'all', listQuery:''});
         navigate('lists');
         break;
@@ -1639,6 +1676,13 @@
         ui.previous = null;
         ui.comparison = false;
         ui.listFilter = "all";
+        render();
+        break;
+      case "list-peer":
+        ui.peerOwner = event.target.value;
+        ui.comparison = false;
+        ui.listFilter = "all";
+        ui.listQuery = "";
         render();
         break;
       case "current-scan":

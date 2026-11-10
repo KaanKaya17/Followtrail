@@ -58,6 +58,37 @@ class ListPagesTests(unittest.TestCase):
         self.assertEqual(query(self.engine,relation='oneway')['total'],150)
         self.assertEqual(query(self.engine,query='qa.0',comparison=True)['items'][0]['photoScan'],'before')
 
+    def test_common_accounts_use_saved_identity_and_full_or_partial_evidence(self):
+        data = self.engine.data
+        data['people']['200'] = {'id': '200', 'username': 'qa.peer', 'observedAt': 1}
+        options = dict(peerOwnerId='200', scanId='', previousScanId='')
+        with patch.object(self.engine, 'client', side_effect=AssertionError('No network')), \
+             patch.object(self.engine, 'save', side_effect=AssertionError('No save')):
+            missing = query(self.engine, **options)
+            self.assertIsNone(missing['common']['count'])
+            self.assertEqual(missing['items'], [])
+
+            partial = self.scan('peer-partial', range(150, 275), False)
+            data['lists']['200:followers'] = {'snapshots': [], 'retainedPartial': partial}
+            first = query(self.engine, **options)
+            second = query(self.engine, offset=100, **options)
+            self.assertTrue(first['common']['partial'])
+            self.assertEqual(first['common']['count'], 101)
+            self.assertEqual(first['nextOffset'], 100)
+            self.assertEqual(second['items'][0]['id'], '250')
+            self.assertEqual(second['items'][0]['photoScan'], '')
+            self.assertEqual(query(self.engine, query='qa.250', **options)['common']['count'], 101)
+
+            complete = self.scan('peer-full', [250, 300])
+            complete['members']['250']['username'] = 'renamed'
+            data['lists']['200:followers']['snapshots'].append(complete)
+            full = query(self.engine, **options)
+            self.assertFalse(full['common']['partial'])
+            self.assertEqual([row['id'] for row in full['items']], ['250'])
+            self.assertNotIn('PRIVATE', json.dumps(full))
+            with self.assertRaises(AppFailure):
+                query(self.engine, peerOwnerId='100', scanId='', previousScanId='')
+
     def test_partial_view_is_stable_until_published_and_cannot_compare(self):
         partial=self.scan('partial',[5,6],False)
         self.engine.data['lists']['100:followers']={'snapshots':[],'draft':partial}

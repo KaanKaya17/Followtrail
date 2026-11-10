@@ -325,6 +325,18 @@ try {
     await page.locator('#list-owner').selectOption('100');
       await listReady();
   });
+  await check('Common accounts use saved lists in either direction and label incomplete sources', async () => {
+    await page.locator('#list-peer').selectOption('200');
+    await page.getByText('Okunan hesaplar arasında 0 ortak kişi bulundu.', {exact:true}).waitFor();
+    await page.getByRole('button', {name:'Ortak takip edilenler',exact:true}).click();
+    await page.getByText('Kayıtlı listelerde 1 ortak kişi bulundu.', {exact:true}).waitFor();
+    await page.locator('#list-rows').getByText('@qa.201', {exact:true}).waitFor();
+    await page.locator('#list-peer').selectOption('201');
+    await page.getByText('Karşılaştırma için iki profilin de kayıtlı listesi gerekiyor.', {exact:true}).waitFor();
+    await page.getByRole('button', {name:'Listeye dön',exact:true}).click();
+    await page.getByRole('button', {name:'Takipçiler',exact:true}).click();
+    await listReady();
+  });
   await check(
     "Snapshot comparison uses identities and names both directions",
     async () => {
