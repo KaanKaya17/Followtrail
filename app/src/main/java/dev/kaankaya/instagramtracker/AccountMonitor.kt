@@ -23,7 +23,9 @@ internal class AccountMonitor(private val context: Context,private val gate: Req
                 val scoped=gate.forAccount(entry.id)
                 !scoped.requiresConnection() && !scoped.manualOnly() && scoped.budgetNextAt(runtime.now()) <= runtime.now() &&
                     (saved.automation.enabled || scoped.backgroundOwnEnabled() || notices.allowed()) &&
-                    AutomaticQueue.next(saved,FollowListVault(context,owner=entry.id).archive(saved.session),runtime.now(),ownIntervalMillis=scoped.monitorIntervalMillis(),ownEnabled=scoped.backgroundOwnEnabled())!=null
+                    AutomaticQueue.next(saved,FollowListVault(context,owner=entry.id).archive(saved.session),runtime.now(),
+                        ownIntervalMillis=scoped.monitorIntervalMillis(),ownEnabled=scoped.backgroundOwnEnabled(),
+                        paused=scoped.pausedReads())!=null
             } ?: return
             val scoped=gate.forAccount(selected.id)
             if(!reserved) {if(!scoped.reserveAutomatic(runtime.now()))return;reserved=true}

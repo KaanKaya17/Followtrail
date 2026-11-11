@@ -127,14 +127,32 @@ class SessionVault(private val context: Context, private val slot: String = "acc
         journal.clearTarget(expected,target)
         followLists.clearTarget(expected,target)
         AvatarCache(context,if(slot=="previewaccount")"previewavatars" else "avatars").clear(expected.userId,target)
+        val automation = current.automation.copy(targets=current.automation.targets-target,
+            initialTargets=current.automation.initialTargets-target)
         val retained=current.copy(people=current.people.filterNot {it.latest.userId==target},
-            automation=current.automation.copy(targets=current.automation.targets-target))
+            automation=automation.copy(enabled=automation.enabled && (automation.targets.isNotEmpty() || automation.initialTargets.isNotEmpty())))
         persist(retained,current,storage())
     }
     /** Serialize foreground/background read-modify-write operations across vault instances. */
     fun update(expected: Session, transform: (SavedAccount) -> SavedAccount): SavedAccount = synchronized(lock) {
         val current = read()?.takeIf { it.session == expected } ?: throw ApiFailure(ApiFailure.Kind.CANCELLED)
-        val next=transform(current); require(next.session==expected); persist(next,current,storage())
+        val next=transform(current); require(next.session==expected)
+        if (next.people === current.people) return@synchronized persist(next, current, storage())
+        val before = current.people.map { it.latest.userId }.toSet()
+        val after = next.people.map { it.latest.userId }.toSet()
+        val pending = (next.automation.initialTargets + (after - before)).intersect(after)
+        persist(next.copy(automation = next.automation.copy(initialTargets = pending)), current, storage())
+    }
+    fun finishInitialLists(current: SavedAccount, target: ListTarget) = synchronized(lock) {
+        if (target.target in current.automation.initialTargets &&
+            FollowDirection.entries.all { ListAutomationPolicy.source(target, it)?.comparable() == true }) {
+            update(current.session) { saved ->
+                val automation = saved.automation
+                val remaining = automation.initialTargets - target.target
+                saved.copy(automation = automation.copy(initialTargets = remaining,
+                    enabled = automation.enabled && (automation.targets.isNotEmpty() || remaining.isNotEmpty())))
+            }
+        }
     }
     fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
         val previous = if(catalog!=null)SessionVault(context,owner=session.userId).read() else read()

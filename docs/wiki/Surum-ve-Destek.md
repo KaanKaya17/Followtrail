@@ -38,9 +38,11 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Android
 
-**Güncel APK: 0.1.86 · sürüm kodu: 87 · kaynak etiketi: `android-v0.1.86`**
+**Güncel APK: 0.1.87 · sürüm kodu: 88 · kaynak etiketi: `android-v0.1.87`**
 
-- Dosya: `InstagramTracker-0.1.86.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.87.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Android 0.1.87 yeni kayıtlar için ilk liste hazırlığını, gizli hesap açıklamasını, ortak hesap karşılaştırmasını ve okuma tanısını içerir. [Kullanım ve doğrulama kapsamı](../PLATFORM-PARITY.md).
+- 11 Kasım 0.1.86 cihaz testinde mevcut oturumla profil ve iki liste yenilendi. Kullanıcı liste farkı bildirimi aldığını doğruladı. Bekleyen web oturumuyla ayrı profil isteği HTTP 429 aldı.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
 - **Telefon içinden uçtan uca başarılı hesap bağlantısı ve liste okuması henüz tamamlanmış sayılmıyor.** Araştırılan açık konu girişten sonraki profil okumasıdır.
 - E-posta/kod akışı üzerinde çalışılmıştır; her CAPTCHA, TOTP ve başka cihazdan onay yönteminin desteklendiği varsayılmamalıdır. Cihaz onayı sonucunu periyodik sorgulayan yöntem hâlâ sınırlıdır.

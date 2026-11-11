@@ -1,0 +1,32 @@
+<resources>
+    <string name="common_choose">"Compare accounts in common"</string>
+    <string name="common_leave">"Back to list"</string>
+    <string name="common_followers">"Followers in common"</string>
+    <string name="common_following">"Following in common"</string>
+    <string name="common_missing">"Both profiles need a saved list to compare."</string>
+    <string name="common_count">"Accounts in common in the saved lists · %1$d"</string>
+    <string name="common_partial">"Accounts in common among the entries read · %1$d"</string>
+    <string name="common_source_missing">"@%1$s · No saved list"</string>
+    <string name="common_source_full">"@%1$s · Complete list · %2$d · %3$s"</string>
+    <string name="common_source_partial">"@%1$s · Partial list · %2$d · %3$s"</string>
+    <string name="common_no_profiles">"Save a second profile to compare."</string>
+    <string name="private_list_title">"This account is private"</string>
+    <string name="private_list_help">"Your last following list shows you do not follow this account. Your follow request must be approved to access its lists."</string>
+    <string name="read_health_title">"Read diagnostics"</string>
+    <string name="read_health_profile">"Profile read"</string>
+    <string name="read_health_paused">"Automatic read paused"</string>
+    <string name="read_health_resume">"A successful manual check resumes automatic reading."</string>
+    <string name="read_health_format">"Instagram returned an unexpected data format."</string>
+    <string name="read_health_identity">"The response account ID did not match the requested account."</string>
+    <string name="read_health_route">"Instagram rejected this read route. The endpoint may have changed."</string>
+    <string name="read_health_cursor">"Instagram rejected the pagination token. The next scan starts on the first page."</string>
+    <string name="read_health_partial">"The list is partial. The last complete record is kept."</string>
+    <string name="read_health_server">"Instagram returned a server error."</string>
+    <string name="read_health_connection">"The connection to Instagram could not be completed."</string>
+    <string name="read_health_target">"Instagram did not return this target. Check whether the profile is accessible."</string>
+    <string name="read_health_limited">"Instagram limited requests. Check the cooldown."</string>
+    <string name="read_health_session">"Instagram rejected the session. Reconnect the account."</string>
+    <string name="read_health_verification">"Instagram requires additional verification."</string>
+    <string name="read_health_other">"The read could not finish. Check request information."</string>
+    <string name="list_count_mismatch_status">"The list did not match the profile count. Accounts read · %1$d / %2$d"</string>
+</resources>

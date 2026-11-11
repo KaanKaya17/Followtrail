@@ -120,20 +120,22 @@ class FollowListVault(private val context: Context, private val slot: String = "
         write(archive.replace(next))
         ListPageCommit(next, ListAutomationPolicy.difference(next, task.direction)?.takeIf { it.added.isNotEmpty() || it.missing.isNotEmpty() })
     }
-    fun failed(session: Session, task: AutomaticTask.Page, attemptAt: Long, failure: ApiFailure.Kind) = synchronized(lock) {
+    fun failed(session: Session, task: AutomaticTask.Page, attemptAt: Long, failure: ApiFailure.Kind, http: Int? = null) = synchronized(lock) {
         val archive = archive(session)
         val target = archive.targets.firstOrNull { it.target == task.target } ?: return@synchronized
         if (!matches(target, task) || target.scan(task.direction).attemptAt != attemptAt) return@synchronized
         write(archive.replace(target.withScan(task.direction, target.scan(task.direction).copy(
-            nextAt = attemptAt + ListAutomationPolicy.RESCAN_MS, continuing = task.cursor != null &&
+            nextAt = attemptAt + if (http in setOf(400, 404) && task.cursor != null) 30 * 60_000L else ListAutomationPolicy.RESCAN_MS,
+            continuing = task.cursor != null && http !in setOf(400, 404) &&
                 failure in setOf(ApiFailure.Kind.CONNECTION, ApiFailure.Kind.LIMITED) && target.snapshot?.run(task.direction)?.coverage() == FollowCoverage.MORE, failure = failure))))
     }
-    fun deferCurrent(session: Session, targetId: String, direction: FollowDirection, expected: FollowRun?, failure: ApiFailure.Kind, now: Long) = synchronized(lock) {
+    fun deferCurrent(session: Session, targetId: String, direction: FollowDirection, expected: FollowRun?, failure: ApiFailure.Kind, now: Long, http: Int? = null) = synchronized(lock) {
         val archive = archive(session)
         val target = archive.targets.firstOrNull { it.target == targetId } ?: ListTarget(targetId)
         if (target.snapshot?.run(direction) != expected) return@synchronized
         write(archive.replace(target.withScan(direction, target.scan(direction).copy(nextAt = now + 30 * 60 * 1000L,
-            failure = failure, continuing = failure in setOf(ApiFailure.Kind.CONNECTION, ApiFailure.Kind.LIMITED) && expected?.coverage() == FollowCoverage.MORE))))
+            failure = failure, continuing = http !in setOf(400, 404) &&
+                failure in setOf(ApiFailure.Kind.CONNECTION, ApiFailure.Kind.LIMITED) && expected?.coverage() == FollowCoverage.MORE))))
     }
     fun clearTarget(session: Session, target: String) = synchronized(lock) {
         val archive = archive(session)

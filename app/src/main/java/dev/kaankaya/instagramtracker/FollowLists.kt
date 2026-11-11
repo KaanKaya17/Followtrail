@@ -79,6 +79,17 @@ object FollowPageParser {
 }
 
 object FollowAnalysis {
+    fun common(first: FollowRun?, second: FollowRun?): List<FollowUser>? {
+        if (first == null || second == null) return null
+        val secondIds = second.users.mapTo(HashSet()) { it.id }
+        return first.users.filter { it.id in secondIds }
+    }
+
+    fun privateListNotice(viewer: Profile, target: Profile, following: FollowRun?): Boolean =
+        viewer.userId != target.userId && target.details.privateAccount == true &&
+            following?.comparable() == true && following.users.size.toLong() == viewer.following &&
+            following.users.none { it.id == target.userId }
+
     data class Comparison(val mutual: List<FollowUser>, val followersOnly: List<FollowUser>, val followingOnly: List<FollowUser>)
     fun compare(snapshot: FollowSnapshot): Comparison? {
         val followers = snapshot.followers?.users ?: return null

@@ -120,6 +120,6 @@ object InstagramIdentity {
     }
 }
 
-class ApiFailure(val kind: Kind) : Exception(kind.name) {
+class ApiFailure(val kind: Kind, val http: Int? = null) : Exception(kind.name) {
     enum class Kind { SESSION_EXPIRED, VERIFICATION, LIMITED, TOO_SOON, CONNECTION, CANCELLED, INVALID_RESPONSE, WRONG_ACCOUNT, NOT_FOUND, STORAGE, MOBILE_REQUIRED, CAPACITY, POLICY, BUDGET }
 }

@@ -198,6 +198,7 @@ class MemberProfileActivity : LocalizedActivity() {
                 if (current.profile.userId == shown.userId || current.people.any { it.latest.userId == shown.userId }) current
                 else current.copy(people = PeoplePolicy.record(current.people, shown))
             }
+            if (preview) PreviewMode.sync(this, account, gate) else MonitorScheduler.sync(this, account, gate)
             message = getString(R.string.ui_added_to_your_people_automatic_monitoring_is)
         } catch (failure: ApiFailure) { message = failure.userMessage(this@MemberProfileActivity) }
         catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@MemberProfileActivity) }

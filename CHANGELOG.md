@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Android 0.1.87 — 2026-11-11
+
+- Yeni kaydedilen profillerin takipçi ve takip edilen listeleri otomatik liste hazırlığına katılır. İlk sayı uyuşmazlığında bir erken tekrar planlanır.
+- Son tam takip edilen listesine göre takip edilmeyen gizli profiller için erişim açıklaması gösterilir. İki profilin ortak hesapları cihazdaki tam veya kısmi listelerden karşılaştırılabilir.
+- Profil ve iki liste yönü için okuma tanısı, uyumluluk duraklatması ve başarısız devam bilgisinden ilk sayfaya dönüş eklendi.
+- 187 Android birim testi, dört dilde 820 metin kaynağı ve 17 wiki sayfasındaki 229 bağlantı doğrulandı. Android cihaz test paketi derlendi. 0.1.87’nin yeni ekranları telefonda henüz denenmedi.
+- 0.1.86 fiziksel testinde mevcut oturumla profil, iki liste ve kullanıcı tarafından bildirilen liste farkı bildirimi çalıştı. Bekleyen web oturumunu bağlama denemesi HTTP 429 aldı.
+
 ## Windows 0.2.60 — 2026-11-11
 
 - Profil ve iki liste yönü için ayrı okuma tanısı. Aynı uyumluluk hatası üç kez üst üste görülürse ilgili otomatik okuma duraklatılır. İstek bilgileri gözlenen HTTP durumunu ve nedeni gösterir.

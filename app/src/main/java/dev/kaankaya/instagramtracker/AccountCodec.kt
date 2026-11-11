@@ -41,6 +41,7 @@ object AccountCodec {
     private fun encodeDetails(value: ProfileDetails, texts: Map<String, Int>) = JSONObject().put("biography", text(value.biography, texts))
         .put("pictureId", text(value.pictureId, texts)).put("pictureUrl", text(value.pictureUrl, texts)).apply {
             value.anonymousPicture?.let { put("anonymous", it) }
+            value.privateAccount?.let { put("private", it) }
             if (value.links.isNotEmpty()) put("links", JSONArray(value.links.map { it.url }))
         }
     private fun decodeDetails(body: JSONObject, texts: List<String>) = ProfileDetails(text(body.getJSONObject("biography"), texts),
@@ -49,7 +50,7 @@ object AccountCodec {
         if (!body.has("links")) emptyList() else body.getJSONArray("links").let { items ->
             require(items.length() <= ProfileLinks.MAX_LINKS)
             (0 until items.length()).map { ProfileSite(items.get(it) as String) }.also { require(it.distinct().size == it.size) }
-        })
+        }, if (body.has("private")) body.get("private") as Boolean else null)
     fun encode(account: SavedAccount): String {
         val details = (listOf(account.profile) + account.people.flatMap { it.history }).map { it.details }
             .filter { it != ProfileDetails() }.distinct()
@@ -70,6 +71,7 @@ object AccountCodec {
             .put("profile", profile(account.profile, detailRefs)).put("people", people)
             .apply { if (account.automation != ListAutomation()) put("listAutomation", JSONObject()
                 .put("enabled", account.automation.enabled).put("targets", JSONArray(account.automation.targets.toList()))
+                .put("initialTargets", JSONArray(account.automation.initialTargets.toList()))
                 .put("ownNextCheckAt", account.automation.ownNextCheckAt).put("lastWorkWasList", account.automation.lastWorkWasList)) }
             .apply { if (details.isNotEmpty()) put("profileDetails", JSONArray().apply { details.forEach { put(encodeDetails(it, textRefs)) } })
                 if (texts.isNotEmpty()) put("profileTexts", JSONArray(texts))
@@ -137,9 +139,13 @@ object AccountCodec {
             val targetArray = config.getJSONArray("targets"); require(targetArray.length() <= PeoplePolicy.MAX_PEOPLE + 1)
             val targets = (0 until targetArray.length()).map { InstagramIdentity.id(targetArray.get(it)) }
             require(targets.distinct().size == targets.size && targets.all { id -> id == session.userId || people.any { it.latest.userId == id } })
-            val next = config.getLong("ownNextCheckAt"); require(next >= 0 && (!enabled || targets.isNotEmpty()))
+            val initialArray = if (config.has("initialTargets")) config.getJSONArray("initialTargets") else JSONArray()
+            require(initialArray.length() <= PeoplePolicy.MAX_PEOPLE)
+            val initial = (0 until initialArray.length()).map { InstagramIdentity.id(initialArray.get(it)) }
+            require(initial.distinct().size == initial.size && initial.all { id -> people.any { it.latest.userId == id } })
+            val next = config.getLong("ownNextCheckAt"); require(next >= 0 && (!enabled || targets.isNotEmpty() || initial.isNotEmpty()))
             val lastList = config.get("lastWorkWasList") as? Boolean ?: error("Invalid automation work state")
-            ListAutomation(enabled, targets.toSet(), next, lastList)
+            ListAutomation(enabled, targets.toSet(), next, lastList, initial.toSet())
         }
         return SavedAccount(session, own, people, automation)
     }

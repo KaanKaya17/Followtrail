@@ -30,6 +30,6 @@ object InstagramResponsePolicy {
     fun checkBody(gate: RequestGate, status: Int, body: JSONObject?, retry: String?) {
         val issue = issue(status, body) ?: return
         issue.restriction?.let { gate.limited(retry, reason = it.label) }
-        throw ApiFailure(issue.kind)
+        throw ApiFailure(issue.kind, status)
     }
 }

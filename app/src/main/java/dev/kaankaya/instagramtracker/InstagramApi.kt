@@ -43,6 +43,15 @@ class InstagramApi(
     }
     fun readId(session: Session, userId: String): Profile {
         require(userId.matches(Regex("[1-9][0-9]{0,29}")))
+        val scoped = gate.forAccount(session.userId)
+        try {
+            return readProfile(session, userId).also { scoped.readSucceeded(ReadKind.PROFILE) }
+        } catch (failure: ApiFailure) {
+            ReadReason.of(failure, session.userId == userId, false)?.let { scoped.recordRead(ReadKind.PROFILE, it, failure.http) }
+            throw failure
+        }
+    }
+    private fun readProfile(session: Session, userId: String): Profile {
         if (session.mobileBinding != null) return mobile.read(session, userId, null)
         if (session.webBinding != null) return webReader.read(session,
             request = { state, _ -> WebRequests.profile(state, userId) }) { body, time -> ProfileParser.fromBody(body, userId, time) }

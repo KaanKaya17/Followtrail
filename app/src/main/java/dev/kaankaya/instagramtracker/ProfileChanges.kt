@@ -11,7 +11,8 @@ data class ProfileText(val state: ProfileTextState = ProfileTextState.MISSING, v
 }
 
 data class ProfileDetails(val biography: ProfileText = ProfileText(), val pictureId: ProfileText = ProfileText(),
-    val pictureUrl: ProfileText = ProfileText(), val anonymousPicture: Boolean? = null, val links: List<ProfileSite> = emptyList())
+    val pictureUrl: ProfileText = ProfileText(), val anonymousPicture: Boolean? = null, val links: List<ProfileSite> = emptyList(),
+    val privateAccount: Boolean? = null)
 
 object ProfileDetailsParser {
     // Capture budgets, not Instagram field limits. Oversize optional data cannot break count reads.
@@ -26,7 +27,8 @@ object ProfileDetailsParser {
         }
     }
     fun parse(body: JSONObject) = ProfileDetails(text(body, "biography"), text(body, "profile_pic_id"),
-        text(body, "profile_pic_url"), body.opt("has_anonymous_profile_picture") as? Boolean, ProfileLinks.parse(body))
+        text(body, "profile_pic_url"), body.opt("has_anonymous_profile_picture") as? Boolean, ProfileLinks.parse(body),
+        body.opt("is_private") as? Boolean)
 }
 
 enum class ProfileChangeField { USERNAME, BIOGRAPHY, PICTURE }

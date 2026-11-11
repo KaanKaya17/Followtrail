@@ -6,7 +6,7 @@
 
 **Takip Listeleri** ekranında önce liste sahibini, ardından **Takipçiler** veya **Takip edilen** yönünü seçin. Kendi hesabınızın ve erişebildiğiniz kaydedilmiş profillerin kayıtlarını ayrı ayrı değerlendirin.
 
-Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profilin sayaçlarını görebilmek, o profilin bütün takipçi listesini okuyabileceğiniz anlamına gelmez. Windows, gizli bir profil son tam takip edilen listenizde yoksa ve bu liste son sayaçla uyuşuyorsa liste ekranında takip isteğinin onaylanması gerektiğini açıklar.
+Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profilin sayaçlarını görebilmek, o profilin bütün takipçi listesini okuyabileceğiniz anlamına gelmez. Tracker, gizli bir profil son tam takip edilen listenizde yoksa ve bu liste son sayaçla uyuşuyorsa liste ekranında takip isteğinin onaylanması gerektiğini açıklar.
 
 <a name="ilk-kayit-ve-sonraki-karsilastirma"></a>
 
@@ -14,7 +14,7 @@ Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profil
 
 İlk tamamlanan tarama başlangıç kaydıdır. Daha sonra tamamlanan uygun bir tarama, önceki kayıtla karşılaştırılır.
 
-Windows, yeni kaydedilen bir profil için iki yönü de ilk hazırlık sırasına ekler. Otomatik profil kontrolü ve liste karşılaştırması açıksa hazırlık ortak istek sırasıyla ilerler. İlk kayıt hazır olduktan sonra düzenli tarama için profilin izleniyor olması gerekir.
+Windows ve Android, yeni kaydedilen bir profil için iki yönü de ilk hazırlık sırasına ekler. Otomatik profil kontrolü ve liste karşılaştırması açıksa hazırlık ortak istek sırasıyla ilerler. İlk kayıt hazır olduktan sonra düzenli tarama için profilin izleniyor olması gerekir.
 
 Örneğin ilk kayıtta A, B ve C; sonraki tam kayıtta A, C ve D varsa uygulama B'nin artık görünmediğini ve D'nin yeni göründüğünü belirleyebilir. Bu, iki kontrol arasındaki net farktır. Olayın kesin saati veya aradaki bütün hareketler bilinmez.
 
@@ -57,7 +57,7 @@ Yalnız “takipçi sayısı 1 azaldı” bilgisi, giden kişinin kimliğini ver
 
 ## Ortak takipçiler ve takip edilenler
 
-Windows’ta **Takip Listeleri** ekranında liste sahibini seçin. **Ortak hesapları karşılaştır** alanından ikinci profili seçin. **Ortak takipçiler** iki profili de takip edenleri, **Ortak takip edilenler** iki profilin de takip ettiği hesapları gösterir.
+**Takip Listeleri** ekranında liste sahibini seçin. **Ortak hesapları karşılaştır** alanından ikinci profili seçin. **Ortak takipçiler** iki profili de takip edenleri, **Ortak takip edilenler** iki profilin de takip ettiği hesapları gösterir.
 
 Tracker her profil için son tam listeyi kullanır. Tam liste yoksa varsa kısmi kayıtla karşılaştırır ve sonucu **Okunan hesaplar arasında** olarak etiketler. Ekranda iki listenin kayıt tarihi ve kapsamı görünür. Bir kaynak eksikse ortak hesap sayısı yerine kayıt eksikliği gösterilir. Arama ve karşılaştırma cihazda yapılır.
 

@@ -1,9 +1,10 @@
 package dev.kaankaya.instagramtracker
 
 data class ListAutomation(val enabled: Boolean = false, val targets: Set<String> = emptySet(), val ownNextCheckAt: Long = 0,
-    val lastWorkWasList: Boolean = false)
+    val lastWorkWasList: Boolean = false, val initialTargets: Set<String> = emptySet())
 data class ListScan(val nextAt: Long = 0, val attemptAt: Long = 0, val continuing: Boolean = false,
-    val failure: ApiFailure.Kind? = null, val basisCount: Long? = null, val basisAt: Long = 0)
+    val failure: ApiFailure.Kind? = null, val basisCount: Long? = null, val basisAt: Long = 0,
+    val firstCountRetryUsed: Boolean = false)
 
 /** Profile observation used when a scan starts; never treated as proof that the list is complete. */
 data class ListBasis(val count: Long, val observedAt: Long) {
@@ -28,7 +29,16 @@ data class ListPageCommit(val target: ListTarget, val difference: ListDifference
 
 object ListAutomationPolicy {
     const val RESCAN_MS = 24 * 60 * 60 * 1000L
+    private const val FIRST_RETRY_MS = 30 * 60 * 1000L
     const val OWN_PROFILE_MS = RequestDefaults.DEFAULT_INTERVAL_MINUTES * 60_000L
+    fun source(target: ListTarget?, direction: FollowDirection): FollowRun? {
+        val latest = target?.snapshot?.run(direction)
+        return latest?.takeIf { it.comparable() }
+            ?: target?.previous?.run(direction)?.takeIf { it.comparable() } ?: latest
+    }
+    fun selected(account: SavedAccount, target: ListTarget, direction: FollowDirection) =
+        account.automation.enabled && (target.target in account.automation.targets ||
+            target.target in account.automation.initialTargets && source(target, direction)?.comparable() != true)
     /** A restricted committed run needs an explicit retry. Reconnecting resets its scan state. */
     fun coverageHeld(target: ListTarget, direction: FollowDirection): Boolean {
         val state = target.scan(direction)
@@ -56,10 +66,15 @@ object ListAutomationPolicy {
             previous = if (page.direction == FollowDirection.FOLLOWERS) base.copy(followers = old) else base.copy(following = old)
         }
         val snapshot = (target.snapshot ?: FollowSnapshot(session.userId, session.connectionBinding, target.target)).record(page, target.scan(page.direction).basisCount)
-        val more = snapshot.run(page.direction)!!.coverage() == FollowCoverage.MORE
+        val run = snapshot.run(page.direction)!!
+        val more = run.coverage() == FollowCoverage.MORE
+        val state = target.scan(page.direction)
+        val firstMismatch = run.coverage() == FollowCoverage.END_OBSERVED && !run.comparable() &&
+            previous?.run(page.direction)?.comparable() != true && !state.firstCountRetryUsed
+        val wait = when { more -> MonitorPolicy.POLL_MS; firstMismatch -> FIRST_RETRY_MS; else -> RESCAN_MS }
         return target.copy(snapshot = snapshot, previous = previous).withScan(page.direction,
-            target.scan(page.direction).copy(nextAt = page.observedAt + if (more) MonitorPolicy.POLL_MS else RESCAN_MS,
-                attemptAt = page.observedAt, continuing = more, failure = null))
+            state.copy(nextAt = page.observedAt + wait, attemptAt = page.observedAt, continuing = more, failure = null,
+                firstCountRetryUsed = state.firstCountRetryUsed || firstMismatch))
     }
 }
 
@@ -90,16 +105,20 @@ object AutomaticQueue {
     }
     fun next(account: SavedAccount, archive: ListArchive, now: Long, preferProfile: Boolean = false,
         ownIntervalMillis: Long = ListAutomationPolicy.OWN_PROFILE_MS, ownEnabled: Boolean = false,
-        profileAllowedAt: Long = 0): AutomaticTask? {
+        profileAllowedAt: Long = 0, paused: Set<ReadKind> = emptySet()): AutomaticTask? {
         require(archive.matches(account.session))
         require(ownIntervalMillis > 0)
-        val tasks = account.people.filter { it.watching }.map { AutomaticTask.Person(it.latest.userId, maxOf(it.nextCheckAt, profileAllowedAt)) }.toMutableList<AutomaticTask>()
-        if (ownEnabled || account.automation.enabled && account.session.userId in account.automation.targets)
+        val tasks = mutableListOf<AutomaticTask>()
+        if (ReadKind.PROFILE !in paused) account.people.filter { it.watching }.forEach {
+            tasks += AutomaticTask.Person(it.latest.userId, maxOf(it.nextCheckAt, profileAllowedAt))
+        }
+        if (ReadKind.PROFILE !in paused && (ownEnabled || account.automation.enabled && account.session.userId in account.automation.targets))
             tasks += AutomaticTask.Own(account.session.userId,
                 maxOf(account.automation.ownNextCheckAt, account.profile.observedAt + ownIntervalMillis, profileAllowedAt))
         if (account.automation.enabled) {
-            for (id in account.automation.targets) for (direction in FollowDirection.entries) {
+            for (id in account.automation.targets + account.automation.initialTargets) for (direction in FollowDirection.entries) {
                 val target = archive.targets.firstOrNull { it.target == id } ?: ListTarget(id)
+                if (ReadKind.list(direction) in paused || !ListAutomationPolicy.selected(account, target, direction)) continue
                 val profile = if (id == account.profile.userId) account.profile else account.people.first { it.latest.userId == id }.latest
                 page(target, direction, now, basis = ListBasis.of(profile, direction))?.let { tasks += it }
             }

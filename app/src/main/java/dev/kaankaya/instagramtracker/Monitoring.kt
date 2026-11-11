@@ -84,6 +84,7 @@ class MonitorEngine(private val vault: SessionVault, private val gate: RequestGa
         reserved: Boolean = false) {
         if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.nextAllowedAt() > now || gate.profileBudgetNextAt(now) > now) return
         val saved = vault.read() ?: return
+        if (ReadKind.PROFILE in gate.forAccount(saved.session.userId).pausedReads()) return
         val selected = if (targetId == null) MonitorPolicy.due(saved.people, now) else
             saved.people.firstOrNull { it.latest.userId == targetId && it.watching && it.nextCheckAt <= now }
         if (selected == null) return

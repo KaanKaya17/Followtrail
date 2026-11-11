@@ -286,6 +286,14 @@ class MainActivity : LocalizedActivity() {
         if (saved != null && AppUi.offline(this) == true) {
             page.addView(AppUi.notice(this, getString(R.string.ui_you_are_viewing_offline), getString(R.string.ui_showing_records_on_this_device_an_internet))); page.gap(16)
         }
+        if (saved != null && !peopleScreen) {
+            val diagnostic = gate.forAccount(saved.session.userId).readDiagnosis(ReadKind.PROFILE)
+            if (diagnostic?.paused == true) {
+                page.addView(AppUi.notice(this, getString(R.string.read_health_paused),
+                    getString(diagnostic.reason.label), warning = true).apply { setOnClickListener { requestInfo() } })
+                page.gap(12)
+            }
+        }
         if(saved!=null && try {vault.privacy.read(saved.session.userId).failed}catch (_: Exception){false}) {
             page.addView(text(getString(R.string.retention_failed),13f,AppUi.coral).apply {setOnClickListener {retentionSettings()}});page.gap(12)
         }
@@ -951,6 +959,17 @@ class MainActivity : LocalizedActivity() {
         lines += getString(R.string.security_budget_info, RequestDefaults.ACCOUNT_HOURLY, RequestDefaults.ACCOUNT_DAILY, RequestDefaults.DEVICE_HOURLY, RequestDefaults.DEVICE_DAILY)
         if (gate.budgetNextAt() > now) lines += getString(R.string.security_budget_next, date(gate.budgetNextAt()))
         if (gate.lastAttemptAt() > 0) lines += getString(R.string.ui_last_attempt, date(gate.lastAttemptAt()))
+        val readGate = account?.session?.userId?.let(gate::forAccount) ?: gate
+        val diagnostics = ReadKind.entries.mapNotNull { kind -> readGate.readDiagnosis(kind)?.let { kind to it } }
+        if (diagnostics.isNotEmpty()) {
+            lines += getString(R.string.read_health_title)
+            diagnostics.forEach { (kind, diagnosis) ->
+                val http = diagnosis.http?.let { " · HTTP $it" }.orEmpty()
+                val pause = if (diagnosis.paused) "\n" + getString(R.string.read_health_paused) + "\n" +
+                    getString(R.string.read_health_resume) else ""
+                lines += getString(kind.title()) + http + " · " + date(diagnosis.at) + "\n" + getString(diagnosis.reason.label) + pause
+            }
+        }
         if (!preview) {
             try {
                 val saved = PhoneLoginJournal(this).read()
@@ -1527,6 +1546,7 @@ class MainActivity : LocalizedActivity() {
     private fun refresh(automatic: Boolean = false) {
         if(!automatic) {localAccountView=false;intent.removeExtra("local_account_switch")}
         val saved = account ?: return
+        if (automatic && ReadKind.PROFILE in gate.forAccount(saved.session.userId).pausedReads()) return
         if (loading) return
         if (!PeoplePolicy.needsRefresh(saved.profile, System.currentTimeMillis())) return
         if (gate.nextAllowedAt() > System.currentTimeMillis()) {

@@ -38,18 +38,29 @@ class InitialListPreparation(private val context: Context, private val vault: Se
         if (!visible || closed || busy || failure != null || !allowed()) return
         try {
             val account = vault.read() ?: return
-            if (!InitialLists.selected(account) || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.quickWatchActive()) return
-            val target = lists.target(account.session, account.session.userId)
-            val pending = InitialLists.pending(target)
+            if (!account.automation.enabled || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() || gate.quickWatchActive()) return
+            val session = account.session
+            val records = lists.archive(session).targets.associateBy { it.target }
+            val ids = account.automation.initialTargets + account.automation.targets
+            val profiles = (listOf(account.profile) + account.people.map { it.latest }).filter { it.userId in ids }
+            val paused = gate.forAccount(session.userId).pausedReads()
             val now = System.currentTimeMillis()
-            val direction = pending.firstOrNull { d ->
-                val state = target?.scan(d)
-                state == null || state.failure == null && state.continuing || state.nextAt <= now && state.failure != ApiFailure.Kind.CAPACITY
-            }
-            if (direction == null) {
-                pending.mapNotNull { target?.scan(it)?.nextAt }.minOrNull()?.let { next ->
-                    if (next > now) main.postDelayed(wake, next - now)
+            var nextAt: Long? = null
+            val jobs = profiles.flatMap { profile ->
+                val target = records[profile.userId] ?: ListTarget(profile.userId)
+                FollowDirection.entries.mapNotNull { direction ->
+                    if (ReadKind.list(direction) in paused || ListAutomationPolicy.source(target, direction)?.comparable() == true ||
+                        target.scan(direction).failure == ApiFailure.Kind.CAPACITY || ListAutomationPolicy.coverageHeld(target, direction))
+                        return@mapNotNull null
+                    val state = target.scan(direction)
+                    if (state.nextAt > now) nextAt = minOf(nextAt ?: state.nextAt, state.nextAt)
+                    val continuation = target.snapshot?.run(direction)?.takeIf { state.continuing && state.failure == null }
+                    AutomaticQueue.page(target, direction, now, continuation, ListBasis.of(profile, direction))
                 }
+            }
+            val job = jobs.minWithOrNull(compareBy({ it.dueAt }, { records[it.target]?.scan(it.direction)?.attemptAt ?: 0L }))
+            if (job == null) {
+                nextAt?.let { main.postDelayed(wake, it - now) }
                 return
             }
             val wait = gate.nextAllowedAt() - now
@@ -60,9 +71,7 @@ class InitialListPreparation(private val context: Context, private val vault: Se
                 main.postDelayed(wake, if (wait <= 15000) minOf(wait, 1000) else wait)
                 return
             }
-            val session = account.session
-            val previous = target?.snapshot?.run(direction)
-            val cursor = previous?.cursor()?.takeIf { target.scan(direction).continuing && now - previous.latest.observedAt < ListAutomationPolicy.RESCAN_MS }
+            val previous = records[job.target]?.snapshot?.run(job.direction)
             val ticket = generation
             busy = true; changed()
             worker.execute {
@@ -73,14 +82,19 @@ class InitialListPreparation(private val context: Context, private val vault: Se
                     val reader = factory(); source = reader
                     val cancelled = { ticket != generation || Thread.currentThread().isInterrupted }
                     if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-                    ForegroundListScan(vault, lists, gate, reader).read(session, session.userId, direction, cursor,
+                    ForegroundListScan(vault, lists, gate, reader).read(session, job.target, job.direction, job.cursor,
                         pages = 1, cancelled = cancelled, progress = {}, notify = notify)
                 } catch (error: ApiFailure) {
                     failure = error
                     if (ticket == generation && error.kind !in setOf(ApiFailure.Kind.CANCELLED, ApiFailure.Kind.TOO_SOON, ApiFailure.Kind.BUDGET)) {
                         try {
-                            vault.inspect { current -> if (current?.session == session && InitialLists.selected(current))
-                                lists.deferCurrent(session, session.userId, direction, previous, error.kind, System.currentTimeMillis()) }
+                            vault.inspect { current ->
+                                if (current?.session == session && current.automation.enabled &&
+                                    (current.profile.userId == job.target || current.people.any { it.latest.userId == job.target })) {
+                                    lists.deferCurrent(session, job.target, job.direction, previous, error.kind,
+                                        System.currentTimeMillis(), error.http)
+                                }
+                            }
                             if (error.kind == ApiFailure.Kind.CAPACITY) gate.pauseForListCapacity()
                         } catch (_: Exception) { failure = ApiFailure(ApiFailure.Kind.STORAGE) }
                     }

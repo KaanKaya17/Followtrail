@@ -1,0 +1,32 @@
+<resources>
+    <string name="common_choose">"Ortak hesapları karşılaştır"</string>
+    <string name="common_leave">"Listeye dön"</string>
+    <string name="common_followers">"Ortak takipçiler"</string>
+    <string name="common_following">"Ortak takip edilenler"</string>
+    <string name="common_missing">"Karşılaştırma için iki profilin de kayıtlı listesi gerekiyor."</string>
+    <string name="common_count">"Kayıtlı listelerde ortak hesaplar · %1$d"</string>
+    <string name="common_partial">"Okunan hesaplar arasında ortak olanlar · %1$d"</string>
+    <string name="common_source_missing">"@%1$s · Kayıtlı liste yok"</string>
+    <string name="common_source_full">"@%1$s · Tam liste · %2$d · %3$s"</string>
+    <string name="common_source_partial">"@%1$s · Kısmi liste · %2$d · %3$s"</string>
+    <string name="common_no_profiles">"Karşılaştırmak için önce ikinci bir profil kaydet."</string>
+    <string name="private_list_title">"Bu hesap gizli"</string>
+    <string name="private_list_help">"Son takip edilen listene göre bu hesabı takip etmiyorsun. Listelerine erişmek için takip isteğinin onaylanması gerekiyor."</string>
+    <string name="read_health_title">"Okuma tanısı"</string>
+    <string name="read_health_profile">"Profil okuması"</string>
+    <string name="read_health_paused">"Otomatik okuma duraklatıldı"</string>
+    <string name="read_health_resume">"Başarılı bir elle kontrol otomatik okumayı yeniden başlatır."</string>
+    <string name="read_health_format">"Instagram beklenen biçimde veri döndürmedi."</string>
+    <string name="read_health_identity">"Yanıttaki hesap kimliği istenen hesapla eşleşmedi."</string>
+    <string name="read_health_route">"Instagram bu okuma yolunu reddetti. Uç nokta değişmiş olabilir."</string>
+    <string name="read_health_cursor">"Instagram devam bilgisini reddetti. Sonraki tarama ilk sayfadan başlar."</string>
+    <string name="read_health_partial">"Liste kısmi kaldı. Son tam kayıt korunuyor."</string>
+    <string name="read_health_server">"Instagram sunucusu hata döndürdü."</string>
+    <string name="read_health_connection">"Instagram bağlantısı tamamlanamadı."</string>
+    <string name="read_health_target">"Instagram bu hedefi döndürmedi. Profilin erişimini kontrol et."</string>
+    <string name="read_health_limited">"Instagram istekleri sınırladı. Mola bilgisine bak."</string>
+    <string name="read_health_session">"Instagram oturumu reddetti. Hesabı yeniden bağla."</string>
+    <string name="read_health_verification">"Instagram ek doğrulama istiyor."</string>
+    <string name="read_health_other">"Okuma tamamlanamadı. İstek bilgilerini kontrol et."</string>
+    <string name="list_count_mismatch_status">"Okunan liste profil sayısıyla uyuşmadı. Okunan hesaplar · %1$d / %2$d"</string>
+</resources>
