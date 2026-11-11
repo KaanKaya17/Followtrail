@@ -1,0 +1,16 @@
+<resources>
+    <string name="profile_compare_title">Compara dos registros del perfil</string>
+    <string name="profile_compare_unavailable">Se necesitan dos registros del perfil para comparar.</string>
+    <string name="profile_compare_missing">Sin registro</string>
+    <string name="profile_compare_empty">Vacío</string>
+    <string name="profile_compare_before">Registro anterior</string>
+    <string name="profile_compare_after">Registro posterior</string>
+    <string name="profile_compare_photo">Foto de perfil</string>
+    <string name="profile_compare_default_photo">Foto de perfil predeterminada</string>
+    <string name="profile_compare_photo_changed">Foto modificada</string>
+    <string name="profile_compare_username">Nombre de usuario</string>
+    <string name="profile_compare_name">Nombre visible</string>
+    <string name="profile_compare_bio">Biografía</string>
+    <string name="profile_compare_links">Enlaces</string>
+    <string name="profile_compare_posts">Publicaciones</string>
+</resources>

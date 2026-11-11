@@ -1,0 +1,16 @@
+<resources>
+    <string name="profile_compare_title">İki profil kaydını karşılaştır</string>
+    <string name="profile_compare_unavailable">Karşılaştırmak için iki profil kaydı gerekiyor.</string>
+    <string name="profile_compare_missing">Kayıt yok</string>
+    <string name="profile_compare_empty">Boş</string>
+    <string name="profile_compare_before">Önceki kayıt</string>
+    <string name="profile_compare_after">Sonraki kayıt</string>
+    <string name="profile_compare_photo">Profil fotoğrafı</string>
+    <string name="profile_compare_default_photo">Anonim profil fotoğrafı</string>
+    <string name="profile_compare_photo_changed">Fotoğraf değişti</string>
+    <string name="profile_compare_username">Kullanıcı adı</string>
+    <string name="profile_compare_name">Görünen ad</string>
+    <string name="profile_compare_bio">Biyografi</string>
+    <string name="profile_compare_links">Bağlantılar</string>
+    <string name="profile_compare_posts">Gönderiler</string>
+</resources>

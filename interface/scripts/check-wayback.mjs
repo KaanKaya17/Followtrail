@@ -25,6 +25,18 @@ try{
  await page.getByRole('heading',{name:'Biyografi zaman tüneli'}).waitFor();
  assert.equal(await page.locator('.wayback-gallery img').count(),3);assert.ok(await page.locator('.bio-diff ins').count()>0);assert.ok(await page.locator('.bio-diff del').count()>0);
  assert.equal(await page.evaluate(()=>window.evil),undefined);checks.push('Three real JPEG thumbnails, including the opt-in baseline, and escaped biography insertion/deletion render in the actual EXE');
+ const compare=page.locator('[data-profile-compare]');
+ await compare.locator('[data-compare-before]').selectOption('0');
+ assert.ok(await compare.locator('[data-compare-result] ins').count()>0);
+ assert.ok(await compare.locator('[data-compare-result] del').count()>0);
+ assert.equal(await compare.locator('[data-compare-result] img').count(),2);
+ assert.equal(await compare.locator('[data-compare-result]').getByText('Fotoğraf değişti').count(),2);
+ assert.equal(await compare.locator('[data-compare-result] img[onerror]').count(),0);
+ const latestOption=await compare.locator('[data-compare-after]').inputValue();
+ await compare.locator('[data-compare-before]').selectOption(latestOption);
+ await compare.getByText('Önceki kayıt, sonraki kayıttan daha eski olmalı.').waitFor();
+ await compare.locator('[data-compare-before]').selectOption('0');
+ checks.push('Selecting nonadjacent records displays split changes and archived photos, and rejects equal dates');
  await page.screenshot({path:path.join(output,'desktop-tr.png')});
  await page.getByRole('button',{name:'Arşivlemeyi durdur',exact:true}).click();await page.getByRole('button',{name:'Arşivlemeyi aç',exact:true}).waitFor();
  assert.equal(await page.locator('.wayback-gallery img').count(),3);checks.push('Pausing preserves archive contents');
@@ -45,7 +57,7 @@ try{
  web.on('request',r=>{if(!r.url().startsWith('http://127.0.0.1:4189')&&!r.url().startsWith('data:'))external.push(r.url());});
  await web.goto('http://127.0.0.1:4189');await web.locator('.mobile-nav a[href="#people"]').click();await web.locator('.person-title').first().click();
  await web.getByRole('button',{name:'Profil zaman tüneli',exact:true}).click();await web.getByRole('heading',{name:'Biyografi zaman tüneli'}).waitFor();
- assert.ok(await web.locator('.bio-diff ins').count()>0);assert.equal(await web.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);checks.push('390px web preview uses the same diff layout with explicit sample records');
+ assert.ok(await web.locator('.bio-diff ins').count()>0);assert.ok(await web.locator('[data-compare-result] ins').count()>0);assert.equal(await web.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);checks.push('390px web preview uses the same diff layout with explicit sample records');
  await web.screenshot({path:path.join(output,'web-mobile.png')});assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
  await writeFile(path.join(output,'checks.json'),JSON.stringify({checks,errors,externalRequests:external.length,synthetic:true},null,2));console.log(checks.join('\n'));
 }finally{await app?.close();await browser?.close();server?.kill();}

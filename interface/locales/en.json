@@ -1261,5 +1261,14 @@
   "Günlük istatistikler": "Daily statistics",
   "Hesabının son kontrolü": "Your account last checked",
   "Sıradaki otomatik işlem": "Next automatic task",
-  "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Continuous profile checking: about {0} requests/day · local profile allowance {1}."
+  "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Continuous profile checking: about {0} requests/day · local profile allowance {1}.",
+  "İki profil kaydını karşılaştır": "Compare two profile records",
+  "Karşılaştırmak için iki profil kaydı gerekiyor.": "Two profile records are needed to compare.",
+  "Kayıt yok": "No record",
+  "Boş": "Empty",
+  "Sonraki kayıt": "Later record",
+  "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "The earlier record must come before the later record.",
+  "Takip edilenler": "Following",
+  "Gönderiler": "Posts",
+  "Fotoğraf değişti": "Photo changed"
 }

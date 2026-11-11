@@ -1269,7 +1269,16 @@
     "Günlük istatistikler": "Daily statistics",
     "Hesabının son kontrolü": "Your account last checked",
     "Sıradaki otomatik işlem": "Next automatic task",
-    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Continuous profile checking: about {0} requests/day · local profile allowance {1}."
+    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Continuous profile checking: about {0} requests/day · local profile allowance {1}.",
+    "İki profil kaydını karşılaştır": "Compare two profile records",
+    "Karşılaştırmak için iki profil kaydı gerekiyor.": "Two profile records are needed to compare.",
+    "Kayıt yok": "No record",
+    "Boş": "Empty",
+    "Sonraki kayıt": "Later record",
+    "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "The earlier record must come before the later record.",
+    "Takip edilenler": "Following",
+    "Gönderiler": "Posts",
+    "Fotoğraf değişti": "Photo changed"
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2534,7 +2543,16 @@
     "Günlük istatistikler": "Estadísticas diarias",
     "Hesabının son kontrolü": "Última consulta de tu cuenta",
     "Sıradaki otomatik işlem": "Próxima tarea automática",
-    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Comprobación continua de perfiles: unas {0} solicitudes/día · cuota local para perfiles {1}."
+    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Comprobación continua de perfiles: unas {0} solicitudes/día · cuota local para perfiles {1}.",
+    "İki profil kaydını karşılaştır": "Compara dos registros del perfil",
+    "Karşılaştırmak için iki profil kaydı gerekiyor.": "Se necesitan dos registros del perfil para comparar.",
+    "Kayıt yok": "Sin registro",
+    "Boş": "Vacío",
+    "Sonraki kayıt": "Registro posterior",
+    "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "El primer registro debe ser anterior al segundo.",
+    "Takip edilenler": "Seguidos",
+    "Gönderiler": "Publicaciones",
+    "Fotoğraf değişti": "Foto modificada"
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3799,7 +3817,16 @@
     "Günlük istatistikler": "Estatísticas diárias",
     "Hesabının son kontrolü": "Última verificação da sua conta",
     "Sıradaki otomatik işlem": "Próxima tarefa automática",
-    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Verificação contínua de perfis: cerca de {0} solicitações/dia · cota local para perfis {1}."
+    "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Verificação contínua de perfis: cerca de {0} solicitações/dia · cota local para perfis {1}.",
+    "İki profil kaydını karşılaştır": "Compare dois registros do perfil",
+    "Karşılaştırmak için iki profil kaydı gerekiyor.": "São necessários dois registros do perfil para comparar.",
+    "Kayıt yok": "Sem registro",
+    "Boş": "Vazio",
+    "Sonraki kayıt": "Registro posterior",
+    "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "O primeiro registro deve ser anterior ao segundo.",
+    "Takip edilenler": "Seguindo",
+    "Gönderiler": "Publicações",
+    "Fotoğraf değişti": "Foto alterada"
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

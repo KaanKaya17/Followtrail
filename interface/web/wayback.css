@@ -10,3 +10,15 @@
 .bio-diff ins { background: var(--added-bg); color: var(--added-text); text-decoration: none; }
 .bio-diff del { background: var(--removed-bg); color: var(--removed-text); text-decoration: line-through; }
 .diff-sign { font-weight: 700; margin-inline-end: 2px; user-select: none; }
+.profile-compare-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.profile-compare-pickers label { display: grid; gap: 6px; color: var(--muted); font-size: 12px; }
+.profile-compare-pickers select { width: 100%; min-height: 42px; padding-inline: 8px; }
+.profile-compare-field { margin-top: 12px; }
+.profile-compare-field h4 { margin: 0 0 5px; font-size: 12px; }
+.profile-compare-field .profile-compare-pair > div {
+  padding: 10px; background: var(--subtle-surface); border-radius: 10px; min-width: 0;
+  white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55;
+}
+.profile-compare-field img { display: inline-block; width: 54px; height: 54px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
+.profile-compare-field del { background: var(--removed-bg); color: var(--removed-text); }
+.profile-compare-field ins { background: var(--added-bg); color: var(--added-text); text-decoration: none; }

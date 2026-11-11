@@ -534,7 +534,9 @@
       {at:now-86400,lastSeen:now-3600,bio:"Coffee, books & Istanbul ☕",image:null},
       {at:now,lastSeen:now,bio:"Coffee, travel & Ankara ☕",image:null}
     ]};
-    dialog(`<span class="sample-pill">${t("Örnek profil kaydı")}</span><h2 id="dialog-title">${t("Profil zaman tüneli")}</h2><p>@${esc(p?.username || "")}</p>${window.TrackerWayback.render(detail,{t,esc,date:value=>i18n.formats(language).date.format(new Date(value*1000))})}`,true);
+    const format = {t,esc,date:value=>i18n.formats(language).date.format(new Date(value*1000))};
+    dialog(`<span class="sample-pill">${t("Örnek profil kaydı")}</span><h2 id="dialog-title">${t("Profil zaman tüneli")}</h2><p>@${esc(p?.username || "")}</p>${window.TrackerWayback.render(detail,format)}`,true);
+    window.TrackerWayback.mountComparison(document.querySelector('[data-profile-compare]'),detail,[],format);
   }
   function eventDialog(id) {
     const e = events.find((e) => e.id === id);

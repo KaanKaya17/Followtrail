@@ -1261,5 +1261,14 @@
   "Günlük istatistikler": "Estatísticas diárias",
   "Hesabının son kontrolü": "Última verificação da sua conta",
   "Sıradaki otomatik işlem": "Próxima tarefa automática",
-  "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Verificação contínua de perfis: cerca de {0} solicitações/dia · cota local para perfis {1}."
+  "Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.": "Verificação contínua de perfis: cerca de {0} solicitações/dia · cota local para perfis {1}.",
+  "İki profil kaydını karşılaştır": "Compare dois registros do perfil",
+  "Karşılaştırmak için iki profil kaydı gerekiyor.": "São necessários dois registros do perfil para comparar.",
+  "Kayıt yok": "Sem registro",
+  "Boş": "Vazio",
+  "Sonraki kayıt": "Registro posterior",
+  "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "O primeiro registro deve ser anterior ao segundo.",
+  "Takip edilenler": "Seguindo",
+  "Gönderiler": "Publicações",
+  "Fotoğraf değişti": "Foto alterada"
 }
