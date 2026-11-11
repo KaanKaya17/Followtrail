@@ -28,7 +28,9 @@ Araç çevrimdışı çalışır ve yalnız JSON raporu üretir. Raporda çerez,
 
 ## Doğrulama durumu
 
-Sentetik HAR testleri yeni alt alan adı ve yol, GraphQL sorgu kimliği, yanlış hedef, belirsiz eşleşme ve kısıtlı liste davranışını kapsar. İlk prototip güncel bir canlı Instagram kaydıyla henüz doğrulanmadı.
+11 Kasım 2026 tarihli Chrome kaydında takip edilenlerin ilk iki isteği aynı hedef ve devam belirteciyle eşleşti. İki istekte de `GET https://www.instagram.com/api/v1/friendships/{id}/following/` görüldü ve her yanıtta 12 satır ile devam bilgisi vardı. İlk yanıt HAR içinde Base64 kodluydu. Analiz hem Base64 hem düz JSON gövdelerini destekler.
+
+Altı sentetik HAR testi yeni alt alan adı ve yol, GraphQL sorgu kimliği, yanlış hedef, belirsiz eşleşme, kısıtlı liste ve gövde kodlamasını kapsar. Canlı gözlem takip edilenlerin ilk iki web sayfasını kapsar. Takipçiler ve Android kaydı ayrı doğrulanacak.
 
 ```sh
 python -m unittest discover -s scripts -p test_discover_list_hosts.py -v
