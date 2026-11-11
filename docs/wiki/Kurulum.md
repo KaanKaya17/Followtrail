@@ -10,7 +10,7 @@
 
 **Web:** Kurulum gerektirmeyen örnek veri önizlemesidir. Gerçek hesaba bağlanıp sürekli kontrol yapan bir hizmet olarak sunulmaz.
 
-Güncel sürüm numaraları ve dosya adları [sürüm sayfasındadır](Surum-ve-Destek.md). Kaynak etiketi tek başına indirilebilir APK/EXE anlamına gelmez; proje sahibinin paylaştığı dağıtım paketini kullanın.
+Güncel ZIP ve APK bağlantıları [sürüm sayfasındadır](Surum-ve-Destek.md#kurulum-dosyasını-nereden-alabilirim). GitHub’da özel depoya erişimi olan hesabınızla oturum açın.
 
 ## Windows kurulumu
 
@@ -23,7 +23,7 @@ EXE'yi ZIP içinden çalıştırmak veya tek başına başka klasöre taşımak 
 
 ## Android kurulumu
 
-1. Proje sahibinin paylaştığı imzalı APK'yı telefona aktarın.
+1. [Sürüm sayfasındaki](Surum-ve-Destek.md#kurulum-dosyasını-nereden-alabilirim) imzalı APK'yı telefona indirin veya aktarın.
 2. Dosyayı açın. Android isterse yalnız kullandığınız dosya yöneticisi veya tarayıcı için bu kuruluma izin verin.
 3. Uygulamayı açıp [Android bağlantı adımlarını](Hesaplar-ve-Giris.md#android) izleyin.
 4. Bildirim kullanmak istiyorsanız uygulamanın ve Android'in bildirim iznini etkinleştirin.
