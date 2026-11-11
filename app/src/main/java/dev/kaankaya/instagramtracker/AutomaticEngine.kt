@@ -9,9 +9,13 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
     companion object { const val MAX_PAGES = 6; const val ROUND_MS = 90_000L }
     private fun next(saved: SavedAccount, now: Long, preferProfile: Boolean = false) = AutomaticQueue.next(
         saved, lists.archive(saved.session), now, preferProfile, gate.monitorIntervalMillis(), gate.backgroundOwnEnabled(),
-        gate.profileBudgetNextAt(now))
+        gate.profileBudgetNextAt(now), gate.forAccount(saved.session.userId).pausedReads())
     private fun selected(account: SavedAccount?, session: Session, id: String) = account?.session == session &&
         (account.automation.enabled && id in account.automation.targets || id == account.profile.userId && gate.backgroundOwnEnabled())
+    private fun selectedList(account: SavedAccount?, session: Session, id: String, direction: FollowDirection,
+        target: ListTarget = lists.target(session, id) ?: ListTarget(id)) =
+        account?.session == session && ReadKind.list(direction) !in gate.forAccount(session.userId).pausedReads() &&
+            ListAutomationPolicy.selected(account, target, direction)
     fun tick(now: Long = runtime.now(), cancelled: () -> Boolean = { false }) {
         dispatch(now, cancelled, false, MAX_PAGES, runtime.elapsed())
     }
@@ -67,7 +71,9 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
             }
             if (!reserved && !gate.reserveAutomatic(now)) return false
             vault.update(saved.session) { current ->
-                if (cancelled() || !selected(current, saved.session, task.target)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                val selected = if (task is AutomaticTask.Page) selectedList(current, saved.session, task.target, task.direction)
+                    else selected(current, saved.session, task.target)
+                if (cancelled() || !selected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 current.copy(automation = current.automation.copy(lastWorkWasList = task is AutomaticTask.Page,
                     ownNextCheckAt = if (task is AutomaticTask.Own) now + gate.monitorIntervalMillis() else current.automation.ownNextCheckAt))
             }
@@ -97,7 +103,8 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
         val before = if (target == session.userId) initial.profile else initial.people.first { it.latest.userId == target }.latest
         val started = runtime.elapsed(); val now = runtime.now(); val attempts = gate.attempts()
         try {
-            if (before.observedAt > now || now - before.observedAt >= QuickWatchTiming.INTERVAL_MS) {
+            if (ReadKind.PROFILE !in gate.forAccount(session.userId).pausedReads() &&
+                (before.observedAt > now || now - before.observedAt >= QuickWatchTiming.INTERVAL_MS)) {
                 if (!waitForSlot(started, cancelled)) return
                 val requestStarted = runtime.now()
                 val profile = if (target == session.userId) api.read(session) else api.readId(session, target)
@@ -116,7 +123,8 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
             val profile = if (target == session.userId) saved.profile else saved.people.first { it.latest.userId == target }.latest
             val record = lists.target(session, target) ?: ListTarget(target)
             val page = FollowDirection.entries.firstNotNullOfOrNull { direction ->
-                AutomaticQueue.page(record, direction, runtime.now(), basis = ListBasis.of(profile, direction))
+                if (!selectedList(saved, session, target, direction, record)) null
+                else AutomaticQueue.page(record, direction, runtime.now(), basis = ListBasis.of(profile, direction))
             } ?: return
             if (!waitForSlot(started, cancelled)) return
             val remaining = MAX_PAGES - (gate.attempts() - attempts).coerceAtMost(MAX_PAGES.toLong()).toInt()
@@ -140,7 +148,8 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
             if (index + 1 == pages) return true
             val saved = vault.read() ?: return true
             val profile = if (first.target == saved.profile.userId) saved.profile else saved.people.firstOrNull { it.latest.userId == first.target }?.latest ?: return true
-            if (FollowDirection.entries.none { AutomaticQueue.page(result.target, it, runtime.now(), committed[it], ListBasis.of(profile, it)) != null }) return true
+            if (FollowDirection.entries.none { selectedList(saved, session, first.target, it, result.target) &&
+                AutomaticQueue.page(result.target, it, runtime.now(), committed[it], ListBasis.of(profile, it)) != null }) return true
             // Poll in short cancellable slices on the job's worker, never on the UI thread.
             while (true) {
                 if (cancelled() || !canNotify() || gate.automationHeld() || gate.manualOnly() || gate.requiresConnection() ||
@@ -151,13 +160,16 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
                     continue
                 }
                 val current = vault.read()
-                if (!selected(current, session, first.target)) return true
+                if (current?.session != session) return true
                 val target = lists.target(session, first.target) ?: return true
                 if (committed.any { (direction, expected) -> target.snapshot?.run(direction) != expected }) return true
                 val opposite = FollowDirection.entries.first { it != task.direction }
                 val next = listOf(opposite, task.direction).firstNotNullOfOrNull { direction ->
-                    val p = if (first.target == current!!.profile.userId) current.profile else current.people.first { it.latest.userId == first.target }.latest
-                    AutomaticQueue.page(target, direction, runtime.now(), committed[direction], ListBasis.of(p, direction))
+                    if (!selectedList(current, session, first.target, direction, target)) null
+                    else {
+                        val p = if (first.target == current.profile.userId) current.profile else current.people.first { it.latest.userId == first.target }.latest
+                        AutomaticQueue.page(target, direction, runtime.now(), committed[direction], ListBasis.of(p, direction))
+                    }
                 } ?: return true
                 task = next; attemptAt = runtime.now(); break
             }
@@ -168,7 +180,7 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
         cancelled: () -> Boolean): ListPageCommit {
         try {
             vault.inspect { current ->
-                if (cancelled() || !canNotify() || !selected(current, session, task.target)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                if (cancelled() || !canNotify() || !selectedList(current, session, task.target, task.direction)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 lists.reserve(session, task, now, continuationOf)
             }
         } catch (failure: ApiFailure) {
@@ -177,27 +189,29 @@ class AutomaticEngine(private val vault: SessionVault, private val lists: Follow
         }
         try {
             if (cancelled()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
-            val page = source.read(session, task.target, task.direction, task.cursor)
+            val page = source.readDiagnosed(gate, session, task.target, task.direction, task.cursor)
             var committed: ListPageCommit? = null
             vault.inspect { current ->
-                if (cancelled() || !selected(current, session, task.target)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                if (cancelled() || !selectedList(current, session, task.target, task.direction)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 val result = lists.commitAutomatic(session, task, now, page)
                 val profile = (listOf(current!!.profile) + current.people.map { it.latest }).first { it.userId == task.target }
                 result.difference?.let { if (canNotify() && !cancelled()) notifyList(session, profile, it) }
                 val run = result.target.snapshot!!.run(task.direction)!!
+                gate.forAccount(session.userId).committedRead(task.direction, run)
                 val comparison = ListAutomationPolicy.difference(result.target, task.direction)
                 vault.record(session, CheckEvent(profile.userId, profile.username, CheckKind.LIST, now, page.observedAt,
                     runtime.now(), result.target.previous?.run(task.direction)?.latest?.observedAt, direction = task.direction,
                     coverage = run.coverage(), pages = run.pages.size, accounts = run.users.size,
                     added = comparison?.added?.size, missing = comparison?.missing?.size,
                     newlySeen = CheckEvent.sample(comparison?.added.orEmpty()), notSeen = CheckEvent.sample(comparison?.missing.orEmpty())))
+                vault.finishInitialLists(current, result.target)
                 committed = result
             }
             return committed!!
         } catch (failure: ApiFailure) {
             if (failure.kind !in setOf(ApiFailure.Kind.CANCELLED, ApiFailure.Kind.TOO_SOON, ApiFailure.Kind.BUDGET)) vault.inspect { current ->
-                if (!cancelled() && selected(current, session, task.target)) {
-                    try { lists.failed(session, task, now, failure.kind) }
+                if (!cancelled() && current?.session == session) {
+                    try { lists.failed(session, task, now, failure.kind, failure.http) }
                     catch (error: ApiFailure) { if (error.kind == ApiFailure.Kind.CAPACITY) gate.pauseForListCapacity() else gate.pauseAutomatic() }
                     catch (_: Exception) { gate.pauseAutomatic() }
                 }

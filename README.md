@@ -28,7 +28,7 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 **Windows 0.2.60:** Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
 
-**Android 0.1.86 / kod 87:** İmzalı APK; ortak istek politikası, hikâye arşivi ve aynı görsel yükleyicisinde ortak indirme bulunur. Son paket ve JVM kontrolleri tamamlandı; yeni cihaz/ekran testi ertelendi ([doğrulama kapsamı](docs/RESPONSE-SHARING-TEST.md)). CAPTCHA sonrası bekleyen oturumun korunması doğrulanmıştır; girişten sonraki profil 429'u araştırılmaktadır. Telefon içinden uçtan uca bağlantı ve liste okuması henüz tamamlanmış sayılmıyor.
+**Android 0.1.87 / kod 88:** İmzalı APK. İlk liste hazırlığı, gizli hesap açıklaması, ortak hesap karşılaştırması ve okuma tanısı eklendi. Android 0.1.86 fiziksel testinde mevcut oturumla profil ve iki liste okundu. Bekleyen web oturumunu bağlama adımı HTTP 429 aldı. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

@@ -47,6 +47,52 @@ class ListAutomationTest {
         val foreign = JSONObject(AccountCodec.encode(account)); foreign.getJSONObject("listAutomation").getJSONArray("targets").put("999")
         assertThrows(Exception::class.java) { AccountCodec.decode(foreign.toString()) }
     }
+    @Test fun savedProfileGetsBothInitialDirectionsEvenWithoutWatching() {
+        val account = saved().copy(automation = ListAutomation(true, initialTargets = setOf("200")))
+        assertEquals(account, AccountCodec.decode(AccountCodec.encode(account)))
+        val archive = ListArchive(account.session.userId, account.session.connectionBinding)
+        val first = AutomaticQueue.next(account, archive, 2000) as AutomaticTask.Page
+        assertEquals("200", first.target)
+        assertEquals(FollowDirection.FOLLOWERS, first.direction)
+        val other = AutomaticQueue.next(account, archive, 2000, paused = setOf(ReadKind.FOLLOWERS)) as AutomaticTask.Page
+        assertEquals(FollowDirection.FOLLOWING, other.direction)
+        val completed = ListAutomationPolicy.record(ListTarget("200"), account.session, page(2000, listOf("123")))
+        assertEquals(FollowDirection.FOLLOWING, (AutomaticQueue.next(account, archive.replace(completed), 3000) as AutomaticTask.Page).direction)
+        assertNull(AutomaticQueue.next(account.copy(automation = account.automation.copy(enabled = false)), archive, 3000))
+    }
+    @Test fun initialCountMismatchHasOneEarlyRetryAndNoCompleteBaseline() {
+        val state = ListTarget("200", followers = ListScan(basisCount = 3, basisAt = 1000))
+        val first = ListAutomationPolicy.record(state, session, page(2000, listOf("1", "2")))
+        assertTrue(first.followers.firstCountRetryUsed)
+        assertFalse(first.snapshot!!.followers!!.comparable())
+        assertEquals(2000 + 30 * 60_000L, first.followers.nextAt)
+        val later = ListAutomationPolicy.record(first, session, page(first.followers.nextAt, listOf("1", "2")))
+        assertEquals(first.followers.nextAt + ListAutomationPolicy.RESCAN_MS, later.followers.nextAt)
+        assertEquals(later, FollowArchiveCodec.decode(FollowArchiveCodec.encode(ListArchive("100", session.connectionBinding, listOf(later)))).targets.single())
+    }
+    @Test fun commonAccountsUseIdentityAndPrivateWarningNeedsCompleteOwnEvidence() {
+        val first = FollowRun(listOf(page(1000, listOf("1", "2"))), expectedCount = 3)
+        val other = FollowRun(listOf(page(2000, listOf("2", "3")).let { it.copy(users = it.users.map { u -> u.copy(username = "renamed" + u.id) }) }))
+        assertEquals(listOf("2"), FollowAnalysis.common(first, other)?.map { it.id })
+        assertNull(FollowAnalysis.common(first, null))
+        val viewer = profile.copy(userId = "100", following = 2)
+        val private = profile.copy(details = ProfileDetails(privateAccount = true))
+        assertTrue(FollowAnalysis.privateListNotice(viewer, private, other))
+        assertFalse(FollowAnalysis.privateListNotice(viewer, private, first))
+        assertFalse(FollowAnalysis.privateListNotice(viewer.copy(following = 3), private, other))
+    }
+    @Test fun threeCompatibleSignalsPauseButTargetAndCursorFailuresDoNotCount() {
+        val missing = ApiFailure(ApiFailure.Kind.NOT_FOUND, 404)
+        assertEquals(ReadReason.TARGET, ReadReason.of(missing, own = false, continuation = false))
+        assertEquals(ReadReason.CURSOR, ReadReason.of(missing, own = true, continuation = true))
+        assertEquals(ReadReason.ROUTE, ReadReason.of(missing, own = true, continuation = false))
+        var diagnosis: ReadDiagnosis? = null
+        repeat(3) { attempt ->
+            diagnosis = ReadDiagnosis.next(diagnosis, ReadReason.ROUTE, 404, 2000L + attempt)
+            assertEquals(attempt == 2, diagnosis!!.paused)
+        }
+        assertEquals(diagnosis, ReadDiagnosis.next(diagnosis, ReadReason.LIMITED, 429, 3000))
+    }
     @Test fun serverLimitedCoverageIsNotRetriedAutomaticallyOnCountChangeOrDailyDeadline() {
         val initial=ListTarget("200",followers=ListScan(basisCount=2,basisAt=1000))
         val target=ListAutomationPolicy.record(initial,session,page(2000,listOf("1"),limited=true))

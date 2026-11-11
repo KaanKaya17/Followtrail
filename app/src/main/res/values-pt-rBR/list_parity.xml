@@ -1,0 +1,32 @@
+<resources>
+    <string name="common_choose">"Comparar contas em comum"</string>
+    <string name="common_leave">"Voltar à lista"</string>
+    <string name="common_followers">"Seguidores em comum"</string>
+    <string name="common_following">"Contas seguidas em comum"</string>
+    <string name="common_missing">"Os dois perfis precisam de uma lista salva para a comparação."</string>
+    <string name="common_count">"Contas em comum nas listas salvas · %1$d"</string>
+    <string name="common_partial">"Contas em comum entre os registros lidos · %1$d"</string>
+    <string name="common_source_missing">"@%1$s · Nenhuma lista salva"</string>
+    <string name="common_source_full">"@%1$s · Lista completa · %2$d · %3$s"</string>
+    <string name="common_source_partial">"@%1$s · Lista parcial · %2$d · %3$s"</string>
+    <string name="common_no_profiles">"Salve um segundo perfil para comparar."</string>
+    <string name="private_list_title">"Esta conta é privada"</string>
+    <string name="private_list_help">"Pela sua última lista, você não segue essa conta. Sua solicitação precisa ser aprovada para acessar as listas."</string>
+    <string name="read_health_title">"Diagnóstico de leitura"</string>
+    <string name="read_health_profile">"Leitura do perfil"</string>
+    <string name="read_health_paused">"Leitura automática pausada"</string>
+    <string name="read_health_resume">"Uma verificação manual bem-sucedida retoma a leitura automática."</string>
+    <string name="read_health_format">"O Instagram retornou um formato de dados inesperado."</string>
+    <string name="read_health_identity">"O identificador não corresponde à conta solicitada."</string>
+    <string name="read_health_route">"O Instagram rejeitou esta rota. O endpoint pode ter mudado."</string>
+    <string name="read_health_cursor">"O Instagram rejeitou o token. A próxima leitura começa na primeira página."</string>
+    <string name="read_health_partial">"A lista ficou parcial. O último registro completo foi mantido."</string>
+    <string name="read_health_server">"O servidor do Instagram retornou um erro."</string>
+    <string name="read_health_connection">"Não foi possível concluir a conexão com o Instagram."</string>
+    <string name="read_health_target">"O Instagram não retornou essa conta. Verifique se o perfil está acessível."</string>
+    <string name="read_health_limited">"O Instagram limitou as solicitações. Confira o tempo de espera."</string>
+    <string name="read_health_session">"O Instagram rejeitou a sessão. Reconecte a conta."</string>
+    <string name="read_health_verification">"O Instagram exige uma verificação adicional."</string>
+    <string name="read_health_other">"Não foi possível concluir a leitura. Confira as informações de solicitação."</string>
+    <string name="list_count_mismatch_status">"A lista não corresponde ao total do perfil. Contas lidas · %1$d / %2$d"</string>
+</resources>

@@ -7,6 +7,7 @@ import org.json.JSONObject
 object FollowArchiveCodec {
     private fun scan(value: ListScan) = JSONObject().put("nextAt", value.nextAt).put("attemptAt", value.attemptAt)
         .put("continuing", value.continuing).put("basisAt", value.basisAt).apply {
+            if (value.firstCountRetryUsed) put("firstCountRetryUsed", true)
             value.basisCount?.let { put("basisCount", it) }; value.failure?.let { put("failure", it.name) } }
     private fun scan(value: JSONObject): ListScan {
         val next = value.getLong("nextAt"); val attempt = value.getLong("attemptAt")
@@ -15,7 +16,8 @@ object FollowArchiveCodec {
         val count = if (value.has("basisCount")) value.getLong("basisCount").also { require(it >= 0) } else null
         val basisAt = if (value.has("basisAt")) value.getLong("basisAt").also { require(it >= 0) } else 0
         require(count == null || basisAt > 0)
-        return ListScan(next, attempt, continuing, if (value.has("failure")) ApiFailure.Kind.valueOf(value.getString("failure")) else null, count, basisAt)
+        val retryUsed = if (value.has("firstCountRetryUsed")) value.get("firstCountRetryUsed") as Boolean else false
+        return ListScan(next, attempt, continuing, if (value.has("failure")) ApiFailure.Kind.valueOf(value.getString("failure")) else null, count, basisAt, retryUsed)
     }
     fun encode(archive: ListArchive): String = JSONObject().put("version", 2).put("owner", archive.owner)
         .put("binding", archive.binding ?: JSONObject.NULL).put("targets", JSONArray().apply {

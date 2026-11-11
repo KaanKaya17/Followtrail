@@ -46,6 +46,24 @@ class RequestGate internal constructor(context: Context, private val name: Strin
     private fun settings() = if(name!="request_gate")preferences else this.context.getSharedPreferences(
         "account_flags_"+((owner ?: AccountCatalog.selected(this.context))?.let(AccountCatalog::slot) ?: "empty"),Context.MODE_PRIVATE)
     fun forAccount(id: String)=RequestGate(context,name,clock,delayMillis).also {it.owner=InstagramIdentity.id(id)}
+    fun readDiagnosis(kind: ReadKind): ReadDiagnosis? = synchronized(lock) {
+        val parts = settings().getString("read_health_${kind.name}", null)?.split('|') ?: return@synchronized null
+        if (parts.size != 4) return@synchronized null
+        val reason = ReadReason.entries.firstOrNull { it.name == parts[0] } ?: return@synchronized null
+        val count = parts[1].toIntOrNull()?.takeIf { it in 0..3 } ?: return@synchronized null
+        val at = parts[3].toLongOrNull()?.takeIf { it >= 0 } ?: return@synchronized null
+        ReadDiagnosis(reason, count, parts[2].toIntOrNull()?.takeIf { it in 100..599 }, at)
+    }
+    fun pausedReads() = ReadKind.entries.filter { readDiagnosis(it)?.paused == true }.toSet()
+    fun recordRead(kind: ReadKind, reason: ReadReason, http: Int? = null) = synchronized(lock) {
+        val current = readDiagnosis(kind)
+        val next = ReadDiagnosis.next(current, reason, http, now())
+        if (next != current) settings().edit().putString("read_health_${kind.name}",
+            "${next.reason.name}|${next.count}|${next.http ?: ""}|${next.at}").apply()
+    }
+    fun readSucceeded(kind: ReadKind) = synchronized(lock) {
+        if (readDiagnosis(kind) != null) settings().edit().remove("read_health_${kind.name}").apply()
+    }
     private fun budgetOwner() = owner ?: if (name == "request_gate") AccountCatalog.selected(context) else null
     fun blockedUntil(): Long = synchronized(lock) { preferences.getLong("blocked_until", 0) }
     private fun budgetTimes(): List<Long> = try {

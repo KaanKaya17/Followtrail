@@ -35,6 +35,7 @@ class FollowListActivity : LocalizedActivity() {
     private lateinit var reference: Session
     private lateinit var target: Profile
     private var snapshot: FollowSnapshot? = null
+    private var peer: Profile? = null
     private var direction = FollowDirection.FOLLOWERS
     private var message: String? = null
     private var loading = false
@@ -76,6 +77,7 @@ class FollowListActivity : LocalizedActivity() {
             val id = savedInstanceState?.getString("selected_target") ?: intent.getStringExtra("target_id")
             target = (listOf(account.profile) + account.people.map { it.latest }).firstOrNull { it.userId == id }
                 ?: throw ApiFailure(ApiFailure.Kind.NOT_FOUND)
+            peer = accountProfiles(account).firstOrNull { it.userId == savedInstanceState?.getString("peer") && it.userId != id }
             snapshot = lists.read(reference, target.userId)
         } catch (_: Exception) {
             val label = TextView(this).apply { text = getString(R.string.list_storage_error); setPadding(dp(24), dp(40), dp(24), dp(24)) }
@@ -110,7 +112,7 @@ class FollowListActivity : LocalizedActivity() {
                     view.setPadding(dp(22) + insets.systemWindowInsetLeft, dp(12) + insets.systemWindowInsetTop,
                         dp(22) + insets.systemWindowInsetRight, dp(12) + insets.systemWindowInsetBottom)
                 }
-                actionDock?.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
+                actionDock?.visibility = if (keyboardVisible || peer != null) View.GONE else View.VISIBLE
                 statusCard?.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
                 navigationChrome.forEach { it.visibility = if (keyboardVisible) View.GONE else View.VISIBLE }
                 insets
@@ -130,17 +132,30 @@ class FollowListActivity : LocalizedActivity() {
             contentDescription=getString(R.string.parity_list_owner,target.username)
             setOnClickListener { if(!loading && !queuedRead.pending)chooseOwner() }
         }
-        owner.addView(ProfileAvatarView(this,48).apply {bind(avatars,reference.userId,target.userId,target.username,target.details.pictureUrl.value,target.details.pictureId.value)})
+        val comparisonPeer = peer
+        val comparing = comparisonPeer != null
+        owner.addView(ProfileAvatarView(this,48).apply {
+            bind(avatars, reference.userId, target.userId, target.username,
+                target.details.pictureUrl.value.takeUnless { comparing }, target.details.pictureId.value)
+        })
         owner.addView(column().apply {
             setPadding(dp(12),0,dp(8),0)
             addView(AppUi.text(this@FollowListActivity,"@${target.username}",17f,fg,true))
             target.name?.takeIf {it.isNotBlank()}?.let {addView(AppUi.text(this@FollowListActivity,it,12f,AppUi.muted))}
         },LinearLayout.LayoutParams(0,-2,1f))
         owner.addView(AppUi.text(this,"",14f).apply {setCompoundDrawablesRelativeWithIntrinsicBounds(AppUi.Icon(this@FollowListActivity,"chevron",AppUi.muted),null,null,null)})
-        val toolbarBlock = column().apply { addView(header);gap(12);addView(owner);gap(16) }; root.addView(toolbarBlock)
+        val toolbarBlock = column().apply {
+            addView(header); gap(12); addView(owner); gap(8)
+            addView(button(getString(if (comparing) R.string.common_leave else R.string.common_choose), !loading && !queuedRead.pending) {
+                if (comparing) selectPeer(null) else choosePeer()
+            })
+            gap(12)
+        }; root.addView(toolbarBlock)
         if (preview) { root.addView(AppUi.text(this, getString(R.string.list_demo), 10f, AppUi.violet, true)); root.gap(10) }
         val tabs = LinearLayout(this).apply { background = AppUi.shape(this@FollowListActivity, AppUi.violetSoft, 18); setPadding(dp(4), dp(4), dp(4), dp(4)) }
-        FollowDirection.entries.forEach { selected -> tabs.addView(button(directionName(selected), !loading && !queuedRead.pending) {
+        FollowDirection.entries.forEach { selected -> tabs.addView(button(if (!comparing) directionName(selected) else
+            getString(if (selected == FollowDirection.FOLLOWERS) R.string.common_followers else R.string.common_following),
+            !loading && !queuedRead.pending) {
             direction = selected; query = ""; visibleList = null; visibleSearch = null; message = null; render()
         }.apply {
             isSelected = direction == selected
@@ -152,19 +167,57 @@ class FollowListActivity : LocalizedActivity() {
         navigationChrome = listOf(toolbarBlock, tabsBlock)
         navigationChrome.forEach { it.visibility = if (keyboardVisible) View.GONE else View.VISIBLE }
         val run = snapshot?.run(direction)
+        val canContinue = !comparing && run?.cursor() != null && continuation() != null
+        val localAccount = if (!comparing && run?.comparable() != true)
+            try { accountVault.read()?.takeIf(::currentAccount) } catch (_: Exception) { null } else null
+        val firstSource = if (comparing) comparisonSource(target) else null
+        val secondSource = comparisonPeer?.let(::comparisonSource)
+        val common = if (comparing) FollowAnalysis.common(firstSource, secondSource) else null
+        val displayed = if (comparing) common.orEmpty() else run?.users.orEmpty()
         val status = column().apply { setPadding(dp(14), dp(12), dp(14), dp(12)); background = AppUi.shape(this@FollowListActivity, AppUi.surface, 18, AppUi.line) }
         status.addView(AppUi.text(this, getString(R.string.ui_saved_on_this_device), 11f, AppUi.muted, true)); status.gap(6)
-        status.addView(AppUi.text(this, if (run == null) getString(R.string.list_not_read) else getString(R.string.list_count, run.users.size, run.pages.size), 13f, fg, true))
-        if (run != null) {
+        if (comparisonPeer != null) {
+            val summary = when {
+                common == null -> getString(R.string.common_missing)
+                firstSource?.comparable() != true || secondSource?.comparable() != true -> getString(R.string.common_partial, common.size)
+                else -> getString(R.string.common_count, common.size)
+            }
+            status.addView(AppUi.text(this, summary, 13f, fg, true))
+            for ((profile, source) in listOf(target to firstSource, comparisonPeer to secondSource)) {
+                status.gap(4)
+                status.addView(AppUi.text(this, sourceLabel(profile, source), 11f, AppUi.muted))
+            }
+        } else {
+            val pending = localAccount?.automation?.let { it.enabled && target.userId in it.initialTargets } == true
+            val title = when {
+                run == null && pending -> getString(R.string.preparation_queued)
+                run == null -> getString(R.string.list_not_read)
+                else -> getString(R.string.list_count, run.users.size, run.pages.size)
+            }
+            status.addView(AppUi.text(this, title, 13f, fg, true))
+        }
+        if (!comparing && run != null) {
             status.gap(5)
-            status.addView(AppUi.text(this, coverageText(run.coverage()), 12f,
-                if (run.coverage() == FollowCoverage.END_OBSERVED) AppUi.teal else AppUi.violet))
+            val countMismatch = run.coverage() == FollowCoverage.END_OBSERVED && !run.comparable()
+            val summary = if (countMismatch) getString(R.string.list_count_mismatch_status, run.users.size, run.expectedCount)
+                else coverageText(run.coverage())
+            status.addView(AppUi.text(this, summary, 12f, if (run.comparable()) AppUi.teal else AppUi.violet))
             status.gap(4)
             status.addView(AppUi.text(this, getString(R.string.list_observed, SimpleDateFormat("d MMM · HH:mm", AppLanguage.locale(this)).format(Date(run.latest.observedAt))), 10f, AppUi.muted))
         }
         statusCard = status; status.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
         val listHeader = column().apply { setBackgroundColor(bg) }
         listHeader.addView(status); listHeader.gap(10)
+        if (localAccount != null && privateListNotice(localAccount)) {
+            listHeader.addView(AppUi.notice(this, getString(R.string.private_list_title), getString(R.string.private_list_help), warning = true))
+            listHeader.gap(10)
+        }
+        val diagnosis = if (comparing) null else gate.forAccount(reference.userId).readDiagnosis(ReadKind.list(direction))
+        if (diagnosis != null && (diagnosis.paused || diagnosis.reason == ReadReason.CURSOR)) {
+            val title = if (diagnosis.paused) R.string.read_health_paused else R.string.read_health_title
+            listHeader.addView(AppUi.notice(this, getString(title), getString(diagnosis.reason.label), warning = true))
+            listHeader.gap(10)
+        }
         if (AppUi.offline(this) == true) {
             listHeader.addView(AppUi.notice(this, getString(R.string.ui_you_are_viewing_offline), getString(R.string.ui_you_can_view_saved_records_an_internet))); listHeader.gap(10)
         }
@@ -182,12 +235,13 @@ class FollowListActivity : LocalizedActivity() {
         val searchSummary = AppUi.text(this, "", 11f, AppUi.muted).apply { setPadding(dp(2), 0, 0, dp(8)); accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
         fun updateSearchState(count: Int) {
             empty.visibility = if (count == 0) View.VISIBLE else View.GONE
-            emptyTitle.text = when { run == null -> getString(R.string.ui_explore_your_list); query.isNotBlank() -> getString(R.string.ui_no_accounts_match_your_search); else -> getString(R.string.ui_no_accounts_in_this_record) }
-            emptyDetail.text = when { run == null -> getString(R.string.ui_read_the_first_page_when_you_are); query.isNotBlank() -> getString(R.string.ui_try_another_name_search_does_not_fetch); else -> getString(R.string.ui_only_records_from_downloaded_pages_are_shown) }
+            if (comparing && query.isBlank()) { empty.visibility = View.GONE; return }
+            emptyTitle.text = when { query.isNotBlank() -> getString(R.string.ui_no_accounts_match_your_search); run == null -> getString(R.string.ui_explore_your_list); else -> getString(R.string.ui_no_accounts_in_this_record) }
+            emptyDetail.text = when { query.isNotBlank() -> getString(R.string.ui_try_another_name_search_does_not_fetch); run == null -> getString(R.string.ui_read_the_first_page_when_you_are); else -> getString(R.string.ui_only_records_from_downloaded_pages_are_shown) }
             searchSummary.visibility = if (query.isBlank()) View.GONE else View.VISIBLE
-            searchSummary.text = getString(R.string.list_search_summary, count, run?.users?.size ?: 0)
+            searchSummary.text = getString(R.string.list_search_summary, count, displayed.size)
         }
-        fun filtered() = run?.users.orEmpty().filter {
+        fun filtered() = displayed.filter {
             query.isBlank() || it.username.orEmpty().contains(query, true) || it.name.orEmpty().contains(query, true)
         }
         var items = filtered()
@@ -206,17 +260,18 @@ class FollowListActivity : LocalizedActivity() {
                     val detail = AppUi.text(this@FollowListActivity, "", 12f, AppUi.muted).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }
                     labels.addView(name); labels.gap(4); labels.addView(detail)
                     addView(labels, LinearLayout.LayoutParams(0, -2, 1f)); tag = UserRow(initial, name, detail)
-                    addView(ImageView(this@FollowListActivity).apply {
+                    if (!comparing) addView(ImageView(this@FollowListActivity).apply {
                         setImageDrawable(AppUi.Icon(this@FollowListActivity, "arrow", AppUi.violet, 18))
                         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     }, LinearLayout.LayoutParams(dp(24), dp(24)))
                 }
                 val user = items[position]; val holder = row.tag as UserRow
-                holder.initial.bind(avatars, reference.userId, user.id, user.username ?: user.name ?: "?", user.picture,
+                holder.initial.bind(avatars, reference.userId, user.id, user.username ?: user.name ?: "?", user.picture.takeUnless { comparing },
                     tint = if (position % 2 == 0) AppUi.violetSoft else AppUi.mint, foreground = if (position % 2 == 0) AppUi.violet else AppUi.teal)
                 holder.name.text = user.username?.let { "@$it" } ?: getString(R.string.list_username_unknown)
                 holder.detail.text = user.name?.takeIf { it.isNotBlank() } ?: getString(R.string.ui_no_name_provided)
-                row.contentDescription = user.username?.let { getString(R.string.profile_open_description, it) } ?: getString(R.string.list_username_unknown)
+                row.contentDescription = if (comparing) userLabel(user)
+                    else user.username?.let { getString(R.string.profile_open_description, it) } ?: getString(R.string.list_username_unknown)
                 return row
             }
         }
@@ -226,7 +281,7 @@ class FollowListActivity : LocalizedActivity() {
             AppUi.scrollStyle(this)
         }
         visibleList = list
-        if (run != null && run.users.isNotEmpty()) {
+        if (displayed.isNotEmpty()) {
             val searchRow = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
             val search = EditText(this).apply {
                 hint = getString(R.string.list_search_hint); contentDescription = getString(R.string.ui_search_downloaded_accounts); textSize = 13f
@@ -259,7 +314,7 @@ class FollowListActivity : LocalizedActivity() {
         updateSearchState(items.size)
         listHeader.addView(empty)
         list.addHeaderView(listHeader, null, false); list.adapter = adapter
-        list.setOnItemClickListener { _, _, position, _ ->
+        if (!comparing) list.setOnItemClickListener { _, _, position, _ ->
             items.getOrNull(position - list.headerViewsCount)?.let(::openProfile)
         }
         list.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
@@ -276,7 +331,7 @@ class FollowListActivity : LocalizedActivity() {
         })
         else {
             val row = LinearLayout(this).apply { gravity = android.view.Gravity.CENTER_VERTICAL }
-            row.addView(button(getString(if (run == null) R.string.ui_update_list else if (run.coverage() == FollowCoverage.MORE) R.string.navigation_continue_list else R.string.list_restart), allowed, true) { requestUpdate() }, LinearLayout.LayoutParams(0, -2, 1f))
+            row.addView(button(getString(if (run == null) R.string.ui_update_list else if (canContinue) R.string.navigation_continue_list else R.string.list_restart), allowed, true) { requestUpdate() }, LinearLayout.LayoutParams(0, -2, 1f))
             row.addView(AppUi.iconButton(this, "more", getString(R.string.ui_list_actions)) { showActions() }, LinearLayout.LayoutParams(dp(52), dp(52)).apply { marginStart = dp(8) })
             actions.addView(row)
         }
@@ -291,7 +346,7 @@ class FollowListActivity : LocalizedActivity() {
             FollowCoverage.END_OBSERVED -> getString(R.string.ui_list_end_observed)
             else -> getString(R.string.ui_read_limited)
         }, 11f, AppUi.muted)) }
-        actionDock = actions; actions.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
+        actionDock = actions; actions.visibility = if (keyboardVisible || comparing) View.GONE else View.VISIBLE
         root.addView(actions)
         main.removeCallbacks(wake)
         val wait = gate.nextAllowedAt() - System.currentTimeMillis()
@@ -303,15 +358,15 @@ class FollowListActivity : LocalizedActivity() {
         val selected = direction
         fun start() {
             if (direction != selected || isFinishing || isDestroyed) return
-            val current = try { lists.read(reference, target.userId)?.run(direction) } catch (_: Exception) { null }
-            read(current?.takeIf { it.coverage() == FollowCoverage.MORE }?.cursor(), continuous = true)
+            read(continuation(), continuous = true)
         }
         if (queuedRead.canWait() && queuedRead.enqueue { start() }) render() else start()
     }
     private fun showActions() {
         val run = snapshot?.run(direction)
         val choices = mutableListOf(getString(R.string.ui_record_coverage), getString(R.string.list_first))
-        if (run?.coverage() == FollowCoverage.MORE) choices += getString(R.string.list_next)
+        val cursor = continuation()
+        if (cursor != null) choices += getString(R.string.list_next)
         if (snapshot?.let(FollowAnalysis::compare) != null) choices += getString(R.string.list_compare_action)
         AlertDialog.Builder(this).setTitle(getString(R.string.ui_list_actions)).setItems(choices.toTypedArray()) { _, index ->
             when (choices[index]) {
@@ -320,7 +375,7 @@ class FollowListActivity : LocalizedActivity() {
                     if (run == null) read(null) else AlertDialog.Builder(this).setTitle(R.string.list_restart).setMessage(R.string.list_restart_message)
                         .setNegativeButton(R.string.list_cancel, null).setPositiveButton(R.string.list_first) { _, _ -> read(null) }.show()
                 }
-                getString(R.string.list_next) -> read(run?.cursor())
+                getString(R.string.list_next) -> if (cursor != null) read(cursor)
                 else -> compare()
             }
         }.setNegativeButton(getString(R.string.ui_close), null).show()
@@ -409,6 +464,37 @@ class FollowListActivity : LocalizedActivity() {
                 users.joinToString("\n", transform = ::userLabel)).setPositiveButton(R.string.list_close, null).show()
         }.setNegativeButton(R.string.list_close, null).show()
     }
+    private fun accountProfiles(account: SavedAccount) = listOf(account.profile) + account.people.map { it.latest }
+    private fun continuation(): String? = try {
+        val record = lists.target(reference, target.userId)
+        if (record?.scan(direction)?.continuing == true) record.snapshot?.run(direction)?.cursor() else null
+    } catch (_: Exception) { null }
+    private fun comparisonSource(profile: Profile): FollowRun? = try {
+        ListAutomationPolicy.source(lists.target(reference, profile.userId), direction)
+    } catch (_: Exception) { null }
+    private fun sourceLabel(profile: Profile, source: FollowRun?): String {
+        if (source == null) return getString(R.string.common_source_missing, profile.username)
+        val date = SimpleDateFormat("d MMM · HH:mm", AppLanguage.locale(this)).format(Date(source.latest.observedAt))
+        val label = if (source.comparable()) R.string.common_source_full else R.string.common_source_partial
+        return getString(label, profile.username, source.users.size, date)
+    }
+    private fun privateListNotice(saved: SavedAccount): Boolean = try {
+        target.details.privateAccount == true && FollowAnalysis.privateListNotice(saved.profile, target,
+            ListAutomationPolicy.source(lists.target(reference, saved.profile.userId), FollowDirection.FOLLOWING))
+    } catch (_: Exception) { false }
+    private fun selectPeer(profile: Profile?) {
+        peer = profile; query = ""; visibleList = null; visibleSearch = null; message = null; render()
+    }
+    private fun choosePeer() {
+        val saved = try { accountVault.read()?.takeIf(::currentAccount) } catch (_: Exception) { null } ?: return
+        val profiles = accountProfiles(saved).filter { it.userId != target.userId }
+        if (profiles.isEmpty()) {
+            message = getString(R.string.common_no_profiles); render(); return
+        }
+        AlertDialog.Builder(this).setTitle(R.string.common_choose)
+            .setItems(profiles.map { "@${it.username}" }.toTypedArray()) { _, index -> selectPeer(profiles[index]) }
+            .setNegativeButton(R.string.ui_cancel, null).show()
+    }
     private fun chooseOwner() {
         try {
             val saved=accountVault.read()?.takeIf {currentAccount(it)} ?: return
@@ -421,7 +507,7 @@ class FollowListActivity : LocalizedActivity() {
                         if(!currentAccount(accountVault.read()))return@setSingleChoiceItems
                         val selected=profiles[index]
                         val stored=lists.read(reference,selected.userId)
-                        target=selected;snapshot=stored;query="";visibleList=null;visibleSearch=null;message=null;render()
+                        target=selected;snapshot=stored;selectPeer(null)
                     } catch (_: Exception) {message=getString(R.string.list_storage_error);render()}
                 }.setNegativeButton(R.string.ui_cancel,null).show()
         } catch (_: Exception) {message=getString(R.string.list_storage_error);render()}
@@ -437,12 +523,19 @@ class FollowListActivity : LocalizedActivity() {
         super.onResume()
         if (recreatingForInterface || !::target.isInitialized) return
         try {
-            if (!currentAccount(accountVault.read())) { finish(); return }
+            val saved = accountVault.read()
+            if (saved == null || !currentAccount(saved)) { finish(); return }
+            peer = peer?.let { selected -> accountProfiles(saved).firstOrNull { it.userId == selected.userId } }
             snapshot = lists.read(reference, target.userId)
         } catch (_: Exception) { message = ApiFailure(ApiFailure.Kind.STORAGE).userMessage(this@FollowListActivity) }
         render()
     }
-    override fun onSaveInstanceState(outState: Bundle) { if(::target.isInitialized)outState.putString("selected_target",target.userId);outState.putString("direction", direction.name); outState.putString("query", query); super.onSaveInstanceState(outState) }
+    override fun onSaveInstanceState(outState: Bundle) {
+        if (::target.isInitialized) outState.putString("selected_target", target.userId)
+        peer?.let { outState.putString("peer", it.userId) }
+        outState.putString("direction", direction.name); outState.putString("query", query)
+        super.onSaveInstanceState(outState)
+    }
     @SuppressLint("GestureBackNavigation")
     @Deprecated("Legacy callback for Android 7–12; API 33+ uses OnBackInvokedCallback")
     override fun onBackPressed() { finish() }

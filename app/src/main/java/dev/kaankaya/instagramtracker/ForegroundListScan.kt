@@ -28,8 +28,13 @@ class ForegroundListScan(private val vault: SessionVault, private val lists: Fol
             vault.inspect { if (!current(it)) throw ApiFailure(ApiFailure.Kind.CANCELLED) }
             if (lists.read(session, target)?.run(direction) != expected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
             val startedAt = runtime.now()
-            val page = source.read(session, target, direction, cursor)
-            if (page.target != target || page.direction != direction || page.inputCursor != cursor) throw ApiFailure(ApiFailure.Kind.INVALID_RESPONSE)
+            val page = try { source.readDiagnosed(gate, session, target, direction, cursor) }
+            catch (failure: ApiFailure) {
+                if (cursor != null && failure.http in setOf(400, 404)) vault.inspect {
+                    if (current(it)) lists.deferCurrent(session, target, direction, expected, failure.kind, runtime.now(), failure.http)
+                }
+                throw failure
+            }
             vault.inspect { saved ->
                 if (!current(saved)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
                 val profile = if (target == saved!!.profile.userId) saved.profile else saved.people.first { it.latest.userId == target }.latest
@@ -37,6 +42,7 @@ class ForegroundListScan(private val vault: SessionVault, private val lists: Fol
                 val entry = lists.target(session, target)!!
                 val difference = ListAutomationPolicy.difference(entry, direction)
                 val run = result!!.run(direction)!!
+                gate.forAccount(session.userId).committedRead(direction, run)
                 vault.record(session, CheckEvent(target, profile.username, CheckKind.LIST, startedAt, page.observedAt, runtime.now(),
                     entry.previous?.run(direction)?.latest?.observedAt, direction = direction, coverage = run.coverage(),
                     pages = run.pages.size, accounts = run.users.size, added = difference?.added?.size, missing = difference?.missing?.size,
@@ -44,6 +50,7 @@ class ForegroundListScan(private val vault: SessionVault, private val lists: Fol
                 if (saved.automation.enabled && target in saved.automation.targets) {
                     difference?.takeIf { it.added.isNotEmpty() || it.missing.isNotEmpty() }?.let { notify(saved, it) }
                 }
+                vault.finishInitialLists(saved, entry)
             }
             progress(result!!)
             expected = result!!.run(direction)

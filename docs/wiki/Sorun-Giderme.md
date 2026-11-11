@@ -6,9 +6,9 @@
 
 ## Otomatik okuma duraklatıldı
 
-Windows, **İstek bilgileri → Okuma tanısı** bölümünde profil, takipçi ve takip edilen okumalarının nedenini ayrı gösterir. Yanıtın beklenen biçime uymaması veya aynı yolun art arda reddedilmesi gibi üç uyumluluk hatasında ilgili otomatik okuma durur. Uç noktanın değiştiği doğrulanana kadar bu durum olası neden olarak gösterilir. Tek hedefin bulunamaması, eksik liste ve HTTP 429 ayrı durumlar olarak ele alınır.
+Windows ve Android, **İstek bilgileri → Okuma tanısı** bölümünde profil, takipçi ve takip edilen okumalarının nedenini ayrı gösterir. Yanıtın beklenen biçime uymaması veya aynı yolun art arda reddedilmesi gibi üç uyumluluk hatasında ilgili otomatik okuma durur. Uç noktanın değiştiği doğrulanana kadar bu durum olası neden olarak gösterilir. Tek hedefin bulunamaması, eksik liste ve HTTP 429 ayrı durumlar olarak ele alınır.
 
-Devam isteği 400 veya 404 alırsa sonraki uygun tarama ilk sayfadan başlar. Son tam kayıt karşılaştırma için saklanır. Duraklatılan okuma elle başarıyla tamamlandığında otomatik kontroller o okuma için devam eder. Profil okuması durduysa yeni liste başlangıçları da taze profil bilgisi alana kadar bekler. Profil bilgisi hazır olan devam taramaları sırasını kullanabilir.
+Devam isteği 400 veya 404 alırsa sonraki uygun tarama ilk sayfadan başlar. Son tam kayıt karşılaştırma için saklanır. Duraklatılan okuma elle başarıyla tamamlandığında otomatik kontroller o okuma için devam eder. Windows’ta profil okuması durduysa yeni liste başlangıçları da taze profil bilgisi alana kadar bekler. Profil bilgisi hazır olan devam taramaları sırasını kullanabilir.
 
 ## Giriş kabul edilmiyor
 
