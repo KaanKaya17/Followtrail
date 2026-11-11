@@ -4,6 +4,10 @@
 
 **Son içerik denetimi: 11 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.62 ve Android 0.1.89
+
+Profil zaman tünelinde iki kayıt seçilerek yerel fotoğraf, profil bilgileri ve sayaçlar yan yana görülebilir. Biyografide çıkarılan ve eklenen metinler ayrı sütunlarda işaretlenir.
+
 ## Windows 0.2.61 ve Android 0.1.88
 
 Ortak hesaplarda kayıtlı fotoğraflar ve eldeki takipçi/takip edilen sayıları görünür. Sayısı bilinmeyen hesaplarda sayaç satırı gizlenir.
@@ -30,10 +34,10 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Windows
 
-**Güncel önizleme: 0.2.61 · kaynak etiketi: `desktop-v0.2.61`**
+**Güncel önizleme: 0.2.62 · kaynak etiketi: `desktop-v0.2.62`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.61`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.62`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.
@@ -42,9 +46,9 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Android
 
-**Güncel APK: 0.1.88 · sürüm kodu: 89 · kaynak etiketi: `android-v0.1.88`**
+**Güncel APK: 0.1.89 · sürüm kodu: 90 · kaynak etiketi: `android-v0.1.89`**
 
-- Dosya: `InstagramTracker-0.1.88.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.89.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
 - Android 0.1.87 yeni kayıtlar için ilk liste hazırlığını, gizli hesap açıklamasını, ortak hesap karşılaştırmasını ve okuma tanısını içerir. [Kullanım ve doğrulama kapsamı](../PLATFORM-PARITY.md).
 - 11 Kasım 0.1.86 cihaz testinde mevcut oturumla profil ve iki liste yenilendi. Kullanıcı liste farkı bildirimi aldığını doğruladı. Bekleyen web oturumuyla ayrı profil isteği HTTP 429 aldı.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.

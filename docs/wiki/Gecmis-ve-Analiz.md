@@ -25,6 +25,12 @@ Profil zaman tüneli, sayı geçmişinden ayrı olarak biyografi ve avatar deği
 
 İlk kayıt bir başlangıçtır. Özellik açılmadan önceki avatarlar veya biyografiler geriye dönük oluşturulmaz. Yeni fotoğraf alınamadığında eski görsel, yeni fotoğrafmış gibi sunulmaz. Arşivin kapasite sınırına ulaştığı durumlar ayrıca gösterilir.
 
+## İki profil kaydını karşılaştırma
+
+**Profil zaman tüneli → İki profil kaydını karşılaştır** bölümünde önceki ve sonraki kaydı seçin. Her seçim gerçekten kaydedilmiş bir kontrolü temsil eder. Biyografide kırmızı `−` silinen metni, yeşil `+` eklenen metni gösterir. Ad, fotoğraf, bağlantı ve sayaçlar için eldeki değerler yan yana görünür. Eksik alanlar **Kayıt yok** olarak gösterilir.
+
+Karşılaştırma iki seçili kaydın net farkını gösterir. Aradaki ayrı değişiklikleri zaman çizelgesinde inceleyebilirsiniz. Fotoğraf için daha önce cihazda saklanan görsel kullanılır. Karşılaştırmayı açmak Instagram isteği göndermez.
+
 ## Engellenme şüphesini okumak
 
 Windows'taki erişim incelemesi, önceki tam listede bulunan bir hesabın artık görünmemesi ve profil erişimi gibi kanıtları birlikte değerlendirebilir. Sağlıklı oturumdan erişilemeyen bir hesap için uygun koşullarda son bilinen adla çerezsiz karşılaştırma yapılabilir.

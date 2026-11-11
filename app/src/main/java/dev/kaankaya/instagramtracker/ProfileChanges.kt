@@ -42,11 +42,12 @@ object ProfileChanges {
     private fun value(profile: Profile, field: ProfileChangeField): String? = when (field) {
         ProfileChangeField.USERNAME -> profile.username
         ProfileChangeField.BIOGRAPHY -> profile.details.biography.value
-        ProfileChangeField.PICTURE -> when {
-            profile.details.anonymousPicture == true -> "anonymous"
-            !profile.details.pictureId.value.isNullOrEmpty() -> "id:${profile.details.pictureId.value}"
-            else -> null
-        }
+        ProfileChangeField.PICTURE -> pictureIdentity(profile)
+    }
+    internal fun pictureIdentity(profile: Profile) = when {
+        profile.details.anonymousPicture == true -> "anonymous"
+        !profile.details.pictureId.value.isNullOrEmpty() -> "id:${profile.details.pictureId.value}"
+        else -> null
     }
     fun pictureComparable(profile: Profile) = value(profile, ProfileChangeField.PICTURE) != null
     fun history(history: List<Profile>): List<ProfileEdit> {

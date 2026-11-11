@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.62 / Android 0.1.89 — 2026-11-11
+
+- Profil zaman tünelinde iki kayıt seçilip aynı profil yan yana karşılaştırılabilir. Biyografide silinen ve eklenen bölümler ayrı sütunlarda işaretlenir. Kayıtlı fotoğraf, ad, bağlantı ve sayaçlar mevcut olduğunda gösterilir.
+- Karşılaştırma cihazdaki gözlem ve görsel arşiv verileriyle çalışır. Eksik alanlar kayıt yok olarak gösterilir.
+- 4 JavaScript fark testi, 7 zaman tüneli kontrolü, 37 Windows paket kontrolü ve 188 Android birim testi geçti. Android arayüzü fiziksel cihazda denenmedi.
+
 ## Windows 0.2.61 / Android 0.1.88 — 2026-11-11
 
 - Ortak hesaplarda kayıtlı profil fotoğrafları iki kaynak listeden kullanılabilir. Görsel gerekiyorsa mevcut fotoğraf yükleyicisi kullanılır.

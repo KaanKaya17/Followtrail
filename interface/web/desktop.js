@@ -1203,7 +1203,11 @@
     const result = await command("wayback", {id, ...changes});
     if (!result?.ok || !data.waybackDetail) return;
     const archive = data.waybackDetail;
-    dialog(`<span class="dialog-symbol lavender">${icon("clock")}</span><h2 id="dialog-title">${t("Profil zaman tüneli")}</h2><p>@${esc(person(id)?.username || "")}</p><div class="drawer-actions">${button(archive.enabled ? t("Arşivlemeyi durdur") : t("Arşivlemeyi aç"), "wayback-toggle", "clock", "primary", `${idattr(id)} data-value="${!archive.enabled}"`)}${button(t("Arşivi temizle"), "wayback-clear", "trash", "secondary", idattr(id))}</div>${window.TrackerWayback.render(archive, {t,date,esc})}<p class="dialog-note">${t("En fazla {0} değişiklik ve {1} küçük görsel. Oturum ve arşiv yerel olarak şifrelenir.", archive.maxEntries, archive.maxImages)}</p>`, true);
+    const format = {t,date,esc,number:num};
+    dialog(`<span class="dialog-symbol lavender">${icon("clock")}</span><h2 id="dialog-title">${t("Profil zaman tüneli")}</h2><p>@${esc(person(id)?.username || "")}</p><div class="drawer-actions">${button(archive.enabled ? t("Arşivlemeyi durdur") : t("Arşivlemeyi aç"), "wayback-toggle", "clock", "primary", `${idattr(id)} data-value="${!archive.enabled}"`)}${button(t("Arşivi temizle"), "wayback-clear", "trash", "secondary", idattr(id))}</div>${window.TrackerWayback.render(archive, format)}<p class="dialog-note">${t("En fazla {0} değişiklik ve {1} küçük görsel. Oturum ve arşiv yerel olarak şifrelenir.", archive.maxEntries, archive.maxImages)}</p>`, true);
+    const compareDate = new Intl.DateTimeFormat(i18n.locale(language), {dateStyle:'medium',timeStyle:'medium'});
+    window.TrackerWayback.mountComparison(document.querySelector('[data-profile-compare]'),archive,data.history[id],
+      {...format,date:at=>compareDate.format(new Date(at*1000))});
   }
   async function storyDialog(id, operation='story_view') {
     const accountId=data.activeAccountId;

@@ -1,5 +1,9 @@
 # Android / Windows eşitlemesi
 
+## Android 0.1.89 ve Windows 0.2.62
+
+Profil zaman tüneli, iki seçili kayıt için GitHub tarzı biyografi farkı ve kayıtlı profil alanlarını yan yana gösterir. Windows gözlem geçmişindeki ana web adresini kullanır. Android, kayıtlı profil gözlemlerindeki bağlantıları ve kendi hesabının kontrol günlüğündeki eldeki sayaçları kullanır. Eski bir kaydın eksik alanı güncel profilden tamamlanmaz.
+
 ## Android 0.1.88 ve Windows 0.2.61
 
 Ortak hesaplar için iki kaynak listeden kayıtlı fotoğraf adresi kullanılabilir. Windows ve Android eldeki takipçi ve takip edilen sayılarını gösterir. Görseller mevcut CDN yükleyicisinden gelebilir. Karşılaştırma ekranı satırlar için otomatik profil sorgusu başlatmaz.

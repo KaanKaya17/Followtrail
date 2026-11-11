@@ -13,11 +13,6 @@ object VisualHistory {
     fun digest(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
     fun target(data: JSONObject, id: String): JSONObject = data.getJSONObject("profiles").optJSONObject(id)
         ?: JSONObject().put("enabled", false).put("full", false).put("entries", JSONArray()).also { data.getJSONObject("profiles").put(id, it) }
-    private fun picture(p: Profile) = when {
-        p.details.anonymousPicture == true -> "anonymous"
-        !p.details.pictureId.value.isNullOrEmpty() -> "id:${p.details.pictureId.value}"
-        else -> null
-    }
     fun observe(data: JSONObject, p: Profile, image: Pair<String, String>? = null) {
         val t = data.getJSONObject("profiles").optJSONObject(p.userId) ?: return
         if (!t.getBoolean("enabled")) return
@@ -25,7 +20,7 @@ object VisualHistory {
         val old = if (entries.length() > 0) entries.getJSONObject(entries.length()-1) else null
         if (old != null && old.getLong("lastSeen") > p.observedAt) return
         val next = JSONObject().put("at", p.observedAt).put("lastSeen", p.observedAt)
-        for ((key, value) in listOf("bio" to p.details.biography.value, "picture" to picture(p))) {
+        for ((key, value) in listOf("bio" to p.details.biography.value, "picture" to ProfileChanges.pictureIdentity(p))) {
             val known = value ?: old?.optString(key)?.takeIf { old.has(key) }
             if (known != null) next.put(key, known)
         }
