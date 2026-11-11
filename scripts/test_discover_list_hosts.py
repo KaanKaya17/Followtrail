@@ -1,4 +1,5 @@
 """CLI tests using synthetic HAR captures."""
+import base64
 import json
 from pathlib import Path
 import subprocess
@@ -81,6 +82,17 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(pair['initial']['query_id'], '1111111')
         self.assertEqual(pair['next']['query_id'], '2222222')
         self.assertEqual(pair['next']['coverage_signal'], 'end-marker')
+
+    def test_browser_har_can_mix_encoded_and_plain_json_bodies(self):
+        host = 'edge.instagram.com'
+        first = mobile(host)
+        content = first['response']['content']
+        content['encoding'] = 'base64'
+        content['text'] = base64.b64encode(content['text'].encode('utf-8')).decode('ascii')
+        later = mobile(host, next_page=True)
+        self.assertEqual(self.run_capture('followers', [first], [later])['current']['status'], 'observed')
+        content['text'] = 'invalid*base64'
+        self.assertEqual(self.run_capture('followers', [first], [later])['current']['status'], 'insufficient')
 
     def test_unfamiliar_route_is_discovered_with_direction_from_capture_label(self):
         host = 'new-edge.instagram.com'

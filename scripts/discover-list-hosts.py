@@ -1,5 +1,7 @@
 """Identify observed Instagram list requests in two local browser HAR captures."""
 import argparse
+import base64
+import binascii
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -28,6 +30,23 @@ def json_object(value):
         return object_or_empty(json.loads(value))
     except (ValueError, RecursionError):
         return {}
+
+
+def har_response_body(content):
+    value = content.get('text')
+    encoding = content.get('encoding')
+    if encoding in (None, ''):
+        return json_object(value)
+    if (encoding != 'base64' or not isinstance(value, str)
+            or len(value) > 4 * ((MAX_BODY_CHARS + 2) // 3)):
+        return {}
+    try:
+        decoded = base64.b64decode(value, validate=True)
+        if len(decoded) <= MAX_BODY_CHARS:
+            return json_object(decoded.decode('utf-8'))
+    except (binascii.Error, ValueError):
+        pass
+    return {}
 
 
 def har_entries(path):
@@ -174,9 +193,7 @@ def observations(entries, direction):
         if 'graphql' in parts and isinstance(doc, str) and re.fullmatch(r'[0-9]{6,30}', doc):
             descriptor['query_id'] = doc
         content = object_or_empty(res.get('content'))
-        if content.get('encoding') not in (None, ''):
-            continue
-        for shape, count, coverage, returned in response_pages(json_object(content.get('text')), direction):
+        for shape, count, coverage, returned in response_pages(har_response_body(content), direction):
             direction_evidence = 'response' if shape != 'users' else 'path' if direction in parts else 'capture'
             yield Observation({**descriptor, 'direction_evidence': direction_evidence},
                               shape, count, coverage, sent, returned, target)
