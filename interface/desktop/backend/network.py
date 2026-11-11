@@ -18,9 +18,10 @@ from PIL import Image
 
 
 class AppFailure(Exception):
-    def __init__(self, code, message):
+    def __init__(self, code, message, *, http=None):
         super().__init__(message)
         self.code = code
+        self.http = http
 
 
 def deadline(header, now):
@@ -105,9 +106,9 @@ def new_client(engine, settings=None):
             response = _send(request, **kwargs)
             engine.after_response(response)
             if 300 <= response.status_code < 400:
-                raise AppFailure('redirect', 'Instagram yönlendirme istedi; otomatik izlenmedi.')
+                raise AppFailure('redirect', 'Instagram yönlendirme istedi; otomatik izlenmedi.', http=response.status_code)
             if len(response.content) > 4 * 1024 * 1024:
-                raise AppFailure('response_size', 'Instagram yanıtı beklenen boyutu aşıyor.')
+                raise AppFailure('response_size', 'Instagram yanıtı beklenen boyutu aşıyor.', http=response.status_code)
             return response
         session.send = send
     return client

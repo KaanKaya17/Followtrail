@@ -4,6 +4,12 @@
 
 Önce ekrandaki güncel açıklamayı okuyun. Aynı işlemi tekrar tekrar başlatmak bağlantı veya liste sorununu açıklamayı zorlaştırır.
 
+## Otomatik okuma duraklatıldı
+
+Windows, **İstek bilgileri → Okuma tanısı** bölümünde profil, takipçi ve takip edilen okumalarının nedenini ayrı gösterir. Yanıtın beklenen biçime uymaması veya aynı yolun art arda reddedilmesi gibi üç uyumluluk hatasında ilgili otomatik okuma durur. Uç noktanın değiştiği doğrulanana kadar bu durum olası neden olarak gösterilir. Tek hedefin bulunamaması, eksik liste ve HTTP 429 ayrı durumlar olarak ele alınır.
+
+Devam isteği 400 veya 404 alırsa sonraki uygun tarama ilk sayfadan başlar. Son tam kayıt karşılaştırma için saklanır. Duraklatılan okuma elle başarıyla tamamlandığında otomatik kontroller o okuma için devam eder. Profil okuması durduysa yeni liste başlangıçları da taze profil bilgisi alana kadar bekler. Profil bilgisi hazır olan devam taramaları sırasını kullanabilir.
+
 ## Giriş kabul edilmiyor
 
 Aynı kullanıcı adı ve parolayla normal Instagram'da sıfırdan giriş yapabildiğinizi ayırın. Kayıtlı bir oturumun hâlâ açık olması bu doğrulamayı sağlamaz. Normal Instagram da bilgileri reddediyorsa önce hesap bilgilerini oradan doğrulayın.

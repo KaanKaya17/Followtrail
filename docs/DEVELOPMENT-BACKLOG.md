@@ -8,7 +8,7 @@ Instagram'ın profil, takipçi ve takip edilen isteklerini hangi sunucu alan ad�
 
 - Çıktı, eski ve yeni alan adını ve değişen istek parçalarını gösterir. Tanı raporu yalnız istek şablonu, yanıt alanları ve sayfalama kanıtını içerir. Oturum değerleri test cihazında kalır.
 - İlk ve sonraki sayfanın doğru hesabın listesine ait olduğu, devam bilgisinin çalıştığı ve kısıtlı yanıtın tam liste sayılmadığı doğrulanır. Tracker doğrulanmış alan adı ve istek şablonunu sürüm güncellemesindeki izin listesiyle kullanır.
-- Bağlantı hatasını veya uyumsuz yanıtı algılayıp yalnız ilgili otomatik okumayı duraklatmak ayrı bir çalışma adımıdır.
+- Windows 0.2.60, okuma tanısı ve ilgili okuyucuyu duraklatmayı uygular. Uç nokta değişikliği şüphesi geliştirici aracında bir test kaydıyla doğrulanır. [Okuma tanısı](wiki/Sorun-Giderme.md#otomatik-okuma-duraklatıldı).
 
 ## Güncel durum — 5 Kasım 2026
 

@@ -1,6 +1,6 @@
-# InstagramTracker Windows 0.2.59
+# InstagramTracker Windows 0.2.60
 
-Güncel kaynak/paket: **0.2.59**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
+Güncel kaynak/paket: **0.2.60**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
 
 Biyografi satır sonları masaüstü ve ortak web panelinde korunur; Instagram’da alt alta yazılan metin aynı satır düzeniyle gösterilir. Bu bir sunum düzeltmesidir; kayıtlı biyografi yeniden yazılmaz. Android metin bileşeni zaten bu düzeni korur.
 
@@ -26,7 +26,7 @@ Profil ekleme penceresinde en az iki karakter yazıp 650 ms duraklamak Instagram
 
 Fotoğraflar metin sonuçlarını bekletmez. Özel yerel pipe üzerinden yalnız mevcut sonuç belirteci ve ID ile istenir; URL seçimi renderer'a açılmaz. İşçi içinde iki CDN indirmesi ve en fazla 20 bekleyen/çalışan iş vardır; iptal eski işleri durdurur. Oturum/çerez kullanılmaz, yönlendirme izlenmez, mevcut resim boyutu/çözünürlük sınırları uygulanır. Arama penceresi kapandığında görsel tüketicileri iptal edilir; son altı başarılı sorgu aynı hesap/oturumda 60 saniye bellekte yeniden kullanılabilir. Hesap/oturum değişimi ve silme önbelleği temizler.
 
-`artifacts/InstagramTracker-Desktop-0.2.59/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur. [Kullanıcı kurulum rehberi](../docs/wiki/Kurulum.md).
+`artifacts/InstagramTracker-Desktop-0.2.60/InstagramTracker.exe` açılır. ZIP dağıtımını önce bütünüyle çıkart; yanındaki dosyaları ayırma. Eski uygulamayı tepsiden tamamen kapatıp yeni EXE'yi aç. Mevcut şifreli hesaplar yerinde kullanılır. Bu sürüm taşınabilir, imzasız Windows x64 uygulamasıdır; Python kurulumu istemez. Web tasarım önizlemesi ve Android APK ayrıca korunur. [Kullanıcı kurulum rehberi](../docs/wiki/Kurulum.md).
 
 ## Dört yerel uygulama dili
 

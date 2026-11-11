@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.60 — 2026-11-11
+
+- Profil ve iki liste yönü için ayrı okuma tanısı. Aynı uyumluluk hatası üç kez üst üste görülürse ilgili otomatik okuma duraklatılır. İstek bilgileri gözlenen HTTP durumunu ve nedeni gösterir.
+- Reddedilen devam bilgisi 400 veya 404 sonrasında kaldırılır. Uygun bir sonraki tarama ilk sayfadan ilerler. Son tam liste korunur. Başarılı elle okuma duraklatmayı kaldırır.
+- 119 seçili Python testi, 37 çevrimdışı Windows paket kontrolü ve dört dil denetimi geçti.
+
 ## Windows 0.2.59 — 2026-11-11
 
 - Takip Listeleri ekranında iki profil için ortak takipçi ve ortak takip edilen karşılaştırması. Eşleşmeler hesap kimliğiyle bulunur. Kısmi kaynaklar açıkça belirtilir ve kaydı olmayan bir liste sıfır ortak hesap olarak gösterilmez.
