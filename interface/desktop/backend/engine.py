@@ -4,6 +4,7 @@ import csv
 import daily_stats
 import stories
 import list_pages
+import read_health
 from list_pages import public_member
 import json
 import io
@@ -232,6 +233,7 @@ class Engine:
                 'history': d['history'], 'lists': records, 'listsRevision': published['revision'], 'events': d['events'],
                 'dailyRevision': {identity:store.revisions.get(identity,store.revision) for identity in seeds} if store else {}, 'dailyWarning': store.warning if store else False,
                 'gate': d['gate'], 'settings': d['settings'], 'privacyMaintenance': d['privacyMaintenance'], 'lastError': localization.error(d['lastError'], d['settings']['language']),
+                'readHealth': d.get('readHealth', {}),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
                 'controlIntervals': list(CONTROL_INTERVALS),
                 'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
@@ -362,7 +364,7 @@ class Engine:
         if response.status_code == 429:
             self.limited(response.headers.get('Retry-After'))
             self.progress('limited', until=self.data['gate']['blockedUntil'], http=429)
-            raise AppFailure('limited', 'Instagram HTTP 429 döndürdü. Tarama durdu; otomatik tekrar yapılmayacak.')
+            raise AppFailure('limited', 'Instagram HTTP 429 döndürdü. Tarama durdu; otomatik tekrar yapılmayacak.', http=429)
 
     def request_code(self, username=None, choice=None):
         self.waiting_code = True
@@ -448,12 +450,31 @@ class Engine:
             self.event('check', f"@{profile['username']} profili kontrol edildi", identity)
         self.profile_facts.record(self.data, profile)
 
+    def diagnose_read(self, reader, error, client, identity, *, continuation=False):
+        code = failure(error)['code']
+        local = code in ('cancelled', 'budget', 'cooldown', 'network_policy')
+        status = None if local else read_health.http_status(error, getattr(client, 'last_response', None))
+        own = identity == (self.data['account'] or {}).get('id')
+        reason = read_health.diagnose(error, code, status=status, own=own, continuation=continuation)
+        read_health.record(self.data, reader, reason, status, self.clock())
+        return status
+
     def read_profile(self, client, identity, avatar=True):
+        if self.operation == 'automatic' and read_health.paused(self.data, 'profile'):
+            raise AppFailure('read_paused', 'Profil okuması duraklatıldı. İstek bilgilerini kontrol et.')
         self.progress('profile', personId=identity)
-        payload = client.private_request(f'users/{identity}/info/', params={
-            'is_prefetch': 'false', 'entry_point': 'self_profile' if identity == str(client.user_id) else 'profile',
-            'from_module': 'self_profile' if identity == str(client.user_id) else 'profile', 'is_app_start': False})
-        result = parse_profile(payload, identity)
+        monitor = self.operation not in ('login', 'import_counter')
+        try:
+            payload = client.private_request(f'users/{identity}/info/', params={
+                'is_prefetch': 'false', 'entry_point': 'self_profile' if identity == str(client.user_id) else 'profile',
+                'from_module': 'self_profile' if identity == str(client.user_id) else 'profile', 'is_app_start': False})
+            result = parse_profile(payload, identity)
+        except Exception as exc:
+            if monitor:
+                self.diagnose_read('profile', exc, client, identity)
+            raise
+        if monitor:
+            read_health.success(self.data, 'profile')
         if avatar:
             previous = self.data['account'] if (self.data['account'] or {}).get('id') == identity else self.data['people'].get(identity)
             if result.get('picture') is not None and previous and result['picture'] == previous.get('picture') and previous.get('avatar'):
@@ -504,6 +525,7 @@ class Engine:
             self.check_cancel()
             self.select_connection_account(profile)
             first_connection = self.data['account'] is None
+            read_health.success(self.data, 'profile')
             # Commit a replacement only after the authenticated own profile agrees.
             self.record_profile(profile, own=True)
             self.data['session'] = client.get_settings()
@@ -683,7 +705,14 @@ class Engine:
                           'search_surface': 'follow_list_page', 'query': '', 'enable_groups': 'true'}
                 if cursor:
                     params['max_id'] = cursor
-                parsed = parse_page(client.private_request(f'friendships/{identity}/{direction}/', params=params))
+                try:
+                    parsed = parse_page(client.private_request(f'friendships/{identity}/{direction}/', params=params))
+                except Exception as exc:
+                    status = self.diagnose_read(direction, exc, client, identity, continuation=bool(cursor))
+                    if cursor and status in (400, 404):
+                        draft['nextCursor'] = None
+                        draft['seenCursors'] = []
+                    raise
                 members, next_cursor = parsed.members, parsed.cursor
                 if len(set(draft['members']) | set(members)) > MAX_MEMBERS:
                     raise AppFailure('capacity', 'Tarama 20.000 hesap sınırına ulaştı; kısmi kayıt korundu.')
@@ -701,6 +730,7 @@ class Engine:
                 digest = hashlib.sha256(next_cursor.encode()).hexdigest() if next_cursor else None
                 if next_cursor and (digest in draft['seenCursors'] or not members):
                     raise AppFailure('pagination', 'Liste sayfalaması ilerlemiyor. Döngü durduruldu; kısmi kayıt korundu.')
+                read_health.success(self.data, direction, complete=False)
                 draft['nextCursor'] = next_cursor or None
                 if digest:
                     draft['seenCursors'].append(digest)
@@ -729,6 +759,7 @@ class Engine:
                             raise AppFailure('list_count', 'Liste sayısı profil sayısıyla uyuşmadı. Kısmi kayıt korundu; fark hesabı yapılmadı.')
                         owner = profile
                     self.check_cancel()
+                    read_health.success(self.data, direction)
                     draft.update(complete=True, status='complete')
                     record['snapshots'].append(copy.deepcopy({k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}))
                     del record['snapshots'][:-6]
@@ -762,9 +793,8 @@ class Engine:
                 raise AppFailure('capacity', 'Tarama sayfa sınırına ulaştı; kısmi kayıt korundu.')
         except Exception as exc:
             code = failure(exc)['code']
-            if continuing and getattr(getattr(exc, 'response', None), 'status_code', None) in (400, 404):
-                draft['nextCursor'] = None
-                draft['seenCursors'] = []
+            if code in ('list_coverage', 'list_count', 'pagination', 'capacity'):
+                self.diagnose_read(direction, exc, client, identity)
             draft['status'] = 'cancelled' if self.cancel.is_set() else 'partial'
             draft['finishedAt'] = self.clock()
             if code == 'cancelled':
@@ -936,7 +966,8 @@ class Engine:
     def automatic_plan(self):
         """One owner for per-profile deadlines and optional investigation cadence."""
         d = self.data
-        candidates = ([d['account']] if d['account'] else []) + [p for p in d['people'].values() if p.get('watching')]
+        candidates = [] if read_health.paused(d, 'profile') else (
+            ([d['account']] if d['account'] else []) + [p for p in d['people'].values() if p.get('watching')])
         interval = d['settings']['interval'] * 60
         budget_at = request_budget.profile_next_at(d['gate'], self.budget_owner(), self.clock())
         profiles = sorted([(max(max(p.get('observedAt') or 0, d['automaticAttempts'].get(p['id'], 0)) + interval, budget_at), p['id'])
@@ -1199,6 +1230,7 @@ def validate_archive(d):
         raise ValueError('schema')
     request_budget.validate_gate(d['gate'])
     list_preparation.validate(d)
+    read_health.validate(d)
     if d.get('session') is not None and (not isinstance(d['session'], dict) or d.get('account') is None):
         raise ValueError('session')
     def identity(value):

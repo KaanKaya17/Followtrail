@@ -8,6 +8,7 @@ from PIL import Image
 from engine import Engine
 from network import parse_profile
 import access_checks
+import read_health
 
 
 def main():
@@ -53,6 +54,8 @@ def main():
         e.data['lists']['100:following']={'snapshots':[dict(scan('following',['201','204'],now),direction='following')]}
         e.data['lists']['200:following']={'snapshots':[dict(scan('peer-following',['201','202'],now),
                                                            ownerId='200',direction='following')]}
+        for _ in range(read_health.PAUSE_AFTER):
+            read_health.record(e.data, 'followers', 'route', 404, now)
         partial={'id':'qa-retained-partial','ownerId':'200','direction':'followers','startedAt':now-60,'finishedAt':now-30,
                  'complete':False,'status':'partial','pages':2,'expected':82,
                  'members':{str(i):{'id':str(i),'username':'qa.'+str(i),'name':'QA '+str(i)} for i in range(501,577)}}

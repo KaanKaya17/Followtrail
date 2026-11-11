@@ -1,5 +1,6 @@
 """List preparation for the owner and watched profiles, with shared pacing."""
 import math
+import read_health
 
 DIRECTIONS = ('followers', 'following')
 DAY = 86400
@@ -9,7 +10,7 @@ RECOVERY_AGE = 600
 RECOVERY_PASSES = 3
 FIRST_RETRY = 1800
 ATTENTION = {'capacity', 'pagination', 'list_coverage', 'network_policy'}
-PLAN_VERSION = 6
+PLAN_VERSION = 7
 
 
 def initialize(data):
@@ -84,8 +85,10 @@ def next_job(data, now):
         return None
     own = data['account']
     owners = ([own] if own else []) + list(data['people'].values())
+    profile_paused = read_health.paused(data, 'profile')
     tasks = [task for owner in owners for task in plan(data, now, owner)
-             if task['dueAt'] is not None and (owner is own or owner.get('watching') or task['initial'])]
+             if task['dueAt'] is not None and (owner is own or owner.get('watching') or task['initial'])
+             and not read_health.paused(data, task['direction']) and (not profile_paused or task['resumable'])]
     # Equal baseline deadlines must advance other profiles instead of draining
     # every page of one large profile first. Completed pages own their turn time.
     def order(task):

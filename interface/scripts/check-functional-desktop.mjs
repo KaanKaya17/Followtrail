@@ -935,6 +935,11 @@ try {
         .isVisible(),
       true,
     );
+    const diagnostics = page.getByRole("dialog");
+    await diagnostics.getByText("Okuma tanısı", { exact: true }).waitFor();
+    await diagnostics.getByText("Takipçiler · Otomatik okuma duraklatıldı", { exact: true }).waitFor();
+    await diagnostics.getByText("Instagram bu okuma yolunu reddetti. Uç nokta değişmiş olabilir.", { exact: true }).waitFor();
+    await diagnostics.getByText(/^HTTP 404 · /).waitFor();
     await page.getByRole("button", { name: "Kapat", exact: true }).click();
   });
   await check("No horizontal overflow on six desktop routes", async () => {

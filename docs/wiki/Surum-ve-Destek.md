@@ -4,6 +4,10 @@
 
 **Son içerik denetimi: 11 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.60
+
+İstek bilgileri profil ve iki liste yönünün okuma tanısını gösterir. Aynı uyumluluk hatası üç kez görülürse ilgili otomatik okuma durur. Başarılı bir elle kontrol duraklatmayı kaldırır.
+
 ## Windows 0.2.59
 
 İki profilin kayıtlı takipçi veya takip edilen listelerindeki ortak hesaplar görülebilir. Her iki kaynağın tarihi ve kapsamı gösterilir. Karşılaştırma çevrimdışı çalışır.
@@ -22,10 +26,10 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Windows
 
-**Güncel önizleme: 0.2.59 · kaynak etiketi: `desktop-v0.2.59`**
+**Güncel önizleme: 0.2.60 · kaynak etiketi: `desktop-v0.2.60`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.59`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.60`; içindeki `InstagramTracker.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.

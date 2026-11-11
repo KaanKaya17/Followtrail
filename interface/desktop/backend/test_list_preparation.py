@@ -138,6 +138,62 @@ class ListPreparationTests(unittest.TestCase):
         self.e.record_profile(parse_profile(profile(followers=3,following=2)), own=True)
         self.assertNotIn('inLastFollowingList', people()['200'])
 
+    def test_incompatible_reader_pauses_only_its_direction_and_manual_success_resumes(self):
+        self.linked()
+        own = profile(followers=3, following=1)
+        members = page(['200', '201', '202'])
+        self.work(own, members)
+        baseline = copy.deepcopy(self.e.data['lists']['100:followers']['snapshots'])
+        for attempt in range(3):
+            client = PacedClient(self.e, [own, AppFailure('connection', 'Synthetic 404', http=404)])
+            with patch.object(self.e, 'client', return_value=client), self.assertRaises(AppFailure):
+                self.e.run('scan', {'id': '100', 'direction': 'followers'})
+            diagnosis = self.e.snapshot()['readHealth']['followers']
+            self.assertEqual((diagnosis['reason'], diagnosis['http'], diagnosis['streak']), ('route', 404, attempt + 1))
+            self.assertIs(diagnosis['paused'], attempt == 2)
+        self.e = Accounts(self.home.name, clock=lambda: self.now[0], request_delay=lambda: 15)
+        self.e.cancel = ClockWait(self.now)
+        self.assertTrue(self.e.snapshot()['readHealth']['followers']['paused'])
+        self.assertEqual(self.e.data['lists']['100:followers']['snapshots'], baseline)
+        self.assertEqual(self.work(own, page(['300'])).calls[-1][0], 'friendships/100/following/')
+        self.now[0] += 1801
+        self.assertGreater(list_preparation.next_job(self.e.data, self.now[0])['dueAt'], self.now[0])
+        client = PacedClient(self.e, [own, members])
+        with patch.object(self.e, 'client', return_value=client):
+            self.e.run('scan', {'id': '100', 'direction': 'followers'})
+        self.assertNotIn('followers', self.e.snapshot()['readHealth'])
+
+    def test_404_on_continuation_restarts_from_first_page_without_counting_as_route(self):
+        self.linked()
+        own = profile(followers=3, following=1)
+        self.work(own, page(['200'], 'qa-cursor'))
+        client = PacedClient(self.e, [AppFailure('connection', 'Synthetic 404', http=404)])
+        with patch.object(self.e, 'client', return_value=client), self.assertRaises(AppFailure):
+            self.e.run('scan', {'id': '100', 'direction': 'followers'})
+        self.assertEqual(client.calls[0][1]['params']['max_id'], 'qa-cursor')
+        self.assertIsNone(self.e.data['lists']['100:followers']['draft']['nextCursor'])
+        diagnosis = self.e.snapshot()['readHealth']['followers']
+        self.assertEqual((diagnosis['reason'], diagnosis['streak'], diagnosis['paused']), ('cursor', 0, False))
+        with patch.object(self.e, 'client', return_value=PacedClient(self.e, [own, page(['200', '201', '202'])])) as create:
+            self.e.run('scan', {'id': '100', 'direction': 'followers'})
+            self.assertNotIn('max_id', create.return_value.calls[-1][1]['params'])
+
+    def test_profile_shape_failures_preserve_old_profile_until_verified_refresh(self):
+        self.linked()
+        before = copy.deepcopy(self.e.data['account'])
+        for _ in range(3):
+            client = PacedClient(self.e, [{'status': 'ok'}])
+            with patch.object(self.e, 'client', return_value=client), self.assertRaises(AppFailure):
+                self.e.run('refresh', {})
+        state = self.e.snapshot()
+        self.assertTrue(state['readHealth']['profile']['paused'])
+        self.assertEqual(state['readHealth']['profile']['reason'], 'format')
+        self.assertEqual(state['monitor']['profileCount'], 0)
+        self.assertEqual(self.e.data['account'], before)
+        with patch.object(self.e, 'client', return_value=PacedClient(self.e, [profile(followers=3, following=1)])):
+            self.e.run('refresh', {})
+        self.assertNotIn('profile', self.e.snapshot()['readHealth'])
+
     def test_rescan_same_count_waits_day_and_does_not_starve_profile(self):
         self.linked()
         self.work(profile(followers=3,following=1),page(['200','201','202']))
