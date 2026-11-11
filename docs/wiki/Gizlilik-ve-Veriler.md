@@ -39,6 +39,8 @@ Günlük özetler, yakın gözlemlerden ayrı şifreli profil/yıl dosyalarında
 
 Arama/liste küçük resimleri sınırlı önbellekleri kullanır. Windows geçici resimleri bellekte; Android disk küçük resimleri Keystore/AES-GCM ile şifreli tutar. Android'in eski düz küçük resimleri görsel yükleyicisi açılınca arka planda temizlenir; yeniden indirilebilirler. Profil kayıtlarında kaynak görsel adresi bulunabilir. İsteğe bağlı avatar zaman tüneli, bu geçici küçük resimlerden farklı olarak görselleri yerel şifreli arşivde tutar.
 
+**Bu hesap hakkında** bölümüne elle girilen alanlar ilgili profilin yerel kaydında tutulur. Profil veya bağlı hesap silindiğinde bu alanlar da silinir. Windows şifreli gözlem yedeği bu yerel alanları içerir.
+
 ## Yedek ve dışa aktarma
 
 Windows'taki **Şifreli yedek al**, gözlem verilerini dışa aktarır; Instagram oturumunu çıkarır. Bu dosya aynı Windows kullanıcı bağlamında açılmak üzere DPAPI ile korunur. Başka bilgisayarda veya Windows yeniden kurulduktan sonra açılabilen taşınabilir, parola tabanlı yedek olarak değerlendirmeyin.

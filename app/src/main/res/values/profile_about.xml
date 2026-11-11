@@ -1,0 +1,13 @@
+<resources>
+    <string name="profile_about_title">Bu hesap hakkında</string>
+    <string name="profile_about_joined">Katılım tarihi</string>
+    <string name="profile_about_country">Hesabın bulunduğu ülke</string>
+    <string name="profile_about_changes">Kullanıcı adı değişiklik sayısı</string>
+    <string name="profile_about_source">Kaynak · Elle girilen yerel kayıt</string>
+    <string name="profile_about_instructions">Instagram’da profili aç, ⋯ menüsünden Bu hesap hakkında bölümüne bak.</string>
+    <string name="profile_about_open">Instagram’da aç</string>
+    <string name="profile_about_clear">Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.</string>
+    <string name="profile_about_joined_input">Katılım ayı ve yılı (YYYY-AA)</string>
+    <string name="profile_about_invalid">Hesap bilgilerini kontrol et.</string>
+    <string name="profile_about_failed">Hesap bilgileri kaydedilemedi.</string>
+</resources>

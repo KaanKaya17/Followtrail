@@ -1278,7 +1278,17 @@
     "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "The earlier record must come before the later record.",
     "Takip edilenler": "Following",
     "Gönderiler": "Posts",
-    "Fotoğraf değişti": "Photo changed"
+    "Fotoğraf değişti": "Photo changed",
+    "Bu hesap hakkında": "About this account",
+    "Katılım tarihi": "Date joined",
+    "Hesabın bulunduğu ülke": "Account based in",
+    "Kullanıcı adı değişiklik sayısı": "Username change count",
+    "Kaynak · Elle girilen yerel kayıt": "Source · Manually saved on this device",
+    "Instagram’da profili aç, ⋯ menüsünden Bu hesap hakkında bölümüne bak.": "Open the Instagram profile and look for About this account in the ⋯ menu.",
+    "Hesap bilgilerini kaydet": "Save account information",
+    "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Leave a field blank to remove it from the local record.",
+    "Hesap bilgileri kaydedildi.": "Account information saved.",
+    "Hesap bilgilerini kontrol et.": "Check the account information."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2552,7 +2562,17 @@
     "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "El primer registro debe ser anterior al segundo.",
     "Takip edilenler": "Seguidos",
     "Gönderiler": "Publicaciones",
-    "Fotoğraf değişti": "Foto modificada"
+    "Fotoğraf değişti": "Foto modificada",
+    "Bu hesap hakkında": "Información sobre esta cuenta",
+    "Katılım tarihi": "Fecha de creación",
+    "Hesabın bulunduğu ülke": "País de la cuenta",
+    "Kullanıcı adı değişiklik sayısı": "Número de cambios de nombre de usuario",
+    "Kaynak · Elle girilen yerel kayıt": "Fuente · Registro manual guardado en el dispositivo",
+    "Instagram’da profili aç, ⋯ menüsünden Bu hesap hakkında bölümüne bak.": "Abre el perfil en Instagram y busca Información sobre esta cuenta en el menú ⋯.",
+    "Hesap bilgilerini kaydet": "Guardar información de la cuenta",
+    "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Deja un campo vacío para eliminarlo del registro local.",
+    "Hesap bilgileri kaydedildi.": "Se guardó la información de la cuenta.",
+    "Hesap bilgilerini kontrol et.": "Comprueba la información de la cuenta."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3826,7 +3846,17 @@
     "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "O primeiro registro deve ser anterior ao segundo.",
     "Takip edilenler": "Seguindo",
     "Gönderiler": "Publicações",
-    "Fotoğraf değişti": "Foto alterada"
+    "Fotoğraf değişti": "Foto alterada",
+    "Bu hesap hakkında": "Sobre esta conta",
+    "Katılım tarihi": "Data de entrada",
+    "Hesabın bulunduğu ülke": "País da conta",
+    "Kullanıcı adı değişiklik sayısı": "Número de alterações do nome de usuário",
+    "Kaynak · Elle girilen yerel kayıt": "Fonte · Registro manual salvo no dispositivo",
+    "Instagram’da profili aç, ⋯ menüsünden Bu hesap hakkında bölümüne bak.": "Abra o perfil no Instagram e procure Sobre esta conta no menu ⋯.",
+    "Hesap bilgilerini kaydet": "Salvar informações da conta",
+    "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Deixe um campo em branco para removê-lo do registro local.",
+    "Hesap bilgileri kaydedildi.": "Informações da conta salvas.",
+    "Hesap bilgilerini kontrol et.": "Confira as informações da conta."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

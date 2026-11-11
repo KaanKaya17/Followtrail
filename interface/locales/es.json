@@ -1270,5 +1270,15 @@
   "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "El primer registro debe ser anterior al segundo.",
   "Takip edilenler": "Seguidos",
   "Gönderiler": "Publicaciones",
-  "Fotoğraf değişti": "Foto modificada"
+  "Fotoğraf değişti": "Foto modificada",
+  "Bu hesap hakkında": "Información sobre esta cuenta",
+  "Katılım tarihi": "Fecha de creación",
+  "Hesabın bulunduğu ülke": "País de la cuenta",
+  "Kullanıcı adı değişiklik sayısı": "Número de cambios de nombre de usuario",
+  "Kaynak · Elle girilen yerel kayıt": "Fuente · Registro manual guardado en el dispositivo",
+  "Instagram’da profili aç, ⋯ menüsünden Bu hesap hakkında bölümüne bak.": "Abre el perfil en Instagram y busca Información sobre esta cuenta en el menú ⋯.",
+  "Hesap bilgilerini kaydet": "Guardar información de la cuenta",
+  "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Deja un campo vacío para eliminarlo del registro local.",
+  "Hesap bilgileri kaydedildi.": "Se guardó la información de la cuenta.",
+  "Hesap bilgilerini kontrol et.": "Comprueba la información de la cuenta."
 }

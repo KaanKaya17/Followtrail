@@ -1,0 +1,13 @@
+<resources>
+    <string name="profile_about_title">About this account</string>
+    <string name="profile_about_joined">Date joined</string>
+    <string name="profile_about_country">Account based in</string>
+    <string name="profile_about_changes">Username change count</string>
+    <string name="profile_about_source">Source · Manually saved on this device</string>
+    <string name="profile_about_instructions">Open the Instagram profile and look for About this account in the ⋯ menu.</string>
+    <string name="profile_about_open">Open on Instagram</string>
+    <string name="profile_about_clear">Leave a field blank to remove it from the local record.</string>
+    <string name="profile_about_joined_input">Join month and year (YYYY-MM)</string>
+    <string name="profile_about_invalid">Check the account information.</string>
+    <string name="profile_about_failed">Could not save account information.</string>
+</resources>

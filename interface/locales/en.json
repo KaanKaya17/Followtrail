@@ -1270,5 +1270,15 @@
   "Önceki kayıt, sonraki kayıttan daha eski olmalı.": "The earlier record must come before the later record.",
   "Takip edilenler": "Following",
   "Gönderiler": "Posts",
-  "Fotoğraf değişti": "Photo changed"
+  "Fotoğraf değişti": "Photo changed",
+  "Bu hesap hakkında": "About this account",
+  "Katılım tarihi": "Date joined",
+  "Hesabın bulunduğu ülke": "Account based in",
+  "Kullanıcı adı değişiklik sayısı": "Username change count",
+  "Kaynak · Elle girilen yerel kayıt": "Source · Manually saved on this device",
+  "Instagram’da profili aç, ⋯ menüsünden Bu hesap hakkında bölümüne bak.": "Open the Instagram profile and look for About this account in the ⋯ menu.",
+  "Hesap bilgilerini kaydet": "Save account information",
+  "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Leave a field blank to remove it from the local record.",
+  "Hesap bilgileri kaydedildi.": "Account information saved.",
+  "Hesap bilgilerini kontrol et.": "Check the account information."
 }

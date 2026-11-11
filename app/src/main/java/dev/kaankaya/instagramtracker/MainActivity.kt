@@ -561,6 +561,7 @@ class MainActivity : LocalizedActivity() {
     private fun showOwnProfile(saved: SavedAccount) {
         val content = stack()
         content.addView(ProfileSummary.view(this, saved.profile))
+        content.addView(ProfileAboutView.button(this, saved.profile.username, saved.about) { saveProfileAbout(saved, saved.profile.userId, it) })
         content.addView(button(getString(R.string.parity_preferences_short), false) { HistoryViews.preferences(this, vault.journal, saved.session, saved.profile) })
         AlertDialog.Builder(this).setTitle("@${saved.profile.username}")
             .setView(ScrollView(this).apply { addView(content) }).setPositiveButton(R.string.ui_close, null).show()
@@ -1130,6 +1131,7 @@ class MainActivity : LocalizedActivity() {
         personHeading.addView(favoriteButton(person), LinearLayout.LayoutParams(dp(48), dp(48)))
         page.addView(personHeading); page.gap(16)
         page.addView(ProfileSummary.view(this, p)); page.gap(12)
+        page.addView(ProfileAboutView.button(this, p.username, person.about) { saveProfileAbout(saved, p.userId, it) }); page.gap(12)
         person.note.takeIf {it.isNotBlank()}?.let {note ->
             page.addView(text(note,13f,muted).apply {maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END;setOnClickListener {editPerson(person)}});page.gap(12)
         }
@@ -1367,6 +1369,12 @@ class MainActivity : LocalizedActivity() {
             }
         }
     }
+    private fun saveProfileAbout(saved: SavedAccount, id: String, value: ProfileAbout?): Boolean = try {
+        account = vault.saveProfileAbout(saved.session, id, value)
+        render()
+        true
+    } catch (_: Exception) { false }
+
     private fun savePeople(reschedule: Boolean = true, update: (List<TrackedPerson>) -> List<TrackedPerson>): Boolean {
         val saved = account ?: return false
         return try { account = vault.update(saved.session) {

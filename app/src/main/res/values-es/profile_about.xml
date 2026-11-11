@@ -1,0 +1,13 @@
+<resources>
+    <string name="profile_about_title">Información sobre esta cuenta</string>
+    <string name="profile_about_joined">Fecha de creación</string>
+    <string name="profile_about_country">País de la cuenta</string>
+    <string name="profile_about_changes">Número de cambios de nombre de usuario</string>
+    <string name="profile_about_source">Fuente · Registro manual guardado en el dispositivo</string>
+    <string name="profile_about_instructions">Abre el perfil en Instagram y busca Información sobre esta cuenta en el menú ⋯.</string>
+    <string name="profile_about_open">Abrir en Instagram</string>
+    <string name="profile_about_clear">Deja un campo vacío para eliminarlo del registro local.</string>
+    <string name="profile_about_joined_input">Mes y año de creación (AAAA-MM)</string>
+    <string name="profile_about_invalid">Comprueba la información de la cuenta.</string>
+    <string name="profile_about_failed">No se pudo guardar la información de la cuenta.</string>
+</resources>

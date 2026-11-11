@@ -93,6 +93,7 @@ const allowed = new Set([
   "profile_detail",
   "cancel_list_images",
   "save_person",
+  "save_profile_about",
   "remove_person",
   "settings",
   "disconnect",
@@ -147,6 +148,7 @@ function validate(operation, args) {
     profile_detail: ["accountId", "id", "fresh"],
     cancel_list_images: [],
     save_person: ["id", "favorite", "watching", "group", "note"],
+    save_profile_about: ["accountId", "id", "about"],
     remove_person: ["id"],
     settings: [
       "theme",

@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.63 / Android 0.1.90 — 2026-11-11
+
+- Profil ayrıntılarına Bu hesap hakkında bölümü eklendi. Instagram’daki profil açılabilir ve görünen katılım ayı/yılı, hesap ülkesi ile kullanıcı adı değişiklik sayısı isteğe bağlı olarak elle kaydedilebilir.
+- Alanlar kayıtlı profile ve bağlı hesabın yerel şifreli deposuna aittir. Kaynak elle girilen kayıt olarak gösterilir. Kayıt düzenleme Instagram’a istek göndermez.
+- 38 çevrimdışı Windows paket kontrolü ve 189 Android birim testi geçti. Android ekranı fiziksel cihazda denenmedi.
+
 ## Windows 0.2.62 / Android 0.1.89 — 2026-11-11
 
 - Profil zaman tünelinde iki kayıt seçilip aynı profil yan yana karşılaştırılabilir. Biyografide silinen ve eklenen bölümler ayrı sütunlarda işaretlenir. Kayıtlı fotoğraf, ad, bağlantı ve sayaçlar mevcut olduğunda gösterilir.
