@@ -1137,6 +1137,36 @@
     const node=document.querySelector('#person-profile-info .avatar');
     if(node)node.outerHTML=avatar({...view.profile,avatar:image},true);
   }
+  function profileAbout(view, profile, managed, expanded) {
+    const about=profile.about || {};
+    const joined=typeof about.joined==='string' && /^20[0-9]{2}-(0[1-9]|1[0-2])$/.test(about.joined)
+      ? new Intl.DateTimeFormat(i18n.locale(language),{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(about.joined+'-01T00:00:00Z')) : '';
+    const url=window.TrackerProfileLinks.links(view.profile).instagram;
+    const facts=[
+      [t("Katılım tarihi"), joined],
+      [t("Hesabın bulunduğu ülke"), about.country],
+      [t("Kullanıcı adı değişiklik sayısı"), Number.isInteger(about.usernameChanges)?num(about.usernameChanges):''],
+    ].filter(([, value])=>value);
+    return `<details class="profile-about" ${expanded?'open':''}>
+      <summary><span>${t("Bu hesap hakkında")}</span>${joined?`<small>${esc(joined)}</small>`:''}${icon('down')}</summary>
+      <div class="profile-personal-content">
+        ${facts.length?`<dl class="profile-about-facts">${facts.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>
+        <p class="field-hint">${t("Kaynak · Elle girilen yerel kayıt")}</p>`:''}
+        <p class="field-hint">${t("Instagram’da profili aç, ⋯ menüsünden Bu hesap hakkında bölümüne bak.")}</p>
+        ${url?personLink(url,t("Instagram’da aç"),'instagram'):''}
+        ${managed?`<form id="profile-about-form">
+          <label class="form-label" for="profile-about-joined">${t("Katılım tarihi")}</label>
+          <input id="profile-about-joined" type="month" min="2010-10" value="${esc(about.joined)}">
+          <label class="form-label" for="profile-about-country">${t("Hesabın bulunduğu ülke")}</label>
+          <input id="profile-about-country" maxlength="80" value="${esc(about.country)}">
+          <label class="form-label" for="profile-about-changes">${t("Kullanıcı adı değişiklik sayısı")}</label>
+          <input id="profile-about-changes" type="number" min="0" max="1000000" step="1" value="${esc(about.usernameChanges)}">
+          <button type="submit" class="button secondary" ${busy?'disabled':''}>${t("Hesap bilgilerini kaydet")}</button>
+          <p class="field-hint">${t("Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.")}</p>
+        </form>`:''}
+      </div>
+    </details>`;
+  }
   function personDialog(id,carry={}) {
     const p=person(id);if(!p)return;
     const previous=personView?.id===id && personView.accountId===data.activeAccountId ? personView : null;
@@ -1158,7 +1188,7 @@
     const evidence=!own && data.access?.find(entry=>entry.id===id);
     dialog(`<div class="profile-panel-scroll"><div id="person-profile-info">${personInformation(view)}</div>${localTools}
       <p id="person-detail-status" class="field-hint" role="status"></p><section class="profile-actions">${button(t("Profili kontrol et"),'refresh-person','refresh','primary profile-refresh',`${idattr(id)} ${netDisabled()}`)}<div class="profile-shortcuts">${button(t("Takip listelerini aç"),'person-lists','list','secondary profile-shortcut',idattr(id))}${archive}${more}</div></section>
-      ${notes}${evidence?`<details class="profile-access" ${carry.showAccess?'open':''}><summary><span>${t("Profil görünürlüğü")}</span><small>${esc(accessLabel(evidence))}</small>${icon('down')}</summary>${accessPanel(id)}</details>`:''}</div>`,false,true);
+      ${profileAbout(view,saved || p,managed,carry.showAbout)}${notes}${evidence?`<details class="profile-access" ${carry.showAccess?'open':''}><summary><span>${t("Profil görünürlüğü")}</span><small>${esc(accessLabel(evidence))}</small>${icon('down')}</summary>${accessPanel(id)}</details>`:''}</div>`,false,true);
     document.querySelector('#overlay-root dialog').classList.add('profile-panel');
     const moreMenu=document.querySelector('.profile-more');
     moreMenu.addEventListener('toggle',()=>{
@@ -1171,6 +1201,18 @@
       items.style.maxHeight=`${Math.max(0,Math.floor(upward?above:below))}px`;
     });
     drawerId=id;personView=view;
+    document.getElementById('profile-about-form')?.addEventListener('submit',async event=>{
+      event.preventDefault();
+      const joined=document.getElementById('profile-about-joined').value;
+      const country=document.getElementById('profile-about-country').value.trim();
+      const changes=document.getElementById('profile-about-changes').value;
+      const about={};
+      if(joined)about.joined=joined;
+      if(country)about.country=country;
+      if(changes!=='')about.usernameChanges=Number(changes);
+      const result=await command('save_profile_about',{accountId:view.accountId,id,about},t("Hesap bilgileri kaydedildi."));
+      if(result?.ok && personView===view && view.accountId===data.activeAccountId)personDialog(id,{showAbout:true});
+    });
     if(source && !view.avatar)listPhotos.get(source).then(result=>{if(personView===view && result?.avatar)receivePersonPhoto(source,result.avatar);});
     profileDetails.open({id,accountId:view.accountId,known:p},state=>{
       if(personView!==view)return;

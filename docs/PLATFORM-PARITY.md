@@ -1,5 +1,9 @@
 # Android / Windows eşitlemesi
 
+## Android 0.1.90 ve Windows 0.2.63
+
+Her iki platformda kaydedilmiş profil ve bağlı hesabın **Bu hesap hakkında** bilgileri isteğe bağlı elle kaydedilir. Instagram profili kullanıcı eylemiyle açılır. Alanlar aynı hesabın şifreli yerel kayıtlarında durur ve profil yenilenince korunur. Otomatik Instagram hesabı şeffaflığı okuması bu sürümün kapsamında yoktur.
+
 ## Android 0.1.89 ve Windows 0.2.62
 
 Profil zaman tüneli, iki seçili kayıt için GitHub tarzı biyografi farkı ve kayıtlı profil alanlarını yan yana gösterir. Windows gözlem geçmişindeki ana web adresini kullanır. Android, kayıtlı profil gözlemlerindeki bağlantıları ve kendi hesabının kontrol günlüğündeki eldeki sayaçları kullanır. Eski bir kaydın eksik alanı güncel profilden tamamlanmaz.

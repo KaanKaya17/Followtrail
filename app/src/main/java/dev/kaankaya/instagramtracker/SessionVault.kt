@@ -143,6 +143,13 @@ class SessionVault(private val context: Context, private val slot: String = "acc
         val pending = (next.automation.initialTargets + (after - before)).intersect(after)
         persist(next.copy(automation = next.automation.copy(initialTargets = pending)), current, storage())
     }
+    fun saveProfileAbout(session: Session, id: String, value: ProfileAbout?) = update(session) { current ->
+        if (id == current.profile.userId) current.copy(about = value)
+        else {
+            require(current.people.any { it.latest.userId == id })
+            current.copy(people = current.people.map { if (it.latest.userId == id) it.copy(about = value) else it })
+        }
+    }
     fun finishInitialLists(current: SavedAccount, target: ListTarget) = synchronized(lock) {
         if (target.target in current.automation.initialTargets &&
             FollowDirection.entries.all { ListAutomationPolicy.source(target, it)?.comparable() == true }) {
@@ -157,7 +164,7 @@ class SessionVault(private val context: Context, private val slot: String = "acc
     fun link(session: Session, profile: Profile): SavedAccount = synchronized(lock) {
         val previous = if(catalog!=null)SessionVault(context,owner=session.userId).read() else read()
         val sameOwner = previous?.takeIf { it.session.userId == session.userId }
-        SavedAccount(session, profile, sameOwner?.people.orEmpty(), sameOwner?.automation ?: ListAutomation(enabled = true, targets = setOf(session.userId)))
+        SavedAccount(session, profile, sameOwner?.people.orEmpty(), sameOwner?.automation ?: ListAutomation(enabled = true, targets = setOf(session.userId)), sameOwner?.about)
             .also { write(it) }
     }
     /** A completed login cannot overwrite a connection changed while the user was authenticating. */

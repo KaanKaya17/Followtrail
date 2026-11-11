@@ -31,6 +31,10 @@ Profil zaman tüneli, sayı geçmişinden ayrı olarak biyografi ve avatar deği
 
 Karşılaştırma iki seçili kaydın net farkını gösterir. Aradaki ayrı değişiklikleri zaman çizelgesinde inceleyebilirsiniz. Fotoğraf için daha önce cihazda saklanan görsel kullanılır. Karşılaştırmayı açmak Instagram isteği göndermez.
 
+## Bu hesap hakkında
+
+Profil ayrıntılarındaki **Bu hesap hakkında** bölümünden Instagram profilini açın. Instagram bu menüyü gösteriyorsa katılım ayı/yılı, hesabın bulunduğu ülke veya kullanıcı adı değişiklik sayısı gibi alanları görebilirsiniz. Kendi veya kaydettiğiniz profil için bu değerleri Tracker’a elle yazabilirsiniz. Alanı boş bırakıp kaydetmek yerel değeri siler. Bu bölümün kaynağı elle girilen kayıttır.
+
 ## Engellenme şüphesini okumak
 
 Windows'taki erişim incelemesi, önceki tam listede bulunan bir hesabın artık görünmemesi ve profil erişimi gibi kanıtları birlikte değerlendirebilir. Sağlıklı oturumdan erişilemeyen bir hesap için uygun koşullarda son bilinen adla çerezsiz karşılaştırma yapılabilir.

@@ -131,6 +131,15 @@ class MemberProfileActivity : LocalizedActivity() {
             }
         }
         val registered = account?.let { it.profile.userId == member.id || it.people.any { person -> person.latest.userId == member.id } } == true
+        if (username != null) {
+            val saved = account
+            val local = if (saved?.profile?.userId == member.id) saved.about else saved?.people?.firstOrNull { it.latest.userId == member.id }?.about
+            val save: ((ProfileAbout?) -> Boolean)? = if (registered) ({ value ->
+                try { account = vault.saveProfileAbout(reference, member.id, value); render(); true }
+                catch (_: Exception) { false }
+            }) else null
+            page.addView(ProfileAboutView.button(this, username, local, save)); page.gap(12)
+        }
         if (!registered) {
             page.addView(AppUi.button(this, getString(R.string.ui_watch_for_changes), true, shown != null && !loading) { requestWatch() }); page.gap(12)
             page.addView(AppUi.text(this, getString(R.string.ui_enabling_monitoring_saves_this_person_and_notifies), 12f, AppUi.muted)); page.gap(12)

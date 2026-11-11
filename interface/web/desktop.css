@@ -670,11 +670,15 @@ dialog.story-modal[open] { display: flex; flex-direction: column; }
 .profile-more.opens-up .profile-more-items { top: auto; bottom: calc(100% + 8px); }
 .profile-more-items > .button:hover { background: var(--hover-surface); }
 .profile-more-items > .danger-text { color: var(--removed-text); border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; margin-top: 5px; }
-.profile-personal, .profile-access { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 18px; }
-.profile-personal > summary, .profile-access > summary { display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; }
-.profile-personal > summary small, .profile-access > summary small { font-size: 11px; font-weight: 400; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.profile-personal > summary .icon, .profile-access > summary .icon { margin-left: auto; width: 15px; height: 15px; flex-shrink: 0; }
+.profile-personal, .profile-access, .profile-about { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 18px; }
+.profile-personal > summary, .profile-access > summary, .profile-about > summary { display: flex; align-items: center; gap: 10px; list-style: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+.profile-personal > summary small, .profile-access > summary small, .profile-about > summary small { font-size: 11px; font-weight: 400; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-personal > summary .icon, .profile-access > summary .icon, .profile-about > summary .icon { margin-left: auto; width: 15px; height: 15px; flex-shrink: 0; }
 .profile-personal-content { padding-top: 16px; }
+.profile-about-facts { display: grid; gap: 10px; margin: 0 0 12px; }
+.profile-about-facts dt { color: var(--muted); font-size: 12px; }
+.profile-about-facts dd { margin: 3px 0 0; overflow-wrap: anywhere; }
+#profile-about-form { display: grid; gap: 8px; margin-top: 12px; }
 .profile-personal-content input, .profile-personal-content textarea { width: 100%; font-size: 14px; line-height: 1.5; }
 .profile-personal-content input { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--background); min-height: 43px; }
 .profile-personal-content .button { font-size: 13px; }

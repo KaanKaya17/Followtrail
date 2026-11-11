@@ -63,11 +63,13 @@ object AccountCodec {
             .put("watching", person.watching).put("intervalMinutes", person.intervalMinutes)
             // v4 compatibility for older APKs: round up to their supported interval, never speed up a downgrade.
             .put("intervalHours", legacyHours(person.intervalMinutes)).put("nextCheckAt", person.nextCheckAt)
-            .put("history", JSONArray().apply { person.history.forEach { put(profile(it, detailRefs)) } }))
+            .put("history", JSONArray().apply { person.history.forEach { put(profile(it, detailRefs)) } })
+            .apply { person.about?.let { put("about", it.encode()) } })
         val result = JSONObject().put("version", 5).put("id", account.session.userId)
             .put("cookie", account.session.cookie).put("ua", account.session.userAgent)
             .apply { account.session.mobileBinding?.let { put("mobileBinding", it) }
-                account.session.webBinding?.let { put("webBinding", it) } }
+                account.session.webBinding?.let { put("webBinding", it) }
+                account.about?.let { put("about", it.encode()) } }
             .put("profile", profile(account.profile, detailRefs)).put("people", people)
             .apply { if (account.automation != ListAutomation()) put("listAutomation", JSONObject()
                 .put("enabled", account.automation.enabled).put("targets", JSONArray(account.automation.targets.toList()))
@@ -130,7 +132,8 @@ object AccountCodec {
             val nextCheck = if (version < 3) 0L else person.getLong("nextCheckAt")
             require(nextCheck >= 0)
             val favorite = if (!person.has("favorite")) false else person.get("favorite") as? Boolean ?: error("Invalid favorite setting")
-            TrackedPerson(history, note, group, watching, minutes, nextCheck, favorite)
+            TrackedPerson(history, note, group, watching, minutes, nextCheck, favorite,
+                if (person.has("about")) ProfileAbout.decode(person.getJSONObject("about")) else null)
         }
         require(people.map { it.latest.userId }.distinct().size == people.size)
         val automation = if (!json.has("listAutomation")) ListAutomation() else {
@@ -147,6 +150,7 @@ object AccountCodec {
             val lastList = config.get("lastWorkWasList") as? Boolean ?: error("Invalid automation work state")
             ListAutomation(enabled, targets.toSet(), next, lastList, initial.toSet())
         }
-        return SavedAccount(session, own, people, automation)
+        return SavedAccount(session, own, people, automation,
+            if (json.has("about")) ProfileAbout.decode(json.getJSONObject("about")) else null)
     }
 }

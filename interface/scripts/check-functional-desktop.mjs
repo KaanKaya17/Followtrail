@@ -82,6 +82,28 @@ try {
       assert.equal(await page.evaluate(async url=>{try{await window.TrackerDesktop.openLink(url);return false;}catch{return true;}},url),true);
     }
   });
+  await check('Account transparency entries save and clear locally without a profile request',async()=>{
+    await page.locator('.sidebar nav a[href="#people"]').click();
+    await page.locator('.person-title[data-id="200"]').click();
+    const panel=page.locator('.profile-about');
+    await panel.locator('summary').click();
+    const before=await page.evaluate(()=>window.TrackerDesktop.command('state'));
+    await panel.locator('#profile-about-joined').fill('2019-04');
+    await panel.locator('#profile-about-country').fill('Türkiye');
+    await panel.locator('#profile-about-changes').fill('0');
+    await panel.getByRole('button',{name:'Hesap bilgilerini kaydet'}).click();
+    await panel.getByText('Nisan 2019',{exact:true}).last().waitFor();
+    await panel.getByText('Kaynak · Elle girilen yerel kayıt').waitFor();
+    const after=await page.evaluate(()=>window.TrackerDesktop.command('state'));
+    assert.deepEqual(after.state.people.find(person=>person.id==='200').about,{joined:'2019-04',country:'Türkiye',usernameChanges:0});
+    assert.deepEqual(after.state.gate,before.state.gate);
+    await panel.locator('#profile-about-joined').fill('');
+    await panel.locator('#profile-about-country').fill('');
+    await panel.locator('#profile-about-changes').fill('');
+    await panel.getByRole('button',{name:'Hesap bilgilerini kaydet'}).click();
+    await page.waitForFunction(()=>!document.querySelector('.profile-about-facts'));
+    await page.keyboard.press('Escape');
+  });
   await check('Partial saved search accepts @, shared URLs, multiple words and Turkish spelling without requests',async()=>{
     await page.locator('.sidebar nav a[href="#people"]').click();
     for(const query of ['@qa.den','QA den','arkadas','https://instagram.com/qa.deniz/?igsh=abc']) {

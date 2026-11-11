@@ -26,9 +26,9 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-**Windows 0.2.62:** Profil zaman tüneli iki kayıt arasında yan yana fark gösterir. Ortak hesaplar, kayıtlı fotoğrafları ve eldeki profil sayaçlarını gösterir. Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
+**Windows 0.2.63:** Profil ayrıntılarında Instagram’da görülen hesap bilgileri yerelde saklanabilir. Profil zaman tüneli iki kayıt arasında yan yana fark gösterir. Ortak hesaplar, kayıtlı fotoğrafları ve eldeki profil sayaçlarını gösterir. Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
 
-**Android 0.1.89 / kod 90:** İmzalı APK. Profil zaman tünelinde iki kayıt yan yana karşılaştırılabilir. Ortak hesaplarda kayıtlı fotoğraflar ve eldeki profil sayaçları gösterilir. İlk liste hazırlığı, gizli hesap açıklaması, ortak hesap karşılaştırması ve okuma tanısı eklendi. Android 0.1.86 fiziksel testinde mevcut oturumla profil ve iki liste okundu. Bekleyen web oturumunu bağlama adımı HTTP 429 aldı. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
+**Android 0.1.90 / kod 91:** İmzalı APK. Profil zaman tünelinde iki kayıt yan yana karşılaştırılabilir. Ortak hesaplarda kayıtlı fotoğraflar ve eldeki profil sayaçları gösterilir. İlk liste hazırlığı, gizli hesap açıklaması, ortak hesap karşılaştırması ve okuma tanısı eklendi. Android 0.1.86 fiziksel testinde mevcut oturumla profil ve iki liste okundu. Bekleyen web oturumunu bağlama adımı HTTP 429 aldı. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

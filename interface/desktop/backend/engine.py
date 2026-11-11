@@ -1,6 +1,7 @@
 """Local observations, paging, comparison and guarded account operations."""
 import copy
 import csv
+from datetime import date
 import daily_stats
 import stories
 import list_pages
@@ -26,6 +27,7 @@ import request_budget
 import list_preparation
 import profile_search
 import profile_links
+import profile_about
 import hashlib
 import data_privacy
 from search_cache import SearchCache
@@ -69,7 +71,7 @@ def compare(previous, current):
 def public_person(value):
     # Explicit projection: saved session/auth never crosses into the renderer.
     keys = ('id', 'username', 'name', 'followers', 'following', 'posts', 'bio', 'url',
-            'private', 'verified', 'observedAt', 'favorite', 'watching', 'group', 'note', 'avatar', 'picture', 'links')
+            'private', 'verified', 'observedAt', 'favorite', 'watching', 'group', 'note', 'avatar', 'picture', 'links', 'about')
     return {key: value.get(key) for key in keys}
 
 
@@ -418,6 +420,8 @@ class Engine:
         profile = {**profile, 'observedAt': at,
                    **{k: previous.get(k, default) for k, default in
                       (('favorite', False), ('watching', False), ('group', ''), ('note', ''))}}
+        if previous.get('about') is not None:
+            profile['about'] = previous['about']
         group_id = self.observation_group or uuid.uuid4().hex
         if 'avatar' not in profile and profile.get('picture') == previous.get('picture'):
             profile['avatar'] = previous.get('avatar')
@@ -886,6 +890,28 @@ class Engine:
         finally:
             close_client(client)
 
+    def save_profile_about(self, args):
+        own = self.data.get('account')
+        if not own or args.get('accountId') != own['id']:
+            raise AppFailure('input', 'Geçerli bir hesap seç.')
+        identity = args.get('id')
+        if not isinstance(identity, str):
+            raise AppFailure('input', 'Hesap bilgilerini kontrol et.')
+        profile = own if identity == own['id'] else self.data['people'].get(identity)
+        value = args.get('about')
+        if not profile or set(args) != {'accountId', 'id', 'about'} or (value != {} and not profile_about.validate(value, date.today().isoformat()[:7])):
+            raise AppFailure('input', 'Hesap bilgilerini kontrol et.')
+        previous = profile.pop('about', None)
+        if value:
+            profile['about'] = dict(value)
+        try:
+            self.save()
+        except Exception:
+            profile.pop('about', None)
+            if previous is not None:
+                profile['about'] = previous
+            raise
+
     def save_person(self, args):
         identity = str(args.get('id', ''))
         updates = {}
@@ -1152,6 +1178,7 @@ class Engine:
                         'daily_clear': lambda: self.clear_daily(args), 'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
                         'refresh': lambda: self.refresh(args), 'profile_detail': lambda: self.profile_detail(args), 'add_person': lambda: self.add_person(args),
                         'scan': lambda: self.scan(args, resume=True), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
+                        'save_profile_about': lambda: self.save_profile_about(args),
                         'settings': lambda: self.settings(args), 'automatic': self.automatic,
                         'check_access': lambda: self.check_access(args),
                         'notification_rule': lambda: self.notification_rule(args),
@@ -1270,6 +1297,7 @@ def validate_archive(d):
             continue
         member(p)
         if 'links' in p and not profile_links.validate(p['links']):raise ValueError('profile links')
+        if 'about' in p and not profile_about.validate(p['about']):raise ValueError('profile about')
         for key in ('followers', 'following', 'posts'):
             if p.get(key) is not None and (type(p[key]) is not int or p[key] < 0):
                 raise ValueError('count')
