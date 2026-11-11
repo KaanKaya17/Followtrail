@@ -1,5 +1,9 @@
 # Android / Windows eşitlemesi
 
+## Android 0.1.88 ve Windows 0.2.61
+
+Ortak hesaplar için iki kaynak listeden kayıtlı fotoğraf adresi kullanılabilir. Windows ve Android eldeki takipçi ve takip edilen sayılarını gösterir. Görseller mevcut CDN yükleyicisinden gelebilir. Karşılaştırma ekranı satırlar için otomatik profil sorgusu başlatmaz.
+
 ## Android 0.1.87 ve Windows 0.2.60
 
 - Otomatik liste hazırlığı açıkken yeni kaydedilen Android profillerinin iki liste yönü sıraya alınır. İlk tam kayıt oluşana kadar hazırlık sürer. İlk sayı uyuşmazlığında yaklaşık 30 dakika sonra bir erken tekrar planlanır. Sonraki uyuşmazlık günlük plana girer.

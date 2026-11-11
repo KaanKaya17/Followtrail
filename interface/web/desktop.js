@@ -163,8 +163,8 @@
     },
   });
   function refreshListPhotos() {
-    listPhotos.mount(windowVisible && ui.page==='lists' && !ui.peerOwner ? document.getElementById('list-rows') : null,
-      {accountId:data?.activeAccountId,ownerId:ui.owner || data?.account?.id,direction:ui.direction});
+    listPhotos.mount(windowVisible && ui.page==='lists' ? document.getElementById('list-rows') : null,
+      {accountId:data?.activeAccountId,ownerId:ui.owner || data?.account?.id,peerOwnerId:ui.peerOwner,direction:ui.direction});
   }
   function person(id) {
     if(id==null)return null;
@@ -723,10 +723,28 @@
     return shown ? {...scope, scanId:shown.id, previousScanId:previous?.id || '',
       comparison:ui.comparison,relation:ui.listFilter} : null;
   }
+  function commonListCounts(profile) {
+    const counts=[];
+    if(Number.isFinite(profile?.followers)) counts.push(num(profile.followers)+' '+t('takipçi'));
+    if(Number.isFinite(profile?.following)) counts.push(num(profile.following)+' '+t('takip edilen'));
+    return counts.join(' · ');
+  }
   function listRow(p) {
-    const saved=data.people.find(x=>x.id===p.id);
+    const saved=data.account?.id===p.id ? data.account : data.people.find(x=>x.id===p.id);
+    const cached=ui.peerOwner ? profileDetails.peek(data.activeAccountId,p.id) : null;
+    const details=(cached?.observedAt ?? 0)>(saved?.observedAt ?? 0) ? cached : saved ?? cached;
+    const common=!!ui.peerOwner;
+    const metrics=common ? '<small class="common-list-counts">'+esc(commonListCounts(details))+'</small>' : '';
     const change=p.change==='added' ? t("Yeni görüldü") : p.change==='removed' ? t("Son kayıtta yok") : '';
-    return `<div class="list-row"><button class="list-person" data-action="person" ${idattr(p.id)} data-photo-scan="${esc(p.photoScan)}">${avatar(saved?.avatar ? {...p,avatar:saved.avatar} : p)}<span><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span></button><span class="list-followers">${num(saved?.followers)}<small> ${t("takipçi")}</small></span><span class="list-state">${change ? `<span class="badge ${p.change==='removed' ? 'peach':'mint'}">${change}</span>` : `<span class="subtle-status">${t("Kayıtlı")}</span>`}</span><button class="icon-button star-button ${saved?.favorite ? 'is-favorite':''}" data-action="star" ${idattr(p.id)} aria-label="${t("{0} favori durumunu değiştir",esc(p.username))}" aria-pressed="${!!saved?.favorite}" ${busy ? 'disabled':''}>${icon('star')}</button></div>`;
+    const status=change ? `<span class="badge ${p.change==='removed' ? 'peach':'mint'}">${change}</span>` : `<span class="subtle-status">${t('Kayıtlı')}</span>`;
+    return `<div class="list-row${common ? ' list-row--common' : ''}">
+      <button class="list-person" data-action="person" ${idattr(p.id)} data-photo-scan="${esc(p.photoScan)}" data-photo-owner="${esc(p.photoOwner)}">
+        ${avatar(saved?.avatar ? {...p,avatar:saved.avatar} : p)}
+        <span><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small>${metrics}</span>
+      </button>
+      ${common ? '' : `<span class="list-followers">${num(saved?.followers)}<small> ${t('takipçi')}</small></span><span class="list-state">${status}</span>`}
+      <button class="icon-button star-button ${saved?.favorite ? 'is-favorite':''}" data-action="star" ${idattr(p.id)} aria-label="${t('{0} favori durumunu değiştir',esc(p.username))}" aria-pressed="${!!saved?.favorite}" ${busy ? 'disabled':''}>${icon('star')}</button>
+    </div>`;
   }
   function paintListPage() {
     if(ui.page!=='lists')return;
@@ -1159,6 +1177,8 @@
       if(state.profile) {
         view.profile=state.profile;
         document.getElementById('person-profile-info').innerHTML=personInformation(view);
+        const counts=document.querySelector('.list-person[data-id="'+id+'"] .common-list-counts');
+        if(counts)counts.textContent=commonListCounts(state.profile);
       }
       const note=document.getElementById('person-detail-status');
       note.textContent=state.phase==='loading' ? t("Profil bilgileri getiriliyor…") : state.phase==='waiting' ? t("Profil bilgileri {0} saniye sonra okunacak.",state.seconds) : state.phase==='busy' ? t("Diğer işlem tamamlanınca profil okunacak.") : state.phase==='error' ? userError(state.error) || t("İşlem tamamlanamadı.") : '';
@@ -1434,7 +1454,7 @@
         break;
       case "person":
         personDialog(id,{showAccess:target.dataset.showAccess==='true',avatar:target.querySelector('.avatar img')?.getAttribute('src'),source:target.dataset.photoScan ?
-          {accountId:data.activeAccountId,ownerId:ui.owner || data.account?.id,direction:ui.direction,scanId:target.dataset.photoScan,id} : null});
+          {accountId:data.activeAccountId,ownerId:target.dataset.photoOwner || ui.owner || data.account?.id,direction:ui.direction,scanId:target.dataset.photoScan,id} : null});
         break;
       case "wayback":
         await waybackDialog(id);

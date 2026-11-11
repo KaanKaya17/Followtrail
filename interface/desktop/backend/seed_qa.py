@@ -52,8 +52,9 @@ def main():
             'draft':{'id':'unfinished','ownerId':'100','direction':'followers','members':{'204':members['204']},
                 'startedAt':now,'finishedAt':now,'complete':False,'status':'running','pages':1,'expected':3}}
         e.data['lists']['100:following']={'snapshots':[dict(scan('following',['201','204'],now),direction='following')]}
-        e.data['lists']['200:following']={'snapshots':[dict(scan('peer-following',['201','202'],now),
-                                                           ownerId='200',direction='following')]}
+        peer_following = dict(scan('peer-following',['201','202','204'],now), ownerId='200', direction='following')
+        peer_following['members']['201'] = {**members['201'], 'pictureUrl':'https://cdninstagram.com/qa-peer.jpg'}
+        e.data['lists']['200:following']={'snapshots':[peer_following]}
         for _ in range(read_health.PAUSE_AFTER):
             read_health.record(e.data, 'followers', 'route', 404, now)
         partial={'id':'qa-retained-partial','ownerId':'200','direction':'followers','startedAt':now-60,'finishedAt':now-30,

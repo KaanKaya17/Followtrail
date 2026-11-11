@@ -1,5 +1,12 @@
 # Değişiklikler
 
+## Windows 0.2.61 / Android 0.1.88 — 2026-11-11
+
+- Ortak hesaplarda kayıtlı profil fotoğrafları iki kaynak listeden kullanılabilir. Görsel gerekiyorsa mevcut fotoğraf yükleyicisi kullanılır.
+- Bilinen takipçi ve takip edilen sayıları kullanıcı adının altında gösterilir. Sayısı bilinmeyen üyelerde boş sayaç satırı görünmez. Karşılaştırma satırları kendi başlarına profil okuması başlatmaz.
+
+- 47 Python liste testi, 6 JavaScript profil paneli testi, 14 çevrimdışı arayüz kontrolü, 37 Windows paket kontrolü ve 187 Android birim testi geçti. Android ekranı fiziksel cihazda henüz denenmedi.
+
 ## Android 0.1.87 — 2026-11-11
 
 - Yeni kaydedilen profillerin takipçi ve takip edilen listeleri otomatik liste hazırlığına katılır. İlk sayı uyuşmazlığında bir erken tekrar planlanır.

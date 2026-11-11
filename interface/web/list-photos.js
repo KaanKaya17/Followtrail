@@ -33,7 +33,7 @@
     function mount(container,context) {
       if(!container){clear();return;}
       if(owner!==context.accountId){clear(true);owner=context.accountId;}
-      const next=[context.accountId,context.ownerId,context.direction].join(':');
+      const next=[context.accountId,context.ownerId,context.peerOwnerId,context.direction].join(':');
       if(scope!==null && scope!==next)clear();
       scope=next;epoch++;observer?.disconnect();queue=[];
       const ticket=epoch,scheduled=new WeakSet();
@@ -43,7 +43,7 @@
         node.querySelector('.avatar')?.replaceChildren(image);
       }
       async function load(node) {
-        const response=await get({accountId:context.accountId,ownerId:context.ownerId,direction:context.direction,scanId:node.dataset.photoScan,id:node.dataset.id});
+        const response=await get({accountId:context.accountId,ownerId:node.dataset.photoOwner || context.ownerId,direction:context.direction,scanId:node.dataset.photoScan,id:node.dataset.id});
         paint(node,response?.avatar);
       }
       function pump() {
@@ -69,7 +69,7 @@
         }
         pump();
       },{rootMargin:'160px'});
-      for(const node of container.querySelectorAll('.list-person[data-photo-scan]'))
+      for(const node of container.querySelectorAll('.list-person[data-photo-scan]:not([data-photo-scan=""])'))
         if(!node.querySelector('.avatar img'))observer.observe(node);
     }
     let refresh=()=>{};

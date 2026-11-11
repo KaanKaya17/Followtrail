@@ -81,8 +81,11 @@ object FollowPageParser {
 object FollowAnalysis {
     fun common(first: FollowRun?, second: FollowRun?): List<FollowUser>? {
         if (first == null || second == null) return null
-        val secondIds = second.users.mapTo(HashSet()) { it.id }
-        return first.users.filter { it.id in secondIds }
+        val otherMembers = second.users.associateBy { it.id }
+        return first.users.mapNotNull { member ->
+            val other = otherMembers[member.id] ?: return@mapNotNull null
+            if (member.picture != null || other.picture == null) member else member.copy(picture = other.picture)
+        }
     }
 
     fun privateListNotice(viewer: Profile, target: Profile, following: FollowRun?): Boolean =
