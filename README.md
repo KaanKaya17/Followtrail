@@ -26,9 +26,9 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-**Windows 0.2.60:** Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
+**Windows 0.2.61:** Ortak hesaplar, kayıtlı fotoğrafları ve eldeki profil sayaçlarını gösterir. Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
 
-**Android 0.1.87 / kod 88:** İmzalı APK. İlk liste hazırlığı, gizli hesap açıklaması, ortak hesap karşılaştırması ve okuma tanısı eklendi. Android 0.1.86 fiziksel testinde mevcut oturumla profil ve iki liste okundu. Bekleyen web oturumunu bağlama adımı HTTP 429 aldı. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
+**Android 0.1.88 / kod 89:** İmzalı APK. Ortak hesaplarda kayıtlı fotoğraflar ve eldeki profil sayaçları gösterilir. İlk liste hazırlığı, gizli hesap açıklaması, ortak hesap karşılaştırması ve okuma tanısı eklendi. Android 0.1.86 fiziksel testinde mevcut oturumla profil ve iki liste okundu. Bekleyen web oturumunu bağlama adımı HTTP 429 aldı. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

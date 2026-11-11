@@ -113,10 +113,10 @@ class ListPages:
             added = sum(identity not in old for identity in members) if comparable else 0
             removed = sum(identity not in members for identity in old) if comparable else 0
             if args['comparison']:
-                rows = [(p, current['id'], 'added') for i,p in members.items() if i not in old]
-                rows += [(p, previous['id'], 'removed') for i,p in old.items() if i not in members]
+                rows = [(p, current['id'], 'added', args['ownerId']) for i,p in members.items() if i not in old]
+                rows += [(p, previous['id'], 'removed', args['ownerId']) for i,p in old.items() if i not in members]
             else:
-                rows = [(p, current['id'], 'added' if previous and i not in old else '') for i,p in members.items()]
+                rows = [(p, current['id'], 'added' if previous and i not in old else '', args['ownerId']) for i,p in members.items()]
             other = view['records'].get(args['ownerId'] + ':' + ('following' if args['direction']=='followers' else 'followers'), {}).get('snapshots', [])
             if args['relation'] != 'all':
                 if not scans or current is not scans[-1] or not other or args['comparison']:
@@ -129,8 +129,8 @@ class ListPages:
             summary = {'added': added, 'removed': removed}
             self.cached = (key, rows, summary)
         start = args['offset']
-        items = [{**public_member(p), 'photoScan':scan, 'change':change}
-                 for p,scan,change in rows[start:start+100]]
+        items = [{**public_member(p), 'photoScan': scan, 'photoOwner': owner, 'change': change}
+                 for p, scan, change, owner in rows[start:start+100]]
         return {'accountId':view['accountId'], 'revision':view['revision'], 'offset':start,
                 'items':items, 'total':len(rows), 'nextOffset': start+len(items) if start+len(items)<len(rows) else None,
                 **summary}
@@ -150,11 +150,14 @@ class ListPages:
             query = text(args['query'].strip())
             common_count = 0
             for identity, member in first['members'].items():
-                if identity not in second['members']:
+                peer_member = second['members'].get(identity)
+                if peer_member is None:
                     continue
                 common_count += 1
                 if not query or query in text((member.get('name') or '') + ' ' + member['username']):
-                    rows.append((member, '', ''))
+                    photo_source = 1 if (not avatar_url(member.get('pictureUrl')) and
+                                         avatar_url(peer_member.get('pictureUrl'))) else 0
+                    rows.append((member, sources[photo_source]['id'], '', owners[photo_source]))
             report['count'] = common_count
         return rows, {'added': 0, 'removed': 0, 'common': report}
 

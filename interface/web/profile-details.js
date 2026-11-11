@@ -40,6 +40,10 @@
         if(known)render({phase:'ready',profile:known});else schedule(0);
       },
       retry() {if(!current)return;current.force=true;cache.delete(current.accountId+':'+current.id);if(!inflight)schedule(0);},
+      peek(accountId,id) {
+        const profile=cache.get(accountId+':'+id);
+        return fresh(profile) ? profile : null;
+      },
       close() {current=null;clear();},
       reset() {current=null;owner=null;generation++;cache.clear();clear();},
     };

@@ -329,8 +329,13 @@ try {
     await page.locator('#list-peer').selectOption('200');
     await page.getByText('Okunan hesaplar arasında 0 ortak kişi bulundu.', {exact:true}).waitFor();
     await page.getByRole('button', {name:'Ortak takip edilenler',exact:true}).click();
-    await page.getByText('Kayıtlı listelerde 1 ortak kişi bulundu.', {exact:true}).waitFor();
+    await page.getByText('Kayıtlı listelerde 2 ortak kişi bulundu.', {exact:true}).waitFor();
     await page.locator('#list-rows').getByText('@qa.201', {exact:true}).waitFor();
+    const known = page.locator('#list-rows .list-person[data-id="201"]');
+    assert.equal(await known.getAttribute('data-photo-owner'), '200');
+    assert.equal(await known.locator('.common-list-counts').textContent(), '20 takipçi · 5 takip edilen');
+    assert.equal(await page.locator('#list-rows .list-person[data-id="204"] .common-list-counts').isVisible(), false);
+    assert.equal(await page.locator('#list-rows .list-followers').count(), 0);
     await page.locator('#list-peer').selectOption('201');
     await page.getByText('Karşılaştırma için iki profilin de kayıtlı listesi gerekiyor.', {exact:true}).waitFor();
     await page.getByRole('button', {name:'Listeye dön',exact:true}).click();

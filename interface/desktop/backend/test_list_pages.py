@@ -76,16 +76,22 @@ class ListPagesTests(unittest.TestCase):
             self.assertEqual(first['common']['count'], 101)
             self.assertEqual(first['nextOffset'], 100)
             self.assertEqual(second['items'][0]['id'], '250')
-            self.assertEqual(second['items'][0]['photoScan'], '')
+            self.assertEqual((second['items'][0]['photoOwner'], second['items'][0]['photoScan']), ('100', 'after'))
             self.assertEqual(query(self.engine, query='qa.250', **options)['common']['count'], 101)
 
             complete = self.scan('peer-full', [250, 300])
             complete['members']['250']['username'] = 'renamed'
+            data['lists']['100:followers']['snapshots'][-1]['members']['250'].pop('pictureUrl')
             data['lists']['200:followers']['snapshots'].append(complete)
             full = query(self.engine, **options)
             self.assertFalse(full['common']['partial'])
             self.assertEqual([row['id'] for row in full['items']], ['250'])
             self.assertNotIn('PRIVATE', json.dumps(full))
+            row = full['items'][0]
+            self.assertEqual((row['photoOwner'], row['photoScan']), ('200', 'peer-full'))
+            source = self.engine.list_pages.picture({'accountId': '100', 'ownerId': row['photoOwner'],
+                'direction': 'followers', 'scanId': row['photoScan'], 'id': row['id']})
+            self.assertEqual(source, ('100', '200:followers:peer-full', '250', 'https://cdninstagram.com/PRIVATE.jpg'))
             with self.assertRaises(AppFailure):
                 query(self.engine, peerOwnerId='100', scanId='', previousScanId='')
 

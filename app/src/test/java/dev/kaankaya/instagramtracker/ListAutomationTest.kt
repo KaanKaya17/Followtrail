@@ -75,6 +75,11 @@ class ListAutomationTest {
         val other = FollowRun(listOf(page(2000, listOf("2", "3")).let { it.copy(users = it.users.map { u -> u.copy(username = "renamed" + u.id) }) }))
         assertEquals(listOf("2"), FollowAnalysis.common(first, other)?.map { it.id })
         assertNull(FollowAnalysis.common(first, null))
+        val peerPicture = "https://cdninstagram.com/qa.jpg"
+        val peerWithPhoto = other.copy(pages = other.pages.map { page ->
+            page.copy(users = page.users.map { it.copy(picture = peerPicture) })
+        })
+        assertEquals(peerPicture, FollowAnalysis.common(first, peerWithPhoto)?.single()?.picture)
         val viewer = profile.copy(userId = "100", following = 2)
         val private = profile.copy(details = ProfileDetails(privateAccount = true))
         assertTrue(FollowAnalysis.privateListNotice(viewer, private, other))

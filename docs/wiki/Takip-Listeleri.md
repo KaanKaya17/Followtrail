@@ -59,7 +59,7 @@ Yalnız “takipçi sayısı 1 azaldı” bilgisi, giden kişinin kimliğini ver
 
 **Takip Listeleri** ekranında liste sahibini seçin. **Ortak hesapları karşılaştır** alanından ikinci profili seçin. **Ortak takipçiler** iki profili de takip edenleri, **Ortak takip edilenler** iki profilin de takip ettiği hesapları gösterir.
 
-Tracker her profil için son tam listeyi kullanır. Tam liste yoksa varsa kısmi kayıtla karşılaştırır ve sonucu **Okunan hesaplar arasında** olarak etiketler. Ekranda iki listenin kayıt tarihi ve kapsamı görünür. Bir kaynak eksikse ortak hesap sayısı yerine kayıt eksikliği gösterilir. Arama ve karşılaştırma cihazda yapılır.
+Tracker her profil için son tam listeyi kullanır. Tam liste yoksa varsa kısmi kayıtla karşılaştırır ve sonucu **Okunan hesaplar arasında** olarak etiketler. Ekranda iki listenin kayıt tarihi ve kapsamı görünür. Bir kaynak eksikse ortak hesap sayısı yerine kayıt eksikliği gösterilir. Arama ve karşılaştırma cihazda yapılır. Satırlarda eldeki profil fotoğrafı ve bilinen takipçi/takip edilen sayıları görünür. Fotoğraf önbellekte yoksa görsel bağlantısı kullanılabilir. Karşılaştırma satırları otomatik profil sorgusu başlatmaz.
 
 ## Otomatik yeni taramalar
 

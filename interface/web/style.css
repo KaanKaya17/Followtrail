@@ -1297,6 +1297,12 @@ main {
   padding: 15px 23px;
   border-bottom: 1px solid var(--line);
 }
+.list-table .list-row--common {
+  grid-template-columns: minmax(0, 1fr) 38px;
+}
+.list-row--common .common-list-counts:empty {
+  display: none;
+}
 .list-row:last-child {
   border-bottom: 0;
 }

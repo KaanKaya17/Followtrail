@@ -90,7 +90,7 @@ class FollowListActivity : LocalizedActivity() {
         AppUi.button(this, title, primary, enabled, action = action)
     private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
     private fun LinearLayout.gap(n: Int) { addView(View(this@FollowListActivity), LinearLayout.LayoutParams(1, dp(n))) }
-    private data class UserRow(val initial: ProfileAvatarView, val name: TextView, val detail: TextView)
+    private data class UserRow(val initial: ProfileAvatarView, val name: TextView, val detail: TextView, val counts: TextView?)
     private fun render() {
         if (isDestroyed || isFinishing || !::target.isInitialized) return
         val searchFocused = visibleSearch?.isFocused == true
@@ -136,7 +136,7 @@ class FollowListActivity : LocalizedActivity() {
         val comparing = comparisonPeer != null
         owner.addView(ProfileAvatarView(this,48).apply {
             bind(avatars, reference.userId, target.userId, target.username,
-                target.details.pictureUrl.value.takeUnless { comparing }, target.details.pictureId.value)
+                target.details.pictureUrl.value, target.details.pictureId.value)
         })
         owner.addView(column().apply {
             setPadding(dp(12),0,dp(8),0)
@@ -168,12 +168,14 @@ class FollowListActivity : LocalizedActivity() {
         navigationChrome.forEach { it.visibility = if (keyboardVisible) View.GONE else View.VISIBLE }
         val run = snapshot?.run(direction)
         val canContinue = !comparing && run?.cursor() != null && continuation() != null
-        val localAccount = if (!comparing && run?.comparable() != true)
+        val localAccount = if (comparing || run?.comparable() != true)
             try { accountVault.read()?.takeIf(::currentAccount) } catch (_: Exception) { null } else null
         val firstSource = if (comparing) comparisonSource(target) else null
         val secondSource = comparisonPeer?.let(::comparisonSource)
         val common = if (comparing) FollowAnalysis.common(firstSource, secondSource) else null
         val displayed = if (comparing) common.orEmpty() else run?.users.orEmpty()
+        val knownProfiles = if (comparing && localAccount != null) accountProfiles(localAccount).associateBy { it.userId } else emptyMap()
+        val numberFormat = java.text.NumberFormat.getIntegerInstance(AppLanguage.locale(this))
         val status = column().apply { setPadding(dp(14), dp(12), dp(14), dp(12)); background = AppUi.shape(this@FollowListActivity, AppUi.surface, 18, AppUi.line) }
         status.addView(AppUi.text(this, getString(R.string.ui_saved_on_this_device), 11f, AppUi.muted, true)); status.gap(6)
         if (comparisonPeer != null) {
@@ -208,7 +210,7 @@ class FollowListActivity : LocalizedActivity() {
         statusCard = status; status.visibility = if (keyboardVisible) View.GONE else View.VISIBLE
         val listHeader = column().apply { setBackgroundColor(bg) }
         listHeader.addView(status); listHeader.gap(10)
-        if (localAccount != null && privateListNotice(localAccount)) {
+        if (!comparing && localAccount != null && privateListNotice(localAccount)) {
             listHeader.addView(AppUi.notice(this, getString(R.string.private_list_title), getString(R.string.private_list_help), warning = true))
             listHeader.gap(10)
         }
@@ -259,18 +261,26 @@ class FollowListActivity : LocalizedActivity() {
                     val name = AppUi.text(this@FollowListActivity, "", 14f, fg, true).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }
                     val detail = AppUi.text(this@FollowListActivity, "", 12f, AppUi.muted).apply { maxLines = 2; ellipsize = android.text.TextUtils.TruncateAt.END }
                     labels.addView(name); labels.gap(4); labels.addView(detail)
-                    addView(labels, LinearLayout.LayoutParams(0, -2, 1f)); tag = UserRow(initial, name, detail)
+                    val counts = if (comparing) AppUi.text(this@FollowListActivity, "", 11f, AppUi.muted).also { label ->
+                        label.setPadding(0, dp(4), 0, 0)
+                        labels.addView(label)
+                    } else null
+                    addView(labels, LinearLayout.LayoutParams(0, -2, 1f)); tag = UserRow(initial, name, detail, counts)
                     if (!comparing) addView(ImageView(this@FollowListActivity).apply {
                         setImageDrawable(AppUi.Icon(this@FollowListActivity, "arrow", AppUi.violet, 18))
                         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     }, LinearLayout.LayoutParams(dp(24), dp(24)))
                 }
                 val user = items[position]; val holder = row.tag as UserRow
-                holder.initial.bind(avatars, reference.userId, user.id, user.username ?: user.name ?: "?", user.picture.takeUnless { comparing },
+                holder.initial.bind(avatars, reference.userId, user.id, user.username ?: user.name ?: "?", user.picture ?: knownProfiles[user.id]?.details?.pictureUrl?.value,
                     tint = if (position % 2 == 0) AppUi.violetSoft else AppUi.mint, foreground = if (position % 2 == 0) AppUi.violet else AppUi.teal)
                 holder.name.text = user.username?.let { "@$it" } ?: getString(R.string.list_username_unknown)
                 holder.detail.text = user.name?.takeIf { it.isNotBlank() } ?: getString(R.string.ui_no_name_provided)
-                row.contentDescription = if (comparing) userLabel(user)
+                val counts = knownProfiles[user.id]?.let { profile ->
+                    getString(R.string.ui_followers_following, numberFormat.format(profile.followers), numberFormat.format(profile.following))
+                }
+                holder.counts?.apply { text = counts; visibility = if (counts == null) View.GONE else View.VISIBLE }
+                row.contentDescription = if (comparing) listOfNotNull(userLabel(user), counts).joinToString("\n")
                     else user.username?.let { getString(R.string.profile_open_description, it) } ?: getString(R.string.list_username_unknown)
                 return row
             }
