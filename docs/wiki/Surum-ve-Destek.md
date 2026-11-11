@@ -81,9 +81,10 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-Proje sahibi tarafından paylaşılan imzalı APK'yı veya tam Windows ZIP'ini kullanın. Bu depoda APK/EXE kaynak dosyası olarak saklanmaz. Bir Git etiketi, o etikete ait indirilebilir dosyanın ayrıca yayımlandığı anlamına gelmez.
+- [Windows 0.2.63 ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.63)
+- [Android 0.1.90 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.90)
 
-Bu kılavuz, herkese açık indirme veya mağaza yayını yapılmış gibi bir bağlantı sunmaz. Dağıtım yeri değiştiğinde bu sayfa güncellenmelidir.
+Paketler GitHub Releases üzerinde önizleme olarak yayımlanır. İndirmek için özel depoya erişimi olan bir GitHub hesabı gerekir. Sürüm sayfalarında dosyaların SHA-256 değerleri bulunur.
 
 <a name="destek-icin-hangi-bilgiler-gerekir"></a>
 
@@ -115,7 +116,7 @@ Resmî Instagram ZIP içe aktarma, işlevsel web hizmeti, geniş Threads/Faceboo
 
 ## GitHub ve dağıtım durumu
 
-5 Kasım 2026 denetiminde depo özel ve GitHub Wiki kapalıdır; kılavuz bu deponun `docs/wiki/` dizininde okunur. GitHub Releases bölümündeki son yayımlanmış paket `v0.1.46` önizlemesidir; güncel kaynak etiketleriyle aynı dağıtım değildir. Yeni APK/EXE dosyaları bu belge güncellemesiyle Releases'e yüklenmez. Güncel kaynak sürümleri yukarıda belirtilmiştir.
+Kılavuz bu deponun `docs/wiki/` dizinindedir. Windows ve Android önizlemeleri kendi sürüm etiketlerine bağlı GitHub Releases sayfalarında dağıtılır.
 
 ## Son eşitleme
 
