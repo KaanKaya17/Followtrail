@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Windows 0.2.65 / Android 0.1.92 — 2026-11-12
+
+- Instagram ZIP yükleme, JSON dosyalarının yanında HTML biçimindeki takipçi ve takip edilen listelerini de açar.
+- Gerçek bir Instagram HTML arşivinden 3 takip edilen hesap Windows paketinde ve Android okuyucusunda açıldı. Arşivde takipçi listesi yer almıyordu. 39 Windows paket kontrolü, 4 Python arşiv testi ve 192 Android birim testi geçti. Android dosya seçicisi cihazda denenmedi.
+
 ## Windows 0.2.64 / Android 0.1.91 — 2026-11-12
 
 - Instagram’dan JSON biçiminde alınan ZIP ile takipçi ve takip edilen listeleri açılabilir. Her iki liste varsa karşılıklı ve tek yönlü takipler kullanıcı adına göre karşılaştırılabilir.

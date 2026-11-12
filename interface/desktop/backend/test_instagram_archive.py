@@ -33,6 +33,17 @@ class InstagramArchiveTests(unittest.TestCase):
         self.assertEqual(found, {'fileName': 'instagram-export.zip', 'followers': ['alice', 'carol'],
                                  'following': ['alice', 'bob']})
 
+    def test_reads_html_relationship_rows_and_ignores_navigation(self):
+        found = self.open_zip({
+            FOLDER + 'following.html': (
+                '<html><body><header><a href="https://www.instagram.com/ignored/">Navigation</a></header>'
+                '<main><div><h2>Alice</h2><a href="https://www.instagram.com/_u/Alice">Link</a></div>'
+                '<div><a href="https://www.instagram.com/bob/">Link</a></div></main></body></html>'
+            ),
+        })
+        self.assertIsNone(found['followers'])
+        self.assertEqual(found['following'], ['alice', 'bob'])
+
     def test_distinguishes_empty_list_from_missing_list(self):
         found = self.open_zip({FOLDER + 'followers_1.json': []})
         self.assertEqual(found['followers'], [])

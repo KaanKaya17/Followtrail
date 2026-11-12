@@ -3,6 +3,7 @@ package dev.kaankaya.instagramtracker
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import org.jsoup.Jsoup
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -16,10 +17,10 @@ import java.util.zip.ZipFile
 internal data class InstagramArchive(val followers: List<String>?, val following: List<String>?) {
     companion object {
         private const val MAX_ZIP = 512L * 1024 * 1024
-        private const val MAX_JSON = 16 * 1024 * 1024
-        private const val MAX_TOTAL_JSON = 64L * 1024 * 1024
+        private const val MAX_ENTRY = 16 * 1024 * 1024
+        private const val MAX_TOTAL_ENTRIES = 64L * 1024 * 1024
         private const val MAX_NAMES = 100_000
-        private val entryName = Regex("(followers|following)(?:_([1-9][0-9]{0,3}))?\\.json")
+        private val entryName = Regex("(followers|following)(?:_([1-9][0-9]{0,3}))?\\.(json|html)")
         private val username = Regex("[A-Za-z0-9._]{1,30}")
 
         fun read(input: InputStream, cache: File): InstagramArchive {
@@ -49,6 +50,7 @@ internal data class InstagramArchive(val followers: List<String>?, val following
             require(file.length() in 1..MAX_ZIP)
             ZipFile(file).use { zip ->
                 val parents = mutableSetOf<String>()
+                val formats = mutableSetOf<String>()
                 val parts = mapOf("followers" to sortedMapOf<Int, ZipEntry>(),
                     "following" to sortedMapOf<Int, ZipEntry>())
                 var total = 0L
@@ -57,21 +59,23 @@ internal data class InstagramArchive(val followers: List<String>?, val following
                     val match = entryName.matchEntire(path.last()) ?: continue
                     if (path.getOrNull(path.lastIndex - 1) != "followers_and_following") continue
                     require(!entry.isDirectory && path.none { it.isEmpty() || it == "." || it == ".." } && '\\' !in entry.name)
-                    require(entry.size in 1..MAX_JSON.toLong())
+                    require(entry.size in 1..MAX_ENTRY.toLong())
                     total += entry.size
-                    require(total <= MAX_TOTAL_JSON)
-                    val (direction, number) = match.destructured
+                    require(total <= MAX_TOTAL_ENTRIES)
+                    val (direction, number, format) = match.destructured
+                    formats.add(format)
                     val part = number.toIntOrNull() ?: 1
                     require(parts.getValue(direction).put(part, entry) == null)
                     parents.add(path.dropLast(1).joinToString("/"))
                 }
-                require(parents.size == 1)
-                return InstagramArchive(readParts(zip, "followers", parts.getValue("followers")),
-                    readParts(zip, "following", parts.getValue("following")))
+                require(parents.size == 1 && formats.size == 1)
+                val html = formats.single() == "html"
+                return InstagramArchive(readParts(zip, "followers", parts.getValue("followers"), html),
+                    readParts(zip, "following", parts.getValue("following"), html))
             }
         }
 
-        private fun readParts(zip: ZipFile, direction: String, parts: Map<Int, ZipEntry>): List<String>? {
+        private fun readParts(zip: ZipFile, direction: String, parts: Map<Int, ZipEntry>, html: Boolean): List<String>? {
             if (parts.isEmpty()) return null
             require(parts.keys.toList() == (1..parts.size).toList())
             val names = mutableSetOf<String>()
@@ -92,23 +96,37 @@ internal data class InstagramArchive(val followers: List<String>?, val following
                 }
                 require(output.size().toLong() == entry.size && crc.value == entry.crc)
                 val text = Charsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(output.toByteArray())).toString()
-                val decoder = JSONTokener(text.removePrefix("\uFEFF"))
-                val document = decoder.nextValue()
-                require(decoder.nextClean() == '\u0000')
-                val rows = if (document is JSONObject) document.getJSONArray("relationships_$direction") else document as JSONArray
-                count += rows.length()
-                require(count <= MAX_NAMES)
-                for (index in 0 until rows.length()) {
-                    val row = rows.getJSONObject(index)
-                    val items = row.getJSONArray("string_list_data")
-                    require(items.length() == 1)
-                    val item = items.getJSONObject(0)
-                    val candidates = setOf(name(item.opt("value")), name(row.opt("title")), linkName(item.opt("href"))).filterNotNull()
-                    require(candidates.size == 1)
-                    names.add(candidates.single())
+                val clean = text.removePrefix("\uFEFF")
+                val partNames = if (html) htmlNames(clean) else jsonNames(clean, direction)
+                for (name in partNames) {
+                    count++
+                    require(count <= MAX_NAMES)
+                    names.add(name)
                 }
             }
             return names.sorted()
+        }
+
+        private fun htmlNames(text: String): Sequence<String> {
+            val main = Jsoup.parse(text).getElementsByTag("main").single()
+            return main.getElementsByTag("a").asSequence().map { requireNotNull(linkName(it.attr("href"))) }
+        }
+
+        private fun jsonNames(text: String, direction: String): Sequence<String> {
+            val decoder = JSONTokener(text)
+            val document = decoder.nextValue()
+            require(decoder.nextClean() == '\u0000')
+            val rows = if (document is JSONObject) document.getJSONArray("relationships_$direction") else document as JSONArray
+            require(rows.length() <= MAX_NAMES)
+            return (0 until rows.length()).asSequence().map { index ->
+                val row = rows.getJSONObject(index)
+                val items = row.getJSONArray("string_list_data")
+                require(items.length() == 1)
+                val item = items.getJSONObject(0)
+                val candidates = setOf(name(item.opt("value")), name(row.opt("title")), linkName(item.opt("href"))).filterNotNull()
+                require(candidates.size == 1)
+                candidates.single()
+            }
         }
 
         private fun name(value: Any?): String? =

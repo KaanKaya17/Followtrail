@@ -26,17 +26,17 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 ## Güncel önizleme
 
-Windows **0.2.64** ve Android **0.1.91** ile Instagram ZIP arşivi açılabilir. [Instagram ZIP kullanımı](docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
+Windows **0.2.65** ve Android **0.1.92** ile HTML veya JSON biçimindeki Instagram ZIP arşivi açılabilir. [Instagram ZIP kullanımı](docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
 
 GitHub’da yayımlanmış paketler
 
-[Windows 0.2.64 ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.64) · [Android 0.1.91 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.91)
+[Windows 0.2.65 ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.65) · [Android 0.1.92 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
 
 Paketleri indirmek için özel GitHub deposuna erişimi olan hesabınızla oturum açın.
 
-**Windows 0.2.64:** Profil ayrıntılarında Instagram’da görülen hesap bilgileri yerelde saklanabilir. Profil zaman tüneli iki kayıt arasında yan yana fark gösterir. Ortak hesaplar, kayıtlı fotoğrafları ve eldeki profil sayaçlarını gösterir. Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
+**Windows 0.2.65:** Profil ayrıntılarında Instagram’da görülen hesap bilgileri yerelde saklanabilir. Profil zaman tüneli iki kayıt arasında yan yana fark gösterir. Ortak hesaplar, kayıtlı fotoğrafları ve eldeki profil sayaçlarını gösterir. Yeni kaydedilen profillerin ilk takipçi ve takip edilen listeleri otomatik hazırlık sırasına alınır. Gizli bir hesabı takip etmediğin son tam listende görülüyorsa liste ekranı bunu açıklar. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
 
-**Android 0.1.91 / kod 92:** İmzalı APK. Profil zaman tünelinde iki kayıt yan yana karşılaştırılabilir. Ortak hesaplarda kayıtlı fotoğraflar ve eldeki profil sayaçları gösterilir. İlk liste hazırlığı, gizli hesap açıklaması, ortak hesap karşılaştırması ve okuma tanısı eklendi. Android 0.1.86 fiziksel testinde mevcut oturumla profil ve iki liste okundu. Bekleyen web oturumunu bağlama adımı HTTP 429 aldı. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
+**Android 0.1.92 / kod 93:** İmzalı APK. Profil zaman tünelinde iki kayıt yan yana karşılaştırılabilir. Ortak hesaplarda kayıtlı fotoğraflar ve eldeki profil sayaçları gösterilir. İlk liste hazırlığı, gizli hesap açıklaması, ortak hesap karşılaştırması ve okuma tanısı eklendi. Android 0.1.86 fiziksel testinde mevcut oturumla profil ve iki liste okundu. Bekleyen web oturumunu bağlama adımı HTTP 429 aldı. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

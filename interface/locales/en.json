@@ -1284,6 +1284,6 @@
   "Instagram ZIP dosyasını seç": "Choose Instagram ZIP file",
   "Instagram ZIP yükle": "Open Instagram ZIP",
   "Instagram ZIP arşivi": "Instagram ZIP archive",
-  "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "Could not read the Instagram ZIP. Export followers and following in JSON format.",
+  "Instagram ZIP okunamadı. Dosyada HTML veya JSON biçiminde takipçi ya da takip edilen listesi bulunmalı.": "Could not read the Instagram ZIP. It must contain an HTML or JSON followers or following list.",
   "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "Accounts in the archive are compared by username. Results depend on the scope of the export."
 }

@@ -807,7 +807,7 @@
     if (selected?.cancelled) return;
     if (!selected?.ok || !selected.instagramArchive) {
       if (selected?.error?.code === "busy") return errorDialog(selected.error);
-      return errorDialog(t("Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar."));
+      return errorDialog(t("Instagram ZIP okunamadı. Dosyada HTML veya JSON biçiminde takipçi ya da takip edilen listesi bulunmalı."));
     }
     const archive = selected.instagramArchive;
     const choices = [];

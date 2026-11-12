@@ -3,7 +3,7 @@
     <string name="instagram_archive_title">Arquivo ZIP do Instagram</string>
     <string name="instagram_archive_open">Abrir ZIP do Instagram</string>
     <string name="instagram_archive_scope">As contas do arquivo são comparadas pelo nome de usuário. O resultado depende do escopo da exportação.</string>
-    <string name="instagram_archive_error">Não foi possível ler o ZIP do Instagram. Exporte seguidores e perfis seguidos no formato JSON.</string>
+    <string name="instagram_archive_error">Não foi possível ler o ZIP do Instagram. O arquivo precisa conter uma lista de seguidores ou perfis seguidos em HTML ou JSON.</string>
     <string name="instagram_archive_loading">Lendo arquivo…</string>
     <string name="instagram_archive_search">Buscar na lista</string>
     <string name="instagram_archive_count">%1$d–%2$d de %3$d contas</string>
