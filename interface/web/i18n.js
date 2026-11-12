@@ -1292,7 +1292,7 @@
     "Instagram ZIP dosyasını seç": "Choose Instagram ZIP file",
     "Instagram ZIP yükle": "Open Instagram ZIP",
     "Instagram ZIP arşivi": "Instagram ZIP archive",
-    "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "Could not read the Instagram ZIP. Export followers and following in JSON format.",
+    "Instagram ZIP okunamadı. Dosyada HTML veya JSON biçiminde takipçi ya da takip edilen listesi bulunmalı.": "Could not read the Instagram ZIP. It must contain an HTML or JSON followers or following list.",
     "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "Accounts in the archive are compared by username. Results depend on the scope of the export."
   },
   "es": {
@@ -2581,7 +2581,7 @@
     "Instagram ZIP dosyasını seç": "Elige el ZIP de Instagram",
     "Instagram ZIP yükle": "Abrir ZIP de Instagram",
     "Instagram ZIP arşivi": "Archivo ZIP de Instagram",
-    "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "No se pudo leer el ZIP de Instagram. Exporta seguidores y seguidos en formato JSON.",
+    "Instagram ZIP okunamadı. Dosyada HTML veya JSON biçiminde takipçi ya da takip edilen listesi bulunmalı.": "No se pudo leer el ZIP de Instagram. Debe contener una lista de seguidores o seguidos en HTML o JSON.",
     "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "Las cuentas del archivo se comparan por nombre de usuario. El resultado depende del alcance de la exportación."
   },
   "pt-BR": {
@@ -3870,7 +3870,7 @@
     "Instagram ZIP dosyasını seç": "Escolha o arquivo ZIP do Instagram",
     "Instagram ZIP yükle": "Abrir ZIP do Instagram",
     "Instagram ZIP arşivi": "Arquivo ZIP do Instagram",
-    "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "Não foi possível ler o ZIP do Instagram. Exporte seguidores e perfis seguidos no formato JSON.",
+    "Instagram ZIP okunamadı. Dosyada HTML veya JSON biçiminde takipçi ya da takip edilen listesi bulunmalı.": "Não foi possível ler o ZIP do Instagram. O arquivo precisa conter uma lista de seguidores ou perfis seguidos em HTML ou JSON.",
     "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "As contas do arquivo são comparadas pelo nome de usuário. O resultado depende do escopo da exportação."
   }
 };

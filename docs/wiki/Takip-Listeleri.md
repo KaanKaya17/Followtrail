@@ -4,7 +4,7 @@
 
 ## Instagram ZIP arşivi
 
-Instagram Hesaplar Merkezi’nde **Bilgilerin ve izinlerin → Bilgilerini dışa aktar** bölümünden Instagram hesabını seçin. Veri seçimi ekranında **Takipçiler ve takip edilenler**, biçim olarak **JSON**, tarih aralığı olarak **Tüm zamanlar** seçin. Dosya hazır olduğunda ZIP’i cihazınıza indirin. [Meta Hesaplar Merkezi](https://accountscenter.instagram.com/info_and_permissions/).
+Instagram Hesaplar Merkezi’nde **Bilgilerin ve izinlerin → Bilgilerini dışa aktar** bölümünden Instagram hesabını seçin. Veri seçimi ekranında **Takipçiler ve takip edilenler**, biçim olarak **HTML** veya **JSON**, tarih aralığı olarak **Tüm zamanlar** seçin. Dosya hazır olduğunda ZIP’i cihazınıza indirin. [Meta Hesaplar Merkezi](https://accountscenter.instagram.com/info_and_permissions/).
 
 - Windows’ta **Takip Listeleri → Instagram ZIP yükle** yolunu kullanın.
 - Android’de ana ekrandaki **⋯ → Instagram ZIP yükle** seçeneğini açıp ZIP’i seçin.

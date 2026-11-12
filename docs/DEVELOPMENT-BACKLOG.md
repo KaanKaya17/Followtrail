@@ -16,7 +16,7 @@ Windows 0.2.56 / Android 0.1.86: [profil yanıtı ve eşzamanlı görsel paylaş
 
 ## Resmî Instagram arşivi ve veri taşınabilirliği
 
-Windows 0.2.64 / Android 0.1.91, JSON biçimindeki resmî ZIP’te bulunan takipçi ve takip edilen listelerini yerel olarak açar. Her iki yön varsa aynı ZIP içindeki listeler kullanıcı adına göre karşılaştırılabilir. Ayrı arşivler arasındaki tarihsel karşılaştırma ve Meta Data Portability entegrasyonu açık. [Kullanım](wiki/Takip-Listeleri.md#instagram-zip-arşivi).
+Windows 0.2.65 / Android 0.1.92, HTML veya JSON biçimindeki resmî ZIP’te bulunan takipçi ve takip edilen listelerini yerel olarak açar. Her iki yön varsa aynı ZIP içindeki listeler kullanıcı adına göre karşılaştırılabilir. Ayrı arşivler arasındaki tarihsel karşılaştırma ve Meta Data Portability entegrasyonu açık. [Kullanım](wiki/Takip-Listeleri.md#instagram-zip-arşivi).
 
 ### 1 Kasım 2026 karar kaydı
 

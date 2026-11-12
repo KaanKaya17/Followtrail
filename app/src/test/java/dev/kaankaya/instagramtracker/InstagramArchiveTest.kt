@@ -37,6 +37,16 @@ class InstagramArchiveTest {
         assertEquals(1, folder.root.listFiles()?.size)
     }
 
+    @Test fun readsHtmlLinksOnlyInsideTheMainList() {
+        val lists = read(prefix + "following.html" to """
+            <html><body><header><a href="https://www.instagram.com/ignored/">Navigation</a></header>
+            <main><div><h2>Alice</h2><a href="https://www.instagram.com/_u/Alice">Link</a></div>
+            <div><a href="https://www.instagram.com/bob/">Link</a></div></main></body></html>
+        """.trimIndent())
+        assertNull(lists.followers)
+        assertEquals(listOf("alice", "bob"), lists.following)
+    }
+
     @Test fun distinguishesEmptyAndMissingAndRejectsMissingParts() {
         val lists = read(prefix + "followers_1.json" to "[]")
         assertEquals(emptyList<String>(), lists.followers)
