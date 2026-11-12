@@ -1,4 +1,4 @@
-"""Identify observed Instagram list requests in two local browser HAR captures."""
+"""Identify observed Instagram list requests in local HAR captures."""
 import argparse
 import base64
 import binascii
@@ -201,7 +201,12 @@ def observations(entries, direction):
 
 def inspect(first, following, direction):
     initial = list(observations(first, direction))
-    later = list(observations(following, direction))
+    combined = following is None
+    if combined:
+        later = [item for item in initial if item.sent]
+        initial = [item for item in initial if not item.sent]
+    else:
+        later = list(observations(following, direction))
     by_cursor = {}
     for item in later:
         for token in item.sent:
@@ -212,6 +217,8 @@ def inspect(first, following, direction):
         if item.sent or item.coverage != 'more' or not item.returned:
             continue
         for match in by_cursor.get((item.shape, item.returned), ()):
+            if combined and match.request['entry'] <= item.request['entry']:
+                continue
             if item.target is not None and match.target is not None and item.target != match.target:
                 continue
             match_count += 1
@@ -236,11 +243,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('direction', choices=('followers', 'following'))
     parser.add_argument('initial_har', type=Path)
-    parser.add_argument('next_har', type=Path)
+    parser.add_argument('next_har', type=Path, nargs='?', help='Omit when both pages are in the first HAR.')
     parser.add_argument('--previous', type=Path, nargs=2, metavar=('INITIAL_HAR', 'NEXT_HAR'))
     args = parser.parse_args()
     try:
-        current = inspect(har_entries(args.initial_har), har_entries(args.next_har), args.direction)
+        next_entries = har_entries(args.next_har) if args.next_har else None
+        current = inspect(har_entries(args.initial_har), next_entries, args.direction)
         report = {'direction': args.direction, 'current': current}
         if args.previous:
             previous = inspect(har_entries(args.previous[0]), har_entries(args.previous[1]), args.direction)
