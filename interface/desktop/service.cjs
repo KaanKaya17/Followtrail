@@ -119,7 +119,7 @@ class Backend {
       this.pending.delete(message.id);
       resolve?.(message);
     }
-    const { storyMedia, ...event } = message;
+    const { storyMedia, instagramArchive, ...event } = message;
     this.onEvent(event);
   }
   async command(operation, args) {

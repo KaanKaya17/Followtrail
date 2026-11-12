@@ -802,6 +802,72 @@
     paintListPage();
     listPager.mount(document.getElementById('list-pagination'),windowVisible);
   }
+  async function openInstagramArchive() {
+    const selected = await api.file("import_instagram_zip").catch(() => null);
+    if (selected?.cancelled) return;
+    if (!selected?.ok || !selected.instagramArchive) {
+      if (selected?.error?.code === "busy") return errorDialog(selected.error);
+      return errorDialog(t("Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar."));
+    }
+    const archive = selected.instagramArchive;
+    const choices = [];
+    if (archive.followers) choices.push([t("Takipçiler"), archive.followers]);
+    if (archive.following) choices.push([t("Takip edilen"), archive.following]);
+    if (archive.followers && archive.following) {
+      const followers = new Set(archive.followers);
+      const following = new Set(archive.following);
+      choices.push(
+        [t("Seni geri takip etmeyenler"), archive.following.filter(name => !followers.has(name))],
+        [t("Senin geri takip etmediklerin"), archive.followers.filter(name => !following.has(name))],
+        [t("İki listede de var"), archive.followers.filter(name => following.has(name))],
+      );
+    }
+    dialog(`<h2 id="dialog-title">${t("Instagram ZIP arşivi")}</h2>
+      <p>${esc(archive.fileName)}</p>
+      <p>${t("Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.")}</p>
+      <label class="form-label" for="instagram-archive-filter">${t("Liste")}</label>
+      <select id="instagram-archive-filter">${choices.map(([label, names], index) =>
+        `<option value="${index}">${esc(label)} · ${num(names.length)}</option>`).join("")}</select>
+      <label class="form-label" for="instagram-archive-search">${t("Listede ara")}</label>
+      <input id="instagram-archive-search" type="search" maxlength="30">
+      <p id="instagram-archive-count" role="status"></p>
+      <ul id="instagram-archive-rows"></ul>
+      <div class="dialog-buttons"><button class="button secondary" id="instagram-archive-more">${t("Daha fazla göster")}</button></div>`, true);
+    const modal = document.querySelector("#overlay-root dialog");
+    const filter = modal.querySelector("#instagram-archive-filter");
+    const search = modal.querySelector("#instagram-archive-search");
+    const list = modal.querySelector("#instagram-archive-rows");
+    const more = modal.querySelector("#instagram-archive-more");
+    const count = modal.querySelector("#instagram-archive-count");
+    let matches = [], shown = 0;
+    function nextPage() {
+      const batch = matches.slice(shown, shown + 100);
+      list.append(...batch.map(name => {
+        const row = document.createElement("li");
+        row.textContent = "@" + name;
+        return row;
+      }));
+      shown += batch.length;
+      more.hidden = shown >= matches.length;
+      count.textContent = t("{0} / {1} hesap gösteriliyor", num(shown), num(matches.length));
+    }
+    function selectRows() {
+      const query = search.value.trim().replace(/^@/, "").toLowerCase();
+      matches = choices[Number(filter.value)][1].filter(name => name.includes(query));
+      shown = 0;
+      list.replaceChildren();
+      nextPage();
+    }
+    filter.addEventListener("change", selectRows);
+    search.addEventListener("input", selectRows);
+    more.addEventListener("click", nextPage);
+    modal.addEventListener("close", () => {
+      matches = [];
+      choices.length = 0;
+      list.replaceChildren();
+    }, {once: true});
+    selectRows();
+  }
   function lists() {
     const owner = ui.owner || data.account?.id || "",
       ownerProfile = person(owner),
@@ -843,6 +909,7 @@
         .join("");
     return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", common ? "" : button(record.canResume ? t("Taramaya devam et") : current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
 
+      <div class="settings-buttons">${button(t("Instagram ZIP yükle"), "instagram-archive", "note")}</div>
       <section class="list-account card"><div class="list-owner-identity">${avatar(ownerProfile)}<div class="list-owner-details"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${owners
         .map(
           (p) =>
@@ -1645,6 +1712,9 @@
           { [value]: !data.settings[value] },
           t("Ayar kaydedildi."),
         );
+        break;
+      case "instagram-archive":
+        await openInstagramArchive();
         break;
       case "export-backup":
         await file("export_backup");

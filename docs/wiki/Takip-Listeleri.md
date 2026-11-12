@@ -2,6 +2,17 @@
 
 [Kılavuz ana sayfası](Home.md) · [Otomatik kontrol](Otomatik-Kontrol-ve-Bildirimler.md)
 
+## Instagram ZIP arşivi
+
+Instagram Hesaplar Merkezi’nde **Bilgilerin ve izinlerin → Bilgilerini dışa aktar** bölümünden Instagram hesabını seçin. Veri seçimi ekranında **Takipçiler ve takip edilenler**, biçim olarak **JSON**, tarih aralığı olarak **Tüm zamanlar** seçin. Dosya hazır olduğunda ZIP’i cihazınıza indirin. [Meta Hesaplar Merkezi](https://accountscenter.instagram.com/info_and_permissions/).
+
+- Windows’ta **Takip Listeleri → Instagram ZIP yükle** yolunu kullanın.
+- Android’de ana ekrandaki **⋯ → Instagram ZIP yükle** seçeneğini açıp ZIP’i seçin.
+
+Arşivdeki listelerde arama yapabilirsiniz. İki yön de varsa karşılıklı takipleri, sizi geri takip etmeyenleri ve sizin geri takip etmediklerinizi görebilirsiniz. Eşleşme arşivdeki kullanıcı adlarına göre yapılır. Sonuç, dosyayı oluştururken seçtiğiniz veri ve tarih aralığına bağlıdır.
+
+Listeler ekran kapanana kadar bellekte gösterilir. Arşivdeki adlar canlı tarama geçmişine eklenmez. Bu işlem için Tracker’da Instagram oturumu gerekmez.
+
 ## Listeyi seçmek
 
 **Takip Listeleri** ekranında önce liste sahibini, ardından **Takipçiler** veya **Takip edilen** yönünü seçin. Kendi hesabınızın ve erişebildiğiniz kaydedilmiş profillerin kayıtlarını ayrı ayrı değerlendirin.

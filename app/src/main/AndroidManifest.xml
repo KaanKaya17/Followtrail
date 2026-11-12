@@ -13,6 +13,7 @@
         <activity android:name=".PhoneLoginActivity" android:exported="false" android:launchMode="singleTop" />
         <activity android:name=".DesktopLinkActivity" android:exported="false" android:launchMode="singleTop" />
         <activity android:name=".WebPendingConnectionActivity" android:exported="false" />
+        <activity android:name=".InstagramArchiveActivity" android:exported="false" />
         <activity android:name=".FollowListActivity" android:exported="false" />
         <activity android:name=".MemberProfileActivity" android:exported="false" />
         <activity android:name=".TimelineActivity" android:exported="false" />

@@ -328,6 +328,7 @@ else
         ![
           "export_backup",
           "import_backup",
+          "import_instagram_zip",
           "export_list",
           "open_storage",
         ].includes(action)
@@ -345,6 +346,15 @@ else
         await fs.mkdir(dataDir, { recursive: true });
         await shell.openPath(dataDir);
         return { ok: true };
+      }
+      if (action === "import_instagram_zip") {
+        const selection = await dialog.showOpenDialog(window, {
+          title: t("Instagram ZIP dosyasını seç"),
+          properties: ["openFile"],
+          filters: [{ name: "Instagram ZIP", extensions: ["zip"] }],
+        });
+        if (selection.canceled) return { ok: true, cancelled: true };
+        return backend.command(action, { path: selection.filePaths[0] });
       }
       if (action === "import_backup") {
         const selection = await dialog.showOpenDialog(window, {

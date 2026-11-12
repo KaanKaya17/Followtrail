@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.64 / Android 0.1.91 — 2026-11-12
+
+- Instagram’dan JSON biçiminde alınan ZIP ile takipçi ve takip edilen listeleri açılabilir. Her iki liste varsa karşılıklı ve tek yönlü takipler kullanıcı adına göre karşılaştırılabilir.
+- Arşiv görünümü cihazda çalışır ve Instagram hesabı bağlamayı gerektirmez. Arşivdeki listeler açık ekran için yüklenir.
+- 39 çevrimdışı Windows paket kontrolü, 3 Python arşiv testi ve 191 Android birim testi geçti. ZIP akışı örnek arşivlerle sınandı. Android dosya seçici gerçek cihazda denenmedi.
+
 ## Windows 0.2.63 / Android 0.1.90 — 2026-11-11
 
 - Profil ayrıntılarına Bu hesap hakkında bölümü eklendi. Instagram’daki profil açılabilir ve görünen katılım ayı/yılı, hesap ülkesi ile kullanıcı adı değişiklik sayısı isteğe bağlı olarak elle kaydedilebilir.

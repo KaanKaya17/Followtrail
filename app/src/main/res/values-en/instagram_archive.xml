@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="instagram_archive_title">Instagram ZIP archive</string>
+    <string name="instagram_archive_open">Open Instagram ZIP</string>
+    <string name="instagram_archive_scope">Accounts in the archive are compared by username. Results depend on the scope of the export.</string>
+    <string name="instagram_archive_error">Could not read the Instagram ZIP. Export followers and following in JSON format.</string>
+    <string name="instagram_archive_loading">Reading archive…</string>
+    <string name="instagram_archive_search">Search list</string>
+    <string name="instagram_archive_count">%1$d–%2$d of %3$d accounts</string>
+    <string name="instagram_archive_previous">Previous page</string>
+    <string name="instagram_archive_next">Next page</string>
+</resources>

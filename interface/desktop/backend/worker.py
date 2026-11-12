@@ -10,6 +10,7 @@ import uuid
 
 from accounts import Accounts
 import localization
+from instagram_archive import read_archive
 from network import AppFailure, failure
 from thumbnails import Thumbnails
 from history_pages import HistoryPages, preview_log
@@ -49,6 +50,10 @@ def main():
             if engine.active_id != original_owner:images.cancel(clear_cache=True)
             emit(message)
         try:
+            if request['operation'] == 'import_instagram_zip':
+                value = read_archive((request.get('args') or {}).get('path'))
+                emit({'type': 'result', 'id': request['id'], 'ok': True, 'instagramArchive': value})
+                return
             if request['operation'] == 'story_media':
                 # On-demand media is never part of a state snapshot or event.
                 asset = engine.story_media(request.get('args') or {})
@@ -59,6 +64,9 @@ def main():
             publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': history.publish(state),
                   'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})
         except Exception as exc:
+            if request['operation'] == 'import_instagram_zip':
+                emit({'type': 'result', 'id': request['id'], 'ok': False, 'error': failure(exc)})
+                return
             publish({'type': 'result', 'id': request['id'], 'ok': False,
                   'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': history.publish(engine.snapshot()),
                   'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})

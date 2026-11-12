@@ -82,6 +82,36 @@ try {
       assert.equal(await page.evaluate(async url=>{try{await window.TrackerDesktop.openLink(url);return false;}catch{return true;}},url),true);
     }
   });
+  await check('Instagram ZIP opens saved relationships without touching the active account', async () => {
+    const archivePath = path.join(home, 'test-instagram-export.zip');
+    execFileSync(python, ['-c', [
+      'import json, sys, zipfile',
+      'folder = "connections/followers_and_following/"',
+      'def user(name): return {"string_list_data": [{"value": name}]}',
+      'with zipfile.ZipFile(sys.argv[1], "w") as archive:',
+      '    archive.writestr(folder + "followers_1.json", json.dumps([user("common"), user("follower_only")]))',
+      '    archive.writestr(folder + "following.json", json.dumps({"relationships_following": [user("common"), user("following_only")]}))',
+    ].join('\n'), archivePath]);
+    const before = await page.evaluate(() => window.TrackerDesktop.command('state'));
+    await desktop.evaluate(({dialog}, archivePath) => {
+      const open = dialog.showOpenDialog;
+      dialog.showOpenDialog = (...args) => {
+        dialog.showOpenDialog = open;
+        return Promise.resolve({canceled: false, filePaths: [archivePath]});
+      };
+    }, archivePath);
+    await page.locator('.sidebar nav a[href="#lists"]').click();
+    await page.getByRole('button', {name: 'Instagram ZIP yükle'}).click();
+    await page.getByRole('heading', {name: 'Instagram ZIP arşivi'}).waitFor();
+    await page.locator('#instagram-archive-filter').selectOption({label: 'Seni geri takip etmeyenler · 1'});
+    assert.deepEqual(await page.locator('#instagram-archive-rows li').allTextContents(), ['@following_only']);
+    await page.locator('#instagram-archive-search').fill('missing');
+    assert.equal(await page.locator('#instagram-archive-rows li').count(), 0);
+    await page.getByRole('dialog').getByRole('button', {name: 'Kapat'}).click();
+    const after = await page.evaluate(() => window.TrackerDesktop.command('state'));
+    assert.deepEqual(after.state.gate, before.state.gate);
+    assert.deepEqual(after.state.lists, before.state.lists);
+  });
   await check('Account transparency entries save and clear locally without a profile request',async()=>{
     await page.locator('.sidebar nav a[href="#people"]').click();
     await page.locator('.person-title[data-id="200"]').click();
