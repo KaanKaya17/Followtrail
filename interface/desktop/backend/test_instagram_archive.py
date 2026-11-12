@@ -1,0 +1,49 @@
+import json
+import tempfile
+import unittest
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
+
+from instagram_archive import read_archive
+from network import AppFailure
+
+FOLDER = 'connections/followers_and_following/'
+
+
+class InstagramArchiveTests(unittest.TestCase):
+    def open_zip(self, entries):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'instagram-export.zip'
+            with ZipFile(path, 'w', compression=ZIP_DEFLATED) as archive:
+                for name, content in entries.items():
+                    archive.writestr(name, content if isinstance(content, str) else json.dumps(content))
+            return read_archive(path)
+
+    def test_reads_split_lists_and_ignores_unrelated_entries(self):
+        found = self.open_zip({
+            FOLDER + 'followers_1.json': [{'string_list_data': [{'value': 'Alice'}]}],
+            FOLDER + 'followers_2.json': [{'string_list_data': [{'value': 'alice'}]},
+                                           {'string_list_data': [{'value': 'carol'}]}],
+            FOLDER + 'following.json': {'relationships_following': [
+                {'title': 'alice', 'string_list_data': [{'href': 'https://www.instagram.com/_u/alice'}]},
+                {'string_list_data': [{'href': 'https://www.instagram.com/_u/bob'}]},
+            ]},
+            'messages/inbox/ignored.json': 'invalid JSON',
+        })
+        self.assertEqual(found, {'fileName': 'instagram-export.zip', 'followers': ['alice', 'carol'],
+                                 'following': ['alice', 'bob']})
+
+    def test_distinguishes_empty_list_from_missing_list(self):
+        found = self.open_zip({FOLDER + 'followers_1.json': []})
+        self.assertEqual(found['followers'], [])
+        self.assertIsNone(found['following'])
+
+    def test_rejects_gaps_cross_export_entries_and_conflicting_names(self):
+        for entries in (
+            {FOLDER + 'followers_2.json': []},
+            {FOLDER + 'followers_1.json': [], 'other/' + FOLDER + 'following.json': []},
+            {FOLDER + 'followers_1.json': [{'title': 'alice', 'string_list_data': [{'value': 'bob'}]}]},
+            {FOLDER + 'followers_1.html': '<html></html>'},
+        ):
+            with self.subTest(entries=entries), self.assertRaises(AppFailure):
+                self.open_zip(entries)

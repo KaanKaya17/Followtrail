@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="instagram_archive_title">Instagram ZIP arşivi</string>
+    <string name="instagram_archive_open">Instagram ZIP yükle</string>
+    <string name="instagram_archive_scope">Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.</string>
+    <string name="instagram_archive_error">Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.</string>
+    <string name="instagram_archive_loading">Arşiv okunuyor…</string>
+    <string name="instagram_archive_search">Listede ara</string>
+    <string name="instagram_archive_count">%1$d–%2$d / %3$d hesap</string>
+    <string name="instagram_archive_previous">Önceki sayfa</string>
+    <string name="instagram_archive_next">Sonraki sayfa</string>
+</resources>

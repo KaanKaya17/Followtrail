@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="instagram_archive_title">Archivo ZIP de Instagram</string>
+    <string name="instagram_archive_open">Abrir ZIP de Instagram</string>
+    <string name="instagram_archive_scope">Las cuentas del archivo se comparan por nombre de usuario. El resultado depende del alcance de la exportación.</string>
+    <string name="instagram_archive_error">No se pudo leer el ZIP de Instagram. Exporta seguidores y seguidos en formato JSON.</string>
+    <string name="instagram_archive_loading">Leyendo archivo…</string>
+    <string name="instagram_archive_search">Buscar en la lista</string>
+    <string name="instagram_archive_count">%1$d–%2$d de %3$d cuentas</string>
+    <string name="instagram_archive_previous">Página anterior</string>
+    <string name="instagram_archive_next">Página siguiente</string>
+</resources>

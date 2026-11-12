@@ -1288,7 +1288,12 @@
     "Hesap bilgilerini kaydet": "Save account information",
     "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Leave a field blank to remove it from the local record.",
     "Hesap bilgileri kaydedildi.": "Account information saved.",
-    "Hesap bilgilerini kontrol et.": "Check the account information."
+    "Hesap bilgilerini kontrol et.": "Check the account information.",
+    "Instagram ZIP dosyasını seç": "Choose Instagram ZIP file",
+    "Instagram ZIP yükle": "Open Instagram ZIP",
+    "Instagram ZIP arşivi": "Instagram ZIP archive",
+    "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "Could not read the Instagram ZIP. Export followers and following in JSON format.",
+    "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "Accounts in the archive are compared by username. Results depend on the scope of the export."
   },
   "es": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nombre, usuario o enlace del perfil",
@@ -2572,7 +2577,12 @@
     "Hesap bilgilerini kaydet": "Guardar información de la cuenta",
     "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Deja un campo vacío para eliminarlo del registro local.",
     "Hesap bilgileri kaydedildi.": "Se guardó la información de la cuenta.",
-    "Hesap bilgilerini kontrol et.": "Comprueba la información de la cuenta."
+    "Hesap bilgilerini kontrol et.": "Comprueba la información de la cuenta.",
+    "Instagram ZIP dosyasını seç": "Elige el ZIP de Instagram",
+    "Instagram ZIP yükle": "Abrir ZIP de Instagram",
+    "Instagram ZIP arşivi": "Archivo ZIP de Instagram",
+    "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "No se pudo leer el ZIP de Instagram. Exporta seguidores y seguidos en formato JSON.",
+    "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "Las cuentas del archivo se comparan por nombre de usuario. El resultado depende del alcance de la exportación."
   },
   "pt-BR": {
     "Ad, kullanıcı adı veya profil bağlantısı": "Nome, usuário ou link do perfil",
@@ -3856,7 +3866,12 @@
     "Hesap bilgilerini kaydet": "Salvar informações da conta",
     "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Deixe um campo em branco para removê-lo do registro local.",
     "Hesap bilgileri kaydedildi.": "Informações da conta salvas.",
-    "Hesap bilgilerini kontrol et.": "Confira as informações da conta."
+    "Hesap bilgilerini kontrol et.": "Confira as informações da conta.",
+    "Instagram ZIP dosyasını seç": "Escolha o arquivo ZIP do Instagram",
+    "Instagram ZIP yükle": "Abrir ZIP do Instagram",
+    "Instagram ZIP arşivi": "Arquivo ZIP do Instagram",
+    "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "Não foi possível ler o ZIP do Instagram. Exporte seguidores e perfis seguidos no formato JSON.",
+    "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "As contas do arquivo são comparadas pelo nome de usuário. O resultado depende do escopo da exportação."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

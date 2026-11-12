@@ -1280,5 +1280,10 @@
   "Hesap bilgilerini kaydet": "Save account information",
   "Bir alanı boş bırakarak yerel kayıttan kaldırabilirsin.": "Leave a field blank to remove it from the local record.",
   "Hesap bilgileri kaydedildi.": "Account information saved.",
-  "Hesap bilgilerini kontrol et.": "Check the account information."
+  "Hesap bilgilerini kontrol et.": "Check the account information.",
+  "Instagram ZIP dosyasını seç": "Choose Instagram ZIP file",
+  "Instagram ZIP yükle": "Open Instagram ZIP",
+  "Instagram ZIP arşivi": "Instagram ZIP archive",
+  "Instagram ZIP okunamadı. Takipçi ve takip edilenleri JSON biçiminde dışa aktar.": "Could not read the Instagram ZIP. Export followers and following in JSON format.",
+  "Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.": "Accounts in the archive are compared by username. Results depend on the scope of the export."
 }
