@@ -31,7 +31,9 @@ Araç çevrimdışı çalışır ve yalnız JSON raporu üretir. Raporda çerez,
 
 11 Kasım 2026 tarihli Chrome kaydında takip edilenlerin ilk iki isteği aynı hedef ve devam belirteciyle eşleşti. İki istekte de `GET https://www.instagram.com/api/v1/friendships/{id}/following/` görüldü ve her yanıtta 12 satır ile devam bilgisi vardı. İlk yanıt HAR içinde Base64 kodluydu. Analiz hem Base64 hem düz JSON gövdelerini destekler.
 
-Yedi sentetik HAR testi yeni alt alan adı ve yol, GraphQL sorgu kimliği, yanlış hedef, belirsiz eşleşme, kısıtlı liste, gövde kodlaması ve tek dosyada sayfa sırasını kapsar. Canlı gözlem takip edilenlerin ilk iki web sayfasını kapsar. Takipçiler ve Android kaydı ayrı doğrulanacak.
+12 Kasım 2026 tarihli tek Chrome kaydında takipçilerin ilk iki isteği aynı hedef ve devam belirteciyle eşleşti. Kayıttaki 4. ve 10. istekler `GET https://www.instagram.com/api/v1/friendships/{id}/followers/` yolunu kullandı. Her yanıt 12 satır ve devam bilgisi içerdi. Bu gözlem takipçi listesinin ilk iki sayfasını kapsar.
+
+Yedi sentetik HAR testi yeni alt alan adı ve yol, GraphQL sorgu kimliği, yanlış hedef, belirsiz eşleşme, kısıtlı liste, gövde kodlaması ve tek dosyada sayfa sırasını kapsar. Chrome'da iki liste yönü doğrulandı. Android'in canlı ağ kaydı bekleniyor.
 
 ```sh
 python -m unittest discover -s scripts -p test_discover_list_hosts.py -v
