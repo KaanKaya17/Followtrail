@@ -5,8 +5,8 @@
 ## Test kaydını alma
 
 1. Bir test hesabıyla Instagram web'de oturum açın. Test profilini açın ve DevTools'ta **Network** kaydını temizleyin.
-2. Yalnız bir liste yönünü açın. İlk sayfa yüklendiğinde **Export HAR (sanitized)** ile `ilk.har` kaydedin.
-3. Liste açıkken Network kaydını temizleyin. Bir sonraki sayfa yüklenene kadar aşağı kaydırın ve ikinci kaydı `sonraki.har` olarak dışa aktarın. Diğer yön için aynı adımları ayrı dosyalarla yapın.
+2. Yalnız bir liste yönünü açın. İlk sayfayı ve aşağı kaydırarak sonraki sayfayı aynı Network kaydında tutun. Ardından **Export HAR (sanitized)** ile tek dosya kaydedin. Diğer yön için aynı adımları ayrı bir kayıtta yapın.
+3. Daha önce iki ayrı dosya aldıysanız bunları da kullanabilirsiniz. İlk sayfanın kaydını önce, sonraki sayfanın kaydını ikinci sırada verin.
 
 Chrome'un temizlenmiş HAR seçeneği çerez ve yetkilendirme başlıklarını çıkarır. Form, sorgu ve yanıt gövdelerinde hesap verileri kalabileceğinden HAR dosyalarını yerelde tutun. [Chrome HAR dışa aktarma kılavuzu](https://developer.chrome.com/docs/devtools/network/reference/#save-all-network-requests-to-a-har-file)
 
@@ -15,6 +15,7 @@ Chrome'un temizlenmiş HAR seçeneği çerez ve yetkilendirme başlıklarını �
 Python 3.11+ ile depo kökünden çalıştırın:
 
 ```sh
+python scripts/discover-list-hosts.py followers takipciler.har
 python scripts/discover-list-hosts.py followers ilk.har sonraki.har
 python scripts/discover-list-hosts.py following ilk.har sonraki.har --previous eski-ilk.har eski-sonraki.har
 ```
@@ -30,7 +31,7 @@ Araç çevrimdışı çalışır ve yalnız JSON raporu üretir. Raporda çerez,
 
 11 Kasım 2026 tarihli Chrome kaydında takip edilenlerin ilk iki isteği aynı hedef ve devam belirteciyle eşleşti. İki istekte de `GET https://www.instagram.com/api/v1/friendships/{id}/following/` görüldü ve her yanıtta 12 satır ile devam bilgisi vardı. İlk yanıt HAR içinde Base64 kodluydu. Analiz hem Base64 hem düz JSON gövdelerini destekler.
 
-Altı sentetik HAR testi yeni alt alan adı ve yol, GraphQL sorgu kimliği, yanlış hedef, belirsiz eşleşme, kısıtlı liste ve gövde kodlamasını kapsar. Canlı gözlem takip edilenlerin ilk iki web sayfasını kapsar. Takipçiler ve Android kaydı ayrı doğrulanacak.
+Yedi sentetik HAR testi yeni alt alan adı ve yol, GraphQL sorgu kimliği, yanlış hedef, belirsiz eşleşme, kısıtlı liste, gövde kodlaması ve tek dosyada sayfa sırasını kapsar. Canlı gözlem takip edilenlerin ilk iki web sayfasını kapsar. Takipçiler ve Android kaydı ayrı doğrulanacak.
 
 ```sh
 python -m unittest discover -s scripts -p test_discover_list_hosts.py -v

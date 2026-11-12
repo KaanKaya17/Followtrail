@@ -44,14 +44,16 @@ def graphql(doc, *, next_page=False, operation='edge_following'):
 
 
 class DiscoveryTests(unittest.TestCase):
-    def run_capture(self, direction, first, following, previous=None):
+    def run_capture(self, direction, first, following=None, previous=None):
         with tempfile.TemporaryDirectory() as directory:
             def archive(name, entries):
                 path = Path(directory) / f'{name}.har'
                 path.write_text(json.dumps({'log': {'entries': entries}}), encoding='utf-8')
                 return str(path)
 
-            args = [sys.executable, str(SCRIPT), direction, archive('initial', first), archive('next', following)]
+            args = [sys.executable, str(SCRIPT), direction, archive('initial', first)]
+            if following is not None:
+                args.append(archive('next', following))
             if previous:
                 args += ['--previous', archive('old-initial', previous[0]), archive('old-next', previous[1])]
             result = subprocess.run(args, capture_output=True, text=True, check=True)
@@ -113,6 +115,15 @@ class DiscoveryTests(unittest.TestCase):
         found = self.run_capture('followers', [first], [limited])['current']
         self.assertEqual(found['pairs'][0]['next']['coverage_signal'], 'limited')
         self.assertEqual(self.run_capture('followers', [first], [])['current']['status'], 'insufficient')
+
+    def test_combined_capture_pairs_only_later_requests(self):
+        first = mobile('edge.instagram.com')
+        page = mobile('edge.instagram.com', next_page=True)
+        report = self.run_capture('followers', [page, first, page])['current']
+        self.assertEqual(report['status'], 'observed')
+        self.assertEqual(report['pairs'][0]['initial']['entry'], 2)
+        self.assertEqual(report['pairs'][0]['next']['entry'], 3)
+        self.assertEqual(self.run_capture('followers', [page, first])['current']['status'], 'insufficient')
 
     def test_multiple_matching_requests_are_reported_as_ambiguous(self):
         host = 'edge.instagram.com'
