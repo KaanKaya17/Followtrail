@@ -9,4 +9,17 @@
     <string name="instagram_archive_count">%1$d–%2$d de %3$d contas</string>
     <string name="instagram_archive_previous">Página anterior</string>
     <string name="instagram_archive_next">Próxima página</string>
+    <string name="instagram_archive_sort_label">Ordenar por</string>
+    <string name="instagram_archive_sort_name">Nome de usuário</string>
+    <string name="instagram_archive_sort_newest">Data mais recente</string>
+    <string name="instagram_archive_sort_oldest">Data mais antiga</string>
+    <string name="instagram_archive_from">Data inicial</string>
+    <string name="instagram_archive_to">Data final</string>
+    <string name="instagram_archive_followed_you">Começou a seguir você</string>
+    <string name="instagram_archive_you_followed">Você começou a seguir</string>
+    <string name="instagram_archive_invalid_range">A data final não pode ser anterior à data inicial.</string>
+    <string name="instagram_archive_undated">Esta lista não tem datas de seguimento.</string>
+    <string name="instagram_archive_mutual_range">A ordenação e o intervalo usam a data em que cada conta começou a seguir você.</string>
+    <string name="instagram_archive_clear_date">Limpar data</string>
+    <string name="instagram_archive_sort">Ordenar por · %1$s</string>
 </resources>

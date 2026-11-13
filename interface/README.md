@@ -1,6 +1,6 @@
 # Tracker — ortak web ve masaüstü arayüzü
 
-**Güncel Windows uygulaması 0.2.65:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.65/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
+**Güncel Windows uygulaması 0.2.73:** gerçek hesap işlemleri ve şifreli yerel kayıt için `../artifacts/InstagramTracker-Desktop-0.2.73/InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
 
 Ayarlar → Tema: Sistem / Açık tema / Koyu / OLED siyahı. Varsayılan Sistem canlı sistem değişimini izler; açık seçimler bu tarayıcıda saklanır. Aynı ortak palet Windows 0.2.11 ve Android 0.1.32’de de kullanılır.
 

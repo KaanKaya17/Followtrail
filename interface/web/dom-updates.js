@@ -1,7 +1,7 @@
 /* Keep unchanged DOM nodes, focus and controller-owned content during state updates. */
 (function(root) {
   'use strict';
-  const owned=new Set(['list-rows','list-pagination','daily-chart-root','overview-operation','notifications-operation']);
+  const owned=new Set(['list-rows','list-pagination','daily-chart-root','overview-operation','notifications-operation','archive-dashboard-root']);
   const key=node=>node.nodeType!==1?'':node.id?'id:'+node.id:node.hasAttribute('data-id')?
     [node.tagName,node.dataset.action,node.dataset.id,node.dataset.value].join(':'):
     node.hasAttribute('data-day')?'day:'+node.dataset.day:'';

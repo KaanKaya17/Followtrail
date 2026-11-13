@@ -46,7 +46,7 @@ async function launch(language = 'tr') {
   page.setDefaultTimeout(12000);
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("request", (r) => {
-    if (!r.url().startsWith("file:") && !r.url().startsWith("data:"))
+    if (!r.url().startsWith("file:") && !r.url().startsWith("data:") && !r.url().startsWith("blob:file:"))
       requests.push(r.url());
   });
   await page.getByRole("heading", { name: language === 'en' ? 'What is happening in your circle?' : "Çevrende neler oluyor?" }).waitFor();
@@ -87,10 +87,10 @@ try {
     execFileSync(python, ['-c', [
       'import json, sys, zipfile',
       'folder = "connections/followers_and_following/"',
-      'def user(name): return {"string_list_data": [{"value": name}]}',
+      'def user(name, timestamp): return {"string_list_data": [{"value": name, "timestamp": timestamp}]}',
       'with zipfile.ZipFile(sys.argv[1], "w") as archive:',
-      '    archive.writestr(folder + "followers_1.json", json.dumps([user("common"), user("follower_only")]))',
-      '    archive.writestr(folder + "following.json", json.dumps({"relationships_following": [user("common"), user("following_only")]}))',
+      '    archive.writestr(folder + "followers_1.json", json.dumps([user("common", 1707048000), user("follower_only", None)]))',
+      '    archive.writestr(folder + "following.json", json.dumps({"relationships_following": [user("common", 1707048000), user("following_only", 1710000000)]}))',
     ].join('\n'), archivePath]);
     const before = await page.evaluate(() => window.TrackerDesktop.command('state'));
     await desktop.evaluate(({dialog}, archivePath) => {
@@ -101,16 +101,149 @@ try {
       };
     }, archivePath);
     await page.locator('.sidebar nav a[href="#lists"]').click();
-    await page.getByRole('button', {name: 'Instagram ZIP yükle'}).click();
+    assert.equal(await page.getByRole('button', {name: 'Instagram ZIP yükle'}).count(), 0);
+    await page.locator('.sidebar nav a[href="#archive"]').click();
+    await page.getByRole('button', {name: 'ZIP takip karşılaştırması'}).click();
     await page.getByRole('heading', {name: 'Instagram ZIP arşivi'}).waitFor();
     await page.locator('#instagram-archive-filter').selectOption({label: 'Seni geri takip etmeyenler · 1'});
-    assert.deepEqual(await page.locator('#instagram-archive-rows li').allTextContents(), ['@following_only']);
+    const rows = page.locator('#instagram-archive-rows li');
+    assert.equal(await rows.count(), 1);
+    assert.match(await rows.first().textContent(), /^@following_onlyTakip etmeye başladın/);
     await page.locator('#instagram-archive-search').fill('missing');
     assert.equal(await page.locator('#instagram-archive-rows li').count(), 0);
+    await page.locator('#instagram-archive-search').fill('');
+    await page.locator('#instagram-archive-filter').selectOption({label: 'Takip edilen · 2'});
+    await page.locator('#instagram-archive-sort').selectOption('newest');
+    assert.match(await rows.first().textContent(), /^@following_only/);
+    const date = await page.evaluate(() => {
+      const local = new Date(1707048000 * 1000);
+      return [local.getFullYear(), String(local.getMonth() + 1).padStart(2, '0'), String(local.getDate()).padStart(2, '0')].join('-');
+    });
+    await page.locator('#instagram-archive-from').fill(date);
+    await page.locator('#instagram-archive-to').fill(date);
+    assert.equal(await rows.count(), 1);
+    assert.match(await rows.first().textContent(), /^@common/);
     await page.getByRole('dialog').getByRole('button', {name: 'Kapat'}).click();
     const after = await page.evaluate(() => window.TrackerDesktop.command('state'));
     assert.deepEqual(after.state.gate, before.state.gate);
     assert.deepEqual(after.state.lists, before.state.lists);
+  });
+  await check('Full Instagram archive summarizes, searches and compares locally without publishing contents to renderer events', async () => {
+    const archivePath = path.join(home, 'test-full-export.zip');
+    const comparisonPath = path.join(home, 'test-new-export.zip');
+    execFileSync(python, ['-c', [
+      'import base64, json, sys, zipfile',
+      'with zipfile.ZipFile(sys.argv[1], "w") as archive:',
+      '    archive.writestr("connections/example.json", json.dumps({"records": [{"name": "<b>example</b>"}, {"name": "archive-test-private-value"}]}))',
+      '    archive.writestr("connections/followers_and_following/followers_1.json", json.dumps([{"string_list_data":[{"value":"archive_old","timestamp":1704103200}]},{"string_list_data":[{"value":"archive_new","timestamp":1704276000}]}]))',
+      '    archive.writestr("connections/contacts/synced_contacts.json", json.dumps({"contacts_contact_info": [{"string_map_data": {"First Name": {"value": "Işıl".encode().decode("latin1")}}}]}))',
+      '    archive.writestr("your_instagram_activity/messages/inbox/example/message_1.json", json.dumps({"messages": [{"content": "sample message"}], "title": "sample conversation"}))',
+      '    archive.writestr("your_instagram_activity/messages/inbox/example/message_2.json", json.dumps({"messages": [{"content": "older message"}], "title": "sample conversation"}))',
+      '    archive.writestr("your_instagram_activity/likes/liked_posts.json", json.dumps([{"title":"example post","timestamp":1704103200,"label_values":[{"label":"URL","value":"https://www.instagram.com/p/example/"}]}]))',
+      '    archive.writestr("personal_information/personal_information/profile_changes.json", json.dumps([{"timestamp":1704103200,"string_map_data":{"Changed":{"value":"Bio"},"Previous value":{"value":"old line"},"New value":{"value":"new line"}}}]))',
+      '    archive.writestr("logged_information/past_instagram_insights/audience_insights.json", json.dumps([{"timestamp":1704103200,"Followers":10},{"timestamp":1704276000,"Followers":12}]))',
+      '    archive.writestr("media/picture.png", base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/gNUAAAAASUVORK5CYII="))',
+      '    archive.writestr("connections/search_boundary.json", json.dumps([{"name": "search_boundary_" + str(i)} for i in range(27)]))',
+      'with zipfile.ZipFile(sys.argv[2], "w") as archive:',
+      '    archive.writestr("connections/followers_and_following/followers_1.json", json.dumps([{"string_list_data":[{"value": name}]} for name in ("archive_new", "archive_added")]))',
+    ].join('\n'), archivePath, comparisonPath]);
+    await desktop.evaluate(({dialog}, archivePath) => {
+      const open = dialog.showOpenDialog;
+      dialog.showOpenDialog = () => {
+        dialog.showOpenDialog = open;
+        return Promise.resolve({canceled:false,filePaths:[archivePath]});
+      };
+    }, archivePath);
+    const events = [];
+    await page.exposeFunction("collectExportEvent", value => events.push(value));
+    await page.evaluate(() => window.TrackerDesktop.subscribe(event => {
+      if (event.archiveBrowser) window.collectExportEvent(event.archiveBrowser);
+    }));
+    await page.locator('.sidebar nav a[href="#archive"]').click();
+    const guide = page.locator('.archive-dashboard-guide');
+    assert.equal(await guide.evaluate(element => element.open), true);
+    assert.match(await guide.innerText(), /JSON.*Tüm zamanlar/);
+    assert.equal(await guide.getByRole('link', {name:'Hesaplar Merkezi’ni aç'}).getAttribute('href'),
+      'https://accountscenter.instagram.com/info_and_permissions/');
+    await page.getByRole('button', {name:'Instagram ZIP yükle'}).click();
+    const dashboard = page.locator('#archive-dashboard-root');
+    await dashboard.getByRole('link', {name:'@archive_new'}).waitFor();
+    const overview = dashboard.locator('.archive-dashboard-overview');
+    assert.match(await overview.getByRole('button', {name:/Takipçiler/}).innerText(), /2/);
+    assert.equal(await overview.getByRole('button', {name:/Takip edilen/}).count(), 0);
+    await overview.getByRole('button', {name:/Profil değişiklikleri/}).click();
+    await dashboard.locator('.archive-dashboard-rows ins').waitFor();
+    await overview.getByRole('button', {name:/Takipçiler/}).click();
+    await dashboard.getByRole('link', {name:'@archive_new'}).waitFor();
+    assert.equal(await guide.evaluate(element => element.open), false);
+    await guide.locator('summary').click();
+    assert.equal(await guide.evaluate(element => element.open), true);
+    assert.equal(await dashboard.getByRole('link', {name:'@archive_new'}).getAttribute('href'), 'https://www.instagram.com/archive_new/');
+    await dashboard.getByLabel('Bitiş tarihi').fill('2024-01-02');
+    await dashboard.getByRole('link', {name:'@archive_new'}).waitFor({state:'detached'});
+    await dashboard.getByRole('link', {name:'@archive_old'}).waitFor();
+    await dashboard.getByRole('button', {name:/Etkinliklerin/}).click();
+    assert.equal(await dashboard.getByRole('link', {name:'Bağlantıyı aç'}).getAttribute('href'), 'https://www.instagram.com/p/example/');
+    await dashboard.getByRole('button', {name:/Profil geçmişi/}).click();
+    assert.match(await dashboard.locator('.archive-dashboard-rows ins').textContent(), /new/);
+    await dashboard.getByRole('button', {name:/İstatistikler/}).click();
+    await dashboard.locator('.archive-dashboard-trend meter').first().waitFor();
+    assert.equal(await dashboard.locator('.archive-dashboard-trend meter').count(), 2);
+    await page.getByRole('button', {name:/Rehber/}).click();
+    await page.getByText('Işıl', {exact:true}).waitFor();
+    await page.getByRole('button', {name:/Mesajlar/}).click();
+    await page.locator('.archive-dashboard-rows').getByText('sample message', {exact:true}).waitFor();
+    assert.equal(await dashboard.locator('.archive-dashboard-chat-buttons button').count(), 1);
+    await dashboard.getByLabel('Veri türü').selectOption({label:'example · 2'});
+    await dashboard.locator('.archive-dashboard-message').getByText('older message', {exact:true}).waitFor();
+    const search = dashboard.getByRole('searchbox', {name:'Tüm arşivde ara'});
+    await search.fill('older message');
+    await search.press('Enter');
+    const found = dashboard.locator('.archive-dashboard-search-results');
+    await found.getByText('older message', {exact:true}).waitFor();
+    await found.locator('summary').click();
+    await found.locator('.archive-dashboard-message').waitFor();
+    await found.getByRole('button', {name:'Veri kaynağını aç'}).click();
+    assert.equal(await dashboard.getByLabel('Veri türü').locator(':checked').textContent(), 'example · 2');
+    await search.fill('search_boundary');
+    await search.press('Enter');
+    const moreSearch = dashboard.getByRole('button', {name:'Daha fazla göster'});
+    await moreSearch.waitFor();
+    assert.equal(await found.locator('article').count(), 24);
+    await moreSearch.click();
+    await found.getByText('search_boundary_26', {exact:true}).waitFor();
+    assert.equal(await found.locator('article').count(), 28);
+    await desktop.evaluate(({dialog}, filename) => {
+      const open = dialog.showOpenDialog;
+      dialog.showOpenDialog = () => {
+        dialog.showOpenDialog = open;
+        return Promise.resolve({canceled:false,filePaths:[filename]});
+      };
+    }, comparisonPath);
+    await dashboard.getByRole('button', {name:'İki ZIP karşılaştır'}).click();
+    await dashboard.getByRole('button', {name:'İkinci ZIP’i seç'}).click();
+    await dashboard.getByText('Yalnız ikinci ZIP’te · 1', {exact:true}).click();
+    await dashboard.getByRole('link', {name:'@archive_added'}).waitFor();
+    await dashboard.getByText('Yalnız ilk ZIP’te · 1', {exact:true}).click();
+    await dashboard.getByRole('link', {name:'@archive_old'}).waitFor();
+    await dashboard.getByText('Bu liste iki ZIP’te de bulunmadığı için karşılaştırılamadı.', {exact:true}).waitFor();
+    await page.getByRole('button', {name:'Dosya tarayıcısı'}).click();
+    const modal = page.getByRole('dialog', {name:'Instagram Veri Arşivi'});
+    await modal.getByRole('button', {name:'example.json'}).click();
+    await modal.getByText('<b>example</b>', {exact:true}).waitFor();
+    await modal.getByRole('button', {name:'Sonraki kayıt'}).click();
+    await modal.getByText('archive-test-private-value', {exact:true}).waitFor();
+    await modal.getByRole('searchbox').fill('message_1');
+    await modal.getByRole('button', {name:'message 1.json'}).click();
+    await modal.getByText('sample message', {exact:true}).waitFor();
+    await modal.getByRole('button', {name:'Konuşma bilgileri'}).click();
+    await modal.getByText('sample conversation', {exact:true}).waitFor();
+    await modal.getByRole('searchbox').fill('picture');
+    await modal.getByRole('button', {name:'picture.png'}).click();
+    await modal.getByRole('button', {name:'Yerel önizlemeyi aç'}).click();
+    assert.match(await modal.getByRole('img').getAttribute('src'), /^blob:/);
+    assert.deepEqual(events, []);
+    await modal.getByRole('button', {name:'Kapat'}).click();
   });
   await check('Account transparency entries save and clear locally without a profile request',async()=>{
     await page.locator('.sidebar nav a[href="#people"]').click();
@@ -748,6 +881,13 @@ try {
   await check(
     "One notification opens an escaped old/new log including muted changes and marks it read",
     async () => {
+      const badge = page.locator('.sidebar a[href="#notifications"] .notification-count');
+      const bellBadge = page.locator('.top-actions [data-action="notifications"] .notification-count');
+      const countBefore = (await page.evaluate(() => window.TrackerDesktop.command("state"))).state.historyMeta.notificationCounts.unread.all;
+      assert.ok(countBefore > 0);
+      const formatted = count => new Intl.NumberFormat("tr-TR").format(count);
+      assert.equal(await badge.textContent(), formatted(countBefore));
+      assert.equal(await bellBadge.textContent(), formatted(countBefore));
       await page
         .getByRole("button", { name: "Bildirim kayıtları", exact: true })
         .click();
@@ -818,6 +958,10 @@ try {
       );
       assert.equal(await page.evaluate(() => window.logInjected), undefined);
       assert.equal((await historyDetail(page,'notification','qa-multi-change')).readAt!=null,true);
+      await page.waitForFunction(({value}) => {
+        const counters = document.querySelectorAll('.notification-count');
+        return value ? counters.length === 2 && Array.from(counters).every(node => node.textContent === value) : counters.length === 0;
+      }, {value:countBefore > 1 ? formatted(countBefore - 1) : ""});
       await page.screenshot({
         path: path.join(output, "notification-detail.png"),
         fullPage: true,

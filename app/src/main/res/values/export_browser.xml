@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="export_browser_title">Instagram Veri Arşivi</string>
+    <string name="export_browser_intro">Arşiv cihazında açılır. Kategorilerden bir dosya seçerek kayıtları inceleyebilirsin.</string>
+    <string name="export_browser_all">Tüm kategoriler</string>
+    <string name="export_browser_category">Kategori</string>
+    <string name="export_browser_connections">Bağlantılar</string>
+    <string name="export_browser_activity">Instagram etkinliğin</string>
+    <string name="export_browser_personal">Kişisel bilgiler</string>
+    <string name="export_browser_insights">Kayıtlı istatistikler</string>
+    <string name="export_browser_ads">Reklam bilgileri</string>
+    <string name="export_browser_security">Güvenlik ve giriş bilgileri</string>
+    <string name="export_browser_preferences">Tercihler</string>
+    <string name="export_browser_apps">Bağlı uygulamalar ve siteler</string>
+    <string name="export_browser_media">Fotoğraf, video ve ses</string>
+    <string name="export_browser_search">Dosya adı veya klasör ara</string>
+    <string name="export_browser_summary">%1$d dosya</string>
+    <string name="export_browser_files">%1$d / %2$d dosya gösteriliyor</string>
+    <string name="export_browser_more">Daha fazla göster</string>
+    <string name="export_browser_select">Ayrıntıları görmek için bir dosya seç.</string>
+    <string name="export_browser_error">Arşiv veya seçilen dosya açılamadı.</string>
+    <string name="export_browser_retry">Biraz sonra tekrar dene.</string>
+    <string name="export_browser_save">Dosyayı kaydet</string>
+    <string name="export_browser_saved">Dosya kaydedildi.</string>
+    <string name="export_browser_loading">Dosya hazırlanıyor…</string>
+    <string name="export_browser_reading">Kayıt okunuyor…</string>
+    <string name="export_browser_preview">Yerel önizlemeyi aç</string>
+    <string name="export_browser_no_preview">Bu dosya için panelde önizleme yok.</string>
+    <string name="export_browser_record">Kayıt %1$d / %2$d</string>
+    <string name="export_browser_previous">Önceki kayıt</string>
+    <string name="export_browser_next">Sonraki kayıt</string>
+    <string name="export_browser_previous_text">Önceki metin bölümü</string>
+    <string name="export_browser_next_text">Sonraki metin bölümü</string>
+    <string name="export_browser_empty">Bu dosyada kayıt yok.</string>
+    <string name="export_browser_record_number">Kayıt numarası</string>
+    <string name="export_browser_back">Dosyalara dön</string>
+    <string name="export_browser_raw">Ham JSON</string>
+    <string name="export_browser_thread_info">Konuşma bilgileri</string>
+    <string name="export_browser_back_messages">Mesajlara dön</string>
+</resources>

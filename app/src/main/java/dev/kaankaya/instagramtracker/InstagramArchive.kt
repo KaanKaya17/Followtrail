@@ -14,7 +14,9 @@ import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-internal data class InstagramArchive(val followers: List<String>?, val following: List<String>?) {
+internal data class InstagramArchiveRow(val username: String, val timestamp: Long? = null)
+
+internal data class InstagramArchive(val followers: List<InstagramArchiveRow>?, val following: List<InstagramArchiveRow>?) {
     companion object {
         private const val MAX_ZIP = 512L * 1024 * 1024
         private const val MAX_ENTRY = 16 * 1024 * 1024
@@ -75,10 +77,10 @@ internal data class InstagramArchive(val followers: List<String>?, val following
             }
         }
 
-        private fun readParts(zip: ZipFile, direction: String, parts: Map<Int, ZipEntry>, html: Boolean): List<String>? {
+        private fun readParts(zip: ZipFile, direction: String, parts: Map<Int, ZipEntry>, html: Boolean): List<InstagramArchiveRow>? {
             if (parts.isEmpty()) return null
             require(parts.keys.toList() == (1..parts.size).toList())
-            val names = mutableSetOf<String>()
+            val dates = sortedMapOf<String, Long?>()
             var count = 0
             for (entry in parts.values) {
                 check(!Thread.currentThread().isInterrupted)
@@ -97,14 +99,14 @@ internal data class InstagramArchive(val followers: List<String>?, val following
                 require(output.size().toLong() == entry.size && crc.value == entry.crc)
                 val text = Charsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(output.toByteArray())).toString()
                 val clean = text.removePrefix("\uFEFF")
-                val partNames = if (html) htmlNames(clean) else jsonNames(clean, direction)
-                for (name in partNames) {
+                val rows = if (html) htmlNames(clean).map { InstagramArchiveRow(it) } else jsonRows(clean, direction)
+                for ((name, timestamp) in rows) {
                     count++
                     require(count <= MAX_NAMES)
-                    names.add(name)
+                    dates[name] = if (name in dates && dates[name] != timestamp) null else timestamp
                 }
             }
-            return names.sorted()
+            return dates.map { (name, timestamp) -> InstagramArchiveRow(name, timestamp) }
         }
 
         private fun htmlNames(text: String): Sequence<String> {
@@ -112,7 +114,7 @@ internal data class InstagramArchive(val followers: List<String>?, val following
             return main.getElementsByTag("a").asSequence().map { requireNotNull(linkName(it.attr("href"))) }
         }
 
-        private fun jsonNames(text: String, direction: String): Sequence<String> {
+        private fun jsonRows(text: String, direction: String): Sequence<InstagramArchiveRow> {
             val decoder = JSONTokener(text)
             val document = decoder.nextValue()
             require(decoder.nextClean() == '\u0000')
@@ -125,7 +127,9 @@ internal data class InstagramArchive(val followers: List<String>?, val following
                 val item = items.getJSONObject(0)
                 val candidates = setOf(name(item.opt("value")), name(row.opt("title")), linkName(item.opt("href"))).filterNotNull()
                 require(candidates.size == 1)
-                candidates.single()
+                val value = item.opt("timestamp")
+                val timestamp = if (value is Int || value is Long) (value as Number).toLong() else null
+                InstagramArchiveRow(candidates.single(), timestamp?.takeIf { it in 1..253402300799L })
             }
         }
 

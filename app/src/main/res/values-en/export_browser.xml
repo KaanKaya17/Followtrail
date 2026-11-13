@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="export_browser_title">Instagram Data Archive</string>
+    <string name="export_browser_intro">The archive opens on your device. Select a file from a category to browse its records.</string>
+    <string name="export_browser_all">All categories</string>
+    <string name="export_browser_category">Category</string>
+    <string name="export_browser_connections">Connections</string>
+    <string name="export_browser_activity">Your Instagram activity</string>
+    <string name="export_browser_personal">Personal information</string>
+    <string name="export_browser_insights">Saved insights</string>
+    <string name="export_browser_ads">Advertising information</string>
+    <string name="export_browser_security">Security and login information</string>
+    <string name="export_browser_preferences">Preferences</string>
+    <string name="export_browser_apps">Connected apps and websites</string>
+    <string name="export_browser_media">Photos, videos and audio</string>
+    <string name="export_browser_search">Search file or folder names</string>
+    <string name="export_browser_summary">%1$d files</string>
+    <string name="export_browser_files">Showing %1$d of %2$d files</string>
+    <string name="export_browser_more">Show more</string>
+    <string name="export_browser_select">Select a file to see its details.</string>
+    <string name="export_browser_error">Could not open the archive or selected file.</string>
+    <string name="export_browser_retry">Try again in a moment.</string>
+    <string name="export_browser_save">Save file</string>
+    <string name="export_browser_saved">File saved.</string>
+    <string name="export_browser_loading">Preparing file…</string>
+    <string name="export_browser_reading">Reading record…</string>
+    <string name="export_browser_preview">Open local preview</string>
+    <string name="export_browser_no_preview">This file has no in-panel preview.</string>
+    <string name="export_browser_record">Record %1$d of %2$d</string>
+    <string name="export_browser_previous">Previous record</string>
+    <string name="export_browser_next">Next record</string>
+    <string name="export_browser_previous_text">Previous section of text</string>
+    <string name="export_browser_next_text">Next section of text</string>
+    <string name="export_browser_empty">This file contains no records.</string>
+    <string name="export_browser_record_number">Record number</string>
+    <string name="export_browser_back">Back to files</string>
+    <string name="export_browser_raw">Raw JSON</string>
+    <string name="export_browser_thread_info">Conversation information</string>
+    <string name="export_browser_back_messages">Back to messages</string>
+</resources>

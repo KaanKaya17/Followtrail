@@ -47,6 +47,7 @@
     notifications: ["Bildirimler", "bell"],
     settings: ["Ayarlar", "settings"],
     timeline: ["Zaman çizelgesi", "clock"],
+    archive: ["Instagram Veri Arşivi", "note"],
   };
   const keyboardPages = ['overview', 'people', 'lists', 'notifications', 'settings'];
   let data = null,
@@ -349,13 +350,21 @@
       errorDialog(t("Dosya okunamadı veya yazılamadı. Mevcut kayıtlar korundu."));
     }
   }
+  function unreadNotificationBadge() {
+    const count = data.historyMeta.notificationCounts.unread.all;
+    return count > 0 ? {
+      markup: `<span class="notification-count" aria-hidden="true">${num(count)}</span>`,
+      description: ` aria-description="${esc(t("Okunmamış") + " (" + num(count) + ")")}"`,
+    } : {markup: "", description: ""};
+  }
   function sidebar() {
+    const unread = unreadNotificationBadge();
     return `<aside class="sidebar"><a class="brand" href="#overview"><span class="brand-mark">${icon("chart")}</span><span><strong>${t("Tracker")}</strong><small>${t("Çevren, tek bakışta.")}</small></span></a><span class="nav-label">${t("ÇALIŞMA ALANIN")}</span><nav aria-label="${t("Ana gezinme")}">${Object.entries(
       pages,
     )
       .map(
         ([key, [label, symbol]]) =>
-          `<a class="nav-item ${ui.page === key ? "selected" : ""}" href="#${key}" ${ui.page === key ? 'aria-current="page"' : ""}>${icon(symbol)}<span>${t(label)}</span>${key === "people" ? `<span class="nav-count">${data.people.length}</span>` : ""}</a>`,
+          `<a class="nav-item ${ui.page === key ? "selected" : ""}" href="#${key}" ${ui.page === key ? 'aria-current="page"' : ""}${key === "notifications" ? unread.description : ""}>${icon(symbol)}<span>${t(label)}</span>${key === "people" ? `<span class="nav-count">${data.people.length}</span>` : key === "notifications" ? unread.markup : ""}</a>`,
       )
       .join(
         "",
@@ -363,7 +372,8 @@
   }
   function topbar() {
     const own = data.account;
-    return `<header class="topbar"><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[ui.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${data.connected ? t("Yerel oturum") : t("Hesap bağlı değil")}</span><button class="icon-button" data-action="notifications" aria-label="${t("Bildirim kayıtları")}">${icon("bell")}${(data.historyMeta.notificationCounts.unread.all>0) ? `<span class="unread-dot"></span>` : ""}</button><button class="account-button" data-action="account" aria-label="${t("Hesap bağlantısı")}">${avatar(own)}<span><strong>${own ? "@" + esc(own.username) : t("Hesabını bağla")}</strong><small>${data.connected ? t("Şifreli oturum") : t("Bağlantı bekleniyor")}</small></span>${icon("down")}</button></div></header>`;
+    const unread = unreadNotificationBadge();
+    return `<header class="topbar"><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[ui.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${data.connected ? t("Yerel oturum") : t("Hesap bağlı değil")}</span><button class="icon-button" data-action="notifications" aria-label="${t("Bildirim kayıtları")}"${unread.description}>${icon("bell")}${unread.markup}</button><button class="account-button" data-action="account" aria-label="${t("Hesap bağlantısı")}">${avatar(own)}<span><strong>${own ? "@" + esc(own.username) : t("Hesabını bağla")}</strong><small>${data.connected ? t("Şifreli oturum") : t("Bağlantı bekleniyor")}</small></span>${icon("down")}</button></div></header>`;
   }
   function operationPanel() {
     const host=document.getElementById('overview-operation') || document.getElementById('notifications-operation');
@@ -811,17 +821,20 @@
     }
     const archive = selected.instagramArchive;
     const choices = [];
-    if (archive.followers) choices.push([t("Takipçiler"), archive.followers]);
-    if (archive.following) choices.push([t("Takip edilen"), archive.following]);
+    if (archive.followers) choices.push([t("Takipçiler"), archive.followers, "followers"]);
+    if (archive.following) choices.push([t("Takip edilen"), archive.following, "following"]);
+    const followingDates = new Map();
     if (archive.followers && archive.following) {
-      const followers = new Set(archive.followers);
-      const following = new Set(archive.following);
+      const followers = new Set(archive.followers.map(row => row.username));
+      for (const row of archive.following) followingDates.set(row.username, row.timestamp);
       choices.push(
-        [t("Seni geri takip etmeyenler"), archive.following.filter(name => !followers.has(name))],
-        [t("Senin geri takip etmediklerin"), archive.followers.filter(name => !following.has(name))],
-        [t("İki listede de var"), archive.followers.filter(name => following.has(name))],
+        [t("Seni geri takip etmeyenler"), archive.following.filter(row => !followers.has(row.username)), "following"],
+        [t("Senin geri takip etmediklerin"), archive.followers.filter(row => !followingDates.has(row.username)), "followers"],
+        [t("İki listede de var"), archive.followers.filter(row => followingDates.has(row.username)), "followers", true],
       );
     }
+    const directionLabels = {followers: t("Seni takip etmeye başladı"), following: t("Takip etmeye başladın")};
+    const formatDay = new Intl.DateTimeFormat(i18n.locale(language), {dateStyle: "medium"});
     dialog(`<h2 id="dialog-title">${t("Instagram ZIP arşivi")}</h2>
       <p>${esc(archive.fileName)}</p>
       <p>${t("Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.")}</p>
@@ -830,6 +843,18 @@
         `<option value="${index}">${esc(label)} · ${num(names.length)}</option>`).join("")}</select>
       <label class="form-label" for="instagram-archive-search">${t("Listede ara")}</label>
       <input id="instagram-archive-search" type="search" maxlength="30">
+      <p id="instagram-archive-undated" class="field-hint" hidden>${t("Bu listede takip tarihi yok.")}</p>
+      <div id="instagram-archive-dates" class="archive-date-controls" hidden>
+        <label>${t("Sıralama")}<select id="instagram-archive-sort">
+          <option value="name">${t("Kullanıcı adı")}</option>
+          <option value="newest">${t("En yeni takip tarihi")}</option>
+          <option value="oldest">${t("En eski takip tarihi")}</option>
+        </select></label>
+        <label>${t("Başlangıç tarihi")}<input id="instagram-archive-from" type="date"></label>
+        <label>${t("Bitiş tarihi")}<input id="instagram-archive-to" type="date"></label>
+        <p id="instagram-archive-date-direction" class="field-hint"></p>
+      </div>
+      <p id="instagram-archive-invalid-range" role="status" hidden>${t("Bitiş tarihi başlangıç tarihinden önce olamaz.")}</p>
       <p id="instagram-archive-count" role="status"></p>
       <ul id="instagram-archive-rows"></ul>
       <div class="dialog-buttons"><button class="button secondary" id="instagram-archive-more">${t("Daha fazla göster")}</button></div>`, true);
@@ -839,12 +864,29 @@
     const list = modal.querySelector("#instagram-archive-rows");
     const more = modal.querySelector("#instagram-archive-more");
     const count = modal.querySelector("#instagram-archive-count");
+    const dates = modal.querySelector("#instagram-archive-dates");
+    const undated = modal.querySelector("#instagram-archive-undated");
+    const dateDirection = modal.querySelector("#instagram-archive-date-direction");
+    const invalidRange = modal.querySelector("#instagram-archive-invalid-range");
+    const sort = modal.querySelector("#instagram-archive-sort");
+    const from = modal.querySelector("#instagram-archive-from");
+    const to = modal.querySelector("#instagram-archive-to");
+    const hasDates = choices.map(([, rows]) => rows.some(row => row.timestamp !== null));
     let matches = [], shown = 0;
     function nextPage() {
       const batch = matches.slice(shown, shown + 100);
-      list.append(...batch.map(name => {
+      const [, , direction, mutual] = choices[Number(filter.value)];
+      list.append(...batch.map(({username, timestamp}) => {
         const row = document.createElement("li");
-        row.textContent = "@" + name;
+        row.textContent = "@" + username;
+        function appendDate(kind, value) {
+          if (value == null) return;
+          const detail = document.createElement("small");
+          detail.textContent = directionLabels[kind] + " · " + formatDay.format(value * 1000);
+          row.append(detail);
+        }
+        appendDate(direction, timestamp);
+        if (mutual) appendDate("following", followingDates.get(username));
         return row;
       }));
       shown += batch.length;
@@ -853,20 +895,60 @@
     }
     function selectRows() {
       const query = search.value.trim().replace(/^@/, "").toLowerCase();
-      matches = choices[Number(filter.value)][1].filter(name => name.includes(query));
+      const index = Number(filter.value);
+      const [, rows, direction, mutual] = choices[index];
+      const dated = hasDates[index];
+      dates.hidden = !dated;
+      undated.hidden = dated || rows.length === 0 || (mutual && rows.some(row => followingDates.get(row.username) != null));
+      dateDirection.textContent = mutual ? t("Sıralama ve tarih aralığı, seni takip etmeye başladıkları tarihe göre uygulanır.") : "";
+      dateDirection.hidden = !mutual;
+      const start = dated && from.value ? new Date(from.value + "T00:00:00") : null;
+      const end = dated && to.value ? new Date(to.value + "T00:00:00") : null;
+      const reversed = start && end && end < start;
+      invalidRange.hidden = !reversed;
+      if (end) end.setDate(end.getDate() + 1);
+      matches = reversed ? [] : rows.filter(({username, timestamp}) => username.includes(query) &&
+        (!(start || end) || (timestamp !== null && (!start || timestamp * 1000 >= +start) &&
+          (!end || timestamp * 1000 < +end))));
+      if (dated && sort.value !== "name") {
+        const order = sort.value === "newest" ? -1 : 1;
+        matches.sort((a, b) => a.timestamp == null ? (b.timestamp == null ? 0 : 1) :
+          b.timestamp == null ? -1 : order * (a.timestamp - b.timestamp));
+      }
       shown = 0;
       list.replaceChildren();
       nextPage();
     }
     filter.addEventListener("change", selectRows);
     search.addEventListener("input", selectRows);
+    for (const control of [sort, from, to]) control.addEventListener("change", selectRows);
     more.addEventListener("click", nextPage);
     modal.addEventListener("close", () => {
       matches = [];
       choices.length = 0;
+      followingDates.clear();
       list.replaceChildren();
     }, {once: true});
     selectRows();
+  }
+  function openExportBrowser(existing) {
+    dialog(`<h2 id="dialog-title">${t("Instagram Veri Arşivi")}</h2><div id="export-browser-root"></div>`, true);
+    const modal = document.querySelector("#overlay-root dialog");
+    modal.classList.add("export-browser-modal");
+    window.TrackerExportBrowser.mount(modal.querySelector("#export-browser-root"), {modal, api, t, num, language, existing});
+  }
+  let archiveDashboard;
+  function archive() {
+    return title(t("Instagram"), t("Instagram Veri Arşivi"),
+      t("Takiplerini, mesajlarını ve etkinlik geçmişini tek yerden incele.")) + '<div id="archive-dashboard-root"></div>';
+  }
+  function mountArchiveDashboard() {
+    const root = document.getElementById('archive-dashboard-root');
+    if (archiveDashboard && (archiveDashboard.root !== root || archiveDashboard.language !== language)) {
+      archiveDashboard.close();
+      archiveDashboard = null;
+    }
+    if (root && !archiveDashboard) archiveDashboard = window.TrackerArchiveDashboard.mount(root, {api, t, num, language, openRaw:openExportBrowser, openLists:openInstagramArchive});
   }
   function lists() {
     const owner = ui.owner || data.account?.id || "",
@@ -909,7 +991,6 @@
         .join("");
     return `${title(t("TAKİP LİSTELERİ"), t("Takipçiler ve takip edilenler"), "", common ? "" : button(record.canResume ? t("Taramaya devam et") : current || record.draft ? t("Listeyi yeniden kontrol et") : t("Listeyi kontrol et"), "scan", "refresh", "primary", netDisabled()))}
 
-      <div class="settings-buttons">${button(t("Instagram ZIP yükle"), "instagram-archive", "note")}</div>
       <section class="list-account card"><div class="list-owner-identity">${avatar(ownerProfile)}<div class="list-owner-details"><label class="form-label" for="list-owner">${t("Liste sahibi")}</label><select id="list-owner" aria-label="${t("Liste sahibi")}">${owners
         .map(
           (p) =>
@@ -1105,9 +1186,10 @@
     document.title = `${t(pages[ui.page][0])} — Tracker`;
     syncHistory();
     window.TrackerDOM.update(document.getElementById("app"),
-      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${data.privacyMaintenance?.failed?`<div class="notice warning" role="alert">${t("Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.")} ${button(t("Veri saklama"),"retention-settings","lock")}</div>`:""}${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(['overview','notifications'].includes(ui.page) && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${pausedReadersNotice()}${{ overview, people, lists, timeline, settings, notifications }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`);
+      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${data.privacyMaintenance?.failed?`<div class="notice warning" role="alert">${t("Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.")} ${button(t("Veri saklama"),"retention-settings","lock")}</div>`:""}${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(['overview','notifications'].includes(ui.page) && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${pausedReadersNotice()}${{ overview, people, lists, timeline, settings, notifications, archive }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`);
     loadHistory();
     mountListPage();
+    mountArchiveDashboard();
     mountDailyChart();
     refreshListPhotos();
     operationPanel();
@@ -1715,6 +1797,9 @@
         break;
       case "instagram-archive":
         await openInstagramArchive();
+        break;
+      case "export-browser":
+        openExportBrowser();
         break;
       case "export-backup":
         await file("export_backup");

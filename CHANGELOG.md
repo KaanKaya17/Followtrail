@@ -1,5 +1,42 @@
 # Değişiklikler
 
+## Windows 0.2.73
+
+- Veri Arşivi, ZIP’te bulunan önemli sayıları tıklanabilir kartlarda ve tarihli gönderi beğenilerini aylık grafikte gösterir.
+- Tüm arşivdeki dosya adları ve okunabilir JSON kayıtları kategoriler halinde aranabilir.
+- İki ZIP’in takipçi ve takip edilen listeleri cihazda karşılaştırılır. Sonuçlar kullanıcı adı ve arşiv kapsamına göre gösterilir.
+
+## Windows 0.2.72
+
+- Bildirimler menüsünde ve üstteki zil simgesinde okunmamış bildirim sayısı gösterilir. Kayıt açıldığında sayaç güncellenir.
+
+## Windows 0.2.71
+
+- Instagram Veri Arşivi, Hesaplar Merkezi bağlantısı ve cihaza JSON ZIP indirme adımlarını gösteren bir rehber içerir.
+
+## Windows 0.2.70
+
+- Arşivde takip ve etkinlik kayıtlarına tarih aralığı ve sıralama eklendi. Etkinlikler türe ve güne göre, profil değişiklikleri ve mesajlar güne göre gösterilir.
+- Mesajlar aranabilir sohbet listesiyle açılır. Biyografi değişiklikleri vurgulanır, tarihli istatistikler grafik olarak gösterilebilir. Profil ve web bağlantıları varsayılan tarayıcıda açılır.
+
+## Windows 0.2.69
+
+- Arşiv arama alanı temaya uygun kenarlık ve klavye odağı kullanır. Profil değişiklikleri önceki ve yeni değerleri ayrı kutularda, istatistikler önemli sayıları öne çıkaran kartlarda gösterir.
+
+## Windows 0.2.68
+
+- Instagram Veri Arşivi, Zaman Çizelgesi’nin altında ayrı bir sekme oldu. Takipler, profil geçmişi, sohbetler, paylaşımlar, istatistikler, etkinlik ve rehber kayıtları aranabilir kartlarda gösterilir.
+- ZIP takip karşılaştırması ve dosya tarayıcısı arşiv sekmesinden açılır. Bazı Instagram dışa aktarımlarında hatalı kodlanmış Türkçe karakterler okunabilir görünüme alınırken düzeltilir.
+
+## Windows 0.2.67 / Android 0.1.94
+
+- Instagram Veri Arşivi paneli, cihazdaki tam dışa aktarım ZIP'ini kategorilerle açar. Dosya ve klasör araması, JSON kayıtları arasında gezinme, yerel medya önizlemesi ve tekil dosya kaydetme eklendi.
+
+## Windows 0.2.66 / Android 0.1.93
+
+- Instagram JSON arşivindeki takip tarihleri ZIP ekranında gösterilir. Listeler en yeni veya en eski takip tarihine göre sıralanabilir ve bir tarih aralığına göre filtrelenebilir.
+- Karşılıklı takiplerde arşivde varsa her iki yönün tarihi gösterilir.
+
 ## Windows 0.2.65 / Android 0.1.92 — 2026-11-12
 
 - Instagram ZIP yükleme, JSON dosyalarının yanında HTML biçimindeki takipçi ve takip edilen listelerini de açar.

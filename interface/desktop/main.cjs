@@ -71,6 +71,8 @@ const rendererUpdates = new RendererUpdates({
   }),
 });
 const allowed = new Set([
+  "export_browser_summary", "export_browser_search", "export_browser_comparison_page",
+  "export_browser_text", "export_browser_media", "export_browser_close", "export_browser_browse",
   "history_page", "history_detail",
   "state",
   "switch_account",
@@ -125,6 +127,13 @@ function validate(operation, args) {
   if (Buffer.byteLength(JSON.stringify(args)) > 12000)
     throw new Error("Command too large");
   const fields = {
+    export_browser_text: ['token','index','record','offset','view'],
+    export_browser_browse: ['token','index','query','offset','since','until','order','record'],
+    export_browser_summary: ['token'],
+    export_browser_search: ['token','query','index','start'],
+    export_browser_comparison_page: ['token','direction','change','offset'],
+    export_browser_media: ['token','index'],
+    export_browser_close: ['token'],
     history_page: ['accountId','revision','kind','type','personId','section','read','offset'],
     history_detail: ['accountId','revision','kind','id'],
     state: [],
@@ -315,7 +324,9 @@ else
     });
     ipcMain.handle("tracker:file", async (event, action, args = {}) => {
       const fileFields =
-        action === "export_list" ? ["id", "direction", "snapshotId"] : [];
+        action === "export_list" ? ["id", "direction", "snapshotId"] :
+        action === "export_browser_save" ? ["token", "index", "name"] :
+        action === "export_browser_compare" ? ["token"] : [];
       if (
         !args ||
         typeof args !== "object" ||
@@ -329,12 +340,13 @@ else
           "export_backup",
           "import_backup",
           "import_instagram_zip",
+          "export_browser_open", "export_browser_save", "export_browser_compare",
           "export_list",
           "open_storage",
         ].includes(action)
       )
         throw new Error("Invalid file action");
-      if (backend.busy)
+      if (backend.busy && !action.startsWith("export_browser_"))
         return {
           ok: false,
           error: { message: t("Önce devam eden işlemi bitir veya iptal et.") },
@@ -347,14 +359,22 @@ else
         await shell.openPath(dataDir);
         return { ok: true };
       }
-      if (action === "import_instagram_zip") {
+      if (action === "import_instagram_zip" || action === "export_browser_open" || action === "export_browser_compare") {
         const selection = await dialog.showOpenDialog(window, {
           title: t("Instagram ZIP dosyasını seç"),
           properties: ["openFile"],
           filters: [{ name: "Instagram ZIP", extensions: ["zip"] }],
         });
         if (selection.canceled) return { ok: true, cancelled: true };
-        return backend.command(action, { path: selection.filePaths[0] });
+        return backend.command(action, { ...args, path: selection.filePaths[0] });
+      }
+      if (action === "export_browser_save") {
+        if (!Number.isSafeInteger(args.index) || args.index < 0 || typeof args.name !== 'string' || args.name.length > 512)
+          throw new Error('Invalid archive entry');
+        const name = path.win32.basename(args.name).replace(/[<>:"|?*\x00-\x1f]/g, '_') || 'instagram-export';
+        const selection = await dialog.showSaveDialog(window, {defaultPath:name});
+        if (selection.canceled) return {ok:true,cancelled:true};
+        return backend.command(action, {token:args.token,index:args.index,path:selection.filePath});
       }
       if (action === "import_backup") {
         const selection = await dialog.showOpenDialog(window, {

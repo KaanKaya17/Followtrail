@@ -7,8 +7,6 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 from zipfile import BadZipFile, ZipFile
 
-from network import AppFailure
-
 MAX_ZIP = 512 * 1024 * 1024
 MAX_ENTRY = 16 * 1024 * 1024
 MAX_TOTAL_ENTRIES = 64 * 1024 * 1024
@@ -76,14 +74,19 @@ def members(document, direction):
                                    link_name(item.get('href'))) if name}
         if len(names) != 1:
             raise ValueError()
-        yield names.pop()
+        timestamp = item.get('timestamp')
+        yield names.pop(), timestamp if type(timestamp) is int and 0 < timestamp <= 253402300799 else None
+
+
+class InvalidArchive(ValueError):
+    pass
 
 
 def read_archive(path):
     try:
         return _read_archive(Path(path))
     except (OSError, ValueError, TypeError, RuntimeError, NotImplementedError, BadZipFile, RecursionError) as exc:
-        raise AppFailure('instagram_archive', INVALID) from exc
+        raise InvalidArchive(INVALID) from exc
 
 
 def _read_archive(path):
@@ -91,52 +94,58 @@ def _read_archive(path):
         if path.suffix.lower() != '.zip' or not 0 < stream.seek(0, 2) <= MAX_ZIP:
             raise ValueError()
         with ZipFile(stream) as archive:
-            selected = {'followers': {}, 'following': {}}
-            parents = set()
-            formats = set()
-            size = 0
-            for item in archive.infolist():
-                relative = PurePosixPath(item.filename)
-                match = ENTRY.fullmatch(relative.name)
-                if not match or relative.parent.name != 'followers_and_following':
-                    continue
-                if relative.is_absolute() or '..' in relative.parts or '\\' in item.filename or item.is_dir():
-                    raise ValueError()
-                if item.flag_bits & 1 or stat.S_ISLNK(item.external_attr >> 16):
-                    raise ValueError()
-                direction, part, format_name = match.groups()
-                formats.add(format_name)
-                part = int(part or 1)
-                if part in selected[direction] or not 0 < item.file_size <= MAX_ENTRY:
-                    raise ValueError()
-                size += item.file_size
-                if size > MAX_TOTAL_ENTRIES:
-                    raise ValueError()
-                selected[direction][part] = item
-                parents.add(relative.parent)
-            if len(parents) != 1 or len(formats) != 1:
+            return {'fileName': path.name, **read_relationships(archive)}
+
+
+def read_relationships(archive):
+    selected = {'followers': {}, 'following': {}}
+    parents = set()
+    formats = set()
+    size = 0
+    for item in archive.infolist():
+        relative = PurePosixPath(item.filename)
+        match = ENTRY.fullmatch(relative.name)
+        if not match or relative.parent.name != 'followers_and_following':
+            continue
+        if relative.is_absolute() or '..' in relative.parts or '\\' in item.filename or item.is_dir():
+            raise ValueError()
+        if item.flag_bits & 1 or stat.S_ISLNK(item.external_attr >> 16):
+            raise ValueError()
+        direction, part, format_name = match.groups()
+        formats.add(format_name)
+        part = int(part or 1)
+        if part in selected[direction] or not 0 < item.file_size <= MAX_ENTRY:
+            raise ValueError()
+        size += item.file_size
+        if size > MAX_TOTAL_ENTRIES:
+            raise ValueError()
+        selected[direction][part] = item
+        parents.add(relative.parent)
+    if len(parents) != 1 or len(formats) != 1:
+        raise ValueError()
+    format_name = formats.pop()
+    result = {}
+    for direction, parts in selected.items():
+        if not parts:
+            result[direction] = None
+            continue
+        if sorted(parts) != list(range(1, len(parts) + 1)):
+            raise ValueError()
+        dates = {}
+        row_count = 0
+        for part in sorted(parts):
+            with archive.open(parts[part]) as content:
+                raw = content.read(MAX_ENTRY + 1)
+            if len(raw) != parts[part].file_size:
                 raise ValueError()
-            format_name = formats.pop()
-            result = {}
-            for direction, parts in selected.items():
-                if not parts:
-                    result[direction] = None
-                    continue
-                if sorted(parts) != list(range(1, len(parts) + 1)):
+            text = raw.decode('utf-8-sig')
+            parsed = ((name, None) for name in html_members(text)) if format_name == 'html' else members(json.loads(text), direction)
+            for name, timestamp in parsed:
+                row_count += 1
+                if row_count > MAX_NAMES:
                     raise ValueError()
-                names = set()
-                row_count = 0
-                for part in sorted(parts):
-                    with archive.open(parts[part]) as content:
-                        raw = content.read(MAX_ENTRY + 1)
-                    if len(raw) != parts[part].file_size:
-                        raise ValueError()
-                    text = raw.decode('utf-8-sig')
-                    parsed = html_members(text) if format_name == 'html' else members(json.loads(text), direction)
-                    for name in parsed:
-                        row_count += 1
-                        if row_count > MAX_NAMES:
-                            raise ValueError()
-                        names.add(name)
-                result[direction] = sorted(names)
-            return {'fileName': path.name, **result}
+                if name in dates and dates[name] != timestamp:
+                    timestamp = None
+                dates[name] = timestamp
+        result[direction] = [{'username': name, 'timestamp': dates[name]} for name in sorted(dates)]
+    return result

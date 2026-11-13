@@ -4,8 +4,7 @@ import unittest
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
-from instagram_archive import read_archive
-from network import AppFailure
+from instagram_archive import InvalidArchive, read_archive
 
 FOLDER = 'connections/followers_and_following/'
 
@@ -21,17 +20,20 @@ class InstagramArchiveTests(unittest.TestCase):
 
     def test_reads_split_lists_and_ignores_unrelated_entries(self):
         found = self.open_zip({
-            FOLDER + 'followers_1.json': [{'string_list_data': [{'value': 'Alice'}]}],
-            FOLDER + 'followers_2.json': [{'string_list_data': [{'value': 'alice'}]},
-                                           {'string_list_data': [{'value': 'carol'}]}],
+            FOLDER + 'followers_1.json': [{'string_list_data': [{'value': 'Alice', 'timestamp': 1700000000}]}],
+            FOLDER + 'followers_2.json': [{'string_list_data': [{'value': 'alice', 'timestamp': 1710000000}]},
+                                           {'string_list_data': [{'value': 'carol', 'timestamp': 1700000001}]}],
             FOLDER + 'following.json': {'relationships_following': [
-                {'title': 'alice', 'string_list_data': [{'href': 'https://www.instagram.com/_u/alice'}]},
-                {'string_list_data': [{'href': 'https://www.instagram.com/_u/bob'}]},
+                {'title': 'alice', 'string_list_data': [{'href': 'https://www.instagram.com/_u/alice', 'timestamp': 1720000000}]},
+                {'string_list_data': [{'href': 'https://www.instagram.com/_u/bob', 'timestamp': True}]},
             ]},
             'messages/inbox/ignored.json': 'invalid JSON',
         })
-        self.assertEqual(found, {'fileName': 'instagram-export.zip', 'followers': ['alice', 'carol'],
-                                 'following': ['alice', 'bob']})
+        self.assertEqual(found, {
+            'fileName': 'instagram-export.zip',
+            'followers': [{'username': 'alice', 'timestamp': None}, {'username': 'carol', 'timestamp': 1700000001}],
+            'following': [{'username': 'alice', 'timestamp': 1720000000}, {'username': 'bob', 'timestamp': None}],
+        })
 
     def test_reads_html_relationship_rows_and_ignores_navigation(self):
         found = self.open_zip({
@@ -42,7 +44,7 @@ class InstagramArchiveTests(unittest.TestCase):
             ),
         })
         self.assertIsNone(found['followers'])
-        self.assertEqual(found['following'], ['alice', 'bob'])
+        self.assertEqual(found['following'], [{'username': name, 'timestamp': None} for name in ('alice', 'bob')])
 
     def test_distinguishes_empty_list_from_missing_list(self):
         found = self.open_zip({FOLDER + 'followers_1.json': []})
@@ -56,5 +58,5 @@ class InstagramArchiveTests(unittest.TestCase):
             {FOLDER + 'followers_1.json': [{'title': 'alice', 'string_list_data': [{'value': 'bob'}]}]},
             {FOLDER + 'followers_1.html': '<html></html>'},
         ):
-            with self.subTest(entries=entries), self.assertRaises(AppFailure):
+            with self.subTest(entries=entries), self.assertRaises(InvalidArchive):
                 self.open_zip(entries)
