@@ -1,5 +1,9 @@
 # Android / Windows eşitlemesi
 
+## Windows 0.2.73 ve Android 0.1.94 adayı
+
+Windows, tam ZIP için özet kartları, aylık beğeni grafiği, kategori bazlı arama ve iki ZIP’in takip listelerini karşılaştırmayı içerir. Android 0.1.94 adayı kategoriye ve dosya adına göre gezinme, JSON kayıtlarını okuma ve yerel medya önizlemesi sunar. Windows’a özgü özet ve iki ZIP karşılaştırması bu Android adayında yoktur. [Yayın durumu ve doğrulama kapsamı](wiki/Surum-ve-Destek.md).
+
 ## Android 0.1.90 ve Windows 0.2.63
 
 Her iki platformda kaydedilmiş profil ve bağlı hesabın **Bu hesap hakkında** bilgileri isteğe bağlı elle kaydedilir. Instagram profili kullanıcı eylemiyle açılır. Alanlar aynı hesabın şifreli yerel kayıtlarında durur ve profil yenilenince korunur. Otomatik Instagram hesabı şeffaflığı okuması bu sürümün kapsamında yoktur.

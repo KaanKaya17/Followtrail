@@ -829,6 +829,7 @@ class MainActivity : LocalizedActivity() {
         val options = mutableListOf(R.string.ui_manage_connection, R.string.ui_refresh_settings, R.string.ui_request_information, R.string.language_menu, R.string.appearance_title, R.string.usage_notes_title, R.string.ui_privacy, R.string.ui_advanced)
         if(!preview)options.add(0,R.string.accounts_title)
         options.add(R.string.instagram_archive_open)
+        options.add(R.string.export_browser_title)
         if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
         if (account != null) options.add(R.string.story_title)
@@ -838,6 +839,7 @@ class MainActivity : LocalizedActivity() {
             when (options[index]) {
                 R.string.retention_title -> retentionSettings()
                 R.string.instagram_archive_open -> startActivity(Intent(this, InstagramArchiveActivity::class.java))
+                R.string.export_browser_title -> startActivity(Intent(this, ExportBrowserActivity::class.java))
                 R.string.accounts_title -> accountPicker()
                 R.string.ui_manage_connection -> {
                     try {

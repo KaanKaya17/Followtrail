@@ -9,4 +9,17 @@
     <string name="instagram_archive_count">%1$d–%2$d of %3$d accounts</string>
     <string name="instagram_archive_previous">Previous page</string>
     <string name="instagram_archive_next">Next page</string>
+    <string name="instagram_archive_sort_label">Sort by</string>
+    <string name="instagram_archive_sort_name">Username</string>
+    <string name="instagram_archive_sort_newest">Newest follow date</string>
+    <string name="instagram_archive_sort_oldest">Oldest follow date</string>
+    <string name="instagram_archive_from">Start date</string>
+    <string name="instagram_archive_to">End date</string>
+    <string name="instagram_archive_followed_you">Started following you</string>
+    <string name="instagram_archive_you_followed">You started following</string>
+    <string name="instagram_archive_invalid_range">The end date cannot be before the start date.</string>
+    <string name="instagram_archive_undated">This list has no follow dates.</string>
+    <string name="instagram_archive_mutual_range">Sorting and the date range use when each account started following you.</string>
+    <string name="instagram_archive_clear_date">Clear date</string>
+    <string name="instagram_archive_sort">Sort by · %1$s</string>
 </resources>

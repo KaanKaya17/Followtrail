@@ -72,6 +72,8 @@ for (const name of [
   "appearance.js",
   "desktop.js",
   "usage-notes.js",
+  "export-browser.js",
+  "archive-dashboard.js",
   "profile-search.js",
   "list-photos.js",
   "list-pages.js",

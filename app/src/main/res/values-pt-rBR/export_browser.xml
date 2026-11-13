@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="export_browser_title">Arquivo de dados do Instagram</string>
+    <string name="export_browser_intro">O arquivo abre no seu dispositivo. Selecione um arquivo de uma categoria para ver os registros.</string>
+    <string name="export_browser_all">Todas as categorias</string>
+    <string name="export_browser_category">Categoria</string>
+    <string name="export_browser_connections">Conexões</string>
+    <string name="export_browser_activity">Sua atividade no Instagram</string>
+    <string name="export_browser_personal">Informações pessoais</string>
+    <string name="export_browser_insights">Estatísticas salvas</string>
+    <string name="export_browser_ads">Informações sobre anúncios</string>
+    <string name="export_browser_security">Informações de segurança e login</string>
+    <string name="export_browser_preferences">Preferências</string>
+    <string name="export_browser_apps">Apps e sites conectados</string>
+    <string name="export_browser_media">Fotos, vídeos e áudios</string>
+    <string name="export_browser_search">Buscar por arquivo ou pasta</string>
+    <string name="export_browser_summary">%1$d arquivos</string>
+    <string name="export_browser_files">Mostrando %1$d de %2$d arquivos</string>
+    <string name="export_browser_more">Mostrar mais</string>
+    <string name="export_browser_select">Selecione um arquivo para ver os detalhes.</string>
+    <string name="export_browser_error">Não foi possível abrir o ZIP ou o arquivo selecionado.</string>
+    <string name="export_browser_retry">Tente novamente em instantes.</string>
+    <string name="export_browser_save">Salvar arquivo</string>
+    <string name="export_browser_saved">Arquivo salvo.</string>
+    <string name="export_browser_loading">Preparando arquivo…</string>
+    <string name="export_browser_reading">Lendo registro…</string>
+    <string name="export_browser_preview">Abrir prévia local</string>
+    <string name="export_browser_no_preview">Este arquivo não tem prévia no painel.</string>
+    <string name="export_browser_record">Registro %1$d de %2$d</string>
+    <string name="export_browser_previous">Registro anterior</string>
+    <string name="export_browser_next">Próximo registro</string>
+    <string name="export_browser_previous_text">Seção anterior do texto</string>
+    <string name="export_browser_next_text">Próxima seção do texto</string>
+    <string name="export_browser_empty">Este arquivo não contém registros.</string>
+    <string name="export_browser_record_number">Número do registro</string>
+    <string name="export_browser_back">Voltar aos arquivos</string>
+    <string name="export_browser_raw">JSON original</string>
+    <string name="export_browser_thread_info">Informações da conversa</string>
+    <string name="export_browser_back_messages">Voltar às mensagens</string>
+</resources>

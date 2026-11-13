@@ -4,12 +4,20 @@
 
 ## Instagram ZIP arşivi
 
+**Instagram Veri Arşivi** panelinden daha geniş bir dışa aktarımı açabilirsiniz. Windows’ta **Zaman Çizelgesi** altındaki **Instagram Veri Arşivi** sekmesini açın. Android’de tam arşiv tarayıcısı **0.1.94** paket adayında **⋯ → Instagram Veri Arşivi** yolundadır; yayımlanmış **0.1.92** APK’sında **⋯ → Instagram ZIP yükle** ile takip listelerini açabilirsiniz. Kategoriler ZIP'te bulunan klasörlere göre görünür. Dosya veya klasör adını arayabilir, JSON dosyasında kayıtlara tek tek geçebilir ve desteklenen medya dosyalarını cihazda açabilirsiniz. Panelde önizlemesi olmayan dosyaları **Dosyayı kaydet** ile seçtiğiniz konuma alabilirsiniz. Dosya seçici üzerinden **JSON** ve **Tüm zamanlar** ile hazırlanmış tam dışa aktarımı seçin.
+
+Windows’ta **Arşiv özeti**, ZIP’te bulunan kayıt sayılarını gösterir. Bir kartı seçerek ilgili bölümü açabilirsiniz. **Tüm arşivde ara** kutusu dosya adlarını ve JSON kayıtlarının okunabilir alanlarını arar; sonuçları kategorilere ayırır.
+
+Aynı hesaba ve tarih kapsamına ait iki dışa aktarımınız varsa önce eski ZIP’i açın ve **İki ZIP karşılaştır** ile yenisini seçin. Her iki arşivde de bulunan takip listeleri için yalnız ilk veya yalnız ikinci dosyada yer alan kullanıcı adları gösterilir. Kullanıcı adı veya dışa aktarım kapsamı değişmişse bu fark, tek başına takip değişikliğini kanıtlamaz. Dosyalar cihazda işlenir.
+
 Instagram Hesaplar Merkezi’nde **Bilgilerin ve izinlerin → Bilgilerini dışa aktar** bölümünden Instagram hesabını seçin. Veri seçimi ekranında **Takipçiler ve takip edilenler**, biçim olarak **HTML** veya **JSON**, tarih aralığı olarak **Tüm zamanlar** seçin. Dosya hazır olduğunda ZIP’i cihazınıza indirin. [Meta Hesaplar Merkezi](https://accountscenter.instagram.com/info_and_permissions/).
 
-- Windows’ta **Takip Listeleri → Instagram ZIP yükle** yolunu kullanın.
+- Windows’ta **Instagram Veri Arşivi → ZIP takip karşılaştırması** yolunu kullanın.
 - Android’de ana ekrandaki **⋯ → Instagram ZIP yükle** seçeneğini açıp ZIP’i seçin.
 
 Arşivdeki listelerde arama yapabilirsiniz. İki yön de varsa karşılıklı takipleri, sizi geri takip etmeyenleri ve sizin geri takip etmediklerinizi görebilirsiniz. Eşleşme arşivdeki kullanıcı adlarına göre yapılır. Sonuç, dosyayı oluştururken seçtiğiniz veri ve tarih aralığına bağlıdır.
+
+Takip tarihlerini görmek için JSON biçimini seçin. Arşivdeki tarihli kayıtlar en yeni veya en eski tarihe göre sıralanabilir ve başlangıç ve bitiş günleri dahil olacak şekilde filtrelenebilir. Karşılıklı takiplerde iki yönün tarihi gösterilir. Bu görünümde tarih filtresi, diğer hesabın sizi takip etmeye başladığı tarihi kullanır.
 
 Listeler ekran kapanana kadar bellekte gösterilir. Arşivdeki adlar canlı tarama geçmişine eklenmez. Bu işlem için Tracker’da Instagram oturumu gerekmez.
 

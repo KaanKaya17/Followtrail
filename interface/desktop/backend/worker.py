@@ -7,10 +7,12 @@ from pathlib import Path
 import sys
 import threading
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 from accounts import Accounts
 import localization
-from instagram_archive import read_archive
+from instagram_archive import InvalidArchive, read_archive
+from export_browser import ExportBrowser
 from network import AppFailure, failure
 from thumbnails import Thumbnails
 from history_pages import HistoryPages, preview_log
@@ -40,6 +42,31 @@ def main():
         emit({'type': 'fatal', 'code': 'storage', 'message': 'Şifreli depo açılamadı. Dosyalar korundu; otomatik sıfırlanmadı.'})
         return 2
     history = HistoryPages()
+    archive = ExportBrowser()
+    archive_operations = {
+        'export_browser_open': archive.open,
+        'export_browser_text': archive.text,
+        'export_browser_browse': archive.browse,
+        'export_browser_summary': archive.read_summary,
+        'export_browser_search': archive.search,
+        'export_browser_compare': archive.compare,
+        'export_browser_comparison_page': archive.comparison_page,
+        'export_browser_media': archive.media,
+        'export_browser_save': archive.save,
+        'export_browser_close': archive.release,
+    }
+    archive_tasks = ThreadPoolExecutor(max_workers=1, thread_name_prefix='archive')
+    archive_slots = threading.BoundedSemaphore(4)
+
+    def browse(request):
+        try:
+            value = archive_operations[request['operation']](**(request.get('args') or {}))
+        except Exception:
+            emit({'type': 'control', 'id': request['id'], 'ok': False, 'error': {'code': 'archive_entry'}})
+        else:
+            emit({'type': 'control', 'id': request['id'], 'ok': True, 'archiveBrowser': value})
+        finally:
+            archive_slots.release()
     emit({'type': 'ready', 'state': history.publish(engine.snapshot())})
     images = Thumbnails(emit)
 
@@ -51,7 +78,10 @@ def main():
             emit(message)
         try:
             if request['operation'] == 'import_instagram_zip':
-                value = read_archive((request.get('args') or {}).get('path'))
+                try:
+                    value = read_archive((request.get('args') or {}).get('path'))
+                except InvalidArchive as exc:
+                    raise AppFailure('instagram_archive', str(exc)) from exc
                 emit({'type': 'result', 'id': request['id'], 'ok': True, 'instagramArchive': value})
                 return
             if request['operation'] == 'story_media':
@@ -82,7 +112,12 @@ def main():
             if not isinstance(request, dict) or not isinstance(request.get('id'), int):
                 raise ValueError()
             operation = request.get('operation')
-            if operation in ('history_page', 'history_detail'):
+            if operation in archive_operations:
+                if archive_slots.acquire(blocking=False):
+                    archive_tasks.submit(browse, request)
+                else:
+                    emit({'type': 'control', 'id': request['id'], 'ok': False, 'error': {'code': 'busy'}})
+            elif operation in ('history_page', 'history_detail'):
                 value = history.page(request.get('args')) if operation == 'history_page' else history.detail(request.get('args'))
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'page' if operation == 'history_page' else 'history':value})
             elif operation == 'daily_stats':
@@ -126,6 +161,8 @@ def main():
             emit({'type': 'control', 'id': request.get('id') if isinstance(request, dict) else None,
                   'ok': False, 'error': localization.error(failure(exc), engine.data['settings']['language'])})
     engine.cancel.set()
+    archive_tasks.shutdown(wait=True, cancel_futures=True)
+    archive.close()
     images.close()
     active.acquire(timeout=28)
     return 0

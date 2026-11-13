@@ -5,6 +5,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 for (const file of [
   "web/app.js",
   "web/usage-notes.js",
+  "web/export-browser.js",
+  "web/archive-dashboard.js",
   "web/profile-search.js",
   "web/list-photos.js",
   "web/list-pages.js",

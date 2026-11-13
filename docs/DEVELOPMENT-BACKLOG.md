@@ -10,13 +10,15 @@ Instagram'ın profil, takipçi ve takip edilen isteklerini hangi sunucu alan ad�
 - İlk ve sonraki sayfanın doğru hesabın listesine ait olduğu, devam bilgisinin çalıştığı ve kısıtlı yanıtın tam liste sayılmadığı doğrulanır. Tracker doğrulanmış alan adı ve istek şablonunu sürüm güncellemesindeki izin listesiyle kullanır.
 - Windows 0.2.60, okuma tanısı ve ilgili okuyucuyu duraklatmayı uygular. Uç nokta değişikliği şüphesi geliştirici aracında bir test kaydıyla doğrulanır. [Okuma tanısı](wiki/Sorun-Giderme.md#otomatik-okuma-duraklatıldı).
 
-## Güncel durum — 5 Kasım 2026
+## 5 Kasım 2026 durum kaydı
 
-Windows 0.2.56 / Android 0.1.86: [profil yanıtı ve eşzamanlı görsel paylaşımındaki üç boşluk kapandı](RESPONSE-SHARING-TEST.md). Ortak bütçe, %80 otomatik profil eşiği ve 6–10 saniye rezervasyonu uygulandı. Android CAPTCHA sonrası oturum oluşması görüldü; profil HTTP 429 aldığı için uçtan uca bağlantı/liste okuması ve yeni cihaz testleri açık. Aşağıdaki tarihli notlar karar geçmişini korur; uygulama durumu için [sürüm sayfası](wiki/Surum-ve-Destek.md) önceliklidir. Resmî ZIP içe aktarma ve işlevsel web hizmeti henüz yapılmadı.
+Windows 0.2.56 / Android 0.1.86: [profil yanıtı ve eşzamanlı görsel paylaşımındaki üç boşluk kapandı](RESPONSE-SHARING-TEST.md). Ortak bütçe, %80 otomatik profil eşiği ve 6–10 saniye rezervasyonu uygulandı. Android CAPTCHA sonrası oturum oluşması görüldü; profil HTTP 429 aldığı için uçtan uca bağlantı/liste okuması ve yeni cihaz testleri açık. Aşağıdaki tarihli notlar karar geçmişini korur; uygulama durumu için [sürüm sayfası](wiki/Surum-ve-Destek.md) önceliklidir. O tarihte resmî ZIP desteği ve işlevsel web hizmeti yoktu.
 
 ## Resmî Instagram arşivi ve veri taşınabilirliği
 
-Windows 0.2.65 / Android 0.1.92, HTML veya JSON biçimindeki resmî ZIP’te bulunan takipçi ve takip edilen listelerini yerel olarak açar. Her iki yön varsa aynı ZIP içindeki listeler kullanıcı adına göre karşılaştırılabilir. Ayrı arşivler arasındaki tarihsel karşılaştırma ve Meta Data Portability entegrasyonu açık. [Kullanım](wiki/Takip-Listeleri.md#instagram-zip-arşivi).
+Windows 0.2.65 / Android 0.1.92, HTML veya JSON biçimindeki resmî ZIP’te bulunan takipçi ve takip edilen listelerini yerel olarak açar. Her iki yön varsa aynı ZIP içindeki listeler kullanıcı adına göre karşılaştırılabilir. Windows 0.2.73’te elle seçilen iki ZIP’in takip listeleri kullanıcı adına göre karşılaştırılabilir. Yerel klasörü otomatik izleme uygulamaya entegre değildir. Meta Data Portability entegrasyonu açık. [Kullanım](wiki/Takip-Listeleri.md#instagram-zip-arşivi).
+
+**Ertelendi · 13 Kasım 2026.** Öncelik, Instagram'ın **Cihaza aktar** seçeneğinden indirilen ZIP'leri kullanıcının Windows'ta seçtiği yerel klasörde otomatik okumak. Kullanıcı aktarımı Instagram'da başlatır ve arşivi hazır olunca indirir. Dakikalık aralık yalnız yerel klasör kontrolüne uygulanabilir. Yeni veri, yeni ZIP geldiğinde işlenir. Kullanıcı harici depolama istemedi. Farklı tarihlerdeki tam arşivleri karşılaştıran yerel prototip hazır. Uygulama ayarına entegrasyon daha sonraya bırakıldı. [Arşiv klasörü prototipi](EXPORT-WATCH-PROTOTYPE.md).
 
 ### 1 Kasım 2026 karar kaydı
 
