@@ -20,9 +20,9 @@ Tracker’ı yalnızca erişim yetkiniz olan verilerle, geçerli kurallara ve ba
 
 ## Hesap bağlamadan deneyin
 
-Instagram’dan indirdiğiniz ZIP’i açıp verilerinizi kategorilere göre inceleyin. Aynı hesabın iki arşivini karşılaştırarak hangi kullanıcı adlarının yalnızca eski veya yeni listede olduğunu görün. [Ekran görüntüleriyle adım adım ZIP rehberi](docs/wiki/Instagram-Veri-Arsivi.md).
+İlk açılışta **Özet → Arşivini incele → Instagram ZIP’ini aç** yolunu izleyin ve Instagram’dan indirdiğiniz ZIP’i seçin. Açılan arşivde verilerinizi inceleyebilir veya aynı hesaba ait ikinci bir ZIP’le takip listelerini karşılaştırabilirsiniz. [ZIP’i alma, açma ve karşılaştırma rehberi](docs/wiki/Instagram-Veri-Arsivi.md).
 
-![Windows’ta iki ZIP karşılaştırmasının açık sonucu. Takipçi sayısı 3’ten 4’e değişmiş ve iki arşivde farklı olan adlar gösteriliyor.](docs/wiki/assets/zip-karsilastirma-sonuc.png)
+![Windows ilk açılışındaki Arşivini incele kartı. Mor Instagram ZIP’ini aç düğmesi ve ZIP alma rehberi görünüyor.](docs/wiki/assets/hesap-baglamadan-zip-ac.png)
 
 ## Neler sunar?
 

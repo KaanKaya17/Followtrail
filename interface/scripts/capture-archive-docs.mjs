@@ -70,6 +70,11 @@ try {
     const before = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
     assert.equal(before.connected,false);
     await capture('ilk-acilis', start);
+    if (language === 'tr') {
+        await capture('hesap-baglamadan-zip-ac', start.locator('.overview-start-card').filter({
+            has:page.getByRole('button',{name:t('Instagram ZIP’ini aç')}),
+        }));
+    }
     await desktop.evaluate(({dialog}, files) => {
         const original = dialog.showOpenDialog;
         dialog.showOpenDialog = () => {
@@ -114,7 +119,7 @@ try {
     assert.deepEqual(after.gate,before.gate);
     assert.deepEqual(errors,[]);
     assert.deepEqual(external,[]);
-    console.log('Five documentation screenshots captured with two synthetic ZIPs and no external requests.');
+    console.log('Documentation screenshots captured with two synthetic ZIPs and no external requests.');
 } finally {
     if (desktop) await desktop.close();
     await rm(home,{recursive:true,force:true,maxRetries:3,retryDelay:200});
