@@ -46,9 +46,9 @@ Windows 0.2.84 ve Android 0.1.100 adayında (sürüm kodu 101) hesap bağlamadan
 
 [Windows 0.2.84 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
 
-[Windows 0.2.73 eski ZIP’i](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/desktop-v0.2.73) · [Android 0.1.92 APK](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/android-v0.1.92)
+[Windows 0.2.73 eski ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.73) · [Android 0.1.92 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
 
-Windows 0.2.73 ve Android 0.1.92 için özel GitHub deposuna erişim gerekir.
+[Tüm Windows ve Android önizlemeleri](https://github.com/KaanKaya17/InstagramTracker/releases)
 
 **Windows 0.2.73:** Instagram Veri Arşivi, ZIP içindeki kayıtları kategorilere ayırır. Özet kartları ve aylık beğeni grafiği, tüm arşivde arama ve iki ZIP’teki takip listelerini karşılaştırma eklendi. Bildirimler menüsünde ve zil simgesinde okunmamış kayıt sayısı görünür. [Arşiv rehberi](docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
 

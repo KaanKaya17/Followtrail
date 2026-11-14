@@ -10,7 +10,7 @@ O InstagramTracker permite consultar exportações do Instagram, comparar listas
 
 No Windows, baixe o [ZIP x64 da versão de prévia 0.2.84](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84). Extraia o ZIP inteiro e abra **InstagramTracker.exe** na pasta extraída. Mantenha os demais arquivos do pacote na mesma pasta. O executável não tem assinatura Authenticode. A página da versão informa o SHA-256 do ZIP. Para atualizar, escolha **Sair completamente** na bandeja e abra a nova versão em uma pasta separada.
 
-O Android precisa da versão 7.0 ou superior. A prévia assinada **0.1.92** está no [repositório privado](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/android-v0.1.92). A candidata 0.1.100 foi instalada em um telefone. O Instagram abriu uma sessão e retornou HTTP 429 durante a leitura do perfil. A validação de uma nova conexão até a conclusão das listas no Android ainda está pendente. A prévia web usa dados de exemplo. [Situação das versões (inglês)](EN-Releases.md).
+O Android precisa da versão 7.0 ou superior. A prévia assinada **0.1.92** está no [histórico de versões](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92). A candidata 0.1.100 foi instalada em um telefone. O Instagram abriu uma sessão e retornou HTTP 429 durante a leitura do perfil. A validação de uma nova conexão até a conclusão das listas no Android ainda está pendente. A prévia web usa dados de exemplo. [Situação das versões (inglês)](EN-Releases.md).
 
 ## Conexão e primeiras listas
 

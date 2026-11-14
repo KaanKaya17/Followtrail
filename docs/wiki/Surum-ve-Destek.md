@@ -110,10 +110,10 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 ## Kurulum dosyasını nereden alabilirim?
 
 - [Windows 0.2.84 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84)
-- [Windows 0.2.73 eski önizlemesi · özel depo](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/desktop-v0.2.73)
-- [Android 0.1.92 imzalı APK · özel depo](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/android-v0.1.92)
+- [Windows 0.2.73 eski önizlemesi](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.73)
+- [Android 0.1.92 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
 
-Windows 0.2.84 oturum açmadan indirilebilir. Eski önizlemeler için özel depoya erişim gerekir. Sürüm sayfalarında dosyaların SHA-256 değerleri bulunur.
+[Tüm önizlemeler](https://github.com/KaanKaya17/InstagramTracker/releases) ana deponun Releases bölümünde listelenir. Windows 0.2.84 sürümünde ayrıca SHA-256 dosyası yer alır.
 
 <a name="destek-icin-hangi-bilgiler-gerekir"></a>
 
