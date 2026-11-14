@@ -32,6 +32,12 @@ En Windows, ajusta las comprobaciones y los tipos de aviso en **Configuración**
 
 El archivo de historias permite revisar medios guardados mediante un calendario. **Consultar historias** inicia una lectura de las historias disponibles para la cuenta conectada. Los medios y las menciones dependen de lo recibido. Las historias ocultas o caducadas y las visitas al perfil no se pueden determinar con este historial.
 
+## Finalidad y uso responsable
+
+InstagramTracker facilita la consulta de tus archivos de Instagram y de los cambios en cuentas a las que tienes acceso autorizado. La aplicación no envía archivos ZIP, contraseñas ni registros de cuentas al equipo del proyecto, ni recopila datos de uso en un servidor propio. Para el seguimiento en vivo y la verificación, tu dispositivo se conecta a Instagram/Meta.
+
+Usa Tracker solo con datos a los que tengas acceso autorizado. Respeta las normas aplicables y la privacidad de otras personas. El proyecto no respalda el acceso no autorizado a cuentas, el acoso ni el uso ilegal.
+
 ## Privacidad y copias
 
 Windows protege los datos locales con DPAPI y Android con Keystore y AES-GCM. La conexión en vivo usa servicios de Instagram. La aplicación no guarda contraseñas ni códigos en el historial y conserva cifrada la sesión necesaria para leer datos.

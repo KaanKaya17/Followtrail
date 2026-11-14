@@ -2,6 +2,12 @@
 
 [User guide](EN-Home.md)
 
+## Purpose and acceptable use
+
+InstagramTracker helps you review your Instagram exports and understand changes in accounts you’re authorized to access. The app does not send ZIP files, passwords or account records to the project team, and it does not collect usage data on a project server. For live monitoring and verification, your device connects to Instagram/Meta.
+
+Use Tracker only with data you’re authorized to access. Follow applicable rules and respect other people’s privacy. The project does not support unauthorized account access, harassment or unlawful use.
+
 ## Local storage and network access
 
 Windows protects local records with DPAPI tied to the Windows user. Android uses Android Keystore and AES-GCM. Sessions, saved profiles and observations are encrypted locally and each linked account has its own data. Tracker provides no cloud backup or automatic device sync. Android app backup and transfer are disabled for these records. Clearing app data or losing the encryption key can make records inaccessible.

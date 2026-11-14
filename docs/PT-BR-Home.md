@@ -32,6 +32,12 @@ A **Linha do tempo** mostra quando o Tracker observou a mudança. O histórico d
 
 O arquivo de stories usa um calendário para mostrar o conteúdo salvo. **Verificar stories** lê os stories disponíveis para a conta vinculada. Mídia e menções dependem do conteúdo recebido. Stories ocultos ou expirados e visitantes do perfil não podem ser identificados pelo histórico.
 
+## Finalidade e uso responsável
+
+O InstagramTracker facilita a consulta dos seus arquivos do Instagram e das mudanças em contas às quais você tem acesso autorizado. O aplicativo não envia arquivos ZIP, senhas ou registros de contas à equipe do projeto nem coleta dados de uso em um servidor próprio. Para o monitoramento ao vivo e a verificação, seu dispositivo se conecta ao Instagram/Meta.
+
+Use o Tracker apenas com dados aos quais você tem acesso autorizado. Respeite as regras aplicáveis e a privacidade de outras pessoas. O projeto não apoia acesso não autorizado a contas, assédio nem uso ilegal.
+
 ## Privacidade e backups
 
 O Windows protege os dados locais com DPAPI. O Android usa Keystore e AES-GCM. A conexão ao vivo usa serviços do Instagram. O aplicativo mantém a sessão necessária para leitura criptografada e não registra senhas nem códigos no histórico.

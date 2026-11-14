@@ -11,6 +11,12 @@ Instagram dışa aktarımlarınızı bilgisayarınızda inceleyin. Aynı hesaba 
 
 *Ekran görüntüsünde örnek veriler kullanılmıştır.*
 
+## Amaç ve kullanım sınırları
+
+InstagramTracker, Instagram arşivinizi incelemeyi ve erişim yetkiniz olan hesaplarda zaman içindeki değişiklikleri anlamayı kolaylaştırır. ZIP dosyaları, parolalar ve hesap kayıtları proje ekibine gönderilmez. Uygulama kendi sunucusuna kullanım verisi toplamaz. Canlı takip ve doğrulama için telefonunuz veya bilgisayarınız Instagram/Meta ile bağlantı kurar.
+
+Tracker’ı yalnızca erişim yetkiniz olan verilerle, geçerli kurallara ve başkalarının gizliliğine saygı göstererek kullanın. Proje izinsiz hesap erişimini, tacizi ve yasa dışı kullanımı desteklemez.
+
 ## Başlarken
 
 1. Sürüm sayfasından **InstagramTracker-Desktop-0.2.84.zip** dosyasını indirin ve tamamını bir klasöre çıkarın.

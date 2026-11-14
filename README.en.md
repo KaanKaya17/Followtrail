@@ -8,6 +8,12 @@ Review Instagram archives, compare follower and following lists, and keep a loca
 
 ![InstagramTracker for Windows showing an example archive and its coverage](docs/assets/en/zip-arsiv.png)
 
+## Purpose and acceptable use
+
+InstagramTracker helps you review your Instagram exports and understand changes in accounts you’re authorized to access. The app does not send ZIP files, passwords or account records to the project team, and it does not collect usage data on a project server. For live monitoring and verification, your device connects to Instagram/Meta.
+
+Use Tracker only with data you’re authorized to access. Follow applicable rules and respect other people’s privacy. The project does not support unauthorized account access, harassment or unlawful use.
+
 ## Choose how to start
 
 - **Open a ZIP.** Use the official Instagram export to browse local data or compare two exports from the same account. No Tracker sign-in is needed.
