@@ -1,5 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+    <string name="follow_exceptions_section">Excepciones · %1$d</string>
+    <string name="follow_exception_add">Mover a excepciones</string>
+    <string name="follow_exception_remove">Volver a la lista principal</string>
+    <string name="accounts_delete_local">Eliminar los datos locales de la cuenta seleccionada</string>
     <string name="accounts_title">mis cuentas</string>
     <string name="accounts_add">Agregar cuenta</string>
     <string name="accounts_none">Ninguna cuenta conectada</string>

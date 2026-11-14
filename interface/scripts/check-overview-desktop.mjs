@@ -63,7 +63,7 @@ try {
  checks.push('Inline old/new profile values and list differences open their existing details; count cards navigate to the correct account list');
  const blocked={...before,gate:{...before.gate,status:429,manualOnly:true,blockedUntil:Date.now()/1000+3600},lastError:{code:'limited',message:'HTTP 429'}};
  await project(blocked);await page.locator('.overview-monitor .operation-panel.paused').waitFor();
- assert.equal(await page.locator('main > .notice').count(),0);
+ assert.equal(await page.locator('main > .notice').getByText('Instagram istekleri sınırladı',{exact:true}).count(),0);
  assert.equal(await page.locator('.operation-panel').evaluate(node=>getComputedStyle(node).position),'static');
  assert.match(await page.locator('.overview-monitor .operation-panel').innerText(),/Yeni deneme kendiliğinden başlamayacak/);
  await page.locator('.overview-monitor .operation-panel [data-action="requests"]').click();await page.getByRole('dialog').getByText('429',{exact:true}).waitFor();await page.keyboard.press('Escape');
@@ -96,10 +96,24 @@ try {
  await command('switch_account',{id:'400'});await page.waitForFunction(()=>document.querySelector('.overview-account')?.textContent.includes('@qa.shop'));
  assert.equal(await page.locator('.stat-value').first().innerText(),'70');
  const after=(await command('state')).state;assert.equal(after.gate.attempts,before.gate.attempts);
- await project({...after,account:null,connected:false,events:[],history:{},listPreparation:null});
- await page.locator('.connect-banner').waitFor();assert.equal(await page.locator('.overview-account').count(),0);
- assert.equal(await page.locator('.stat-value').first().innerText(),'—');assert.equal(await page.locator('.stat-card[data-value="followers"]').isDisabled(),true);
- checks.push('Account switching replaces metrics; a disconnected empty workspace never invents zero counts or comparisons');
+ await project({...after,connected:false});
+ await page.getByRole('heading',{name:'Yeniden bağlantı gerekli',exact:true}).waitFor();
+ assert.equal(await page.locator('.overview-start').count(),0);
+ assert.equal(await page.locator('.stat-value').first().innerText(),'70');
+ await page.getByRole('button',{name:'Yeniden bağla',exact:true}).click();
+ assert.equal(await page.locator('#login-username').inputValue(),'qa.shop');
+ await page.keyboard.press('Escape');
+ await project({...after,lastError:{code:'session'},gate:{...after.gate,manualOnly:true}});
+ await page.getByRole('heading',{name:'Yeniden bağlantı gerekli',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Şimdi kontrol et',exact:true}).count(),0);
+ await project({...after,account:null,accounts:[],activeAccountId:null,connected:false,events:[],history:{},listPreparation:null,
+   gate:{...after.gate,status:429,manualOnly:true,blockedUntil:Date.now()/1000+3600}});
+ await page.getByRole('heading',{name:'Nasıl başlamak istersin?',exact:true}).waitFor();
+ const start=page.locator('.overview-start');
+ await start.getByRole('button',{name:'Instagram ZIP’ini aç',exact:true}).waitFor();
+ await start.getByRole('button',{name:'Hesabını bağla',exact:true}).waitFor();
+ assert.equal(await page.locator('.overview-account,.stat-card,.overview-monitor,.overview-columns,.operation-panel').count(),0);
+ checks.push('First launch offers ZIP and live monitoring only; a disconnected or rejected saved session keeps local metrics and offers reconnection');
  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
  await writeFile(path.join(output,'summary.json'),JSON.stringify({checks,errors,network,home},null,2));
  console.log(JSON.stringify({checks:checks.length,errors,network,output}));

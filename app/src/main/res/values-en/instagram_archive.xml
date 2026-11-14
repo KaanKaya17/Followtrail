@@ -22,4 +22,14 @@
     <string name="instagram_archive_mutual_range">Sorting and the date range use when each account started following you.</string>
     <string name="instagram_archive_clear_date">Clear date</string>
     <string name="instagram_archive_sort">Sort by · %1$s</string>
+    <string name="instagram_archive_open_first">Open Instagram ZIP</string>
+    <string name="instagram_archive_onboarding_title">Explore your archive</string>
+    <string name="instagram_archive_onboarding_description">View follow lists on your device without connecting an account.</string>
+    <string name="instagram_archive_live_title">Live tracking</string>
+    <string name="instagram_archive_live_description">Connect your Instagram account to track profile and list changes.</string>
+    <string name="instagram_archive_snapshot">Lists show the records exported when the ZIP was created.</string>
+    <string name="instagram_archive_guide_title">How do I get my Instagram ZIP?</string>
+    <string name="instagram_archive_guide_open_center">Open Accounts Center</string>
+    <string name="instagram_archive_guide_no_browser">Could not open Accounts Center.</string>
+    <string name="instagram_archive_guide_body">In Instagram, go to Accounts Center → Your information and permissions → Export your information.\n\nSelect your Instagram account and choose Export to device. Select Followers and following, set the date range to All time and choose JSON.\n\nWhen the file is ready, download it to your phone and open it in Tracker.</string>
 </resources>

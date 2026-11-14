@@ -1,5 +1,63 @@
 # Değişiklikler
 
+## Android 0.1.100
+
+- Geri takip etmeyenler için hesap bazında şifreli istisnalar ve açık bir yerel veri silme etiketi eklendi.
+- ZIP özeti dosya kapsamını gösterir. İki ZIP için kaynak önizlemesi, sıra değişimi ve kullanıcı adı uyarısı eklendi.
+- ZIP kayıtlarında tam metin araması, aylık beğeni özeti ve içerik/etkileşim takvimi eklendi.
+
+## Windows 0.2.84
+
+- Seni geri takip etmeyenler filtresinde istisnalar ayrı bir alt bölümde görünür ve ana sonuç sayısına dahil edilmez.
+
+## Windows 0.2.83
+
+- İçerik ve hikâye takvimlerinde ay değiştirme okları düğmelerin ortasına hizalandı.
+
+## Windows 0.2.82
+
+- İçerik ve etkileşim takvimi, Instagram ZIP’indeki hikâyeleri, gönderileri ve Reels’leri yerel hikâye kayıtlarıyla birlikte gösterir. İçerik başına mevcut etkileşim sayıları ve medya önizlemeleri açılabilir.
+
+## Windows 0.2.81
+
+- İki ZIP karşılaştırmasında sonuçlardan önce dosya, hesap ve tarih bilgileri yan yana gösterilir. ZIP’lerin sırası değiştirilebilir ve kullanıcı adları farklıysa uyarı gösterilir.
+
+## Windows 0.2.80
+
+- ZIP arşivi dosya, hesap ve tarih bilgilerini üstte gösterir. Takip listelerinin ve mesajların kapsamını açıklar.
+- Windows arşiv ekranına ZIP sürükleyip bırakarak açılabilir.
+
+## Windows 0.2.79
+
+- Instagram ZIP araması uzun mesajların tamamını tarar ve sonuçta eşleşmenin çevresinden kısa bir metin gösterir.
+- Aylık beğeni özetinde aradaki boş aylar “ZIP’te kayıt yok” olarak gösterilir.
+
+## Windows 0.2.78
+
+- Ayarlar’da Windows yedeğini geri yükleme ve taşınabilir geçmişi arşiv olarak açma ayrı açıklamalarla gösterilir.
+- Hesap eklenmeden önce Özet, Instagram ZIP’ini açma ve canlı takibi başlatma seçeneklerini gösterir. Yeniden bağlantı uyarısı kayıtlı hesaplar için gösterilir.
+
+## Android 0.1.99
+
+- Dosya seçici açıkken ekran yeniden oluşturulursa geçmiş yedeği ve Instagram ZIP karşılaştırması kaldığı yerden devam eder.
+- Geçmiş yedeğinin parolası dosya konumu seçildikten sonra istenir.
+
+## Windows 0.2.77 / Android 0.1.98
+
+- Taşınabilir yedekler, Windows’ta kaydedilebilen 2.000 karakterlik notları Türkçe karakterler ve emojiyle birlikte korur.
+
+## Windows 0.2.76 / Android 0.1.97
+
+- Parolalı Tracker yedeği, kayıtlı profilleri, notları, favorileri, profil gözlemlerini, tamamlanmış takip listelerini ve günlük özetleri Windows ve Android arasında taşır. Geçmiş ayrı bir ekranda açılır.
+
+## Windows 0.2.75 / Android 0.1.96
+
+- Özet’teki ZIP kısayolu seçilen dosyayı tam arşiv panelinde açar. Android paneli arşiv özeti, veri kategorileri ve iki ZIP’in takip listelerini karşılaştırma seçeneği sunar.
+
+## Windows 0.2.74 / Android 0.1.95
+
+- Hesap bağlı değilken Özet ekranından doğrudan Instagram ZIP seçilebilir. Takip listeleri hesap bağlamadan açılır ve dışa aktarma adımlarına aynı ekrandan ulaşılır.
+
 ## Windows 0.2.73
 
 - Veri Arşivi, ZIP’te bulunan önemli sayıları tıklanabilir kartlarda ve tarihli gönderi beğenilerini aylık grafikte gösterir.

@@ -26,6 +26,7 @@ class TimelineActivity : LocalizedActivity() {
     private lateinit var filters: LinearLayout
     private lateinit var choices: LinearLayout
     private lateinit var ownerButton: android.widget.Button
+    private lateinit var markAllButton: android.widget.Button
     private lateinit var status: TextView
     private lateinit var footer: LinearLayout
     private var reference: Session?=null
@@ -38,6 +39,7 @@ class TimelineActivity : LocalizedActivity() {
     private var notices=false
     private var preview=false
     private var loading=false
+    private var markingAll=false
     private var epoch=0
     private var eventLimit=50
     private var checkLimit=50
@@ -85,6 +87,10 @@ class TimelineActivity : LocalizedActivity() {
         ownerButton=AppUi.button(this,getString(R.string.timeline_all),false){chooseOwner()};root.addView(ownerButton)
         choices=LinearLayout(this);root.addView(choices)
         filters=LinearLayout(this);root.addView(HorizontalScrollView(this).apply {isHorizontalScrollBarEnabled=false;addView(filters)})
+        if (notices) {
+            markAllButton = AppUi.button(this, getString(R.string.parity_mark_all_read), false, false) { markAllRead() }
+            root.addView(markAllButton, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(8) })
+        }
         status=AppUi.text(this,getString(R.string.daily_loading),12f,AppUi.muted).apply {setPadding(0,dp(10),0,dp(8))};root.addView(status)
         list=ListView(this).apply {divider=null;dividerHeight=dp(8);clipToPadding=false;setPadding(0,0,0,dp(8));AppUi.scrollStyle(this)}
         footer=column();list.addFooterView(footer,null,false);list.adapter=adapter
@@ -134,7 +140,13 @@ class TimelineActivity : LocalizedActivity() {
     }
     private fun renderRows(reset: Boolean=false) {
         val first=if(reset)0 else list.firstVisiblePosition;val top=if(reset)0 else list.getChildAt(0)?.top ?: 0
-        val source=(if(notices)HistoryPresentation.notifications(events) else events).filter {target==null || it.target==target}
+        val available = if (notices) HistoryPresentation.notifications(events) else events
+        val hasUnread = notices && available.any { it.key !in readKeys }
+        if (notices) {
+            markAllButton.isEnabled = !markingAll && hasUnread
+            markAllButton.alpha = if (markAllButton.isEnabled) 1f else .48f
+        }
+        val source=available.filter {target==null || it.target==target}
             .filter {!notices || !unread || it.key !in readKeys}
         val chosen=source.filter {when(type){"profile"->it.kind==CheckKind.PROFILE && HistoryPresentation.changed(it);"lists"->it.kind==CheckKind.LIST;"checks"->HistoryPresentation.routine(it);"errors"->it.kind==CheckKind.FAILURE;else->true}}
             .sortedByDescending {it.analyzedAt}
@@ -155,12 +167,39 @@ class TimelineActivity : LocalizedActivity() {
                 }
             }
         }
-        status.text=if(chosen.isEmpty())getString(if(notices)R.string.parity_no_notifications else R.string.timeline_empty) else resources.getQuantityString(R.plurals.parity_records,chosen.size,chosen.size)
+        status.text = when {
+            chosen.isNotEmpty() -> resources.getQuantityString(R.plurals.parity_records, chosen.size, chosen.size)
+            notices && unread && available.isNotEmpty() && !hasUnread -> getString(R.string.parity_no_unread_notifications)
+            notices -> getString(R.string.parity_no_notifications)
+            else -> getString(R.string.timeline_empty)
+        }
         footer.removeAllViews()
         if(changes.size>eventLimit)footer.addView(AppUi.button(this,getString(R.string.parity_more_records),false){eventLimit+=50;renderRows()})
         if(checks.size>checkLimit)footer.addView(AppUi.button(this,getString(R.string.parity_more_checks),false){checkLimit+=50;renderRows()})
         if(target!=null || type!="all" || unread)footer.addView(AppUi.button(this,getString(R.string.parity_clear_filters),false){target=null;type="all";unread=false;renderFilters();renderRows(true)})
         adapter.notifyDataSetChanged();list.setSelectionFromTop(first,top)
+    }
+    private fun markAllRead() {
+        val session = reference ?: return
+        markingAll = true
+        renderRows()
+        worker.execute {
+            val result = runCatching {
+                var keys = emptySet<String>()
+                vault.inspect { current ->
+                    check(current?.session == session)
+                    keys = vault.journal.markAllRead(session)
+                }
+                keys
+            }
+            main.post {
+                if (isFinishing || isDestroyed) return@post
+                markingAll = false
+                result.onSuccess { readKeys = readKeys + it }
+                renderRows()
+                if (result.isFailure) status.setText(R.string.parity_mark_all_read_failed)
+            }
+        }
     }
     private val adapter=object: BaseAdapter() {
         override fun getCount()=rows.size

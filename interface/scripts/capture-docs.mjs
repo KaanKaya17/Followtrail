@@ -60,7 +60,13 @@ try {
     assert.equal(await page.getByText('Bildirim için seçili',{exact:true}).count(),3);
     assert.equal((await page.locator('body').innerText()).includes('\uFFFD'),false);
     await page.screenshot({path:path.join(output,'bildirimler.png')});
+    await page.keyboard.press('Escape');
+    await page.locator('.sidebar nav a[href="#timeline"]').click();
+    await page.getByRole('heading',{name:'Zaman çizelgesi',exact:true}).waitFor();
+    await page.getByText('demo.deniz.eski',{exact:true}).waitFor();
+    await page.mouse.move(0,0);
+    await page.screenshot({path:path.join(output,'zaman-cizelgesi.png')});
     assert.deepEqual(errors,[]);
     assert.deepEqual(external,[]);
-    console.log('3 documentation screenshots captured; synthetic state, zero external requests, zero script errors.');
+    console.log('4 documentation screenshots captured; synthetic state, zero external requests, zero script errors.');
 } finally {await browser.close();await history.close();}

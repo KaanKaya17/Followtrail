@@ -23,7 +23,8 @@
            page.total<offset+page.items.length || (page.nextOffset===null && page.total!==offset+page.items.length) ||
            (page.nextOffset!==null && (page.nextOffset!==offset+page.items.length || page.nextOffset<=offset)))
           throw {code:'service'};
-        state={...state,items:[...state.items,...page.items],total:page.total,nextOffset:page.nextOffset,
+        state={...state,items:[...state.items,...page.items],total:page.total,mainTotal:page.mainTotal ?? page.total,
+          exceptionTotal:page.exceptionTotal ?? 0,nextOffset:page.nextOffset,
           added:page.added,removed:page.removed,common:page.common ?? null,loading:false,error:null};
       } catch(error) {
         if(ticket!==epoch)return;

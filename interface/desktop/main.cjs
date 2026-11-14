@@ -71,7 +71,8 @@ const rendererUpdates = new RendererUpdates({
   }),
 });
 const allowed = new Set([
-  "export_browser_summary", "export_browser_search", "export_browser_comparison_page",
+  "export_browser_summary", "export_browser_content", "export_browser_search", "export_browser_compare", "export_browser_comparison_page",
+  "export_browser_portable_page", "export_browser_portable_close",
   "export_browser_text", "export_browser_media", "export_browser_close", "export_browser_browse",
   "history_page", "history_detail",
   "state",
@@ -86,6 +87,7 @@ const allowed = new Set([
   "cancel_search_images",
   "list_avatar",
   "list_page",
+  "list_exception",
   "daily_stats",
   "daily_clear",
   "story_view",
@@ -105,6 +107,7 @@ const allowed = new Set([
   "check_access",
   "notification_rule",
   "read_notification",
+  "read_all_notifications",
   "wayback",
 ]);
 
@@ -130,7 +133,11 @@ function validate(operation, args) {
     export_browser_text: ['token','index','record','offset','view'],
     export_browser_browse: ['token','index','query','offset','since','until','order','record'],
     export_browser_summary: ['token'],
+    export_browser_content: ['token','month','day','offset'],
+    export_browser_portable_page: ['section','offset','index'],
+    export_browser_portable_close: [],
     export_browser_search: ['token','query','index','start'],
+    export_browser_compare: ['token','candidate','reverse'],
     export_browser_comparison_page: ['token','direction','change','offset'],
     export_browser_media: ['token','index'],
     export_browser_close: ['token'],
@@ -153,6 +160,7 @@ function validate(operation, args) {
     story_media: ["accountId","id","storyId"],
     story_clear: ["accountId","id"],
     list_page: ["accountId","revision","ownerId","peerOwnerId","direction","scanId","previousScanId","comparison","relation","query","offset"],
+    list_exception: ["accountId","revision","id","enabled"],
     list_avatar: ["accountId", "ownerId", "direction", "scanId", "id"],
     profile_detail: ["accountId", "id", "fresh"],
     cancel_list_images: [],
@@ -175,6 +183,7 @@ function validate(operation, args) {
     check_access: ["id"],
     notification_rule: ["id", "enabled", "fields"],
     read_notification: ["id"],
+    read_all_notifications: ["accountId"],
     wayback: ["id", "enabled", "clear"],
     disconnect: [],
     delete_all: [],
@@ -322,11 +331,18 @@ else
       if(testHome)return {ok:true,url,opened:false};
       await shell.openExternal(url);return {ok:true};
     });
+    ipcMain.handle("tracker:open-dropped-archive", async (event, filename) => {
+      if (!senderValid(event) || typeof filename !== "string" || !path.isAbsolute(filename) ||
+          path.extname(filename).toLowerCase() !== ".zip")
+        throw new Error("Invalid dropped archive");
+      return backend.command("export_browser_open", {path:filename});
+    });
     ipcMain.handle("tracker:file", async (event, action, args = {}) => {
       const fileFields =
         action === "export_list" ? ["id", "direction", "snapshotId"] :
         action === "export_browser_save" ? ["token", "index", "name"] :
-        action === "export_browser_compare" ? ["token"] : [];
+        action === "export_browser_prepare_comparison" ? ["token"] :
+        ["open_portable_backup","export_portable_backup"].includes(action) ? ["password"] : [];
       if (
         !args ||
         typeof args !== "object" ||
@@ -339,8 +355,9 @@ else
         ![
           "export_backup",
           "import_backup",
+          "open_portable_backup", "export_portable_backup",
           "import_instagram_zip",
-          "export_browser_open", "export_browser_save", "export_browser_compare",
+          "export_browser_open", "export_browser_save", "export_browser_prepare_comparison",
           "export_list",
           "open_storage",
         ].includes(action)
@@ -354,12 +371,27 @@ else
       const fileAccountId = backend.state?.activeAccountId;
       const accountChanged = () => backend.state?.activeAccountId !== fileAccountId;
       const accountChangedResult = () => ({ok:false,error:{message:t("Dosya seçimi sırasında hesap değişti. İlgili hesabı seçip yeniden dene.")}});
+      if (action === "open_portable_backup" || action === "export_portable_backup") {
+        const saving = action === "export_portable_backup";
+        if (typeof args.password !== "string" || !args.password || Buffer.byteLength(args.password) > 512 ||
+            (saving && Array.from(args.password).length < 12))
+          throw new Error("Invalid backup password");
+        const filters = [{ name: "Tracker", extensions: ["trackerhistory"] }];
+        const selection = saving
+          ? await dialog.showSaveDialog(window, {filters, defaultPath:"InstagramTracker.trackerhistory"})
+          : await dialog.showOpenDialog(window, {filters, properties:["openFile"]});
+        if (selection.canceled) return {ok:true,cancelled:true};
+        if (saving && accountChanged()) return accountChangedResult();
+        return saving
+          ? backend.command(action, {path:selection.filePath,password:args.password,account_id:fileAccountId})
+          : backend.command("export_browser_portable_open", {path:selection.filePaths[0],password:args.password});
+      }
       if (action === "open_storage") {
         await fs.mkdir(dataDir, { recursive: true });
         await shell.openPath(dataDir);
         return { ok: true };
       }
-      if (action === "import_instagram_zip" || action === "export_browser_open" || action === "export_browser_compare") {
+      if (action === "import_instagram_zip" || action === "export_browser_open" || action === "export_browser_prepare_comparison") {
         const selection = await dialog.showOpenDialog(window, {
           title: t("Instagram ZIP dosyasını seç"),
           properties: ["openFile"],

@@ -10,6 +10,8 @@
       '<path d="m9 3-1 3-3 1-2 3 2 2-1 3 2 3 3-1 3 2 3-1 1-3 3-1 2-3-2-2 1-3-2-3-3 1-3-2Z"/><circle cx="12" cy="11" r="3"/>',
     search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
     chevron: '<path d="m9 5 7 7-7 7"/>',
+    previousMonth: '<path d="m15 6-6 6 6 6"/>',
+    nextMonth: '<path d="m9 6 6 6-6 6"/>',
     down: '<path d="m6 9 6 6 6-6"/>',
     arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
     up: '<path d="m6 14 6-6 6 6"/>',
@@ -38,6 +40,8 @@
     menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
     logout: '<path d="M9 4H4v16h5m5-14 6 6-6 6m-7-6h13"/>',
   };
-  window.TrackerIcon = (name, extra = "") =>
+  const icon = (name, extra = "") =>
     `<svg class="icon ${extra}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.chart}</svg>`;
+  if (typeof window === "object") window.TrackerIcon = icon;
+  if (typeof module === "object") module.exports = icon;
 })();

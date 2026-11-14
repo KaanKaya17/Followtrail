@@ -1,6 +1,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 global.TrackerProfileLinks=require('../web/profile-links.js');
+global.TrackerIcon=require('../web/icons.js');
 const stories=require('../web/stories.js');
 const {Backend}=require('./service.cjs');
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

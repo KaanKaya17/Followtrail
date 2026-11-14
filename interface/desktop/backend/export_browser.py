@@ -2,6 +2,7 @@
 import base64
 from collections import Counter
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 import json
 from pathlib import Path
 import os
@@ -10,12 +11,13 @@ from tempfile import NamedTemporaryFile
 from uuid import uuid4
 from zipfile import BadZipFile, ZipFile, _EndRecData, _ECD_SIZE, _ECD_ENTRIES_TOTAL
 
-from instagram_archive import read_relationships
+from instagram_archive import ENTRY, archive_name, read_relationships
 
 MAX_ARCHIVE = 8 * 1024**3
 MAX_DIRECTORY = 32 * 1024**2
 MAX_ENTRIES = 50_000
 MAX_JSON = 24 * 1024**2
+MAX_METADATA = 256 * 1024
 MAX_PREVIEW = 32 * 1024**2
 MAX_COPY = 512 * 1024**2
 PAGE = 24_000
@@ -28,6 +30,72 @@ SUMMARY_FILES = {
     'contacts': ('connections/contacts/', 'synced_contacts'),
 }
 TREND_METRICS = ('Followers', 'Accounts Reached', 'Accounts reached', 'Content Interactions')
+PROFILE_FILE = 'personal_information/personal_information/personal_information.json'
+EXPORT_NAME = re.compile(r'instagram-[A-Za-z0-9._]{1,30}-(\d{4}-\d{2}-\d{2})-[A-Za-z0-9]{8}\.zip', re.I)
+MESSAGE_FILE = re.compile(r'(?:your_instagram_activity/)?messages/(?:[^/]+/)+message_\d+\.(?:json|html)')
+CONTENT_FILES = re.compile(r'(your_instagram_activity/media|logged_information/past_instagram_insights)/(stories|reels|posts)(?:_[1-9]\d{0,3})?\.json')
+CONTENT_METRICS = {
+    'views': ('Instagram Views', 'Views', 'views', 'view_count'),
+    'plays': ('Instagram Plays', 'Plays', 'play_count'),
+    'likes': ('Instagram Likes', 'Likes', 'like_count'),
+    'comments': ('Instagram Comments', 'Comments', 'comment_count'),
+    'reactions': ('Reactions',),
+}
+
+
+def content_fields(row):
+    fields = row.get('string_map_data')
+    return fields if isinstance(fields, dict) else {}
+
+
+def content_count(value):
+    if isinstance(value, dict):
+        value = value.get('value')
+    if isinstance(value, str) and re.fullmatch(r'[0-9]{1,15}', value):
+        value = int(value)
+    return value if type(value) is int and 0 <= value < 10**15 else None
+
+
+def content_timestamp(*values):
+    for value in values:
+        if type(value) is int:
+            stamp = value // 1000 if value >= 10**12 else value
+            if 946684800 <= stamp < 4102444800:
+                return stamp
+    return None
+
+
+def content_item(row, kind, insights, files):
+    if not isinstance(row, dict):
+        return None
+    fields = content_fields(row)
+    media = row.get('media')
+    assets = [x for x in media if isinstance(x, dict)] if isinstance(media, list) else [row]
+    thumbnail = row.get('media_map_data')
+    thumbnail = thumbnail.get('Media Thumbnail') if isinstance(thumbnail, dict) else None
+    if isinstance(thumbnail, dict):
+        assets.append(thumbnail)
+    refs = list(dict.fromkeys(asset['uri'] for asset in assets if isinstance(asset.get('uri'), str)
+                             and 0 < len(asset['uri']) <= 1024))[:16]
+    date_fields = [fields.get(key) for key in ('Creation Timestamp', 'Upload Timestamp')]
+    stamp = content_timestamp(*(v.get('timestamp') for v in date_fields if isinstance(v, dict)),
+                              row.get('creation_timestamp'), row.get('timestamp'),
+                              *(asset.get('creation_timestamp') for asset in assets))
+    if stamp is None:
+        return None
+    caption = fields.get('Caption')
+    caption = caption.get('value') if isinstance(caption, dict) else None
+    caption = next((text for text in (caption, row.get('title'), *(a.get('title') for a in assets))
+                    if isinstance(text, str) and text.strip()), '')
+    metrics = {}
+    for key, aliases in CONTENT_METRICS.items():
+        for alias in aliases:
+            value = content_count(fields.get(alias, row.get(alias)))
+            if value is not None:
+                metrics[key] = value
+                break
+    return {'kind': kind, 'at': stamp, 'caption': readable(caption[:500]), 'metrics': metrics,
+            'assets': [files[uri] for uri in refs if uri in files]}, refs, insights
 MEDIA = {
     '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp',
     '.gif': 'image/gif', '.mp4': 'video/mp4', '.webm': 'video/webm', '.ogg': 'audio/ogg',
@@ -54,9 +122,10 @@ def _repair_run(value):
         return value
 
 
-def record_card(row):
+def record_card(row, *, preview=True):
     if not isinstance(row, dict):
-        return {'title': str(row)[:240], 'fields': [], 'when': None}
+        title = str(row)
+        return {'title': title[:240] if preview else title, 'fields': [], 'when': None}
     fields = {}
     dates = []
     attachments = []
@@ -67,7 +136,7 @@ def record_card(row):
                     dates.append(value[key])
             value = next((value[key] for key in ('value', 'text', 'href', 'url', 'string_value', 'int_value', 'bool_value') if value.get(key) not in (None, '')), None)
         if isinstance(value, (str, int, float, bool)) and value != '' and len(fields) < 18:
-            fields.setdefault(label, readable(str(value))[:8000 if label == 'content' else 800])
+            fields.setdefault(label, readable(str(value)))
     for label, value in (row.get('string_map_data') or {}).items() if isinstance(row.get('string_map_data'), dict) else ():
         add(label, value)
     for item in row['label_values'] if isinstance(row.get('label_values'), list) else ():
@@ -105,8 +174,77 @@ def record_card(row):
         title = '@' + title.split('instagram.com/', 1)[1].removeprefix('_u/').strip('/').split('?')[0]
     seconds = (v // 1000 if v >= 10**12 else v for v in dates)
     when = next((v for v in seconds if 946684800 <= v < 4_102_444_800), None)
-    return {'title': title[:240], 'fields': list(fields.items()), 'when': when,
-            'media': url if not url.startswith(('http:', 'https:')) else '', 'attachments': attachments}
+    return {'title': title[:240] if preview else title,
+            'fields': [(label, value[:8000 if label == 'content' else 800] if preview else value)
+                       for label, value in fields.items()], 'when': when,
+            'media': url[:800] if not url.startswith(('http:', 'https:')) else '', 'attachments': attachments}
+
+
+def monthly_likes(months):
+    if len(months) < 2:
+        return []
+    def ordinal(month):
+        year, number = map(int, month.split('-'))
+        return year * 12 + number - 1
+    first = ordinal(min(months))
+    last = ordinal(max(months))
+    result = []
+    for ordinal_month in range(max(first, last - 11), last + 1):
+        year, month = divmod(ordinal_month, 12)
+        label = f'{year:04d}-{month + 1:02d}'
+        result.append((label, months.get(label)))
+    return result
+
+
+class ExportFooter(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.in_footer = False
+        self.text = []
+        self.records = []
+        self.ranges = []
+        self.range_start = None
+        self.in_time = False
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == 'aside' and attrs.get('role') == 'contentinfo':
+            self.in_footer = True
+            self.text.clear()
+            self.range_start = None
+        elif self.in_footer and tag == 'time':
+            label = ' '.join(''.join(self.text).split())
+            match = re.fullmatch(r'Generated by ([A-Za-z0-9._]{1,30}) on', label, re.I)
+            stamp = attrs.get('datetime')
+            if match:
+                self.records.append((archive_name(match[1]), stamp))
+            elif label.casefold() == 'contains data you requested from':
+                self.range_start = stamp
+            elif label.casefold() == 'to' and self.range_start is not None:
+                self.ranges.append((self.range_start, stamp))
+                self.range_start = None
+            self.text.clear()
+            self.in_time = True
+
+    def handle_endtag(self, tag):
+        if tag == 'aside':
+            self.in_footer = False
+            self.in_time = False
+        elif tag == 'time':
+            self.in_time = False
+
+    def handle_data(self, data):
+        if self.in_footer and not self.in_time:
+            self.text.append(data)
+
+
+def export_stamp(value):
+    if isinstance(value, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})', value):
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            pass
+    return None
 
 
 class ExportBrowser:
@@ -129,6 +267,9 @@ class ExportBrowser:
         self.record = None
         self.cards = None
         self.summary_data = self.relationships = self.comparison = None
+        self.metadata = None
+        self.content_data = None
+        self.comparison_candidate = None
 
     def release(self, token):
         if token == self.token:
@@ -163,7 +304,8 @@ class ExportBrowser:
         self.stream = stream
         self.zip, self.path, self.files = archive, path, files
         self.token = uuid4().hex
-        return {'token': self.token, 'name': path.name, 'size': os.fstat(stream.fileno()).st_size, 'files': [
+        self.metadata = self.export_metadata()
+        return {'token': self.token, 'name': path.name, 'metadata': self.metadata, 'size': os.fstat(stream.fileno()).st_size, 'files': [
             {'id': index, 'name': entry.filename, 'size': entry.file_size,
              'kind': self.kind(entry), 'copy': entry.file_size <= MAX_COPY and not entry.flag_bits & 1}
             for index, entry in enumerate(files)
@@ -222,11 +364,60 @@ class ExportBrowser:
         if self.zip is None or token != self.token:
             raise ValueError('archive_entry')
 
+    def export_metadata(self):
+        sources = {}
+        for file in self.files:
+            if file.filename in ('start_here.html', PROFILE_FILE):
+                sources.setdefault(file.filename, []).append(file)
+        account = exported_at = date_range = None
+        try:
+            entry, = sources.get('start_here.html', ())
+            footer = ExportFooter()
+            footer.feed(self.read(entry, MAX_METADATA).decode('utf-8-sig'))
+            footer.close()
+            if len(footer.records) == 1:
+                account, stamp = footer.records[0]
+                exported_at = export_stamp(stamp)
+            if len(footer.ranges) == 1:
+                start, end = map(export_stamp, footer.ranges[0])
+                if start is not None and end is not None and start <= end:
+                    date_range = [start.date().isoformat(), end.date().isoformat()]
+        except ARCHIVE_ERRORS:
+            pass
+        try:
+            entry, = sources.get(PROFILE_FILE, ())
+            profile, = json.loads(self.read(entry, MAX_METADATA))['profile_user']
+            profile_account = archive_name(profile['string_map_data']['Username']['value'])
+        except ARCHIVE_ERRORS + (KeyError,):
+            profile_account = None
+        if profile_account:
+            account = profile_account if account in (None, profile_account) else None
+        result = {'account': account, 'exportedAt': exported_at.isoformat() if exported_at else None}
+        if date_range:
+            result['dateRange'] = date_range
+        match = EXPORT_NAME.fullmatch(self.path.name)
+        if not exported_at and match:
+            try:
+                result['filenameDate'] = datetime.strptime(match[1], '%Y-%m-%d').date().isoformat()
+            except ValueError:
+                pass
+        return result
+
     def read_summary(self, token):
         self.validate_token(token)
         if self.summary_data is not None:
             return self.summary_data
         metrics = {}
+        scope = dict.fromkeys(('followers', 'following', 'messages'), 'missing')
+        for file in self.files:
+            name = Path(file.filename)
+            if name.parent.name == 'followers_and_following' and (match := ENTRY.fullmatch(name.name)):
+                scope[match[1]] = 'unreadable'
+            if MESSAGE_FILE.fullmatch(file.filename):
+                scope['messages'] = 'present'
+            elif scope['messages'] == 'missing' and file.filename in (
+                    'your_instagram_activity/messages/no-data.txt', 'messages/no-data.txt'):
+                scope['messages'] = 'empty'
         try:
             self.relationships = read_relationships(self.zip)
         except ARCHIVE_ERRORS:
@@ -234,6 +425,7 @@ class ExportBrowser:
         if self.relationships:
             for name, rows in self.relationships.items():
                 if rows is not None:
+                    scope[name] = 'present'
                     candidates = [(index, file.filename) for index, file in enumerate(self.files)
                                   if Path(file.filename).parent.name == 'followers_and_following' and
                                   re.fullmatch(name + r'(?:_1)?\.(json|html)', Path(file.filename).name)]
@@ -272,8 +464,65 @@ class ExportBrowser:
                     months.clear()
                 continue
             metrics[key] = {'count': count, 'index': matched[0][1]}
-        self.summary_data = {'metrics': metrics, 'months': sorted(months.items())[-12:] if len(months) >= 2 else []}
+        self.summary_data = {'metrics': metrics, 'months': monthly_likes(months),
+                             'scope': scope, 'metadata': self.metadata}
         return self.summary_data
+
+    def content(self, token, month=None, day=None, offset=0):
+        self.validate_token(token)
+        if (month is not None and (not isinstance(month, str) or not re.fullmatch(r'\d{4}-(0[1-9]|1[0-2])', month))
+                or day is not None and (month is None or not isinstance(day, str) or not re.fullmatch(re.escape(month) + r'-[0-3][0-9]', day))
+                or type(offset) is not int or offset < 0):
+            raise ValueError('archive_entry')
+        if self.content_data is None:
+            self.content_data = self.build_content()
+        dates, skipped = self.content_data
+        rows = dates.get(day, []) if day else []
+        return {'latest': max(dates, default=None), 'skipped': skipped,
+                'days': {date: len(items) for date, items in dates.items() if month and date.startswith(month + '-')},
+                'items': rows[offset:offset + 24], 'total': len(rows)}
+
+    def build_content(self):
+        files = {file.filename: i for i, file in enumerate(self.files)
+                 if self.kind(file) in ('image', 'video') and file.file_size <= MAX_PREVIEW}
+        items, by_ref = [], {}
+        remaining = MAX_JSON
+        skipped = 0
+        sources = [(match, index, file) for index, file in enumerate(self.files)
+                   if (match := CONTENT_FILES.fullmatch(file.filename))]
+        for match, index, file in sorted(sources, key=lambda source: source[0][1].startswith('logged_information')):
+            if file.file_size > remaining:
+                skipped += 1
+                continue
+            remaining -= file.file_size
+            try:
+                rows = self.load_document(index, file)[3]
+            except ARCHIVE_ERRORS:
+                skipped += 1
+                continue
+            for row in rows:
+                parsed = content_item(row, match[2], match[1].startswith('logged_information'), files)
+                if parsed is None:
+                    continue
+                item, refs, insights = parsed
+                matches = {by_ref[(item['kind'], ref)] for ref in refs if (item['kind'], ref) in by_ref}
+                if insights and len(matches) == 1 and -1 not in matches:
+                    original = items[matches.pop()]
+                    original['metrics'].update(item['metrics'])
+                    original['assets'] = list(dict.fromkeys(original['assets'] + item['assets']))[:16]
+                    if not original['caption']:
+                        original['caption'] = item['caption']
+                    continue
+                if not insights:
+                    for ref in refs:
+                        key = item['kind'], ref
+                        by_ref[key] = len(items) if key not in by_ref else -1
+                items.append(item)
+        dates = {}
+        for item in sorted(items, key=lambda value: value['at'], reverse=True):
+            day = datetime.fromtimestamp(item['at'], timezone.utc).date().isoformat()
+            dates.setdefault(day, []).append(item)
+        return dates, skipped
 
     def search(self, token, query, index=0, start=-1):
         self.validate_token(token)
@@ -311,11 +560,9 @@ class ExportBrowser:
                     results.append({'index': index, 'record': None, 'preview': ''})
                 start = 0
             while start < len(rows) and examined < 20_000 and len(results) < 24:
-                card = record_card(rows[start])
-                value = next((value for value in (card['title'], *(value for _, value in card['fields']))
-                              if needle in value.casefold()), None)
-                if value:
-                    results.append({'index': index, 'record': start, 'preview': self.search_excerpt(value, needle)})
+                match = self.search_match(rows[start], needle)
+                if match is not None:
+                    results.append({'index': index, 'record': start, 'preview': self.search_excerpt(*match)})
                 start += 1
                 examined += 1
             if start < len(rows):
@@ -325,21 +572,63 @@ class ExportBrowser:
         return page()
 
     @staticmethod
-    def search_excerpt(value, needle):
-        position = max(0, value.casefold().find(needle) - 40)
-        return ('…' if position else '') + value[position:position + 180] + ('…' if position + 180 < len(value) else '')
+    def search_match(row, needle):
+        card = record_card(row, preview=False)
+        for value in (card['title'], *(value for _, value in card['fields'])):
+            folded = value.casefold()
+            position = folded.find(needle)
+            if position >= 0:
+                return value, position, len(folded)
+        return None
 
-    def compare(self, token, path):
+    @staticmethod
+    def search_excerpt(value, position, folded_length):
+        if folded_length != len(value):
+            folded_offset = 0
+            for index, character in enumerate(value):
+                folded_offset += len(character.casefold())
+                if folded_offset > position:
+                    position = index
+                    break
+        start = max(0, position - 20)
+        end = start + 180
+        return ('…' if start else '') + value[start:end] + ('…' if end < len(value) else '')
+
+    def prepare_comparison(self, token, path):
         self.validate_token(token)
+        self.comparison = None
+        self.comparison_candidate = None
+        other = ExportBrowser()
+        other.path, other.stream, other.zip, other.files = self.open_zip(path)
+        try:
+            first = {'name': self.path.name, **self.metadata}
+            second = {'name': other.path.name, **other.export_metadata()}
+            try:
+                lists = read_relationships(other.zip)
+            except ARCHIVE_ERRORS:
+                lists = None
+        finally:
+            other.close()
+        candidate = uuid4().hex
+        different_accounts = bool(first['account'] and second['account'] and first['account'] != second['account'])
+        self.comparison_candidate = (candidate, lists)
+        return {'candidate': candidate, 'first': first, 'second': second, 'differentAccounts': different_accounts}
+
+    def compare(self, token, candidate, reverse=False):
+        self.validate_token(token)
+        if (type(reverse) is not bool or not self.comparison_candidate
+                or self.comparison_candidate[0] != candidate):
+            raise ValueError('archive_entry')
+        other = self.comparison_candidate[1]
+        if other is None:
+            raise ValueError('archive_entry')
         self.comparison = None
         if self.relationships is None:
             self.relationships = read_relationships(self.zip)
-        other_path, stream, archive, _ = self.open_zip(path)
-        with stream, archive:
-            other = read_relationships(archive)
+        before, after = (other, self.relationships) if reverse else (self.relationships, other)
         data = {}
-        for direction, rows in self.relationships.items():
-            newer = other[direction]
+        for direction, rows in before.items():
+            newer = after[direction]
             if rows is None or newer is None:
                 continue
             old_names = {row['username'] for row in rows}
@@ -349,7 +638,7 @@ class ExportBrowser:
                 'added': sorted(new_names - old_names), 'removed': sorted(old_names - new_names),
             }
         self.comparison = data
-        return {'name': other_path.name, 'directions': {
+        return {'directions': {
             direction: {key: len(value) if isinstance(value, list) else value for key, value in values.items()}
             for direction, values in data.items()
         }}
@@ -377,13 +666,13 @@ class ExportBrowser:
             self.cards = index, [record_card(row) for row in records]
         needle = query.strip().casefold()
         matches = []
-        for card in self.cards[1]:
+        for row, card in zip(records, self.cards[1]):
             stamp = card['when']
             if since is not None and (stamp is None or stamp < since):
                 continue
             if until is not None and (stamp is None or stamp >= until):
                 continue
-            if not needle or needle in card['title'].casefold() or any(needle in value.casefold() for _, value in card['fields']):
+            if not needle or self.search_match(row, needle) is not None:
                 matches.append(card)
         if order:
             matches.sort(key=lambda card: (card['when'] is None, (card['when'] or 0) * (-1 if order == 'newest' else 1)))

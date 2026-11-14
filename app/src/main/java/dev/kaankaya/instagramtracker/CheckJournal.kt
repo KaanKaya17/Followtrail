@@ -77,6 +77,13 @@ class CheckJournal(context: Context, slot: String) {
         val value = load(session); require(value.owner == session.userId)
         if (value.events.any { it.key == key } && key !in value.read) write(value.copy(read = (value.read + key).toList().takeLast(500).toSet()))
     }
+    fun markAllRead(session: Session): Set<String> = synchronized(lock) {
+        val value = load(session)
+        require(value.owner == session.userId)
+        val keys = HistoryPresentation.notifications(value.events).map { it.key }.toSet()
+        if (!value.read.containsAll(keys)) write(value.copy(read = ((value.read - keys) + keys).toList().takeLast(500).toSet()))
+        keys
+    }
     fun append(session: Session, event: CheckEvent): Boolean = synchronized(lock) {
         try {
             val value = load(session); require(value.owner == session.userId)

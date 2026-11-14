@@ -16,6 +16,9 @@
     <string name="parity_preferences">%1$s · Preferencias de notificaciones</string>
     <string name="parity_notices_enabled">Notificaciones de esta cuenta</string>
     <string name="parity_notifications">Notificaciones</string>
+    <string name="parity_mark_all_read">Marcar todo como leído</string>
+    <string name="parity_no_unread_notifications">No hay notificaciones sin leer.</string>
+    <string name="parity_mark_all_read_failed">No se pudieron marcar las notificaciones como leídas.</string>
     <string name="parity_refresh_history">Volver a cargar los registros guardados</string>
     <string name="parity_unread">Sin leer</string>
     <string name="parity_read">Leída</string>

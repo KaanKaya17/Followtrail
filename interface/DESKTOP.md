@@ -1,6 +1,6 @@
-# InstagramTracker Windows 0.2.73
+# InstagramTracker Windows 0.2.84
 
-Güncel paket **[Windows 0.2.73](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.73)**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
+Güncel paket **[Windows 0.2.84](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84)**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
 
 **Instagram Veri Arşivi**, Zaman Çizelgesi’nin altında açılır. Özet, arama ve iki ZIP’in takip listelerini karşılaştırma yerelde çalışır. [Kullanım ve sonuçların anlamı](../docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
 

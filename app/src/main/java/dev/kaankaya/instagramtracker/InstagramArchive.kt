@@ -17,6 +17,18 @@ import java.util.zip.ZipFile
 internal data class InstagramArchiveRow(val username: String, val timestamp: Long? = null)
 
 internal data class InstagramArchive(val followers: List<InstagramArchiveRow>?, val following: List<InstagramArchiveRow>?) {
+    data class Difference(val before: Int, val after: Int, val added: List<String>, val removed: List<String>)
+
+    fun compare(next: InstagramArchive): Pair<Difference?, Difference?> {
+        fun compareLists(before: List<InstagramArchiveRow>?, after: List<InstagramArchiveRow>?): Difference? {
+            if (before == null || after == null) return null
+            val oldNames = before.mapTo(sortedSetOf()) { it.username }
+            val newNames = after.mapTo(sortedSetOf()) { it.username }
+            return Difference(oldNames.size, newNames.size, (newNames - oldNames).toList(), (oldNames - newNames).toList())
+        }
+        return compareLists(followers, next.followers) to compareLists(following, next.following)
+    }
+
     companion object {
         private const val MAX_ZIP = 512L * 1024 * 1024
         private const val MAX_ENTRY = 16 * 1024 * 1024
@@ -50,7 +62,10 @@ internal data class InstagramArchive(val followers: List<InstagramArchiveRow>?, 
 
         fun read(file: File): InstagramArchive {
             require(file.length() in 1..MAX_ZIP)
-            ZipFile(file).use { zip ->
+            return ZipFile(file).use(::read)
+        }
+
+        fun read(zip: ZipFile): InstagramArchive {
                 val parents = mutableSetOf<String>()
                 val formats = mutableSetOf<String>()
                 val parts = mapOf("followers" to sortedMapOf<Int, ZipEntry>(),
@@ -74,7 +89,6 @@ internal data class InstagramArchive(val followers: List<InstagramArchiveRow>?, 
                 val html = formats.single() == "html"
                 return InstagramArchive(readParts(zip, "followers", parts.getValue("followers"), html),
                     readParts(zip, "following", parts.getValue("following"), html))
-            }
         }
 
         private fun readParts(zip: ZipFile, direction: String, parts: Map<Int, ZipEntry>, html: Boolean): List<InstagramArchiveRow>? {

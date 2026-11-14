@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="portable_title">Portable history</string>
+    <string name="portable_create">Create portable backup</string>
+    <string name="portable_open">Open portable backup</string>
+    <string name="portable_scope">This backup contains no session information. History opens as a separate archive.</string>
+    <string name="portable_password">Backup password</string>
+    <string name="portable_confirm">Repeat backup password</string>
+    <string name="portable_password_rules">Passwords must match and be at least 12 characters long.</string>
+    <string name="portable_error">Could not process the backup. Check the file, password and size.</string>
+    <string name="portable_saved">Portable backup saved.</string>
+    <string name="portable_people">Saved profiles</string>
+    <string name="portable_history">Profile history</string>
+    <string name="portable_daily">Daily statistics</string>
+    <string name="portable_posts">Posts</string>
+    <string name="portable_view">View</string>
+</resources>

@@ -115,6 +115,26 @@ class NotificationLogTests(unittest.TestCase):
         self.refresh(followers=10,username='qa.next')
         self.assertEqual(self.e.data['notificationLog'][1],before)
 
+    def test_read_all_covers_offscreen_entries_and_keeps_new_notifications_unread(self):
+        from history_pages import HistoryPages
+
+        for index in range(55):
+            self.e.event('profile', 'Synthetic count', '200', {'followers': index}, {'followers': index + 1})
+        first = self.e.data['notificationLog'][0]
+        first['readAt'] = 1799999999
+        before = copy.deepcopy(self.e.data['notificationLog'])
+        with patch.object(self.e.vault, 'save', wraps=self.e.vault.save) as save:
+            self.e.run('read_all_notifications', {'accountId': '100'})
+            self.e.run('read_all_notifications', {'accountId': '100'})
+            self.assertEqual(save.call_count, 1)
+        expected = [{**entry, 'readAt': entry['readAt'] or 1800000000} for entry in before]
+        reopened = Engine(self.home.name)
+        self.assertEqual(reopened.data['notificationLog'], expected)
+        reopened.event('profile', 'Synthetic count', '200', {'followers': 55}, {'followers': 56})
+        counts = HistoryPages().publish(reopened.snapshot())['historyMeta']['notificationCounts']
+        self.assertEqual(counts['all']['all'], 56)
+        self.assertEqual(counts['unread']['all'], 1)
+
     def test_old_vault_has_default_rules_and_no_fabricated_historical_notifications(self):
         self.refresh(followers=9)
         old=copy.deepcopy(self.e.data)

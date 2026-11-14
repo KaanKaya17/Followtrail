@@ -1,4 +1,8 @@
 <resources>
+    <string name="follow_exceptions_section">İstisnalar · %1$d</string>
+    <string name="follow_exception_add">İstisnalara taşı</string>
+    <string name="follow_exception_remove">Ana listeye geri al</string>
+    <string name="accounts_delete_local">Seçili hesabın yerel verilerini sil</string>
     <string name="accounts_title">Hesaplarım</string>
     <string name="accounts_add">Hesap ekle</string>
     <string name="accounts_none">Hesap bağlı değil</string>

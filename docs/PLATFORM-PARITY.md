@@ -1,5 +1,16 @@
 # Android / Windows eşitlemesi
 
+## Windows 0.2.84 ve Android 0.1.100 yerel paketleri
+
+- İki platformda seçili hesabın yerel kayıtları onayla silinebilir. Diğer hesaplar ve dışa aktarılan dosyalar ayrı yönetilir. Tek işlemle bütün bağlı hesapları silme yoktur.
+- Canlı listelerde kendi hesabınızın geri takip etmeyenleri için istisnalar hesabın şifreli deposunda tutulur. İstisnalar listenin altında görünür ve ana sayıya girmez.
+- ZIP özetinde dosya adı, mevcut hesap ve dışa aktarım tarihi, eksik veya okunamayan listeler ve mesaj kapsamı gösterilir. İki ZIP karşılaştırması, kaynak önizlemesi, tarih sırası değişimi ve farklı kullanıcı adı uyarısı sunar.
+- Arşiv genelinde JSON metin araması, aradaki boş ayları gösteren beğeni özeti ve içerik/etkileşim takvimi iki platformda da vardır. Android araması dosya adına ve JSON değerlerine bakar. Windows ayrıca kategori içindeki kayıtları süzer. Android takvimindeki kayıtlı hikâyeler yerel hikâye görüntüleyicisini açar.
+- Windows ZIP sürükle-bırak ve aynı Windows kullanıcısına bağlı geri yükleme sunar. Android sistem dosya seçicisini kullanır. Parolalı taşınabilir geçmiş iki platformda ayrı bir arşiv olarak açılır.
+- Android arka plan çalışması ve telefondan yeni hesap bağlantısının canlı doğrulaması, Windows ile birebir eşit kapsamda değildir. [Sürüm ve destek](wiki/Surum-ve-Destek.md).
+
+Android 0.1.100 için 195 JVM testi, release lint, cihaz testi kaynaklarının derlenmesi ve imzalı APK denetimi geçti. Cihazda ekran ve canlı giriş testi çalıştırılmadı. Windows 0.2.84 için önceki 45 paketli kontrolün yanı sıra bu eşitleme sırasında 44 seçili Python testi geçti.
+
 ## Windows 0.2.73 ve Android 0.1.94 adayı
 
 Windows, tam ZIP için özet kartları, aylık beğeni grafiği, kategori bazlı arama ve iki ZIP’in takip listelerini karşılaştırmayı içerir. Android 0.1.94 adayı kategoriye ve dosya adına göre gezinme, JSON kayıtlarını okuma ve yerel medya önizlemesi sunar. Windows’a özgü özet ve iki ZIP karşılaştırması bu Android adayında yoktur. [Yayın durumu ve doğrulama kapsamı](wiki/Surum-ve-Destek.md).

@@ -164,7 +164,7 @@
     },
   });
   function refreshListPhotos() {
-    listPhotos.mount(windowVisible && ui.page==='lists' ? document.getElementById('list-rows') : null,
+    listPhotos.mount(windowVisible && ui.page==='lists' ? document.getElementById('list-page-content') : null,
       {accountId:data?.activeAccountId,ownerId:ui.owner || data?.account?.id,peerOwnerId:ui.peerOwner,direction:ui.direction});
   }
   function person(id) {
@@ -269,8 +269,9 @@
     return guide(filtered,t("Farklı bir arama dene veya tüm kayıtlı kişilere dön. Favori ve izleme tercihlerini kişi ayrıntısından değiştirebilirsin."),[],button(t("Arama ve filtreleri temizle"),'reset-people','search'));
   }
   function notificationsEmpty() {
-    if (data.historyMeta.notificationCounts.all.all && ui.notificationType!=='all')return guide(t("Bu filtrelere uygun kayıt yok."),t("Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin."),[],button(t("Tüm bildirimleri göster"),'reset-notifications','bell','primary'),'bell');
-    if (data.historyMeta.notificationCounts.all.all) return guide(t("Okunmamış bildirim yok."),t("Diğer kayıtlar için Tümü filtresine dönebilirsin."),[],button(t("Tüm bildirimleri göster"),'notification-filter','bell','primary','data-value="all"'),'bell');
+    if (data.historyMeta.notificationCounts.all.all && ui.notificationType!=='all' &&
+        (ui.notificationFilter!=='unread' || data.historyMeta.notificationCounts.unread.all))return guide(t("Bu filtrelere uygun kayıt yok."),t("Farklı bir tür seçebilir veya tüm kayıtları gösterebilirsin."),[],button(t("Tüm bildirimleri göster"),'reset-notifications','bell','primary'),'bell');
+    if (data.historyMeta.notificationCounts.all.all) return guide(t("Okunmamış bildirim yok."),t("Diğer kayıtlar için Tümü filtresine dönebilirsin."),[],button(t("Tüm bildirimleri göster"),'reset-notifications','bell','primary'),'bell');
     return guide(t("Değişiklik kayıtların burada birikecek."),t("İlk kontrol başlangıç kaydını oluşturur. Daha sonra görülen değişiklikler, her kontrol için tek kayıtta toplanır."),
       [t("Önce bir profil kaydet ve kontrol et."),t("Profil ayrıntısında bildirim almak istediğin değişiklik türlerini seç."),t("Windows bildirimi isteğe bağlıdır; uygulama içindeki kayıtlar bildirim kapalıyken de tutulur.")],
       button(t("Kaydedilen profilleri aç"),'guide-people','people','primary')+button(t("Bildirim ayarları"),'guide-settings','settings'),'bell');
@@ -380,7 +381,8 @@
     if(host) {if(operationRoot.parentElement!==host)host.append(operationRoot);}
     else if(operationRoot.parentElement!==document.body)document.body.insertBefore(operationRoot,document.getElementById('overlay-root'));
     if(operationRoot.classList.contains('inline-operation')!==!!host)operationRoot.classList.toggle('inline-operation',!!host);
-    operationProgress.update({busy, progress, gate: data?.gate || {}, visible: windowVisible});
+    const showIdleGate = ui.page !== 'overview' || data?.account;
+    operationProgress.update({busy, progress, gate: busy || showIdleGate ? data?.gate || {} : {}, visible: windowVisible});
     const heading=document.querySelector('.overview-monitor-title');
     if(heading && data && windowVisible && !document.hidden) {
       const label=busy?t("Kontrol sürüyor"):monitorLabel();
@@ -527,7 +529,7 @@
   function notifications() {
     const rows=notificationRows(),unread=data.historyMeta.notificationCounts.unread.all;
     const types=[['all',t("Tüm türler")],['profile',t("Profil")],['lists',t("Liste değişiklikleri")],['access',t("Profil görünürlüğü")]];
-    return `<div class="notifications-page" aria-busy="${notificationPages.state.loading || (notificationPages.state.total===null && !notificationPages.state.error)}">${title(t("BİLDİRİM KAYITLARI"),t("Bir kontrolde neler değişti?"),'')}<div class="notifications-toolbar"><div class="filter-tabs" role="group" aria-label="${t("Bildirim filtresi")}">${[['all',t("Tümü")],['unread',t("Okunmamış")]].map(([key,label])=>`<button data-action="notification-filter" data-value="${key}" class="${ui.notificationFilter===key?'active':''}" aria-pressed="${ui.notificationFilter===key}">${label}${key==='unread'?` (${num(unread)})`:''}</button>`).join('')}</div><a class="text-button" href="#settings">${t("Bildirim ayarları {0}",icon('settings'))}</a></div><div class="notification-type-filters" role="group" aria-label="${t("Bildirim türü")}">${types.map(([key,label])=>`<button data-action="notification-type" data-value="${key}" aria-pressed="${ui.notificationType===key}">${label}<span>${num(notificationCount(key))}</span></button>`).join('')}</div><div id="notifications-operation"></div><div class="notification-log">${rows.map(notificationCard).join('') || (historyStatus([notificationPages]) || notificationsEmpty())}</div>${rows.length?historyStatus([notificationPages]):''}${notificationPages.state.nextOffset!==null && notificationPages.state.total!==null?button(t("Daha fazla kayıt göster"),'more-notifications','down','secondary',notificationPages.state.loading?'disabled':''):''}</div>`;
+    return `<div class="notifications-page" aria-busy="${notificationPages.state.loading || (notificationPages.state.total===null && !notificationPages.state.error)}">${title(t("BİLDİRİM KAYITLARI"),t("Bir kontrolde neler değişti?"),'')}<div class="notifications-toolbar"><div class="filter-tabs" role="group" aria-label="${t("Bildirim filtresi")}">${[['all',t("Tümü")],['unread',t("Okunmamış")]].map(([key,label])=>`<button data-action="notification-filter" data-value="${key}" class="${ui.notificationFilter===key?'active':''}" aria-pressed="${ui.notificationFilter===key}">${label}${key==='unread'?` (${num(unread)})`:''}</button>`).join('')}</div><div class="notification-actions">${button(t("Tümünü okundu olarak işaretle"),'read-all-notifications','check','secondary',busy || !unread ? 'disabled' : '')}<a class="text-button" href="#settings">${t("Bildirim ayarları {0}",icon('settings'))}</a></div></div><div class="notification-type-filters" role="group" aria-label="${t("Bildirim türü")}">${types.map(([key,label])=>`<button data-action="notification-type" data-value="${key}" aria-pressed="${ui.notificationType===key}">${label}<span>${num(notificationCount(key))}</span></button>`).join('')}</div><div id="notifications-operation"></div><div class="notification-log">${rows.map(notificationCard).join('') || (historyStatus([notificationPages]) || notificationsEmpty())}</div>${rows.length?historyStatus([notificationPages]):''}${notificationPages.state.nextOffset!==null && notificationPages.state.total!==null?button(t("Daha fazla kayıt göster"),'more-notifications','down','secondary',notificationPages.state.loading?'disabled':''):''}</div>`;
   }
   async function notificationDialog(id) {
     const entry = await historyDetail('notification',id);
@@ -581,8 +583,11 @@
     const ownerUsername=value.ownerUsername || person(change.personId)?.username;
     dialog(`<span class="dialog-symbol lavender">${icon("people")}</span><h2 id="dialog-title">${t("Liste değişiklikleri")}</h2><p>${ownerUsername ? '@'+esc(ownerUsername)+' · ' : ''}${value.direction === 'followers' ? t("Takipçiler") : t("Takip edilen")}</p><p>${esc(date(value.previousAt))} → ${esc(date(change.at))}</p><div class="compare-summary list-change-filters"><button class="compare-stat mint" data-action="list-change-filter" ${idattr(id)} data-value="added" aria-pressed="${kind === 'added'}"><strong>${num(added.length)}</strong><span>${t("Yeni görülen hesaplar")}</span></button><button class="compare-stat peach" data-action="list-change-filter" ${idattr(id)} data-value="removed" aria-pressed="${kind === 'removed'}"><strong>${num(removed.length)}</strong><span>${t("Son kontrolde görünmeyenler")}</span></button></div><button class="text-button" data-action="list-change-filter" ${idattr(id)} data-value="all" aria-pressed="${kind === 'all'}">${t("Tümü")}</button><div class="list-change-pagination"><span>${t("{0}–{1} / {2} hesap",num(total ? offset+1 : 0),num(Math.min(offset+size,total)),num(total))}</span>${button(t("Önceki sayfa"),'list-change-page',null,'secondary',`${idattr(id)} data-value="${offset-size}" data-kind="${kind}" ${offset ? '' : 'disabled'}`)}${button(t("Sonraki sayfa"),'list-change-page',null,'secondary',`${idattr(id)} data-value="${offset+size}" data-kind="${kind}" ${offset+size < total ? '' : 'disabled'}`)}</div><ol class="member-change-list">${rows.map(([p,isAdded])=>`<li><span><strong>@${esc(p.username)}</strong><small>${esc(p.name || '')}</small></span><span class="badge ${isAdded ? 'mint' : 'peach'}">${isAdded ? t("Yeni görülen hesaplar") : t("Son kontrolde görünmeyenler")}</span></li>`).join('')}</ol>`,true);
   }
+  function needsReconnect() {
+    return !!data.account && (!data.connected || data.lastError?.code === 'session');
+  }
   function monitorLabel() {
-    if(!data.connected)return t("Yeniden bağlantı gerekli");
+    if(needsReconnect())return t("Yeniden bağlantı gerekli");
     if(data.gate.blockedUntil>Date.now()/1000)return t("Instagram molası");
     if(data.gate.manualOnly || data.monitor?.reason==='restricted')return t("Kontroller duraklatıldı");
     if(data.requestBudget.nextAt>Date.now()/1000)return t("Kontrol sırası bekleniyor");
@@ -591,10 +596,10 @@
   function overviewMonitor() {
     const now=Date.now()/1000,monitor=data.monitor || {},gate=data.gate;
     const preciseDate=value=>value?i18n.formats(language).preciseDate.format(new Date(value*1000)):t("Henüz yok");
-    const held=gate.manualOnly || monitor.held || !monitor.enabled || !data.connected;
+    const held=gate.manualOnly || monitor.held || !monitor.enabled || needsReconnect();
     const next=held ? t("Planlanmadı") :
       Number.isFinite(monitor.nextAt) ? monitor.nextAt<=now?t("Sırada"):preciseDate(monitor.nextAt) : t("Planlanmadı");
-    return `<section class="overview-monitor card" aria-label="${t("Kontrol durumu")}"><div class="monitor-heading"><span class="monitor-symbol">${icon('clock')}</span><div><span class="eyebrow">${t("Kontrol durumu")}</span><h2 class="overview-monitor-title">${busy?t("Kontrol sürüyor"):monitorLabel()}</h2></div></div><dl class="monitor-times"><div><dt>${t("Hesabının son kontrolü")}</dt><dd>${esc(preciseDate(data.account?.observedAt))}</dd></div><div><dt>${t("Sıradaki otomatik işlem")}</dt><dd>${esc(next)}</dd></div></dl><div class="monitor-actions">${button(t("İstek bilgileri"),'requests','info','secondary monitor-details-button')}<a class="text-button monitor-settings" href="#settings">${t("Kontrol ayarları")}${icon('arrow')}</a></div><div id="overview-operation"></div></section>`;
+    return `<section class="overview-monitor card" aria-label="${t("Kontrol durumu")}"><div class="monitor-heading"><span class="monitor-symbol">${icon('clock')}</span><div><span class="eyebrow">${t("Kontrol durumu")}</span><h2 class="overview-monitor-title">${busy?t("Kontrol sürüyor"):monitorLabel()}</h2></div></div><dl class="monitor-times"><div><dt>${t("Hesabının son kontrolü")}</dt><dd>${esc(preciseDate(data.account.observedAt))}</dd></div><div><dt>${t("Sıradaki otomatik işlem")}</dt><dd>${esc(next)}</dd></div></dl><div class="monitor-actions">${needsReconnect() ? button(t("Yeniden bağla"),'account','link','primary',busy?'disabled':'') : ''}${button(t("İstek bilgileri"),'requests','info','secondary monitor-details-button')}<a class="text-button monitor-settings" href="#settings">${t("Kontrol ayarları")}${icon('arrow')}</a></div><div id="overview-operation"></div></section>`;
   }
   function overviewEventRow(e) {
     const username=e.type==='list' ? e.new?.ownerUsername || person(e.personId)?.username : person(e.personId)?.username;
@@ -608,18 +613,35 @@
     const heading=e.type==='list' ? t("{0} listesi",e.new?.direction==='following'?t("Takip edilen"):t("Takipçi")) : eventTitle(e);
     return `<button class="event-row overview-event" data-action="event" ${idattr(e.id)}><span class="event-icon ${e.type==='error'?'peach':'lavender'}">${icon(e.type==='list'?'list':e.type==='error'?'info':'refresh')}</span><span class="event-copy"><strong>${esc(e.type==='list' && username?'@'+username+' · '+heading:heading)}</strong>${details.join('')}<small>${esc(date(e.at))}</small></span>${icon('chevron')}</button>`;
   }
+  function overviewStart() {
+    return `<div class="overview-page">${title('',t("Nasıl başlamak istersin?"),'')}
+      <div class="overview-start">
+        <section class="overview-start-card card">
+          <h2>${t("Arşivini incele")}</h2><p>${t("Takip listelerini hesap bağlamadan cihazında incele.")}</p>
+          ${button(t("Instagram ZIP’ini aç"),'open-archive-dashboard','note','primary')}
+          <button class="text-button" data-action="archive-guide">${t("Instagram ZIP dosyası nasıl alınır?")}</button>
+        </section>
+        <section class="overview-start-card card">
+          <h2>${t("Canlı takip")}</h2><p>${t("Profil ve liste değişikliklerini takip etmek için Instagram hesabını bağla.")}</p>
+          ${button(t("Hesabını bağla"),'account','link','primary')}
+        </section>
+      </div>
+    </div>`;
+  }
   function overview() {
-    const own=data.account,history=data.history[own?.id] || [];
-    const previous=own ? history.filter(h=>h.observedAt<own.observedAt).at(-1) : null;
+    const own=data.account;
+    if(!own)return overviewStart();
+    const history=data.history[own.id] || [];
+    const previous=history.filter(h=>h.observedAt<own.observedAt).at(-1);
     const stat=(label,key,tone)=>{
-      const difference=Number.isFinite(own?.[key]) && Number.isFinite(previous?.[key]) ? own[key]-previous[key] : null;
+      const difference=Number.isFinite(own[key]) && Number.isFinite(previous?.[key]) ? own[key]-previous[key] : null;
       const comparison=difference===null?t("İlk kayıt bir başlangıçtır."):difference===0?t("Son kontrole göre aynı"):t("{0}{1} son kontrole göre",difference>0?'+':'',num(difference));
-      return `<button class="stat-card ${tone}" data-action="open-list" data-value="${key}" ${own?'':'disabled'}><span class="stat-label">${t(label)}${icon('people')}</span><strong class="stat-value">${num(own?.[key])}</strong><span class="stat-bottom"><span class="${difference>0?'stat-positive':difference<0?'stat-negative':''}">${esc(comparison)}</span>${icon('arrow')}</span></button>`;
+      return `<button class="stat-card ${tone}" data-action="open-list" data-value="${key}"><span class="stat-label">${t(label)}${icon('people')}</span><strong class="stat-value">${num(own[key])}</strong><span class="stat-bottom"><span class="${difference>0?'stat-positive':difference<0?'stat-negative':''}">${esc(comparison)}</span>${icon('arrow')}</span></button>`;
     };
     const changes=data.historyMeta.profileCount;
     const favorites=data.people.filter(p=>p.favorite).slice(0,5);
-    return `<div class="overview-page">${title(new Date().toLocaleDateString(i18n.locale(language),{dateStyle:'full'}),t("Çevrende neler oluyor?"),'',button(data.connected?t("Şimdi kontrol et"):t("Hesabını bağla"),data.connected?'refresh':'account','refresh','primary',data.connected?netDisabled():''))}
-      ${own?`<button class="overview-account" data-action="person" ${idattr(own.id)}>${avatar(own)}<span><strong>${esc(own.name || own.username)}</strong><small>@${esc(own.username)}</small></span><span class="overview-account-link">${t("Profil ayrıntıları")}${icon('chevron')}</span></button>`:`<section class="connect-banner card"><span class="dialog-symbol lavender">${icon('link')}</span><div><h2>${t("Önce hesabınla bağlantı kuralım.")}</h2><p>${t("Şifren kaydedilmez. Oturum ve gözlemler şifreli olarak bilgisayarında kalır.")}</p></div>${button(t("Hesabını bağla"),'account','arrow','primary')}</section>`}
+    return `<div class="overview-page">${title(new Date().toLocaleDateString(i18n.locale(language),{dateStyle:'full'}),t("Çevrende neler oluyor?"),'',needsReconnect() ? "" : button(t("Şimdi kontrol et"),'refresh','refresh','primary',netDisabled()))}
+      <button class="overview-account" data-action="person" ${idattr(own.id)}>${avatar(own)}<span><strong>${esc(own.name || own.username)}</strong><small>@${esc(own.username)}</small></span><span class="overview-account-link">${t("Profil ayrıntıları")}${icon('chevron')}</span></button>
       <section class="stats-grid" aria-label="${t("Hesap özeti")}">${stat("Takipçiler",'followers','violet')}${stat("Takip edilen",'following','peach')}<button class="stat-card white" data-action="profile-events"><span class="stat-label">${t("Profil değişiklikleri {0}",icon('photo'))}</span><strong class="stat-value">${num(changes)}</strong><span class="stat-bottom"><span>${t("kayıtlı fark")}</span>${icon('arrow')}</span></button></section>
       ${overviewMonitor()}<div class="overview-columns"><div class="main-column">${chart(own)}<section class="activity-section overview-activity card"><div class="section-heading"><div><span class="eyebrow">${t("SON HAREKETLER")}</span><h2>${t("Son değişiklikler ve kontroller")}</h2></div><a class="text-button" href="#timeline">${t("Tümünü gör {0}",icon('arrow'))}</a></div><div class="activity-list">${data.events.slice(0,5).map(overviewEventRow).join('') || empty(t("İlk kontrolünden sonra kayıtlar burada görünür."))}</div></section></div><aside class="insights-column">${preparationCard()}<section class="favorites-section card"><div class="section-heading"><h2>${t("Favorilerin")}</h2><a class="text-button" href="#people">${t("Tümünü gör {0}",icon('arrow'))}</a></div>${favorites.map(p=>`<button class="person-row" data-action="person" ${idattr(p.id)}>${avatar(p)}<span class="person-ident"><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small></span>${icon('chevron')}</button>`).join('') || `<p class="favorites-empty">${t("Kaydedilen Profiller bölümünde yıldızladığın hesaplar burada görünür.")}</p>`}</section></aside></div></div>`;
   }
@@ -747,6 +769,10 @@
     const metrics=common ? '<small class="common-list-counts">'+esc(commonListCounts(details))+'</small>' : '';
     const change=p.change==='added' ? t("Yeni görüldü") : p.change==='removed' ? t("Son kayıtta yok") : '';
     const status=change ? `<span class="badge ${p.change==='removed' ? 'peach':'mint'}">${change}</span>` : `<span class="subtle-status">${t('Kayıtlı')}</span>`;
+    const exceptionMenu = p.exception === undefined ? '' : `<details class="list-exception-menu">
+      <summary class="icon-button" aria-label="${t("Satır seçenekleri")}">⋯</summary>
+      ${button(p.exception ? t("Ana listeye geri al") : t("İstisnalara taşı"),'list-exception',null,'secondary',
+        `${idattr(p.id)} data-value="${!p.exception}"`)}</details>`;
     return `<div class="list-row${common ? ' list-row--common' : ''}">
       <button class="list-person" data-action="person" ${idattr(p.id)} data-photo-scan="${esc(p.photoScan)}" data-photo-owner="${esc(p.photoOwner)}">
         ${avatar(saved?.avatar ? {...p,avatar:saved.avatar} : p)}
@@ -754,30 +780,36 @@
       </button>
       ${common ? '' : `<span class="list-followers">${num(saved?.followers)}<small> ${t('takipçi')}</small></span><span class="list-state">${status}</span>`}
       <button class="icon-button star-button ${saved?.favorite ? 'is-favorite':''}" data-action="star" ${idattr(p.id)} aria-label="${t('{0} favori durumunu değiştir',esc(p.username))}" aria-pressed="${!!saved?.favorite}" ${busy ? 'disabled':''}>${icon('star')}</button>
+      ${exceptionMenu}
     </div>`;
   }
   function paintListPage() {
     if(ui.page!=='lists')return;
     const node=document.getElementById('list-rows'),status=document.getElementById('list-pagination');
     if(!node || !status)return;
+    const exceptions=document.getElementById('list-exception-rows');
     const view=listPager.state;
     const count=Number(node.dataset.loaded || 0);
     if(node.dataset.context!==listPager.key || count>view.items.length) {
-      node.replaceChildren();node.dataset.context=listPager.key;node.dataset.loaded='0';
+      node.replaceChildren();exceptions.replaceChildren();node.dataset.context=listPager.key;node.dataset.loaded='0';
     }
     const start=Number(node.dataset.loaded || 0);
     if(view.items.length>start) {
       node.querySelector('.empty-state')?.remove();
-      node.insertAdjacentHTML('beforeend',view.items.slice(start).map(listRow).join(''));
+      const rows=view.items.slice(start);
+      node.insertAdjacentHTML('beforeend',rows.filter(p=>!p.exception).map(listRow).join(''));
+      exceptions.insertAdjacentHTML('beforeend',rows.filter(p=>p.exception).map(listRow).join(''));
       node.dataset.loaded=String(view.items.length);
     } else if(!view.items.length) {
       node.innerHTML=view.loading || view.total===null || (ui.peerOwner && !view.common?.count) ? '' :
         empty(ui.peerOwner ? t("Aramana uyan ortak hesap yok.") : t("Bir liste taraması başlat veya arama ve filtrelerini değiştir."));
     }
     const total=document.getElementById('list-result-count');
-    total.textContent=view.total===null ? '' : t("{0} / {1} hesap gösteriliyor",num(view.items.length),num(view.total));
+    total.textContent=view.total===null ? '' : t("{0} / {1} hesap gösteriliyor",num(Math.min(view.items.length,view.mainTotal)),num(view.mainTotal));
+    document.getElementById('list-exceptions').hidden = !exceptions.childElementCount;
+    document.getElementById('list-exceptions-title').textContent = t("İstisnalar · {0}",num(view.exceptionTotal || 0));
     total.hidden = !!ui.peerOwner && view.common?.count == null;
-    node.hidden = !!ui.peerOwner && view.common?.count === 0;
+    node.hidden = (!!ui.peerOwner && view.common?.count === 0) || (view.mainTotal === 0 && view.exceptionTotal > 0);
     if (ui.peerOwner) paintCommonLists(view);
     status.innerHTML=view.error ? `<span>${t("Liste yüklenemedi.")}</span> ${button(t("Tekrar dene"),'retry-list-page','refresh')}` : view.loading ? t("Hesaplar yükleniyor…") : view.nextOffset!==null ? t("Devamı için kaydırın") : '';
     document.getElementById('list-rows').setAttribute('aria-busy',String(view.loading));
@@ -837,6 +869,7 @@
     const formatDay = new Intl.DateTimeFormat(i18n.locale(language), {dateStyle: "medium"});
     dialog(`<h2 id="dialog-title">${t("Instagram ZIP arşivi")}</h2>
       <p>${esc(archive.fileName)}</p>
+      <p>${t("Listeler, ZIP hazırlanırken dışa aktarılan kayıtları gösterir.")}</p>
       <p>${t("Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.")}</p>
       <label class="form-label" for="instagram-archive-filter">${t("Liste")}</label>
       <select id="instagram-archive-filter">${choices.map(([label, names], index) =>
@@ -937,6 +970,113 @@
     modal.classList.add("export-browser-modal");
     window.TrackerExportBrowser.mount(modal.querySelector("#export-browser-root"), {modal, api, t, num, language, existing});
   }
+  function portableBackup(saving) {
+    const label = saving ? t("Taşınabilir yedek oluştur") : t("Taşınabilir yedeği aç");
+    dialog(`<h2 id="dialog-title">${esc(label)}</h2>
+      <p>${t("Bu yedek oturum bilgisi içermez. Geçmiş ayrı bir arşiv olarak açılır.")}</p>
+      <form id="portable-backup-form"><label class="form-label" for="portable-password">${t("Yedek parolası")}</label>
+      <input id="portable-password" type="password" autocomplete="${saving?'new-password':'off'}" maxlength="128" required>
+      ${saving?`<label class="form-label" for="portable-confirm">${t("Yedek parolasını tekrarla")}</label>
+      <input id="portable-confirm" type="password" autocomplete="new-password" maxlength="128" required>
+      <p class="field-hint">${t("En az 12 karakter kullan. Dosyayı açmak için bu parola gerekir.")}</p>`:""}
+      <p role="status" class="field-hint"></p><button class="button primary" type="submit">${esc(label)}</button></form>`);
+    const form = document.getElementById("portable-backup-form");
+    const field = form.querySelector("#portable-password");
+    const status = form.querySelector("[role=status]");
+    const submit = form.querySelector("button");
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (submit.disabled) return;
+      if (saving && (Array.from(field.value).length < 12 || field.value !== form.querySelector("#portable-confirm").value)) {
+        status.textContent = t("Parolalar eşleşmeli ve en az 12 karakter olmalı.");
+        return;
+      }
+      submit.disabled = true;
+      const password = field.value;
+      form.reset();
+      status.textContent = t("Dosya hazırlanıyor…");
+      const result = await api.file(saving ? "export_portable_backup" : "open_portable_backup", {password}).catch(() => null);
+      if (!form.isConnected || !form.closest("dialog")?.open) {
+        if (!saving && result?.archiveBrowser) api.command("export_browser_portable_close").catch(() => {});
+        return;
+      }
+      submit.disabled = false;
+      if (result?.cancelled) { status.textContent = ""; return; }
+      if (!result?.ok) { status.textContent = t("Yedek işlenemedi. Dosyayı, parolayı ve boyutunu kontrol et."); return; }
+      if (saving) { closeDialog(); toast(t("Taşınabilir yedek kaydedildi.")); }
+      else showPortableHistory(result.archiveBrowser);
+    });
+  }
+
+  function showPortableHistory(summary) {
+    dialog(`<h2 id="dialog-title">${t("Taşınabilir geçmiş")} · @${esc(summary.account.username)}</h2>
+      <p>${t("Arşiv kayıtlarını bu ekranda inceleyebilirsin.")}</p><div id="portable-history"></div>`, true);
+    const root = document.getElementById("portable-history");
+    root.closest("dialog").addEventListener("close", () => api.command("export_browser_portable_close").catch(() => {}), {once:true});
+    const sections = [["people",t("Kaydedilen Profiller")],["history",t("Profil geçmişi")],
+      ["lists",t("Takip Listeleri")],["daily",t("Günlük istatistikler")]];
+    const tabs = document.createElement("div");
+    tabs.className = "archive-dashboard-tabs";
+    const rows = document.createElement("div");
+    rows.className = "archive-dashboard-rows";
+    root.append(tabs, rows);
+    let revision = 0;
+    const append = (parent, tag, value) => {
+      const node = document.createElement(tag);
+      node.textContent = value;
+      parent.append(node);
+      return node;
+    };
+    const action = (parent, text, run) => {
+      const button = append(parent, "button", text);
+      button.type = "button";
+      button.className = "button secondary";
+      button.addEventListener("click", run);
+      return button;
+    };
+    const handle = row => row.username ? "@"+row.username : row.id;
+    const target = id => summary.targets[id] ? "@" + summary.targets[id] : id;
+    const when = at => at ? date(at / 1000) : "";
+    const direction = value => value === "followers" ? t("Takipçiler") : t("Takip edilen");
+    const metrics = row => ["followers","following","posts"].filter(key => row[key] != null)
+      .map(key => (key === "posts" ? t("Gönderiler") : direction(key)) + " " + num(Array.isArray(row[key]) ? row[key][1] : row[key])).join(" · ");
+    async function read(section, index = null, offset = 0) {
+      const current = ++revision;
+      rows.replaceChildren();
+      rows.setAttribute("aria-busy","true");
+      if (index !== null) action(rows,t("Geri"),() => read(section));
+      const args = {section,offset};
+      if (index !== null) args.index = index;
+      const result = await api.command("export_browser_portable_page",args).catch(() => null);
+      if (!root.isConnected || !root.closest("dialog")?.open || revision !== current) return;
+      rows.removeAttribute("aria-busy");
+      if (!result?.ok) { append(rows,"p",t("Arşiv veya seçilen dosya açılamadı.")); return; }
+      const page = result.archiveBrowser;
+      if (!page.rows.length) append(rows,"p",t("Burada henüz bir kayıt yok."));
+      for (const [position,row] of page.rows.entries()) {
+        const item = append(rows,"article","");
+        item.className = "archive-dashboard-record";
+        if (index === null && (section === "lists" || section === "daily")) {
+          append(item,"h3",section === "lists" ? direction(row.direction) : String(row.year));
+          append(item,"p",[target(row.target),when(row.at),num(row.count)].filter(Boolean).join(" · "));
+          action(item,t("İncele"),() => read(section,offset+position));
+        } else if (section === "daily") {
+          append(item,"h3",new Date(row.day).toISOString().slice(0,10));
+          append(item,"p",metrics(row));
+        } else {
+          const profile = row.profile || row;
+          append(item,"h3",(row.favorite?"★ ":"")+handle(profile));
+          if (profile.name) append(item,"p",profile.name);
+          const detail = [when(profile.at),metrics(profile),profile.bio,row.group,row.note].filter(Boolean);
+          for (const value of detail) append(item,"p",value).className = "archive-dashboard-copy";
+        }
+      }
+      if (offset) action(rows,t("Önceki sayfa"),() => read(section,index,Math.max(0,offset-40)));
+      if (offset+page.rows.length < page.total) action(rows,t("Sonraki sayfa"),() => read(section,index,offset+page.rows.length));
+    }
+    for (const [section,label] of sections) action(tabs,label+" · "+num(summary[section]),() => read(section));
+    read(sections.find(([section]) => summary[section])?.[0] || "people");
+  }
   let archiveDashboard;
   function archive() {
     return title(t("Instagram"), t("Instagram Veri Arşivi"),
@@ -948,7 +1088,24 @@
       archiveDashboard.close();
       archiveDashboard = null;
     }
-    if (root && !archiveDashboard) archiveDashboard = window.TrackerArchiveDashboard.mount(root, {api, t, num, language, openRaw:openExportBrowser, openLists:openInstagramArchive});
+    if (root && !archiveDashboard) archiveDashboard = window.TrackerArchiveDashboard.mount(root, {
+      api, t, num, language, openRaw:openExportBrowser, openLists:openInstagramArchive,
+      async readOwnStories() {
+        const id = data.account?.id, accountId = data.activeAccountId;
+        if (!id || !accountId) return null;
+        const result = await api.command("story_view", {id,accountId});
+        if (data.activeAccountId !== accountId || !result?.ok) throw Error("Story archive unavailable");
+        const stories = result.state?.storyDetail;
+        return stories ? {...stories, username:data.account.username} : null;
+      },
+      async readOwnStoryMedia(archive, storyId) {
+        if (data.activeAccountId !== archive.accountId) return null;
+        const result = await api.command("story_media", {id:archive.id,accountId:archive.accountId,storyId});
+        const asset = result?.storyMedia;
+        return result?.ok && data.activeAccountId === archive.accountId && asset?.accountId === archive.accountId &&
+          asset.id === archive.id && asset.storyId === storyId ? asset : null;
+      },
+    });
   }
   function lists() {
     const owner = ui.owner || data.account?.id || "",
@@ -961,7 +1118,10 @@
     const common = !!ui.peerOwner;
     const peerPicker = peers.length ? `<label class="list-peer"><span>${t("Ortak hesapları karşılaştır")}</span><select id="list-peer" aria-label="${t("Ortak hesapları karşılaştır")}"><option value="">${t("İkinci profili seç")}</option>${peers.map(p =>
       `<option value="${esc(p.id)}" ${p.id === ui.peerOwner ? "selected" : ""}>@${esc(p.username)}</option>`).join("")}</select></label>` : "";
-    const results = '<div class="results-line"><span id="list-result-count" role="status"></span></div><div class="list-table card" id="list-rows"></div><div id="list-pagination" class="list-scroll-status" role="status" aria-live="polite"></div>';
+    const results = `<div id="list-page-content"><div class="results-line"><span id="list-result-count" role="status"></span></div><div class="list-table card" id="list-rows"></div>
+      <section id="list-exceptions" class="list-exceptions" aria-labelledby="list-exceptions-title" hidden>
+        <h3 id="list-exceptions-title"></h3><p class="field-hint">${t("Bu hesaplar ana sonuç sayısına dahil edilmez.")}</p><div class="list-table card" id="list-exception-rows"></div>
+      </section><div id="list-pagination" class="list-scroll-status" role="status" aria-live="polite"></div></div>`;
     const ready =
       !!current &&
       !!previous &&
@@ -1153,6 +1313,32 @@
     const forecast=Number.isFinite(monitor.profileDemandDaily) ? `<p>${t("Kesintisiz profil kontrolü: yaklaşık {0} istek/gün · yerel profil payı {1}.", num(Math.ceil(monitor.profileDemandDaily)), num(monitor.profileBudgetDaily))}</p>` : "";
     return `<div class="notice monitor-summary"><strong>${esc(status)}</strong><p>${t("Her profil kendi son kontrolünden yaklaşık {0} dakika sonra yeniden kontrol edilir. {1} profil izleniyor; profil sayısı seçilen aralıkla çarpılmaz. İstekler arasında {2}–{3} saniyelik rastgele aralık ayrılır. Çok sayıda profil, uzun liste taraması, internet ve mola beklemesi süreyi uzatabilir.", num(monitor.intervalSeconds / 60), num(monitor.profileCount), ...requestSpacing())}</p>${forecast}<p>${t("Normal profil sırasına ek olarak {0} erişim incelemesi bekliyor. {1}Kaybolan takipçi incelemesi açıksa liste/erişim işleri sıraya girer; diğer tam liste taramaları elle başlatılır.", num(monitor.accessPending || 0), monitor.followerScanPending ? t("Takipçi listesi incelemesi de sırada. ") : "")}</p></div>`;
   }
+  function localDataSettings() {
+    return `<section class="settings-section card">
+      <h2>${t("Yerel veriler")}</h2>
+      <div class="setting-row backup-setting" role="group" aria-labelledby="windows-backup-title">
+        <div><strong id="windows-backup-title">${t("Windows yedeği")}</strong>
+        <p id="windows-backup-help">${t("Aynı Windows kullanıcısıyla açılır. Geri yükleme, seçili hesabın uygulamadaki yerel kayıtlarını yedekteki kayıtlarla değiştirir.")}</p></div>
+        <div class="backup-actions">
+          ${button(t("Windows yedeği oluştur"), "export-backup", "lock", "secondary", 'aria-describedby="windows-backup-help"')}
+          ${button(t("Windows yedeğini geri yükle"), "import-backup", "note", "secondary", 'aria-describedby="windows-backup-help"')}
+        </div>
+      </div>
+      <div class="setting-row backup-setting" role="group" aria-labelledby="portable-backup-title">
+        <div><strong id="portable-backup-title">${t("Taşınabilir geçmiş")}</strong>
+        <p id="portable-backup-help">${t("Parolayla Windows veya Android’de açılır. Geçmişi ayrı bir arşivde gösterir; uygulamadaki kayıtların korunur.")}</p></div>
+        <div class="backup-actions">
+          ${data.account ? button(t("Taşınabilir yedek oluştur"), "export-portable-backup", "lock", "secondary", 'aria-describedby="portable-backup-help"') : ""}
+          ${button(t("Taşınabilir yedeği aç"), "open-portable-backup", "note", "secondary", 'aria-describedby="portable-backup-help"')}
+        </div>
+      </div>
+      <div class="settings-buttons">
+        ${button(t("Veri saklama"), "retention-settings", "lock")}
+        ${button(t("Kayıt klasörünü aç"), "open-storage", "laptop")}
+        ${button(t("Yerel verileri sil"), "delete-all", "close")}
+      </div>
+    </section>`;
+  }
   function settings() {
     return `${title(t("SANA GÖRE"), t("Küçük ayarlar, daha rahat bir deneyim."), t("Görünümü, bildirimleri ve yerel kayıtlarını yönet."))}<div class="settings-layout"><div><section class="settings-section card"><h2>${t("Görünüm ve kontroller")}</h2>${window.TrackerAppearance.control({t,disabled:busy})}<p>${t("Pencereyi X ile kapatınca Tracker sistem tepsisinde çalışmaya devam eder. Tamamen kapatmak için tepsi simgesine sağ tıkla → Tamamen çık.")}</p>${toggle(t("Kompakt görünüm"), t("Kart ve satır aralıklarını daralt."), "compact")}${toggle(t("Windows bildirimleri"), t("Yeni değişiklikler için Windows bildirimi göster."), "notifications")}${toggle(t("Kaybolan kayıtlı takipçileri incele"), t("Takipçi sayısı düşünce tamamlanmış başlangıç kaydı üzerinden liste taraması ve eksilen kayıtlı kişiler için erişim kontrolü sıraya alınır. Ek istekler ve bekleme gerektirir; sonuç yalnız engellenme şüphesidir. Hedef bulunamazsa son bilinen kullanıcı adına ek bir oturumsuz sayfa isteği yapılır."), "investigateMissing")}<div class="setting-row"><div><strong>${t("Uygulama dili")}</strong><p>${t("Bu ayar yalnız arayüz dilini değiştirir. Hesap ve kontrol ayarların korunur.")}</p></div><select id="app-language" aria-label="${t("Dil seçimi")}" ${busy ? "disabled" : ""}><option value="tr" ${language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${language === "en" ? "selected" : ""}>English</option><option value="es" ${language === "es" ? "selected" : ""}>Español</option><option value="pt-BR" ${language === "pt-BR" ? "selected" : ""}>Português (Brasil)</option></select></div>${toggle(t("Otomatik profil kontrolü"), t("Sistem tepsisinde de çalışır; kendi hesabın ve izlediğin her profil seçilen aralıkla kontrol edilir. Kaybolan takipçi incelemesi ayrıca açılır."), "automatic")}<div class="setting-row"><div><strong>${t("Kontrol aralığı")}</strong><p>${t("Aralık her profil için ayrıdır. Örneğin 3 profil ve 5 dakika seçildiğinde her profil yaklaşık 5 dakikada bir kontrol edilir. Sınırlama ve doğrulama sonrası otomatik kontrol durur.")}</p></div><select id="auto-interval" aria-label="${t("Kontrol aralığı")}" ${busy ? "disabled" : ""}>${(data.controlIntervals || [data.settings.interval]).map((v) => `<option value="${v}" ${data.settings.interval === v ? "selected" : ""}>${t("{0} dakika", v)}</option>`).join("")}</select></div>${toggle(t("Otomatik liste karşılaştırması"), t("Kendi hesabının ve izlenen profillerin listelerini karşılaştır. Sayı değişince tarama sıraya alınır; iki tam tarama arasında en az 1 dakika vardır. Sayı aynıysa günlük taranır."), "automaticLists")}${monitorSummary()}</section><section class="settings-section card"><h2>${t("Hesap ve istekler")}</h2>${data.account
         ? `<div class="setting-row"><div><strong>${t("Hesaba göre bildirim türleri")}</strong><p>${t("Kendi hesabın ve her kayıtlı kişi için ayrı tercihler. Kişi ayrıntısından da açabilirsin.")}</p></div><select id="notification-account" aria-label="${t("Bildirim hesabı")}">${[
@@ -1167,7 +1353,7 @@
             .join(
               "",
             )}</select>${button(t("Türleri seç"), "notification-account", "bell")}</div>`
-        : ""}<div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : t("Hesap bağlı değil")}</strong><p>${data.connected ? t("Yerel oturum kayıtlı.") : t("Giriş için hesap bağlantısını aç.")}</p></div>${button(t("Hesap bağlantısı"), "account", "link")}</div><div class="setting-row"><div><strong>${t("İstek bilgileri")}</strong><p>${t("Son HTTP durumu, giriş aralığı ve yerel mola.")}</p></div>${button(t("İncele"), "requests", "info")}</div>${data.connected ? button(t("Bağlantıyı kaldır"), "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section><section class="settings-section card"><h2>${t("Yerel veriler")}</h2><p>${t("Yedekler oturum içermez ve aynı Windows kullanıcısında açılır. CSV dışa aktarımları şifresizdir; dosyayı paylaşmak senin kontrolündedir.")}</p><div class="settings-buttons">${button(t("Veri saklama"), "retention-settings", "lock")}${button(t("Şifreli yedek al"), "export-backup", "lock")}${button(t("Yedekten yükle"), "import-backup", "note")}${button(t("Kayıt klasörünü aç"), "open-storage", "laptop")}${button(t("Yerel verileri sil"), "delete-all", "close")}</div></section></div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">${t("YEREL GİZLİLİK")}</span><h2>${t("Verilerin bilgisayarında.")}</h2><p>${t("Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.")}</p><p>${t("Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.")}</p><p>${t("InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.")}</p><div class="privacy-panel-foot">${t("{0} Windows masaüstü · {1}", icon("lock"), esc(data.version))}</div></aside></div>`;
+        : ""}<div class="setting-row"><div><strong>${data.account ? "@" + esc(data.account.username) : t("Hesap bağlı değil")}</strong><p>${data.connected ? t("Yerel oturum kayıtlı.") : t("Giriş için hesap bağlantısını aç.")}</p></div>${button(t("Hesap bağlantısı"), "account", "link")}</div><div class="setting-row"><div><strong>${t("İstek bilgileri")}</strong><p>${t("Son HTTP durumu, giriş aralığı ve yerel mola.")}</p></div>${button(t("İncele"), "requests", "info")}</div>${data.connected ? button(t("Bağlantıyı kaldır"), "disconnect", "logout", "secondary", busy ? "disabled" : "") : ""}</section>${localDataSettings()}</div><aside class="privacy-panel"><span class="privacy-large">${icon("shield")}</span><span class="eyebrow">${t("YEREL GİZLİLİK")}</span><h2>${t("Verilerin bilgisayarında.")}</h2><p>${t("Oturum, profil gözlemleri, listeler ve notlar Windows DPAPI ile şifrelenir. Şifre ve doğrulama kodu kaydedilmez.")}</p><p>${t("Hesap işlemleri doğrudan Instagram’a gider. Aracı sunucu, reklam veya analiz servisi kullanılmaz.")}</p><p>${t("InstagramTracker, Instagram’dan bağımsızdır. Instagram erişimi sınırlayabilir veya ek doğrulama isteyebilir.")}</p><div class="privacy-panel-foot">${t("{0} Windows masaüstü · {1}", icon("lock"), esc(data.version))}</div></aside></div>`;
   }
   function render() {
     language = i18n.valid(data?.settings.language) ? data.settings.language : 'tr';
@@ -1186,7 +1372,7 @@
     document.title = `${t(pages[ui.page][0])} — Tracker`;
     syncHistory();
     window.TrackerDOM.update(document.getElementById("app"),
-      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${data.privacyMaintenance?.failed?`<div class="notice warning" role="alert">${t("Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.")} ${button(t("Veri saklama"),"retention-settings","lock")}</div>`:""}${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(['overview','notifications'].includes(ui.page) && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${pausedReadersNotice()}${{ overview, people, lists, timeline, settings, notifications, archive }[ui.page]()}<footer class="page-footer"><span>${t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account?.observedAt)))}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`);
+      `${sidebar()}<div class="workspace">${topbar()}<main id="main" tabindex="-1">${data.privacyMaintenance?.failed?`<div class="notice warning" role="alert">${t("Bazı arşivler temizlenemedi. Tercihlerin kayıtlı; temizlemeyi yeniden deneyebilirsin.")} ${button(t("Veri saklama"),"retention-settings","lock")}</div>`:""}${serviceError ? `<div class="notice warning">${esc(stored(serviceError))}</div>` : ""}${data.lastError && !(['overview','notifications'].includes(ui.page) && data.account && ['limited','cooldown','budget'].includes(data.lastError.code)) ? `<div class="notice warning"><strong>${t("Son işlem:")}</strong> ${esc(userError(data.lastError))} <button class="text-button" data-action="requests">${t("İstek bilgileri")}</button></div>` : ""}${pausedReadersNotice()}${{ overview, people, lists, timeline, settings, notifications, archive }[ui.page]()}<footer class="page-footer"><span>${data.account ? t("{0} Cihazında şifreli · Son kontrol {1}", icon("lock"), esc(date(data.account.observedAt))) : ""}</span><div class="footer-links"><button class="text-button" data-action="usage-notes">${t("Kullanım notları")}</button><button class="text-button" data-action="privacy">${t("Gizlilik {0}", icon("info"))}</button></div></footer></main></div>`);
     loadHistory();
     mountListPage();
     mountArchiveDashboard();
@@ -1200,9 +1386,9 @@
   }
   function accountDialog(adding = false) {
     const own = adding ? null : data.account;
-    const connected = !adding && data.connected;
+    const connected = !adding && data.connected && !needsReconnect();
     dialog(
-      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", own ? t("Kayıtlı hesap: @") + esc(own.username) + ". " : "")}</p>${connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<p class="dialog-note">${t("İlk bağlantıdan sonra başlangıç listelerin otomatik hazırlanır. Tarama ve sonraki kontrolleri ana ekrandan duraklatabilirsin.")}</p><form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(own?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${connected ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
+      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", own ? t("Kayıtlı hesap: @") + esc(own.username) + ". " : "")}</p>${connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<p class="dialog-note">${t("İlk bağlantıdan sonra başlangıç listelerin otomatik hazırlanır. Tarama ve sonraki kontrolleri ana ekrandan duraklatabilirsin.")}</p><form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(own?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${own ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
     );
   }
   function readerLabel(reader) {
@@ -1232,7 +1418,7 @@
     return messages[reason] || t("Instagram yanıtının nedeni belirlenemedi.");
   }
   function pausedReadersNotice() {
-    if (!['overview','lists'].includes(ui.page)) return "";
+    if (!data.account || !['overview','lists'].includes(ui.page)) return "";
     const paused = Object.entries(data.readHealth || {}).filter(([, item]) => item.paused);
     if (!paused.length) return "";
     return `<div class="notice warning" role="status"><strong>${t("Otomatik okuma duraklatıldı")}</strong>
@@ -1467,6 +1653,8 @@
   document.addEventListener("click", async (event) => {
     const more=document.querySelector('.profile-more[open]');
     if(more && (!more.contains(event.target) || event.target.closest('[data-action]')))more.open=false;
+    for (const menu of document.querySelectorAll('.list-exception-menu[open]'))
+      if (!menu.contains(event.target) || event.target.closest('[data-action="list-exception"]')) menu.open = false;
     const target = event.target.closest("[data-action]");
     if (!target || target.disabled || !data) return;
     const action = target.dataset.action,
@@ -1633,6 +1821,10 @@
       case "retry-list-page":
         listPager.retry();
         break;
+      case "list-exception":
+        await command("list_exception", {accountId:data.activeAccountId || data.account?.id,
+          revision:data.listsRevision,id,enabled:target.dataset.value === "true"});
+        break;
       case "scan":
         await command(
           "scan",
@@ -1762,6 +1954,9 @@
       case "notification-log":
         await notificationDialog(id);
         break;
+      case "read-all-notifications":
+        await command("read_all_notifications", {accountId:data.account.id}, t("Tüm bildirimler okundu olarak işaretlendi."));
+        break;
       case "notification-filter":
         ui.notificationFilter = value;
         render();
@@ -1798,11 +1993,31 @@
       case "instagram-archive":
         await openInstagramArchive();
         break;
+      case "open-archive-dashboard":
+        navigate('archive');
+        await archiveDashboard?.open();
+        break;
+      case "archive-guide": {
+        navigate('archive');
+        const guide = document.querySelector('.archive-dashboard-guide');
+        if (guide) {
+          guide.open = true;
+          guide.querySelector('summary')?.focus();
+          guide.scrollIntoView({block:'nearest'});
+        }
+        break;
+      }
       case "export-browser":
         openExportBrowser();
         break;
       case "export-backup":
         await file("export_backup");
+        break;
+      case "export-portable-backup":
+        portableBackup(true);
+        break;
+      case "open-portable-backup":
+        portableBackup(false);
         break;
       case "preparation-resume":
         if (data.connected) await command('settings', {automatic:true, automaticLists:true});

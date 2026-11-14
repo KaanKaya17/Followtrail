@@ -1,4 +1,8 @@
 <resources>
+    <string name="follow_exceptions_section">Exceptions · %1$d</string>
+    <string name="follow_exception_add">Move to exceptions</string>
+    <string name="follow_exception_remove">Return to main list</string>
+    <string name="accounts_delete_local">Delete local data for the selected account</string>
     <string name="accounts_title">My accounts</string>
     <string name="accounts_add">Add account</string>
     <string name="accounts_none">No account connected</string>

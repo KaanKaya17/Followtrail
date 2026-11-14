@@ -58,6 +58,27 @@ class ListPagesTests(unittest.TestCase):
         self.assertEqual(query(self.engine,relation='oneway')['total'],150)
         self.assertEqual(query(self.engine,query='qa.0',comparison=True)['items'][0]['photoScan'],'before')
 
+    def test_exceptions_page_after_main_rows_and_follow_account_identity(self):
+        engine = self.engine
+        following = self.scan('new-following', range(251, 354))
+        engine.data['lists']['100:following']['snapshots'] = [following]
+        state = engine.snapshot()
+        request = {'accountId':'100', 'revision':state['listsRevision'], 'id':'251', 'enabled':True}
+        self.assertTrue(engine.list_pages.set_exception(engine.data, request))
+        options = {'direction':'following', 'relation':'oneway'}
+        first = query(engine, **options)
+        second = query(engine, offset=100, **options)
+        self.assertEqual((first['mainTotal'], first['exceptionTotal']), (102, 1))
+        self.assertEqual([p['id'] for p in second['items']], ['352','353','251'])
+        self.assertEqual([p['exception'] for p in second['items']], [False,False,True])
+        replacement = self.scan('renamed-following', range(251, 354))
+        replacement['members']['251']['username'] = 'renamed'
+        engine.data['lists']['100:following']['snapshots'] = [replacement]
+        found = query(engine, query='renamed', **options)
+        self.assertEqual((found['mainTotal'], found['exceptionTotal']), (0, 1))
+        self.assertTrue(found['items'][0]['exception'])
+        self.assertNotIn('exception', query(engine, direction='following', query='renamed')['items'][0])
+
     def test_common_accounts_use_saved_identity_and_full_or_partial_evidence(self):
         data = self.engine.data
         data['people']['200'] = {'id': '200', 'username': 'qa.peer', 'observedAt': 1}

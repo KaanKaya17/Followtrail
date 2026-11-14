@@ -2,10 +2,13 @@
 
 [Kılavuz ana sayfası](Home.md)
 
+[English](EN-Home.md) · [Español](ES-Home.md) · [Português (Brasil)](PT-BR-Home.md)
+
 **Başlangıç**
 
 - [Kurulum](Kurulum.md)
 - [İlk kullanım](Ilk-Kullanim.md)
+- [Instagram Veri Arşivi](Instagram-Veri-Arsivi.md)
 - [Hesaplar ve giriş](Hesaplar-ve-Giris.md)
 
 **Kullanım**

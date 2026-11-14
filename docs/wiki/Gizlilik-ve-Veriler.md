@@ -2,6 +2,12 @@
 
 [Kılavuz ana sayfası](Home.md) · [Güvenlik bildirimi](../../SECURITY.md)
 
+## Amaç ve kullanım sınırları
+
+InstagramTracker, Instagram arşivinizi incelemeyi ve erişim yetkiniz olan hesaplarda zaman içindeki değişiklikleri anlamayı kolaylaştırır. ZIP dosyaları, parolalar ve hesap kayıtları proje ekibine gönderilmez. Uygulama kendi sunucusuna kullanım verisi toplamaz. Canlı takip ve doğrulama için telefonunuz veya bilgisayarınız Instagram/Meta ile bağlantı kurar.
+
+Tracker’ı yalnızca erişim yetkiniz olan verilerle, geçerli kurallara ve başkalarının gizliliğine saygı göstererek kullanın. Proje izinsiz hesap erişimini, tacizi ve yasa dışı kullanımı desteklemez.
+
 ## Cihazda saklama
 
 Windows kayıtları Windows kullanıcısına bağlı **DPAPI**, Android kayıtları **Android Keystore ve AES-GCM** ile korunur. Bağlı hesapların oturumları, kaydedilen profiller ve gözlemler yerel şifreli depolardadır. Çoklu hesap kayıtları birbirinden ayrılır.
@@ -43,13 +49,17 @@ Arama/liste küçük resimleri sınırlı önbellekleri kullanır. Windows geçi
 
 ## Yedek ve dışa aktarma
 
-Windows'taki **Şifreli yedek al**, gözlem verilerini dışa aktarır; Instagram oturumunu çıkarır. Bu dosya aynı Windows kullanıcı bağlamında açılmak üzere DPAPI ile korunur. Başka bilgisayarda veya Windows yeniden kurulduktan sonra açılabilen taşınabilir, parola tabanlı yedek olarak değerlendirmeyin.
+**Taşınabilir geçmiş** seçili hesabın kayıtlı profillerini, notlarını, favorilerini, profil gözlemlerini, tamamlanmış takip listelerini ve günlük özetlerini `.trackerhistory` dosyasına kaydeder. Windows’ta **Ayarlar → Yerel veriler**, Android’de **⋯ → Taşınabilir geçmiş** yolunu kullanın. Android’de önce dosyanın kaydedileceği konumu seçin, ardından yedek parolasını girin. Dosyayı yeni cihazda aynı menüden açabilir ve hesap bağlamadan inceleyebilirsiniz.
+
+Yedek en fazla 16 MiB veri içerir. Geçmiş ayrı bir ekranda görüntülenir. Oturum bilgileri, canlı takip ayarları ve medya dosyaları yedek kapsamı dışındadır. Yedek parolası dosyanın açılması için gerekir.
+
+**Windows yedeği oluştur**, gözlem verilerini aynı Windows kullanıcısına bağlı bir dosyaya kaydeder. Dosya DPAPI ile korunur ve Instagram oturumu içermez. **Windows yedeğini geri yükle**, seçili hesabın yerel kayıtlarını yedekteki kayıtlarla değiştirir.
 
 Günlük özetler de bu yedeğe dahildir. Geri yüklemede çakışan günlerin daha yeni olanı korunur; mevcut temizleme sınırları aşılmaz. Yaklaşık 64 MiB tek yedek sınırı aşılırsa dosya üretilmez; önceki dosya korunur.
 
 Geri yükleme oturumu veya otomatik kontrolü kendiliğinden etkinleştirmez. Kayıtlı beklemeler kaldırılmaz. Mevcut hesapla yedeğin hesap kapsamı uyuşmuyorsa işlem reddedilebilir.
 
-**CSV şifreli değildir.** İçeriği başka uygulamalar okuyabilir; dosyayı nerede tuttuğunuz ve kiminle paylaştığınız sizin kontrolünüzdedir. Yedek/CSV açıklaması Windows özelliğidir; Android'de aynı dışa aktarma kapsamı varsayılmamalıdır.
+**CSV şifreli değildir.** İçeriği başka uygulamalar okuyabilir; dosyayı nerede tuttuğunuz ve kiminle paylaştığınız sizin kontrolünüzdedir. CSV ve DPAPI yedeği Windows özellikleridir.
 
 <a name="silme-ve-baglanti-kaldirma"></a>
 
@@ -57,7 +67,7 @@ Geri yükleme oturumu veya otomatik kontrolü kendiliğinden etkinleştirmez. Ka
 
 Bağlantı kaldırma, uygulamadaki yerel oturum kopyasını yönetir. Instagram sunucusundaki oturumu kapattığını varsaymayın. Gerekirse resmî Instagram güvenlik/giriş hareketleri ekranını kendiniz inceleyin.
 
-Seçili hesabı kaldırmak ile bütün yerel kayıtları temizlemek farklı kapsamlardır; onay metnini okuyun. Yerel veriyi silmek mevcut güvenlik molasını sıfırlamak için kullanılmaz.
+Windows’ta **Ayarlar → Yerel veriler → Yerel verileri sil**, Android’de **⋯ → Bağlantıyı yönet → Seçili hesabın yerel verilerini sil** yolunu kullanın. Onaydan sonra seçili hesabın cihazdaki oturumu, izlenen profilleri, notları, listeleri ve geçmişi silinir. Diğer hesaplar, dışa aktarılan dosyalar ve ortak güvenlik molası korunur. Bütün hesapları aynı anda silen bir seçenek yoktur.
 
 Kaydedilen profili kaldırmak, o kişinin geçmişini, günlük/görsel arşivini, uygulama içi bildirimlerini, notlarını ve kendi liste kayıtlarını da siler; Windows ve Android hikâye arşivleri de dahildir. **Başka hesapların listelerindeki üyelik bilgisi ve dışa aktarılan dosyalar ayrıca yönetilir.** Silinen günlüklerin eski gözlemlerden geri oluşmaması için şifreli silme sınırı korunur. Diğer bağlı hesabın deposu etkilenmez. Ayrıntılar: [veri yaşam döngüsü](../DATA-LIFECYCLE.md).
 

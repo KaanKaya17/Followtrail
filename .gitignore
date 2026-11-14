@@ -12,8 +12,14 @@ signing.properties
 *.hprof
 .DS_Store
 artifacts/
-# Local network captures can include account data in request/response bodies.
+# Local captures, Instagram exports and Tracker backups can contain account data.
 *.har
+*.har.gz
+*.zip
+*.trackerbackup
+*.trackerhistory
+*.dpapi
+*.idsig
 __pycache__/
 *.pyc
 **/node_modules/

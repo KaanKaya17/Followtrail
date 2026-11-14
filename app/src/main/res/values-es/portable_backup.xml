@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="portable_title">Historial portátil</string>
+    <string name="portable_create">Crear copia portátil</string>
+    <string name="portable_open">Abrir copia portátil</string>
+    <string name="portable_scope">Esta copia no contiene datos de sesión. El historial se abre como un archivo separado.</string>
+    <string name="portable_password">Contraseña de la copia</string>
+    <string name="portable_confirm">Repite la contraseña de la copia</string>
+    <string name="portable_password_rules">Las contraseñas deben coincidir y tener al menos 12 caracteres.</string>
+    <string name="portable_error">No se pudo procesar la copia. Comprueba el archivo, la contraseña y el tamaño.</string>
+    <string name="portable_saved">Copia portátil guardada.</string>
+    <string name="portable_people">Perfiles guardados</string>
+    <string name="portable_history">Historial del perfil</string>
+    <string name="portable_daily">Estadísticas diarias</string>
+    <string name="portable_posts">Publicaciones</string>
+    <string name="portable_view">Ver</string>
+</resources>

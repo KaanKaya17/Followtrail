@@ -22,4 +22,14 @@
     <string name="instagram_archive_mutual_range">Sıralama ve tarih aralığı, seni takip etmeye başladıkları tarihe göre uygulanır.</string>
     <string name="instagram_archive_clear_date">Tarihi temizle</string>
     <string name="instagram_archive_sort">Sıralama · %1$s</string>
+    <string name="instagram_archive_open_first">Instagram ZIP’ini aç</string>
+    <string name="instagram_archive_onboarding_title">Arşivini incele</string>
+    <string name="instagram_archive_onboarding_description">Takip listelerini hesap bağlamadan cihazında incele.</string>
+    <string name="instagram_archive_live_title">Canlı takip</string>
+    <string name="instagram_archive_live_description">Profil ve liste değişikliklerini takip etmek için Instagram hesabını bağla.</string>
+    <string name="instagram_archive_snapshot">Listeler, ZIP hazırlanırken dışa aktarılan kayıtları gösterir.</string>
+    <string name="instagram_archive_guide_title">Instagram ZIP dosyası nasıl alınır?</string>
+    <string name="instagram_archive_guide_open_center">Hesaplar Merkezi’ni aç</string>
+    <string name="instagram_archive_guide_no_browser">Hesaplar Merkezi açılamadı.</string>
+    <string name="instagram_archive_guide_body">Instagram’da Hesaplar Merkezi → Bilgilerin ve izinlerin → Bilgilerini dışa aktar bölümünü aç.\n\nInstagram hesabını ve Cihaza aktar seçeneğini seç. Veri kapsamını Takipçiler ve takip edilenler, tarih aralığını Tüm zamanlar, biçimi JSON olarak ayarla.\n\nDosya hazır olduğunda telefonuna indir ve Tracker’da aç.</string>
 </resources>

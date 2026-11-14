@@ -80,7 +80,8 @@ def validate():
     pages = sorted(GUIDE.glob('*.md'))
     if not pages or not all((GUIDE / name).is_file() for name in ('Home.md', '_Sidebar.md', '_Footer.md')):
         raise ValueError('Home, sidebar and footer are required')
-    sources = [*pages, ROOT / 'README.md', ROOT / 'docs/README.md', ROOT / 'docs/history/README-2026-11-02.md']
+    readmes = [ROOT / name for name in ('README.md', 'README.en.md', 'README.es.md', 'README.pt-BR.md')]
+    sources = [*pages, *readmes, ROOT / 'docs/README.md', ROOT / 'docs/history/README-2026-11-02.md']
     assets = set()
     count = 0
     for source in sources:
@@ -100,7 +101,7 @@ def validate():
                 assets.add(target)
     android = re.search(r'versionName\s*=\s*"([^"]+)"', (ROOT / 'app/build.gradle.kts').read_text()).group(1)
     windows = json.loads((ROOT / 'interface/package.json').read_text())['version']
-    for source in (ROOT / 'README.md', GUIDE / 'Surum-ve-Destek.md'):
+    for source in (ROOT / 'README.md', GUIDE / 'Surum-ve-Destek.md', GUIDE / 'EN-Releases.md'):
         text = source.read_text(encoding='utf-8-sig')
         if android not in text or windows not in text:
             raise ValueError(f'{source.name}: release numbers differ from application sources')

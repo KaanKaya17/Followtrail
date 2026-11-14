@@ -82,8 +82,9 @@ class StoryArchiveActivity : LocalizedActivity() {
         vault = SessionVault(this,if (preview) "previewaccount" else "account",if (preview) null else owner)
         gate = RequestGate(this,if (preview) "preview_gate" else "request_gate").forAccount(owner)
         savedInstanceState?.getString("month")?.takeIf { runCatching { StoryCalendar.start(it) }.isSuccess }?.let { month = it }
-        selectedDay = savedInstanceState?.getString("day")?.takeIf(StoryCalendar::validDay)
-        selectedId = savedInstanceState?.getString("story")
+        selectedDay = (savedInstanceState?.getString("day") ?: intent.getStringExtra("archive_day"))?.takeIf(StoryCalendar::validDay)
+        selectedId = savedInstanceState?.getString("story") ?: intent.getStringExtra("archive_story")
+        if (savedInstanceState == null) selectedDay?.let { month = it.take(7) }
         if (android.os.Build.VERSION.SDK_INT >= 33) onBackInvokedDispatcher.registerOnBackInvokedCallback(0) { finish() }
         build(); render()
     }

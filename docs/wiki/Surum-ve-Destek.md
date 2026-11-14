@@ -4,6 +4,21 @@
 
 **Son içerik denetimi: 13 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.84 önizlemesi ve Android 0.1.100 adayı
+
+Windows 0.2.84 herkese açık önizleme olarak yayımlandı. Android 0.1.100 (sürüm kodu 101) test adayıdır. [İndirmeler](#kurulum-dosyasını-nereden-alabilirim).
+
+- Windows 0.2.84 yeniden paketlendi. 45 çevrimdışı paket kontrolü geçti. Windows EXE’si Authenticode imzası taşımıyor.
+- Android 0.1.100 için 195 birim testi, release derlemesi, manifest ve imza kontrolü geçti. Lint 0 hata ve 71 uyarı bildirdi. APK’nın imza sertifikası GitHub’daki 0.1.92 APK’sıyla eşleşiyor. Fiziksel telefonda Instagram oturumu oluştu, ardından profil okuması HTTP 429 aldı. İlk listelere kadar yeni bağlantı henüz doğrulanmadı.
+
+Taşınabilir geçmiş, aynı parolalı dosyayı Windows ve Android’de açar. Windows’ta kaydedilebilen 2.000 karakterlik notlar Türkçe karakterler ve emojiyle birlikte taşınabilir. [Yedekleme ve cihaz değiştirme](Gizlilik-ve-Veriler.md).
+
+Geri takip etmeyenler için istisnalar, ZIP kapsamı, iki ZIP önizlemesi ve içerik takvimi her iki yerel pakette vardır. [Ortak özellikler ve platform farkları](../PLATFORM-PARITY.md).
+
+## Windows 0.2.75 ve Android 0.1.96 yerel paketleri
+
+Özet’te **Instagram ZIP’ini aç** ile dosya seçildiğinde arşiv özeti ve veri kategorileri açılır. **İki ZIP karşılaştır**, iki dosyada bulunan takip listelerini kullanıcı adına göre karşılaştırır. [İlk kullanım](Ilk-Kullanim.md).
+
 ## Windows 0.2.73 ve Android 0.1.94 adayı
 
 - Windows: Özet kartları, aylık beğeni grafiği, arşivde arama ve iki ZIP’in takip listelerini karşılaştırma. 40 paketli kontrol geçti. Tam boyutlu bir Instagram JSON ZIP’i yerelde okundu. [Arşiv rehberi](Takip-Listeleri.md#instagram-zip-arşivi).
@@ -51,7 +66,7 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Windows
 
-**Güncel önizleme: 0.2.73 · kaynak etiketi: `desktop-v0.2.73`**
+**GitHub’da belgelenen önizleme: 0.2.73 · kaynak etiketi: `desktop-v0.2.73`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
 - Dağıtım klasörü: `InstagramTracker-Desktop-0.2.73`; içindeki `InstagramTracker.exe` çalıştırılır.
@@ -63,7 +78,7 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Android
 
-**Güncel APK: 0.1.92 · sürüm kodu: 93 · kaynak etiketi: `android-v0.1.92`**
+**GitHub’da belgelenen APK: 0.1.92 · sürüm kodu: 93 · kaynak etiketi: `android-v0.1.92`**
 
 - Dosya: `InstagramTracker-0.1.92.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
 - Android 0.1.87 yeni kayıtlar için ilk liste hazırlığını, gizli hesap açıklamasını, ortak hesap karşılaştırmasını ve okuma tanısını içerir. [Kullanım ve doğrulama kapsamı](../PLATFORM-PARITY.md).
@@ -94,10 +109,11 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-- [Windows 0.2.73 ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.73)
-- [Android 0.1.92 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
+- [Windows 0.2.84 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84)
+- [Windows 0.2.73 eski önizlemesi · özel depo](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/desktop-v0.2.73)
+- [Android 0.1.92 imzalı APK · özel depo](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/android-v0.1.92)
 
-Paketler GitHub Releases üzerinde önizleme olarak yayımlanır. İndirmek için özel depoya erişimi olan bir GitHub hesabı gerekir. Sürüm sayfalarında dosyaların SHA-256 değerleri bulunur.
+Windows 0.2.84 oturum açmadan indirilebilir. Eski önizlemeler için özel depoya erişim gerekir. Sürüm sayfalarında dosyaların SHA-256 değerleri bulunur.
 
 <a name="destek-icin-hangi-bilgiler-gerekir"></a>
 

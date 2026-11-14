@@ -1,6 +1,6 @@
 # InstagramTracker Kullanım Kılavuzu
 
-**Instagram çevreniz, tek bir çalışma alanında.**
+[Türkçe](Home.md) · [English](EN-Home.md) · [Español](ES-Home.md) · [Português (Brasil)](PT-BR-Home.md)
 
 InstagramTracker; takipçi ve takip edilen listelerini karşılaştırmanıza, seçtiğiniz profillerdeki değişiklikleri izlemenize ve kayıtlarınızı cihazınızda incelemenize yardımcı olur.
 
@@ -12,18 +12,16 @@ InstagramTracker; takipçi ve takip edilen listelerini karşılaştırmanıza, s
 
 *Ekran örneklerinin tamamı sentetik verilerle oluşturulmuştur; gerçek bir hesabı temsil etmez.*
 
-## Başlamak için
+## Nasıl başlamak istersiniz?
 
-1. [Platformunuza uygun paketi kurun.](Kurulum.md)
-2. [Hesabınızı bağlayın ve profil bilgilerinin gelmesini bekleyin.](Hesaplar-ve-Giris.md)
-3. [İlk liste hazırlığının durumunu kontrol edin.](Ilk-Kullanim.md#ilk-listeler-hazirlanirken)
-4. [Özel izlemek istediğiniz profilleri ekleyin.](Profil-Takibi.md)
-5. [Otomatik kontrol ve bildirim tercihlerinizi seçin.](Otomatik-Kontrol-ve-Bildirimler.md)
+- **Arşivinizi inceleyin.** Instagram’dan ZIP indirin, uygulamada açın ve varsa aynı hesaba ait ikinci arşivle karşılaştırın. [Görselli ZIP rehberi](Instagram-Veri-Arsivi.md).
+- **Canlı takibi kurun.** Hesabınızı bağlayıp ilk liste kayıtlarının hazırlanmasını bekleyin. Ardından profil ekleyebilir ve bildirim tercihlerinizi seçebilirsiniz. [İlk kullanım rehberi](Ilk-Kullanim.md).
 
 ## Kılavuzda neler var?
 
 - [Kurulum ve güncelleme](Kurulum.md): Windows paketi, Android APK'sı ve mevcut kayıtları koruma.
 - [İlk kullanım](Ilk-Kullanim.md): İlk bağlantı, ilk liste ve uygulamadaki bölümler.
+- [Instagram Veri Arşivi](Instagram-Veri-Arsivi.md): ZIP alma, arşivi açma ve iki dışa aktarımı karşılaştırma.
 - [Hesaplar ve giriş](Hesaplar-ve-Giris.md): Kod ekranı, bekleyen bağlantı ve çoklu hesap.
 - [Profil takibi](Profil-Takibi.md): Arama, favoriler, notlar, gruplar ve sosyal bağlantılar.
 - [Takip listeleri](Takip-Listeleri.md): Başlangıç listesi, yeni/görünmeyen üyeler ve eksik tarama.

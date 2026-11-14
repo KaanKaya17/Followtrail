@@ -1,14 +1,28 @@
 # InstagramTracker
 
+[Türkçe](README.md) · [English](README.en.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md)
+
 **Instagram çevrenizi tek bir yerden takip edin.**
 
 Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerdeki değişiklikleri inceleyin ve gözlemlerinizi zaman çizelgesinde görün. Kayıtlarınız cihazınızda şifreli saklanır.
 
-[Kullanım kılavuzu](docs/wiki/Home.md) · [Kurulum](docs/wiki/Kurulum.md) · [Sürüm durumu](docs/wiki/Surum-ve-Destek.md) · [Sorun giderme](docs/wiki/Sorun-Giderme.md)
+[Kullanım kılavuzu](docs/wiki/Home.md) · [ZIP arşivi ve karşılaştırma](docs/wiki/Instagram-Veri-Arsivi.md) · [Kurulum](docs/wiki/Kurulum.md) · [Sürüm durumu](docs/wiki/Surum-ve-Destek.md)
 
 ![Örnek verilerle InstagramTracker Windows Özet ekranı](docs/wiki/assets/ozet.png)
 
-*Ekran örneği sentetik verilerle oluşturulmuştur; gerçek bir hesabı temsil etmez.*
+*Windows arayüzü, örnek verilerle gösterilmiştir.*
+
+## Amaç ve kullanım sınırları
+
+InstagramTracker, Instagram arşivinizi incelemeyi ve erişim yetkiniz olan hesaplarda zaman içindeki değişiklikleri anlamayı kolaylaştırır. ZIP dosyaları, parolalar ve hesap kayıtları proje ekibine gönderilmez. Uygulama kendi sunucusuna kullanım verisi toplamaz. Canlı takip ve doğrulama için telefonunuz veya bilgisayarınız Instagram/Meta ile bağlantı kurar.
+
+Tracker’ı yalnızca erişim yetkiniz olan verilerle, geçerli kurallara ve başkalarının gizliliğine saygı göstererek kullanın. Proje izinsiz hesap erişimini, tacizi ve yasa dışı kullanımı desteklemez.
+
+## Hesap bağlamadan deneyin
+
+Instagram’dan indirdiğiniz ZIP’i açıp verilerinizi kategorilere göre inceleyin. Aynı hesabın iki arşivini karşılaştırarak hangi kullanıcı adlarının yalnızca eski veya yeni listede olduğunu görün. [Ekran görüntüleriyle adım adım ZIP rehberi](docs/wiki/Instagram-Veri-Arsivi.md).
+
+![Windows’ta iki ZIP karşılaştırmasının açık sonucu. Takipçi sayısı 3’ten 4’e değişmiş ve iki arşivde farklı olan adlar gösteriliyor.](docs/wiki/assets/zip-karsilastirma-sonuc.png)
 
 ## Neler sunar?
 
@@ -24,15 +38,21 @@ Takipçi ve takip edilen listelerini karşılaştırın, seçtiğiniz profillerd
 
 İlk liste başlangıç kaydıdır. Uygulama geçmişte hiç kaydetmediği takipten çıkışları, profil ziyaretçilerini veya kesin olay saatini üretemez. [Sık sorulan sorular](docs/wiki/Sik-Sorulan-Sorular.md).
 
-## Güncel önizleme
+## İndirmeler ve sürüm durumu
 
-[Windows 0.2.73 ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.73) · [Android 0.1.92 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
+Windows 0.2.84 ve Android 0.1.100 adayında (sürüm kodu 101) hesap bağlamadan ZIP arşivi inceleme, iki ZIP karşılaştırma ve parolalı Tracker geçmişi dosyası açma kullanılabilir. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
-Paketleri indirmek için özel GitHub deposuna erişimi olan hesabınızla oturum açın.
+**GitHub’da indirilebilen önizlemeler:**
+
+[Windows 0.2.84 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
+
+[Windows 0.2.73 eski ZIP’i](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/desktop-v0.2.73) · [Android 0.1.92 APK](https://github.com/KaanKaya17/InstagramTracker-Archive/releases/tag/android-v0.1.92)
+
+Windows 0.2.73 ve Android 0.1.92 için özel GitHub deposuna erişim gerekir.
 
 **Windows 0.2.73:** Instagram Veri Arşivi, ZIP içindeki kayıtları kategorilere ayırır. Özet kartları ve aylık beğeni grafiği, tüm arşivde arama ve iki ZIP’teki takip listelerini karşılaştırma eklendi. Bildirimler menüsünde ve zil simgesinde okunmamış kayıt sayısı görünür. [Arşiv rehberi](docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
 
-**Android 0.1.92 / kod 93:** Yayımlanmış imzalı APK, HTML ve JSON biçimindeki ZIP takip listelerini cihazda açar. Tam arşiv dosya tarayıcısını içeren **0.1.94** imzalı paket adayıdır; cihaz doğrulaması bekleniyor. [Sürüm ve doğrulama durumu](docs/wiki/Surum-ve-Destek.md).
+**Android 0.1.92 / kod 93:** Yayımlanmış imzalı APK, HTML ve JSON biçimindeki ZIP takip listelerini cihazda açar. Tam arşiv tarayıcısının ve cihaz testinin durumu [sürüm sayfasında](docs/wiki/Surum-ve-Destek.md) açıklanır.
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

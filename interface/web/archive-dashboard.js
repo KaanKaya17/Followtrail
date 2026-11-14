@@ -57,12 +57,13 @@
     return Number.isSafeInteger(seconds) ? seconds : null;
   };
 
-  function mount(root, {api, t, num, language, openRaw, openLists, autoOpen = false}) {
+  function mount(root, {api, t, num, language, openRaw, openLists, readOwnStories, readOwnStoryMedia, autoOpen = false}) {
     let archive, closed = false, opening = false, generation = 0, mediaUrl, searchTimer;
     let filesByName = new Map(), filesById = new Map(), groupByFile = new Map();
     const monthsFormat = new Intl.DateTimeFormat(language, {month:"short", year:"numeric", timeZone:"UTC"});
     const date = new Intl.DateTimeFormat(language, {dateStyle:"medium", timeStyle:"short"});
     const dayFormat = new Intl.DateTimeFormat(language, {dateStyle:"long"});
+    const archiveDate = new Intl.DateTimeFormat(language, {dateStyle:"long", timeZone:"UTC"});
     const clock = new Intl.DateTimeFormat(language, {hour:"2-digit", minute:"2-digit"});
     const make = (tag, text, css) => {
       const node = document.createElement(tag);
@@ -99,8 +100,9 @@
     }
     const toolbar = make("div", "", "archive-dashboard-toolbar");
     const description = make("p", t("Instagram’dan indirdiğin ZIP dosyasını seç. Veriler cihazında açılır."));
-    const load = action(t("Instagram ZIP yükle"), open, "button primary");
+    const load = action(t("Instagram ZIP yükle"), () => open(), "button primary");
     toolbar.append(description, load);
+    toolbar.append(action(t("İçerik ve etkileşim"), showContent));
     if (openLists) toolbar.append(action(t("ZIP takip karşılaştırması"), openLists));
     const raw = action(t("Dosya tarayıcısı"), () => openRaw(archive));
     raw.hidden = true;
@@ -124,6 +126,7 @@
     const automation = make("p", t("Tracker şu anda Instagram’dan yeni ZIP istemiyor. İndirdiğin dosyayı cihazında açıyor."), "field-hint");
     guide.append(automation);
     const overview = make("section", "", "card archive-dashboard-overview");
+    const dropHint = make("p", t("ZIP dosyasını buraya bırak"), "archive-dashboard-drop field-hint");
     const tools = make("div", "", "archive-dashboard-toolbar archive-dashboard-tools");
     const searchForm = make("form", "", "archive-dashboard-filters archive-dashboard-global-search");
     const searchInput = make("input");
@@ -147,15 +150,44 @@
     const cards = make("div", "", "archive-dashboard-categories");
     const body = make("section", "", "card archive-dashboard-body");
     body.hidden = true;
-    root.replaceChildren(toolbar, status, guide, overview, tools, cards, body);
+    root.replaceChildren(toolbar, dropHint, status, overview, guide, tools, cards, body);
+    const thumbnails = new Set();
+    function clearThumbnails() {
+      for (const url of thumbnails) URL.revokeObjectURL(url);
+      thumbnails.clear();
+    }
+    function dragOver(event) {
+      if (!event.dataTransfer?.types.includes("Files")) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = opening ? "none" : "copy";
+      dropHint.classList.toggle("active", !opening);
+    }
+    function dragLeave(event) {
+      if (!event.relatedTarget || !root.contains(event.relatedTarget)) dropHint.classList.remove("active");
+    }
+    function drop(event) {
+      if (!event.dataTransfer?.types.includes("Files")) return;
+      event.preventDefault();
+      dropHint.classList.remove("active");
+      if (opening || closed) return;
+      const files = event.dataTransfer.files;
+      if (files.length !== 1 || !/\.zip$/i.test(files[0].name)) {
+        status.textContent = t("Tek bir ZIP dosyası bırak.");
+        return;
+      }
+      open(files[0]);
+    }
+    root.addEventListener("dragover", dragOver);
+    root.addEventListener("dragleave", dragLeave);
+    root.addEventListener("drop", drop);
 
-    async function open() {
+    async function open(file) {
       if (opening || closed) return;
       opening = true;
       load.disabled = true;
       status.textContent = t("Dosya hazırlanıyor…");
       try {
-        const result = await api.file("export_browser_open");
+        const result = await (file ? api.openDroppedArchive(file) : api.file("export_browser_open"));
         const value = result?.archiveBrowser;
         if (closed) {
           if (value) api.command("export_browser_close", {token:value.token}).catch(() => {});
@@ -168,12 +200,14 @@
         filesByName = new Map(archive.files.map(file => [file.name, file]));
         filesById = new Map(archive.files.map(file => [file.id, file]));
         generation++;
+        clearThumbnails();
         release();
         tools.hidden = false;
         searchInput.value = "";
         raw.hidden = false;
         guide.open = false;
         description.textContent = archive.name + " · " + t("{0} dosya", num(archive.files.length));
+        status.textContent = t("Listeler, ZIP hazırlanırken dışa aktarılan kayıtları gösterir.");
         showGroups();
         loadSummary(value);
       } catch {
@@ -218,9 +252,30 @@
       try {
         const result = await api.command("export_browser_summary", {token:value.token});
         if (closed || archive !== value || !result?.ok) return;
-        const {metrics, months} = result.archiveBrowser;
+        const {metrics, months, scope, metadata} = result.archiveBrowser;
+        const info = [value.name];
+        if (metadata.account) info.push("@" + metadata.account);
+        if (metadata.exportedAt) info.push(t("Dışa aktarım: {0}", date.format(new Date(metadata.exportedAt))));
+        else if (metadata.filenameDate) {
+          const archiveDay = new Date(metadata.filenameDate + "T00:00:00Z");
+          info.push(t("Dosya adındaki tarih: {0}", archiveDate.format(archiveDay)));
+        }
+        const coverage = make("ul", "", "archive-dashboard-coverage");
+        for (const [key, label] of [["followers", "Takipçiler"], ["following", "Takip edilen"], ["messages", "Mesajlar"]]) {
+          const metric = metrics[key];
+          const state = metric ? num(metric.count) : {
+            present:t("Var"), missing:t("Bu ZIP’te yok"), unreadable:t("Okunamadı"), empty:t("ZIP’te kayıt yok"),
+          }[scope[key]];
+          const item = make("li");
+          const control = metric && groupByFile.has(metric.index)
+            ? action("", () => focusSource(metric.index), "archive-dashboard-category")
+            : make("div", "", "archive-dashboard-category");
+          control.append(make("strong", t(label)), make("span", state));
+          item.append(control);
+          coverage.append(item);
+        }
         const labels = [
-          ["followers","Takipçiler"], ["following","Takip edilen"], ["profileChanges","Profil değişiklikleri"],
+          ["profileChanges","Profil değişiklikleri"],
           ["likes","Beğendiğin gönderiler"], ["saved","Kaydettiğin gönderiler"], ["stories","Hikâyeler"], ["contacts","Eşitlenen kişiler"],
         ];
         const tiles = make("div", "", "archive-dashboard-metric-grid");
@@ -233,20 +288,25 @@
           tile.append(make("small", t(label)), make("strong", num(metric.count)));
           tiles.append(tile);
         }
-        if (!tiles.childElementCount) return;
-        overview.replaceChildren(make("h2", t("Arşiv özeti")), make("p", t("Bu ZIP’teki kayıtların özeti"), "field-hint"), tiles);
+        overview.replaceChildren(make("h2", t("Arşiv kapsamı")), make("p", info.join(" · "), "archive-dashboard-file-info"), coverage);
+        if (tiles.childElementCount) overview.append(tiles);
         if (months.length) {
           const chart = make("section", "", "archive-dashboard-trend archive-dashboard-months");
           chart.append(make("h3", t("Arşivdeki gönderi beğenileri · Aya göre")));
-          const max = Math.max(1, ...months.map(([, count]) => count));
+          const max = Math.max(1, ...months.map(([, count]) => count ?? 0));
           for (const [month, count] of months) {
             const row = make("div");
             const label = monthsFormat.format(new Date(month + "-01T00:00:00Z"));
-            const bar = make("meter");
-            bar.max = max;
-            bar.value = count;
-            bar.setAttribute("aria-label", label);
-            row.append(make("span", label), bar, make("strong", num(count)));
+            row.append(make("span", label));
+            if (count === null) {
+              row.append(make("small", t("ZIP’te kayıt yok"), "archive-dashboard-month-empty"));
+            } else {
+              const bar = make("meter");
+              bar.max = max;
+              bar.value = count;
+              bar.setAttribute("aria-label", label);
+              row.append(bar, make("strong", num(count)));
+            }
             chart.append(row);
           }
           overview.append(chart);
@@ -256,6 +316,7 @@
     }
 
     function toolView(title) {
+      clearThumbnails();
       clearTimeout(searchTimer);
       const current = ++generation;
       release();
@@ -265,6 +326,153 @@
       body.replaceChildren(heading);
       body.hidden = false;
       return current;
+    }
+
+    async function showContent() {
+      const current = toolView(t("İçerik ve etkileşim"));
+      const value = archive;
+      const active = () => !closed && current === generation;
+      const feedback = make("p", t("Kayıt okunuyor…"), "field-hint");
+      feedback.setAttribute("role", "status");
+      const calendar = make("section", "", "story-calendar content-calendar");
+      const details = make("section", "", "archive-dashboard-rows content-calendar-results");
+      const layout = make("div", "", "content-calendar-layout");
+      layout.append(calendar, details);
+      body.append(feedback, layout);
+      const sources = await Promise.allSettled([
+        value ? api.command("export_browser_content", {token:value.token}) : Promise.resolve(null),
+        readOwnStories ? readOwnStories() : Promise.resolve(null),
+      ]);
+      if (!active()) return;
+      const zip = sources[0].value;
+      const localSource = sources[1].value;
+      const accountMismatch = value?.metadata?.account && localSource?.username &&
+        value.metadata.account.toLowerCase() !== localSource.username.toLowerCase();
+      const local = accountMismatch ? null : localSource;
+      const stories = local?.items || [];
+      const localDays = new Map();
+      for (const story of stories) {
+        const at = story.publishedAt ?? story.capturedAt;
+        if (!Number.isFinite(at)) continue;
+        const day = window.TrackerStories.day(story);
+        if (!localDays.has(day)) localDays.set(day, []);
+        localDays.get(day).push(story);
+      }
+      const latest = [zip?.archiveBrowser?.latest, ...localDays.keys()].filter(Boolean).sort().at(-1);
+      let month = (latest || new Date().toISOString()).slice(0,7);
+      let selected = latest || month + "-01", revision = 0;
+      const monthFormat = new Intl.DateTimeFormat(language,{month:"long",year:"numeric",timeZone:"UTC"});
+      const weekday = new Intl.DateTimeFormat(language,{weekday:"short",timeZone:"UTC"});
+      const labels = {stories:t("Hikâyeler"),reels:"Reels",posts:t("Gönderiler")};
+      const metricLabels = {views:t("Görüntülenmeler"),plays:t("Oynatma"),likes:t("Beğeniler"),comments:t("Yorumlar"),reactions:t("Tepkiler")};
+      const dateFor = day => new Date(day + "T00:00:00Z");
+      function blob(asset) {
+        return URL.createObjectURL(new Blob([Uint8Array.fromBase64(asset.base64)],{type:asset.mime}));
+      }
+      function cardFor(item, story, ticket, candidates) {
+        const card = make("article", "", "archive-dashboard-record content-calendar-card");
+        card.append(make("h4", labels[item.kind]), make("small", t(story ? "Yerel hikâye arşivi" : "Instagram ZIP")));
+        card.append(make("time", date.format(new Date(item.at * 1000))));
+        if (item.caption) card.append(make("p",item.caption));
+        const metrics = make("dl", "", "archive-dashboard-fields");
+        for (const [key, number] of Object.entries(item.metrics || {})) {
+          metrics.append(make("dt", metricLabels[key]), make("dd", num(number)));
+        }
+        if (metrics.childElementCount) card.append(metrics);
+        const assets = (item.assets || []).map(index=>filesById.get(index)).filter(Boolean);
+        const thumb = assets.find(file=>file.kind==="image" && file.size<=256*1024);
+        if (thumb && candidates.length < 8) candidates.push([thumb, card]);
+        for (const file of assets) preview(file, card, current);
+        if (story?.status === "saved" && readOwnStoryMedia) {
+          const play = action(t("Yerel önizlemeyi aç"), async () => {
+            play.disabled = true;
+            try {
+              const asset = await readOwnStoryMedia(local, story.id);
+              if (!active() || ticket !== revision || !card.isConnected) return;
+              if (!asset) throw Error();
+              release();
+              body.querySelector(".archive-dashboard-player")?.remove();
+              mediaUrl = blob(asset);
+              const element = make(asset.mime.startsWith("video/") ? "video" : "img", "", "archive-dashboard-player");
+              if (element.tagName === "VIDEO") element.controls = true;
+              else element.alt = "";
+              element.src = mediaUrl;
+              card.append(element);
+            } catch {
+              if (active() && ticket === revision) feedback.textContent = t("Hikâye açılamadı.");
+            } finally { play.disabled = false; }
+          });
+          card.append(play);
+        }
+        return card;
+      }
+      async function draw(offset=0) {
+        const ticket = ++revision;
+        clearThumbnails();
+        release();
+        const response = zip?.ok
+          ? await api.command("export_browser_content", {token:value.token,month,day:selected,offset}).catch(()=>null) : null;
+        if (!active() || ticket !== revision) return;
+        const payload = response?.archiveBrowser;
+        feedback.textContent = (value && !response?.ok) || sources[1].status === "rejected" ? t("Bazı içerik kaynakları okunamadı.") :
+          accountMismatch ? t("Bu ZIP farklı bir kullanıcı adına ait. Takvimde yalnız ZIP içerikleri gösteriliyor.") :
+          payload?.skipped ? t("{0} kaynak okunamadı.",num(payload.skipped)) :
+          value ? "" : t("Gönderi ve Reels geçmişini görmek için Instagram ZIP’ini aç.");
+        const start = dateFor(month + "-01");
+        const header = make("header","","story-calendar-heading");
+        const move = (step,label) => {
+          const target = window.TrackerStories.shiftMonth(month,step);
+          const button = action("", () => {
+            month=target; selected=month+"-01"; draw();
+          },"icon-button");
+          button.innerHTML = window.TrackerIcon(step < 0 ? "previousMonth" : "nextMonth");
+          button.setAttribute("aria-label", label);
+          button.disabled = !target;
+          return button;
+        };
+        header.append(move(-1,t("Önceki ay")),make("h3",monthFormat.format(start)),move(1,t("Sonraki ay")));
+        const grid = make("div","","story-calendar-grid");
+        for(let index=0;index<7;index++) grid.append(make("span",weekday.format(new Date(Date.UTC(2024,0,1+index))),"story-weekday"));
+        for(let index=0;index<(start.getUTCDay()+6)%7;index++) grid.append(make("span","","story-calendar-blank"));
+        const days = new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth()+1,0)).getUTCDate();
+        for(let index=1;index<=days;index++) {
+          const day = month+"-"+String(index).padStart(2,"0");
+          const count=(payload?.days[day] || 0)+(localDays.get(day)?.length || 0);
+          const button=action(num(index),()=>{selected=day;draw();},"story-calendar-day");
+          button.classList.toggle("has-stories",count>0);
+          button.classList.toggle("is-selected",day===selected);
+          button.setAttribute("aria-pressed",String(day===selected));
+          button.setAttribute("aria-label",archiveDate.format(dateFor(day))+(count?" · "+t("{0} kayıt",num(count)):""));
+          if(count) button.append(make("small",num(count)));
+          grid.append(button);
+        }
+        calendar.replaceChildren(header,grid);
+        const candidates = [];
+        details.replaceChildren(make("h3", archiveDate.format(dateFor(selected))));
+        const localItems = offset ? [] : localDays.get(selected) || [];
+        const rows = (payload?.items || []).map(item=>[item,null]);
+        for(const story of localItems) rows.push([{kind:"stories",at:story.publishedAt ?? story.capturedAt},story]);
+        rows.sort(([a],[b])=>b.at-a.at);
+        if(!rows.length) details.append(make("p",t("Bu günde içerik kaydı yok.")));
+        for(const [item,story] of rows) details.append(cardFor(item,story,ticket,candidates));
+        const navigation = make("div","","drawer-actions");
+        if(offset) navigation.append(action(t("Önceki sayfa"),()=>draw(Math.max(0,offset-24))));
+        if(offset+24<(payload?.total || 0)) navigation.append(action(t("Sonraki sayfa"),()=>draw(offset+24)));
+        if(navigation.childElementCount) details.append(navigation);
+        for(const [file,card] of candidates) {
+          const preview = await api.command("export_browser_media",{token:value.token,index:file.id}).catch(()=>null);
+          if(!active() || ticket!==revision) return;
+          if(preview?.ok) {
+            const url=blob(preview.archiveBrowser);
+            thumbnails.add(url);
+            const image=make("img","","content-calendar-thumbnail");
+            image.alt="";
+            image.src=url;
+            card.prepend(image);
+          }
+        }
+      }
+      await draw();
     }
 
     function showSearch(query) {
@@ -351,28 +559,97 @@
     function showComparison() {
       const current = toolView(t("İki ZIP karşılaştır"));
       const value = archive;
+      let pair, reverse = false, working = false;
       body.append(make("p", t("İlk ZIP eski, seçeceğin ikinci ZIP yeni olmalı. Aynı hesabın ve aynı tarih kapsamının arşivlerini kullan.")),
-        make("p", t("Farklar ZIP’teki kullanıcı adlarına göre hesaplanır. Kullanıcı adı değişmiş veya dışa aktarma kapsamı farklı olabilir."), "field-hint"),
-        make("p", t("İlk ZIP: {0}", value.name)));
-      const choose = action(t("İkinci ZIP’i seç"), compare);
+        make("p", t("Farklar ZIP’teki kullanıcı adlarına göre hesaplanır. Kullanıcı adı değişmiş veya dışa aktarma kapsamı farklı olabilir."), "field-hint"));
+      const sources = make("div", "", "archive-dashboard-compare-sources");
+      const choose = action(t("İkinci ZIP’i seç"), selectSecond);
+      const swap = action(t("Yer değiştir"), () => {
+        reverse = !reverse;
+        results.replaceChildren();
+        renderSources();
+      });
+      const run = action(t("Karşılaştırmayı başlat"), compare, "button primary");
+      const controls = make("div", "", "drawer-actions");
+      controls.append(choose, swap, run);
       const feedback = make("p", "", "field-hint");
       feedback.setAttribute("role", "status");
       const results = make("div", "", "archive-dashboard-rows");
-      body.append(choose, feedback, results);
+      body.append(sources, controls, feedback, results);
       const active = () => !closed && generation === current;
+      const day = stamp => archiveDate.format(new Date(stamp + "T00:00:00Z"));
+      function sourceCard(label, file) {
+        const card = make("section", "", "archive-dashboard-record");
+        card.append(make("h3", t(label)));
+        if (!file) return card;
+        card.append(make("strong", file.name));
+        card.append(make("p", file.account ? "@" + file.account : t("ZIP’te hesap bilgisi yok")));
+        if (file.exportedAt) card.append(make("p", t("Dışa aktarım: {0}", date.format(new Date(file.exportedAt)))));
+        else if (file.filenameDate) card.append(make("p", t("Dosya adındaki tarih: {0}", day(file.filenameDate))));
+        if (file.dateRange) card.append(make("p", t("Tarih aralığı") + " · " + file.dateRange.map(day).join(" – ")));
+        return card;
+      }
+      function renderSources() {
+        const first = reverse ? pair.second : pair?.first || {name:value.name, ...value.metadata};
+        const second = reverse ? pair.first : pair?.second;
+        sources.replaceChildren(sourceCard("Eski ZIP", first), sourceCard("Yeni ZIP", second));
+        const reversed = first.exportedAt && second?.exportedAt
+          ? Date.parse(first.exportedAt) > Date.parse(second.exportedAt)
+          : (first.exportedAt?.slice(0,10) || first.filenameDate || "") >
+            (second?.exportedAt?.slice(0,10) || second?.filenameDate || "9999") &&
+            !!(second?.exportedAt || second?.filenameDate);
+        choose.disabled = working;
+        swap.hidden = run.hidden = !pair;
+        swap.disabled = working;
+        run.disabled = working;
+        run.textContent = pair?.differentAccounts ? t("Yine de karşılaştır") : t("Karşılaştırmayı başlat");
+        feedback.textContent = pair?.differentAccounts ? t("ZIP’ler farklı kullanıcı adlarına ait. Aynı hesabın iki ZIP’ini seç.") :
+          reversed ? t("İlk ZIP daha yeni görünüyor. Karşılaştırmadan önce yerlerini değiştirebilirsin.") : "";
+      }
+      renderSources();
+      async function selectSecond() {
+        working = true;
+        renderSources();
+        results.inert = true;
+        feedback.textContent = t("Dosya hazırlanıyor…");
+        let failed = false;
+        try {
+          const response = await api.file("export_browser_prepare_comparison", {token:value.token});
+          if (!active() || response?.cancelled) return;
+          results.replaceChildren();
+          pair = response?.ok ? response.archiveBrowser : null;
+          reverse = false;
+          if (!pair) throw Error();
+        } catch {
+          if (active()) {
+            pair = null;
+            reverse = false;
+            results.replaceChildren();
+            failed = true;
+          }
+        } finally {
+          working = false;
+          results.inert = false;
+          if (active()) {
+            renderSources();
+            if (failed) feedback.textContent = t("Arşiv veya seçilen dosya açılamadı.");
+          }
+        }
+      }
       async function compare() {
-        choose.disabled = true;
+        if (!pair || working) return;
+        working = true;
+        renderSources();
         results.inert = true;
         feedback.textContent = t("Dosya hazırlanıyor…");
         try {
-          const response = await api.file("export_browser_compare", {token:value.token});
+          const response = await api.command("export_browser_compare", {token:value.token,candidate:pair.candidate,reverse});
           if (!active()) return;
           feedback.textContent = "";
           if (response?.cancelled) return;
           results.replaceChildren();
           if (!response?.ok) throw Error();
-          const {name, directions} = response.archiveBrowser;
-          results.append(make("p", t("İkinci ZIP: {0}", name), "field-hint"));
+          const {directions} = response.archiveBrowser;
           for (const [direction, label] of [["followers","Takipçiler"],["following","Takip edilen"]]) {
             const data = directions[direction];
             const panel = make("section", "", "archive-dashboard-record");
@@ -422,7 +699,8 @@
           if (active()) feedback.textContent = t("İki ZIP karşılaştırılamadı. Dosyalarda okunabilir takip listeleri olmalı.");
         } finally {
           if (active()) {
-            choose.disabled = false;
+            working = false;
+            choose.disabled = swap.disabled = run.disabled = false;
             results.inert = false;
           }
         }
@@ -430,6 +708,7 @@
     }
 
     function selectGroup(id, label, files, preferred) {
+      clearThumbnails();
       clearTimeout(searchTimer);
       generation++;
       release();
@@ -748,9 +1027,13 @@
       parent.append(button);
     }
     if (autoOpen) open();
-    return {root, language, close() {
+    return {root, language, open, close() {
       closed = true;
+      root.removeEventListener("dragover", dragOver);
+      root.removeEventListener("dragleave", dragLeave);
+      root.removeEventListener("drop", drop);
       clearTimeout(searchTimer);
+      clearThumbnails();
       release();
       if (archive) api.command("export_browser_close", {token:archive.token}).catch(() => {});
       archive = null;

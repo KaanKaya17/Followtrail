@@ -16,6 +16,9 @@
     <string name="parity_preferences">%1$s · Notification preferences</string>
     <string name="parity_notices_enabled">Notifications for this account</string>
     <string name="parity_notifications">Notifications</string>
+    <string name="parity_mark_all_read">Mark all as read</string>
+    <string name="parity_no_unread_notifications">No unread notifications.</string>
+    <string name="parity_mark_all_read_failed">Could not mark notifications as read.</string>
     <string name="parity_refresh_history">Reload saved records</string>
     <string name="parity_unread">Unread</string>
     <string name="parity_read">Read</string>

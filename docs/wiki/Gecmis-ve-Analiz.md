@@ -8,6 +8,8 @@ Zaman çizelgesi, uygulamanın hangi kontrolde ne gördüğünü bir araya getir
 
 Önceki ve sonraki değerleri birlikte okuyun. Bir kontrol başarısız olduğunda kaydın güncellenmemesi, hesabın değişmediğini kanıtlamaz; yalnız yeni gözlem alınamadığını gösterir.
 
+![Windows zaman çizelgesinde örnek profile ait kullanıcı adı, takipçi sayısı ve biyografi değişiklikleri.](assets/zaman-cizelgesi.png)
+
 ## Sayaç grafikleri
 
 Takipçi/takip edilen grafikleri kaydedilmiş gözlemlerden oluşur. Kontroller arasında bilinmeyen hareketler olabilir. Net artış, o aralıktaki bütün ekleme ve çıkışların sayısı değildir.

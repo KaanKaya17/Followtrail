@@ -13,6 +13,7 @@ from accounts import Accounts
 import localization
 from instagram_archive import InvalidArchive, read_archive
 from export_browser import ExportBrowser
+import portable_backup
 from network import AppFailure, failure
 from thumbnails import Thumbnails
 from history_pages import HistoryPages, preview_log
@@ -43,17 +44,23 @@ def main():
         return 2
     history = HistoryPages()
     archive = ExportBrowser()
+    portable = portable_backup.Archive()
     archive_operations = {
         'export_browser_open': archive.open,
         'export_browser_text': archive.text,
         'export_browser_browse': archive.browse,
         'export_browser_summary': archive.read_summary,
+        'export_browser_content': archive.content,
         'export_browser_search': archive.search,
         'export_browser_compare': archive.compare,
+        'export_browser_prepare_comparison': archive.prepare_comparison,
         'export_browser_comparison_page': archive.comparison_page,
         'export_browser_media': archive.media,
         'export_browser_save': archive.save,
         'export_browser_close': archive.release,
+        'export_browser_portable_open': portable.open,
+        'export_browser_portable_page': portable.page,
+        'export_browser_portable_close': portable.close,
     }
     archive_tasks = ThreadPoolExecutor(max_workers=1, thread_name_prefix='archive')
     archive_slots = threading.BoundedSemaphore(4)
@@ -77,6 +84,10 @@ def main():
             if engine.active_id != original_owner:images.cancel(clear_cache=True)
             emit(message)
         try:
+            if request['operation'] == 'export_portable_backup':
+                portable_backup.export(engine, **request['args'])
+                emit({'type': 'result', 'id': request['id'], 'ok': True})
+                return
             if request['operation'] == 'import_instagram_zip':
                 try:
                     value = read_archive((request.get('args') or {}).get('path'))
@@ -94,6 +105,9 @@ def main():
             publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': history.publish(state),
                   'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})
         except Exception as exc:
+            if request['operation'] == 'export_portable_backup':
+                emit({'type': 'result', 'id': request['id'], 'ok': False, 'error': {'code': 'backup'}})
+                return
             if request['operation'] == 'import_instagram_zip':
                 emit({'type': 'result', 'id': request['id'], 'ok': False, 'error': failure(exc)})
                 return

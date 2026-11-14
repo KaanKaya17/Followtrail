@@ -19,6 +19,9 @@
     <string name="parity_refresh_history">Kayıtları yeniden yükle</string>
     <string name="parity_unread">Okunmamış</string>
     <string name="parity_read">Okundu</string>
+    <string name="parity_mark_all_read">Tümünü okundu olarak işaretle</string>
+    <string name="parity_no_unread_notifications">Okunmamış bildirim yok.</string>
+    <string name="parity_mark_all_read_failed">Bildirimler okundu olarak işaretlenemedi.</string>
     <string name="parity_all_types">Tüm türler</string>
     <string name="parity_profile_changes">Profil değişiklikleri</string>
     <string name="parity_checks">Kontroller</string>

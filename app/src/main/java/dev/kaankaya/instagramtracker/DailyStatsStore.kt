@@ -59,6 +59,19 @@ class DailyStatsStore(private val context: Context, private val slot: String) {
             pattern.matchEntire(file.name)?.groupValues?.get(1)?.map { (it-'a').toString(16) }?.joinToString("")?.toInt(16)
         }.distinct().sorted().also { list -> require(list.all { it in 1970..9999 }) }
     }
+    internal fun exportForBackup(owner: String, targets: List<String>, append: (JSONObject) -> Unit) = synchronized(lock) {
+        for (target in targets) {
+            val cutoff = after(owner, target)
+            for (year in years(target)) {
+                val document = load(owner, target, year)
+                val days = document.getJSONObject("days")
+                for (key in days.keys().asSequence().toList()) {
+                    if (days.getJSONObject(key).getLong("firstAt") <= cutoff) days.remove(key)
+                }
+                if (days.length() > 0) append(document)
+            }
+        }
+    }
     fun query(account: SavedAccount, target: String, metric: String, span: Int, now: Long): DailySeries = synchronized(AccountCatalog.lock) {
         // Bind the read/migration to a still-owned account for the entire I/O operation.
         val current=EncryptedRecord(context,slot,SessionVault.ACCOUNT_BYTES).read()?.let(AccountCodec::decode)

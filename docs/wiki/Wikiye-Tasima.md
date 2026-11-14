@@ -16,6 +16,8 @@ GitHub Free'de Wiki herkese açık depolarda kullanılabilir. Özel depoda Wiki 
 - Ekran görselleri: `assets/`; hepsi sentetik hesap verisidir.
 - Yerel denetim ve dışa aktarma: `scripts/prepare-wiki.py`.
 
+Windows görsellerini yenilemek için depo kökünden `node interface/scripts/capture-docs.mjs` komutunu çalıştırın. İlk açılış ve ZIP akışı için `node interface/scripts/capture-archive-docs.mjs <EXE-yolu> docs/wiki/assets` komutuna güncel Windows paketindeki EXE’yi verin. Her iki komut da örnek veri kullanır. Gerekirse `TRACKER_BUILD_PYTHON` ile proje bağımlılıklarını içeren Python’u seçin.
+
 Araştırma günlükleri, yerel paketler, test raporlarının özel ayrıntıları ve gerçek hesap kayıtları dışa aktarma kapsamına girmez. Teknik dokümantasyona verilen bağlantılar, kaynak depodaki dosyalara yönlenir; okuyucunun o depoya erişimi gerekir.
 
 Sayfa adları dosya adlarından gelir. Türkçe başlıklara verilen önemli bölüm bağlantıları, GitHub'ın desteklediği açık HTML çapalarıyla sabitlenmiştir. [GitHub bağlantı ve çapa sözdizimi](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).

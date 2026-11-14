@@ -4,11 +4,7 @@
 
 ## Instagram ZIP arşivi
 
-**Instagram Veri Arşivi** panelinden daha geniş bir dışa aktarımı açabilirsiniz. Windows’ta **Zaman Çizelgesi** altındaki **Instagram Veri Arşivi** sekmesini açın. Android’de tam arşiv tarayıcısı **0.1.94** paket adayında **⋯ → Instagram Veri Arşivi** yolundadır; yayımlanmış **0.1.92** APK’sında **⋯ → Instagram ZIP yükle** ile takip listelerini açabilirsiniz. Kategoriler ZIP'te bulunan klasörlere göre görünür. Dosya veya klasör adını arayabilir, JSON dosyasında kayıtlara tek tek geçebilir ve desteklenen medya dosyalarını cihazda açabilirsiniz. Panelde önizlemesi olmayan dosyaları **Dosyayı kaydet** ile seçtiğiniz konuma alabilirsiniz. Dosya seçici üzerinden **JSON** ve **Tüm zamanlar** ile hazırlanmış tam dışa aktarımı seçin.
-
-Windows’ta **Arşiv özeti**, ZIP’te bulunan kayıt sayılarını gösterir. Bir kartı seçerek ilgili bölümü açabilirsiniz. **Tüm arşivde ara** kutusu dosya adlarını ve JSON kayıtlarının okunabilir alanlarını arar; sonuçları kategorilere ayırır.
-
-Aynı hesaba ve tarih kapsamına ait iki dışa aktarımınız varsa önce eski ZIP’i açın ve **İki ZIP karşılaştır** ile yenisini seçin. Her iki arşivde de bulunan takip listeleri için yalnız ilk veya yalnız ikinci dosyada yer alan kullanıcı adları gösterilir. Kullanıcı adı veya dışa aktarım kapsamı değişmişse bu fark, tek başına takip değişikliğini kanıtlamaz. Dosyalar cihazda işlenir.
+**Instagram Veri Arşivi** ekranında hesap bağlamadan ZIP açabilir veya iki dışa aktarımı karşılaştırabilirsiniz. Dosyayı Instagram’dan isteme, arşiv kapsamını okuma ve farkları yorumlama adımları [görselli ZIP rehberindedir](Instagram-Veri-Arsivi.md). Aşağıdaki adımlar takip listelerine odaklanır.
 
 Instagram Hesaplar Merkezi’nde **Bilgilerin ve izinlerin → Bilgilerini dışa aktar** bölümünden Instagram hesabını seçin. Veri seçimi ekranında **Takipçiler ve takip edilenler**, biçim olarak **HTML** veya **JSON**, tarih aralığı olarak **Tüm zamanlar** seçin. Dosya hazır olduğunda ZIP’i cihazınıza indirin. [Meta Hesaplar Merkezi](https://accountscenter.instagram.com/info_and_permissions/).
 
@@ -71,6 +67,8 @@ Ekrandaki devam veya tekrar zamanını izleyin. Listeyi sonsuza kadar durmadan s
 ## Kimin geldiğini veya gittiğini görmek
 
 Windows'ta iki uygun tam liste oluştuğunda karşılaştırma alanını kullanın. Liste değişikliği kaydından **Değişen hesapları gör** ile ilgili üyeler açılabilir. Kayıt kapsamı yeterliyse geri takip etmeyenler gibi iki yönlü liste karşılaştırmaları da yapılabilir.
+
+Windows’ta kendi hesabınızın **Takip edilen → Seni geri takip etmeyenler** filtresini açın ve satırın **⋯** menüsünü kullanın. Android’de kendi hesabınızın **Takip Listeleri → Karşılaştır → Seni geri takip etmeyenler** sonucunda bir hesaba dokunun. **İstisnalara taşı**, hesabı listenin sonundaki **İstisnalar** bölümüne alır. Bu hesaplar ana sonuç sayısına dahil edilmez. **Ana listeye geri al** ile tercih geri alınabilir.
 
 Yalnız “takipçi sayısı 1 azaldı” bilgisi, giden kişinin kimliğini vermez. Üye adları için ilgili listelerin okunması gerekir.
 

@@ -466,13 +466,67 @@ class FollowListActivity : LocalizedActivity() {
     private fun compare() {
         val value = snapshot ?: return
         val comparison = FollowAnalysis.compare(value) ?: return
+        val own = target.userId == reference.userId
+        val exceptions = if (own) try { accountVault.followExceptions(reference).read() } catch (_: Exception) {
+            message = getString(R.string.list_storage_error)
+            render()
+            return
+        } else emptySet()
         val options = arrayOf(getString(R.string.list_mutual, comparison.mutual.size),
-            getString(R.string.list_followers_only, comparison.followersOnly.size), getString(R.string.list_following_only, comparison.followingOnly.size))
+            getString(R.string.list_followers_only, comparison.followersOnly.size),
+            getString(R.string.list_following_only, comparison.followingOnly.count { it.id !in exceptions }))
         AlertDialog.Builder(this).setTitle(R.string.list_compare).setItems(options) { _, index ->
             val users = when (index) { 0 -> comparison.mutual; 1 -> comparison.followersOnly; else -> comparison.followingOnly }
+            if (index == 2 && own) {
+                showFollowingExceptions(users)
+                return@setItems
+            }
             AlertDialog.Builder(this).setTitle(options[index]).setMessage(getString(R.string.list_comparison_scope) + "\n\n" +
                 users.joinToString("\n", transform = ::userLabel)).setPositiveButton(R.string.list_close, null).show()
         }.setNegativeButton(R.string.list_close, null).show()
+    }
+
+    private fun showFollowingExceptions(users: List<FollowUser>) {
+        val exceptions = try { accountVault.followExceptions(reference).read() } catch (_: Exception) {
+            message = getString(R.string.list_storage_error)
+            render()
+            return
+        }
+        val (separate, mainUsers) = users.partition { it.id in exceptions }
+        val rows = mainUsers + separate
+        val labels = buildList {
+            mainUsers.forEach { add(userLabel(it)) }
+            if (separate.isNotEmpty()) {
+                add(getString(R.string.follow_exceptions_section, separate.size))
+                separate.forEach { add(userLabel(it)) }
+            }
+        }
+        val builder = AlertDialog.Builder(this).setTitle(getString(R.string.list_following_only, mainUsers.size))
+            .setPositiveButton(R.string.list_close, null)
+        if (labels.isEmpty()) {
+            builder.setMessage(R.string.list_comparison_scope).show()
+            return
+        }
+        val dialog = builder.setAdapter(object : android.widget.ArrayAdapter<String>(
+            this, android.R.layout.simple_list_item_1, labels
+        ) {
+            override fun isEnabled(position: Int) = separate.isEmpty() || position != mainUsers.size
+            override fun areAllItemsEnabled() = separate.isEmpty()
+        }, null).show()
+        dialog.listView.setOnItemClickListener { _, _, position, _ ->
+            val user = rows[position - if (position > mainUsers.size && separate.isNotEmpty()) 1 else 0]
+            val enabled = user.id !in exceptions
+            val label = if (enabled) R.string.follow_exception_add else R.string.follow_exception_remove
+            AlertDialog.Builder(this).setTitle(userLabel(user)).setItems(intArrayOf(label).map(::getString).toTypedArray()) { _, _ ->
+                try {
+                    synchronized(AccountCatalog.lock) { accountVault.followExceptions(reference).set(user.id, enabled) }
+                    dialog.dismiss()
+                    showFollowingExceptions(users)
+                } catch (_: Exception) {
+                    android.widget.Toast.makeText(this, R.string.list_storage_error, android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }.setNegativeButton(R.string.list_close, null).show()
+        }
     }
     private fun accountProfiles(account: SavedAccount) = listOf(account.profile) + account.people.map { it.latest }
     private fun continuation(): String? = try {

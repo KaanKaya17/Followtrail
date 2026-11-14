@@ -22,4 +22,14 @@
     <string name="instagram_archive_mutual_range">El orden y el intervalo usan la fecha en que cada cuenta empezó a seguirte.</string>
     <string name="instagram_archive_clear_date">Borrar fecha</string>
     <string name="instagram_archive_sort">Ordenar por · %1$s</string>
+    <string name="instagram_archive_open_first">Abrir ZIP de Instagram</string>
+    <string name="instagram_archive_onboarding_title">Explora tu archivo</string>
+    <string name="instagram_archive_onboarding_description">Consulta las listas de seguidores y seguidos en tu dispositivo sin conectar una cuenta.</string>
+    <string name="instagram_archive_live_title">Seguimiento en tiempo real</string>
+    <string name="instagram_archive_live_description">Conecta tu cuenta de Instagram para seguir los cambios de perfil y de listas.</string>
+    <string name="instagram_archive_snapshot">Las listas muestran los registros exportados al crear el ZIP.</string>
+    <string name="instagram_archive_guide_title">¿Cómo descargo el ZIP de Instagram?</string>
+    <string name="instagram_archive_guide_open_center">Abrir el Centro de cuentas</string>
+    <string name="instagram_archive_guide_no_browser">No se pudo abrir el Centro de cuentas.</string>
+    <string name="instagram_archive_guide_body">En Instagram, ve a Centro de cuentas → Tu información y permisos → Exportar tu información.\n\nSelecciona tu cuenta de Instagram y elige Exportar al dispositivo. Selecciona Seguidores y seguidos, elige Desde el principio y el formato JSON.\n\nCuando el archivo esté listo, descárgalo en tu teléfono y ábrelo en Tracker.</string>
 </resources>

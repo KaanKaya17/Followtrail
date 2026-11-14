@@ -1,6 +1,10 @@
 # İlk Kullanım
 
-[Kılavuz ana sayfası](Home.md) · [Hesaplar ve giriş](Hesaplar-ve-Giris.md)
+[Kılavuz ana sayfası](Home.md) · [Instagram Veri Arşivi](Instagram-Veri-Arsivi.md) · [Hesaplar ve giriş](Hesaplar-ve-Giris.md)
+
+Windows 0.2.75 ve Android 0.1.96 itibarıyla **Özet → Instagram ZIP’ini aç** seçeneği, hesap bağlamadan arşiv özetine, veri kategorilerine ve ZIP karşılaştırmasına erişim sağlar. [ZIP’i açma ve karşılaştırma adımları](Instagram-Veri-Arsivi.md).
+
+![Windows ilk açılışı. Arşivini incele kartında Instagram ZIP’ini aç, Canlı takip kartında Hesabını bağla düğmesi var.](assets/ilk-acilis.png)
 
 ## 1. Hesabınızı bağlayın
 
@@ -30,6 +34,7 @@ Doğrulanmış yeni bağlantının ardından ilk takipçi ve takip edilen listel
 - **Takip Listeleri:** Seçili hesabın takipçi/takip edilen kayıtları ve karşılaştırmaları.
 - **Bildirimler:** Windows'ta kontrol başına gruplanan değişikliklerin uygulama içi kaydı.
 - **Zaman çizelgesi:** Kontrolleri ve kaydedilmiş değişiklikleri tarih sırasıyla inceleme.
+- **Instagram Veri Arşivi:** ZIP inceleme, içerik takvimi ve iki arşivin karşılaştırılması.
 - **Ayarlar:** Platformun sunduğu dil, görünüm, otomasyon ve veri seçenekleri.
 
 ## 4. İlk profilinizi kaydedin

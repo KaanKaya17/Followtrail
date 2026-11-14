@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="portable_title">Histórico portátil</string>
+    <string name="portable_create">Criar backup portátil</string>
+    <string name="portable_open">Abrir backup portátil</string>
+    <string name="portable_scope">Este backup não contém dados de sessão. O histórico abre como um arquivo separado.</string>
+    <string name="portable_password">Senha do backup</string>
+    <string name="portable_confirm">Repita a senha do backup</string>
+    <string name="portable_password_rules">As senhas devem ser iguais e ter pelo menos 12 caracteres.</string>
+    <string name="portable_error">Não foi possível processar o backup. Verifique o arquivo, a senha e o tamanho.</string>
+    <string name="portable_saved">Backup portátil salvo.</string>
+    <string name="portable_people">Perfis salvos</string>
+    <string name="portable_history">Histórico do perfil</string>
+    <string name="portable_daily">Estatísticas diárias</string>
+    <string name="portable_posts">Publicações</string>
+    <string name="portable_view">Ver</string>
+</resources>

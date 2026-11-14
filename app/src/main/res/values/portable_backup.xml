@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="portable_title">Taşınabilir geçmiş</string>
+    <string name="portable_create">Taşınabilir yedek oluştur</string>
+    <string name="portable_open">Taşınabilir yedeği aç</string>
+    <string name="portable_scope">Bu yedek oturum bilgisi içermez. Geçmiş ayrı bir arşiv olarak açılır.</string>
+    <string name="portable_password">Yedek parolası</string>
+    <string name="portable_confirm">Yedek parolasını tekrarla</string>
+    <string name="portable_password_rules">Parolalar eşleşmeli ve en az 12 karakter olmalı.</string>
+    <string name="portable_error">Yedek işlenemedi. Dosyayı, parolayı ve boyutunu kontrol et.</string>
+    <string name="portable_saved">Taşınabilir yedek kaydedildi.</string>
+    <string name="portable_people">Kaydedilen Profiller</string>
+    <string name="portable_history">Profil geçmişi</string>
+    <string name="portable_daily">Günlük istatistikler</string>
+    <string name="portable_posts">Gönderiler</string>
+    <string name="portable_view">İncele</string>
+</resources>

@@ -43,7 +43,7 @@ class InstagramArchiveActivity : LocalizedActivity() {
         super.onCreate(savedInstanceState)
         AppUi.systemBars(this)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        uri = savedInstanceState?.getString("archive_uri")?.let(Uri::parse)
+        uri = savedInstanceState?.getString("archive_uri")?.let(Uri::parse) ?: intent.data
         val restored = uri
         if (restored == null) render() else load(restored)
     }
@@ -88,7 +88,9 @@ class InstagramArchiveActivity : LocalizedActivity() {
         render()
         reader.execute {
             val result = try {
-                contentResolver.openInputStream(document)?.use { InstagramArchive.read(it, cacheDir) }
+                val (browser, temporary) = ExportBrowser.openDocument(this, document)
+                try { browser.use { it.relationships() } }
+                finally { temporary?.delete() }
             } catch (_: Exception) { null }
             runOnUiThread {
                 if (isDestroyed || isFinishing) return@runOnUiThread
@@ -113,7 +115,10 @@ class InstagramArchiveActivity : LocalizedActivity() {
         page.addView(AppUi.button(this, getString(R.string.instagram_archive_open), true, !loading, action = ::choose))
         if (loading) page.addView(AppUi.text(this, getString(R.string.instagram_archive_loading), 14f, AppUi.muted))
         if (failed) page.addView(AppUi.text(this, getString(R.string.instagram_archive_error), 14f, AppUi.ink))
-        archive?.let { showLists(page, it) }
+        archive?.let {
+            page.addView(AppUi.text(this, getString(R.string.instagram_archive_snapshot), 13f, AppUi.muted))
+            showLists(page, it)
+        }
         setContentView(ScrollView(this).apply { addView(page) })
     }
 

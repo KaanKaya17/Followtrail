@@ -1,7 +1,16 @@
 """Published local list views. Paging never opens a client or writes a vault."""
 import unicodedata
 import uuid
+import re
 from network import AppFailure, avatar_url
+
+
+def validate_exceptions(data):
+    values = data.get('followingExceptions', [])
+    if (not isinstance(values, list) or len(values) > 40000 or
+            any(not isinstance(value, str) or not re.fullmatch(r'[1-9][0-9]{0,29}', value) for value in values)
+            or len(set(values)) != len(values)):
+        raise ValueError('followingExceptions')
 
 
 def public_member(value):
@@ -34,7 +43,8 @@ class ListPages:
     def publish(self, data):
         account = (data['account'] or {}).get('id')
         owners = frozenset((*data['people'], account))
-        signature = (account, owners, tuple((key, tuple((id(s), id(s['members']), len(s['members']),
+        exceptions = tuple(data.get('followingExceptions', []))
+        signature = (account, owners, exceptions, tuple((key, tuple((id(s), id(s['members']), len(s['members']),
                             {k:v for k,v in s.items() if k not in ('members','nextCursor','seenCursors')})
                             for s in record.get('snapshots', []) +
                             [s for s in (record.get('draft'), record.get('retainedPartial')) if s]))
@@ -51,7 +61,8 @@ class ListPages:
                 records[key] = {'snapshots': [freeze(s) for s in record.get('snapshots', [])],
                                 'draft': freeze(record.get('draft')), 'retainedPartial': freeze(record.get('retainedPartial'))}
             self.sources = tuple(s for record in data['lists'].values() for s in record.get('snapshots', []) + [s for s in (record.get('draft'), record.get('retainedPartial')) if s])
-            self.view = {'accountId': account, 'revision': uuid.uuid4().hex, 'records': records, 'owners': owners}
+            self.view = {'accountId': account, 'revision': uuid.uuid4().hex, 'records': records, 'owners': owners,
+                         'followingExceptions': frozenset(exceptions)}
             self.signature = signature
             self.cached = None
         return self.view
@@ -127,13 +138,44 @@ class ListPages:
             if query:
                 rows = [r for r in rows if query in text((r[0].get('name') or '') + ' ' + r[0]['username'])]
             summary = {'added': added, 'removed': removed}
+            if (args['ownerId'] == view['accountId'] and args['direction'] == 'following'
+                    and args['relation'] == 'oneway' and not args['comparison']):
+                exceptions = view['followingExceptions']
+                normal = [r for r in rows if r[0]['id'] not in exceptions]
+                separate = [r for r in rows if r[0]['id'] in exceptions]
+                rows = normal + separate
+                summary.update(mainTotal=len(normal), exceptionTotal=len(separate))
             self.cached = (key, rows, summary)
         start = args['offset']
-        items = [{**public_member(p), 'photoScan': scan, 'photoOwner': owner, 'change': change}
-                 for p, scan, change, owner in rows[start:start+100]]
+        items = [{**public_member(p), 'photoScan': scan, 'photoOwner': owner, 'change': change,
+                  **({'exception': index >= summary['mainTotal']} if 'mainTotal' in summary else {})}
+                 for index, (p, scan, change, owner) in enumerate(rows[start:start+100], start)]
         return {'accountId':view['accountId'], 'revision':view['revision'], 'offset':start,
                 'items':items, 'total':len(rows), 'nextOffset': start+len(items) if start+len(items)<len(rows) else None,
                 **summary}
+
+    def set_exception(self, data, args):
+        view = self.view
+        account = (data['account'] or {}).get('id')
+        identity = args.get('id')
+        enabled = args.get('enabled')
+        if (not account or not view or account != view['accountId'] or args.get('accountId') != account
+                or args.get('revision') != view['revision'] or not isinstance(identity, str) or type(enabled) is not bool):
+            raise AppFailure('input', 'Geçersiz liste isteği.')
+        records = view['records']
+        following = records.get(account + ':following', {}).get('snapshots', [])
+        followers = records.get(account + ':followers', {}).get('snapshots', [])
+        if (not following or not followers or identity not in following[-1]['members']
+                or identity in followers[-1]['members']):
+            raise AppFailure('list_view', 'Liste güncellendi. Güncel kayıt yükleniyor.')
+        current = view['followingExceptions']
+        updated = (current | {identity}) if enabled else (current - {identity})
+        if len(updated) > 40000:
+            raise AppFailure('input', 'Geçersiz liste isteği.')
+        if updated == current:
+            return False
+        data['followingExceptions'] = sorted(updated)
+        return True
 
     def common_rows(self, view, args):
         owners = (args['ownerId'], args['peerOwnerId'])

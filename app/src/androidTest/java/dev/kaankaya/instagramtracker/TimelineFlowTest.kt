@@ -67,8 +67,25 @@ class TimelineFlowTest {
         val until=android.os.SystemClock.elapsedRealtime()+5000
         while(vault.journal.unreadCount(saved.session)!=0 && android.os.SystemClock.elapsedRealtime()<until)Thread.sleep(30)
         assertEquals(0,vault.journal.unreadCount(saved.session));assertEquals(event,vault.journal.read(saved.session).single())
-        scenario!!.recreate();await("Okundu");click("Okunmamış");await("Henüz değişiklik bildirimi yok")
+        scenario!!.recreate();await("Okundu");click("Okunmamış");await("Okunmamış bildirim yok.")
         assertEquals(0L,RequestGate(context,"preview_gate").attempts())
+    }
+    @Test fun markAllReadIncludesNotificationsOutsideTheSelectedProfile() {
+        val saved = vault.read()!!
+        val now = System.currentTimeMillis()
+        for ((id, username) in listOf("201" to "ada.demo", "200" to "deniz.demo")) {
+            assertTrue(vault.journal.append(saved.session,
+                CheckEvent(id, username, CheckKind.PROFILE, null, now, now, now - 1000, 1, 0)))
+        }
+        launch(notifications = true)
+        await("@ada.demo")
+        click("Okunmamış")
+        click("Tümünü okundu olarak işaretle")
+        await("Okunmamış bildirim yok.")
+        assertEquals(0, vault.journal.unreadCount(saved.session))
+        assertEquals(2, vault.journal.read(saved.session).size)
+        scenario!!.recreate()
+        await("Okunmamış bildirim yok.")
     }
     @Test fun journalPreservesLegacyFactsAndRulesAcrossNewInstancesAndForeignOwners() {
         val saved=vault.read()!!;val legacy=CheckEvent("201","ada.demo",CheckKind.PROFILE,null,2000,3000,1000,1,0)

@@ -300,7 +300,10 @@ class MainActivity : LocalizedActivity() {
         if (saved == null) {
             page.addView(text(getString(R.string.ui_your_account_nat_a_glance), 38f, ink, true)); page.gap(12)
             page.addView(text(getString(R.string.ui_your_followers_and_following_in_one_place), 16f, muted))
-            page.addView(OrbitView(this), LinearLayout.LayoutParams(-1, dp(204)))
+            if (!loading) {
+                page.gap(18)
+                renderStartingOptions(page)
+            }
         } else if (peopleScreen) renderPeople(page, saved)
         else renderOverview(page, saved)
         if (loading) {
@@ -311,17 +314,10 @@ class MainActivity : LocalizedActivity() {
         message?.takeIf { it != pause }?.let {
             page.addView(text(it, 14f, accent).apply { background = shape(AppUi.violetSoft, 16); setPadding(dp(16), dp(14), dp(16), dp(14)) }); page.gap(14)
         }
-        if (pendingWeb) {
-            page.addView(button(getString(R.string.ui_complete_connection)) {
-                startActivity(Intent(this, WebPendingConnectionActivity::class.java))
-            }, LinearLayout.LayoutParams(-1, -2))
+        if (saved != null && (pendingWeb || needsConnection)) {
+            page.addView(connectionButton(), LinearLayout.LayoutParams(-1, -2))
         }
-        if (saved == null || needsConnection) {
-            if (!pendingWeb) page.addView(button(if (needsConnection) getString(R.string.ui_reconnect_account) else if (pendingMobile) getString(R.string.ui_complete_connection) else getString(R.string.ui_connect_account)) {
-                if (pendingWeb) startActivity(Intent(this, WebPendingConnectionActivity::class.java))
-                else if (pendingMobile && !needsConnection) startActivity(Intent(this, DesktopLinkActivity::class.java)) else connectionOptions()
-            }, LinearLayout.LayoutParams(-1, -2))
-        } else if (!peopleScreen) {
+        if (saved != null && !needsConnection && !peopleScreen) {
             val allowed = maxOf(gate.nextAllowedAt(), saved.profile.observedAt + PeoplePolicy.FRESH_MS)
             val refreshRow = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
             val detail = stack()
@@ -809,6 +805,61 @@ class MainActivity : LocalizedActivity() {
     }
 
     private fun clock(time: Long) = SimpleDateFormat("HH:mm", AppLanguage.locale(this)).format(Date(time))
+    private fun renderStartingOptions(page: LinearLayout) {
+        val archive = AppUi.card(this)
+        archive.addView(AppUi.heading(this, getString(R.string.instagram_archive_onboarding_title), 20f))
+        archive.gap(6)
+        archive.addView(text(getString(R.string.instagram_archive_onboarding_description), 14f, muted))
+        archive.gap(10)
+        archive.addView(button(getString(R.string.instagram_archive_open_first)) {
+            startActivity(Intent(this, ExportBrowserActivity::class.java)
+                .putExtra(ExportBrowserActivity.EXTRA_OPEN_PICKER, true))
+        }, LinearLayout.LayoutParams(-1, -2))
+        archive.gap(6)
+        archive.addView(button(getString(R.string.instagram_archive_guide_title), false) { showArchiveGuide() },
+            LinearLayout.LayoutParams(-1, -2))
+        page.addView(archive)
+        page.gap(14)
+        val connect = AppUi.card(this)
+        connect.addView(AppUi.heading(this, getString(R.string.instagram_archive_live_title), 20f))
+        connect.gap(6)
+        connect.addView(text(getString(R.string.instagram_archive_live_description), 14f, muted))
+        connect.gap(10)
+        connect.addView(connectionButton(), LinearLayout.LayoutParams(-1, -2))
+        page.addView(connect)
+    }
+
+    private fun connectionButton(): View {
+        val label = when {
+            pendingWeb || (pendingMobile && !needsConnection) -> R.string.ui_complete_connection
+            needsConnection -> R.string.ui_reconnect_account
+            else -> R.string.ui_connect_account
+        }
+        return button(getString(label)) {
+            when {
+                pendingWeb -> startActivity(Intent(this, WebPendingConnectionActivity::class.java))
+                pendingMobile && !needsConnection -> startActivity(Intent(this, DesktopLinkActivity::class.java))
+                else -> connectionOptions()
+            }
+        }
+    }
+
+    private fun showArchiveGuide() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.instagram_archive_guide_title)
+            .setMessage(R.string.instagram_archive_guide_body)
+            .setNegativeButton(R.string.ui_close, null)
+            .setPositiveButton(R.string.instagram_archive_guide_open_center) { _, _ ->
+                val center = Intent(Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://accountscenter.instagram.com/info_and_permissions/"))
+                try { startActivity(center) }
+                catch (_: android.content.ActivityNotFoundException) {
+                    android.widget.Toast.makeText(this, R.string.instagram_archive_guide_no_browser,
+                        android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }.show()
+    }
+
     private fun connectionOptions(replacePending: Boolean = false) {
         if (preview) { android.widget.Toast.makeText(this, getString(R.string.ui_account_connection_is_unavailable_in_demo_mode), android.widget.Toast.LENGTH_SHORT).show(); return }
         val labels = arrayOf(getString(R.string.web_connection_menu), getString(R.string.phone_menu), getString(R.string.ui_connect_from_computer_mobile_session))
@@ -830,6 +881,7 @@ class MainActivity : LocalizedActivity() {
         if(!preview)options.add(0,R.string.accounts_title)
         options.add(R.string.instagram_archive_open)
         options.add(R.string.export_browser_title)
+        if (!preview) options.add(R.string.portable_title)
         if (account != null) options.add(R.string.timeline_menu)
         if (account != null) options.add(R.string.ui_my_lists)
         if (account != null) options.add(R.string.story_title)
@@ -839,12 +891,13 @@ class MainActivity : LocalizedActivity() {
             when (options[index]) {
                 R.string.retention_title -> retentionSettings()
                 R.string.instagram_archive_open -> startActivity(Intent(this, InstagramArchiveActivity::class.java))
+                R.string.portable_title -> startActivity(Intent(this, PortableBackupActivity::class.java))
                 R.string.export_browser_title -> startActivity(Intent(this, ExportBrowserActivity::class.java))
                 R.string.accounts_title -> accountPicker()
                 R.string.ui_manage_connection -> {
                     try {
                         val exists = account != null || vault.exists() || (!preview && MobileSessions(this).exists())
-                        val actions = if (exists) arrayOf(getString(R.string.ui_connect_another_account), getString(R.string.ui_remove_connection)) else arrayOf(getString(R.string.ui_connect_account))
+                        val actions = if (exists) arrayOf(getString(R.string.ui_connect_another_account), getString(R.string.accounts_delete_local)) else arrayOf(getString(R.string.ui_connect_account))
                         AlertDialog.Builder(this).setTitle(R.string.ui_connection).setItems(actions) { _, item ->
                             if (item == 0) connectionOptions(replacePending = true) else confirmRemove()
                         }.setNegativeButton(R.string.ui_close, null).show()
@@ -1616,7 +1669,7 @@ class MainActivity : LocalizedActivity() {
 
     private fun confirmRemove() {
         if (loading) return
-        AlertDialog.Builder(this).setTitle(getString(R.string.ui_confirm_remove_connection))
+        AlertDialog.Builder(this).setTitle(getString(R.string.accounts_delete_local))
             .setMessage(getString(if(preview)R.string.ui_your_session_people_lists_history_and_notes else R.string.accounts_remove_warning) + "\n\n" + getString(R.string.security_remove_local))
             .setNegativeButton(getString(R.string.ui_cancel), null).setPositiveButton(getString(R.string.ui_remove)) { _, _ ->
                 val removedOwner=account?.session?.userId

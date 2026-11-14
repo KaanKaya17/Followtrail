@@ -18,7 +18,7 @@ Bu önizleme, seçilmiş profilin takipçi ve takip edilen listelerini **elle, b
 7. `TELEFON_SERI_NO` yerine telefonun seri numarasını yaz. `emulator-5580` test emülatörüdür, telefon değildir:
 
 ```powershell
-& './scripts/link-desktop.ps1' -Serial 'TELEFON_SERI_NO'
+& '.\scripts\link-desktop.ps1' -Serial 'TELEFON_SERI_NO'
 ```
 
 8. APK'da **Aktarımı al** seç. Bu adım Instagram'a istek göndermez. Yerel mola izin verince **Bağlan** seç; bu adım tek profil okumasıyla oturumu doğrulamayı dener. Kendi sayıları gelirse liste testine geç. Hata gelirse başka uç/hesap deneme; mesajı ve **⋯ → İstek bilgileri** içindeki HTTP durumunu kaydet.

@@ -17,7 +17,7 @@ Güncel ZIP ve APK bağlantıları [sürüm sayfasındadır](Surum-ve-Destek.md#
 1. ZIP paketini bilgisayarınızdaki bir klasöre **tamamen çıkarın**.
 2. Çıkarılan klasördeki `InstagramTracker.exe` dosyasını açın.
 3. EXE'nin yanındaki `resources` ve diğer paket dosyalarını aynı klasörde tutun.
-4. Açılıştan sonra [hesap bağlama adımına](Hesaplar-ve-Giris.md#windows) geçin.
+4. ZIP’inizi incelemek için [Instagram Veri Arşivi rehberini](Instagram-Veri-Arsivi.md), canlı takip için [hesap bağlama adımlarını](Hesaplar-ve-Giris.md#windows) izleyin.
 
 EXE'yi ZIP içinden çalıştırmak veya tek başına başka klasöre taşımak yerel veri hizmetinin başlamasını engelleyebilir. Mevcut Windows önizlemesi kod imzalı bir yükleyici değildir; kaynak ve sürüm bilgisi doğrulanmamış bir dosyayı çalıştırmayın.
 
@@ -25,7 +25,7 @@ EXE'yi ZIP içinden çalıştırmak veya tek başına başka klasöre taşımak 
 
 1. [Sürüm sayfasındaki](Surum-ve-Destek.md#kurulum-dosyasını-nereden-alabilirim) imzalı APK'yı telefona indirin veya aktarın.
 2. Dosyayı açın. Android isterse yalnız kullandığınız dosya yöneticisi veya tarayıcı için bu kuruluma izin verin.
-3. Uygulamayı açıp [Android bağlantı adımlarını](Hesaplar-ve-Giris.md#android) izleyin.
+3. Uygulamayı açın. ZIP için sürümünüzün desteklediği [takip listesi içe aktarma yolunu](Takip-Listeleri.md#instagram-zip-arşivi), canlı takip için [Android bağlantı adımlarını](Hesaplar-ve-Giris.md#android) kullanın.
 4. Bildirim kullanmak istiyorsanız uygulamanın ve Android'in bildirim iznini etkinleştirin.
 
 Menü adları telefon üreticisine göre değişebilir. USB hata ayıklama, emülatör veya bilgisayar bağlantısı normal APK kurulumu için gerekli değildir.

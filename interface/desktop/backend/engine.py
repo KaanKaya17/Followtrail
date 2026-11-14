@@ -28,6 +28,7 @@ import list_preparation
 import profile_search
 import profile_links
 import profile_about
+from person_text import GROUP_CHARACTERS, NOTE_CHARACTERS
 import hashlib
 import data_privacy
 from search_cache import SearchCache
@@ -915,7 +916,7 @@ class Engine:
     def save_person(self, args):
         identity = str(args.get('id', ''))
         updates = {}
-        for field, limit in (('note', 2000), ('group', 80)):
+        for field, limit in (('note', NOTE_CHARACTERS), ('group', GROUP_CHARACTERS)):
             if field in args:
                 if not isinstance(args[field], str) or len(args[field]) > limit:
                     raise AppFailure('input', 'Not veya grup uzunluğu geçersiz.')
@@ -988,6 +989,17 @@ class Engine:
     def read_notification(self, args):
         notification_log.mark_read(self.data, args.get('id'), self.clock())
         self.save()
+
+    def read_all_notifications(self, args):
+        account_id = (self.data['account'] or {}).get('id')
+        if account_id is None or args.get('accountId') != account_id:
+            raise AppFailure('input', 'Bildirimler için seçili hesabı kontrol et.')
+        unread = [entry for entry in self.data['notificationLog'] if entry['readAt'] is None]
+        if unread:
+            now = self.clock()
+            for entry in unread:
+                entry['readAt'] = now
+            self.save()
 
     def automatic_plan(self):
         """One owner for per-profile deadlines and optional investigation cadence."""
@@ -1183,6 +1195,7 @@ class Engine:
                         'check_access': lambda: self.check_access(args),
                         'notification_rule': lambda: self.notification_rule(args),
                         'read_notification': lambda: self.read_notification(args),
+                        'read_all_notifications': lambda: self.read_all_notifications(args),
                         'export_list': lambda: self.export_list(args),
                         'export_backup': lambda: self.export_backup(args['path']),
                         'import_backup': lambda: self.import_backup(args['path'])}
@@ -1204,10 +1217,14 @@ class Engine:
                 self.data = blank(dict(self.data['gate']))
                 self.save()
                 self.vault.backup.unlink(missing_ok=True)
+            elif operation == 'list_exception':
+                if self.list_pages.set_exception(self.data, args):
+                    self.save()
             elif operation in handlers:
                 # Changing language is not a new account check; retain the
                 # existing error so its current-language projection can update.
-                if operation != 'settings' or not set(args).issubset({'language', 'theme'}):
+                if operation != 'read_all_notifications' and (
+                        operation != 'settings' or not set(args).issubset({'language', 'theme'})):
                     self.data['lastError'] = None
                 handlers[operation]()
             else:
@@ -1257,6 +1274,7 @@ def validate_archive(d):
         raise ValueError('schema')
     request_budget.validate_gate(d['gate'])
     list_preparation.validate(d)
+    list_pages.validate_exceptions(d)
     read_health.validate(d)
     if d.get('session') is not None and (not isinstance(d['session'], dict) or d.get('account') is None):
         raise ValueError('session')

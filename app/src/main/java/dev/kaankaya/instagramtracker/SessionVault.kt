@@ -198,11 +198,17 @@ class SessionVault(private val context: Context, private val slot: String = "acc
             check(context.getSharedPreferences("account_flags_"+AccountCatalog.slot(id),Context.MODE_PRIVATE).edit().clear().commit())
         }
         StoryArchiveStore.clearNamespace(context,storage())
+        FollowExceptions(context, storage()).clear()
         record.clear()
         journal.clear()
         visual.clearAll()
         daily.clearAll()
         privacy.clear()
         id?.let {catalog?.forget(it)}
+    }
+
+    internal fun followExceptions(expected: Session): FollowExceptions = synchronized(lock) {
+        if (read()?.session != expected) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+        FollowExceptions(context, storage())
     }
 }
