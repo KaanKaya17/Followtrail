@@ -19,3 +19,5 @@ Abre un ZIP oficial de Instagram para consultar sus datos sin vincular tu cuenta
 La versión pública de Windows es un ZIP portátil x64. Extrae todo el paquete y abre **InstagramTracker.exe**. El ejecutable no está firmado. La página de la versión publica el SHA-256. [Estado de Android y ayuda](docs/wiki/ES-Home.md#instalación).
 
 Los registros se almacenan localmente con cifrado. Las lecturas en vivo se conectan a Instagram. InstagramTracker es independiente de Instagram y Meta.
+
+[Licencia MIT](LICENSE)

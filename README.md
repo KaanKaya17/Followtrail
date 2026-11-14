@@ -84,8 +84,10 @@ Kılavuz bağlantılarını ve Wiki hazırlığını denetlemek için:
 python scripts/prepare-wiki.py --check
 ```
 
-Kullanıcı kılavuzu şu anda bu özel depoda tutulur. [Wiki'ye taşıma](docs/wiki/Wikiye-Tasima.md) ayrı bir yayın adımıdır; depo görünürlüğü otomatik değiştirilmez.
+Kullanıcı kılavuzunun kaynağı bu depodadır. [Wiki yayınlama adımları](docs/wiki/Wikiye-Tasima.md).
 
 [Değişiklik kaydı](CHANGELOG.md) · [Önceki README ve sürüm tarihçesi](docs/history/README-2026-11-02.md)
 
 *InstagramTracker, Instagram ve Meta'dan bağımsız bir uygulamadır.*
+
+[MIT lisansı](LICENSE)

@@ -24,3 +24,5 @@ The public Windows preview is a portable x64 ZIP. Extract the whole package and 
 Records are stored locally with OS-backed encryption. ZIP processing stays on the device. Live reads go to Instagram. [Privacy and backups](docs/wiki/EN-Privacy.md) · [Support](docs/wiki/EN-Releases.md#support)
 
 InstagramTracker is independent of Instagram and Meta.
+
+[MIT license](LICENSE)
