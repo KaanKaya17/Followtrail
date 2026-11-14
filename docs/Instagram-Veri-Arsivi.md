@@ -2,6 +2,8 @@
 
 [İndirme ve kurulum](../README.md)
 
+[English](EN-Instagram-Data-Archive.md) · [Español](ES-Instagram-Data-Archive.md) · [Português (Brasil)](PT-BR-Instagram-Data-Archive.md)
+
 Instagram’dan indirdiğiniz ZIP’i Tracker’da açarak takip listelerinizi, mesajlarınızı ve etkinlik kayıtlarınızı inceleyebilirsiniz. Aynı hesabın iki ZIP’i varsa takip listelerini karşılaştırabilirsiniz. Dosyalar cihazda okunur ve bu işlemler için Tracker’a Instagram hesabı bağlamanız gerekmez.
 
 Görseller Windows 0.2.84’te örnek ZIP’lerle çekildi.

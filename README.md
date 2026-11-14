@@ -1,5 +1,7 @@
 # InstagramTracker for Windows
 
+[Türkçe](README.md) · [English](README.en.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md)
+
 Instagram dışa aktarımlarınızı bilgisayarınızda inceleyin. Aynı hesaba ait iki ZIP’i karşılaştırıp takipçi ve takip edilen listelerinde hangi kullanıcı adlarının değiştiğini görün. ZIP incelemek için Tracker’a hesap bağlamanız gerekmez.
 
 **Windows 0.2.84 · x64 önizleme**  
