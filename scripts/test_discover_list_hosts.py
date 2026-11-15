@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 SCRIPT = Path(__file__).with_name('discover-list-hosts.py')
 TOKEN = 'qa-private-pagination-token'
 MEMBER = {'pk': '999999001', 'username': 'qa-private-member'}
+KEY = base64.b64encode(b'qa-private-key-fixture').decode()
 
 
 def entry(url, body, form=None):
@@ -43,6 +44,19 @@ def graphql(doc, *, next_page=False, operation='edge_following'):
                  {'doc_id': doc, 'variables': json.dumps(variables), 'csrf': 'qa-private-form'})
 
 
+def key_request(path='/api/v1/launcher/sync/', *, status=200, headers=True, host='i.instagram.com', method='POST'):
+    record = entry(f'https://{host}{path}?value=qa-private-query', {},
+                   {'signed_body': 'qa-private-payload'} if method == 'POST' else None)
+    record['response']['status'] = status
+    if headers:
+        record['response']['headers'] = [
+            {'name': 'IG-Set-Password-Encryption-Key-ID', 'value': '123'},
+            {'name': 'ig-set-password-encryption-pub-key', 'value': KEY},
+            {'name': 'Set-Cookie', 'value': 'qa-private-cookie'},
+        ]
+    return record
+
+
 class DiscoveryTests(unittest.TestCase):
     def run_capture(self, direction, first, following=None, previous=None):
         with tempfile.TemporaryDirectory() as directory:
@@ -55,9 +69,9 @@ class DiscoveryTests(unittest.TestCase):
             if following is not None:
                 args.append(archive('next', following))
             if previous:
-                args += ['--previous', archive('old-initial', previous[0]), archive('old-next', previous[1])]
+                args += ['--previous', *(archive(f'old-{index}', capture) for index, capture in enumerate(previous))]
             result = subprocess.run(args, capture_output=True, text=True, check=True)
-            for secret in ('qa-private', '99881234', MEMBER['pk']):
+            for secret in ('qa-private', 'qa.private.member', '99881234', MEMBER['pk'], KEY):
                 self.assertNotIn(secret, result.stdout)
             self.assertEqual(result.stderr, '')
             return json.loads(result.stdout)
@@ -131,6 +145,103 @@ class DiscoveryTests(unittest.TestCase):
         found = self.run_capture('followers', [mobile(host)], [page, page])['current']
         self.assertEqual(found['status'], 'ambiguous')
         self.assertEqual(found['matching_pairs'], 2)
+
+    def test_auto_finds_both_list_directions_and_the_password_key_in_one_capture(self):
+        host = 'edge.instagram.com'
+        generic = [mobile(host), mobile(host, next_page=True)]
+        for item in generic:
+            item['request']['url'] = item['request']['url'].replace('/followers/', '/qa-private-route/')
+        capture = [mobile(host), graphql('1111111', operation='edge_follow'), key_request(),
+                   mobile(host, next_page=True), graphql('2222222', next_page=True, operation='edge_follow'),
+                   *generic]
+        report = self.run_capture('auto', capture)['current']
+        self.assertEqual({mode: value['status'] for mode, value in report.items()},
+                         {'followers': 'observed', 'following': 'observed', 'profile': 'insufficient',
+                          'password-key': 'observed'})
+        self.assertEqual(report['followers']['matching_pairs'], 1)
+        self.assertEqual(report['following']['pairs'][0]['next']['query_id'], '2222222')
+        self.assertEqual(report['password-key']['candidates'][0]['entry'], 3)
+
+    def test_password_key_compares_single_capture_and_reports_old_http_failure(self):
+        old = '/api/v1/qe/sync/'
+        current = '/api/v1/launcher/sync/'
+        report = self.run_capture('password-key', [key_request(old, method='GET', status=404, headers=False),
+                                                   key_request(), key_request()],
+                                  previous=([key_request(old, method='GET', status=405)],))
+        self.assertEqual(report['current']['endpoint_candidates'], 1)
+        self.assertEqual(report['current']['matching_requests'], 2)
+        self.assertEqual(report['current']['failures'][0]['http_status'], 404)
+        self.assertEqual(report['changes'], {'method': {'previous': 'GET', 'current': 'POST'},
+                                             'path_template': {'previous': old, 'current': current}})
+
+    def test_password_key_reports_multiple_routes_without_revealing_unknown_segments(self):
+        capture = [key_request(), key_request('/api/v1/qa-private-route/'),
+                   key_request(host='instagram.com.invalid'), key_request(status=429),
+                   key_request(status=302)]
+        report = self.run_capture('password-key', capture)['current']
+        self.assertEqual(report['status'], 'ambiguous')
+        self.assertEqual(report['endpoint_candidates'], 2)
+        self.assertEqual([item['http_status'] for item in report['failures']], [429, 302])
+        self.assertEqual(report['candidates'][1]['path_template'], '/api/v1/{segment}/')
+
+    def test_password_key_rejects_bad_key_encoding_and_conflicting_headers(self):
+        first = key_request()
+        first['response']['headers'][1]['value'] = 'qa-private-bad-key'
+        second = key_request()
+        second['response']['headers'].append({'name': 'Ig-Set-Password-Encryption-Key-Id', 'value': '2'})
+        report = self.run_capture('password-key', [first, second])['current']
+        self.assertEqual(report['status'], 'insufficient')
+        self.assertEqual([item['reason'] for item in report['failures']], ['missing-or-invalid-headers'] * 2)
+
+    def test_graphql_handles_har_form_params_json_and_empty_terminal_alias(self):
+        first = graphql('1111111', operation='edge_followed_by')
+        first['request']['postData'] = {'mimeType': 'application/x-www-form-urlencoded', 'params': [
+            {'name': 'doc_id', 'value': '1111111'}, {'name': 'variables', 'value': json.dumps({'id': '99881234'})}]}
+        second = graphql('2222222', operation='edge_followed_by', next_page=True)
+        second['request']['postData'] = {'mimeType': 'application/json; charset=UTF-8',
+            'text': json.dumps({'doc_id': 2222222, 'variables': {'id': '99881234', 'after': TOKEN}})}
+        body = json.loads(second['response']['content']['text'])
+        body['data']['user']['edge_followed_by']['edges'] = []
+        second['response']['content']['text'] = json.dumps(body)
+        report = self.run_capture('followers', [first, second])['current']
+        self.assertEqual(report['status'], 'observed')
+        self.assertEqual(report['pairs'][0]['next']['member_rows'], 0)
+        self.assertEqual(report['pairs'][0]['next']['coverage_signal'], 'end-marker')
+
+    def test_mobile_supports_structured_har_query_and_empty_terminal_page(self):
+        host = 'edge.instagram.com'
+        first, second = mobile(host), mobile(host, next_page=True)
+        second['request']['url'] = second['request']['url'].split('?', 1)[0]
+        second['request']['queryString'] = [{'name': 'max_id', 'value': TOKEN}]
+        second['response']['content']['text'] = json.dumps({'status': 'ok', 'users': [], 'has_more': False})
+        report = self.run_capture('followers', [first, second], previous=([first, second],))
+        self.assertEqual(report['current']['status'], 'observed')
+        self.assertEqual(report['current']['pairs'][0]['next']['member_rows'], 0)
+        self.assertEqual(report['changes'], {'initial': {}, 'next': {}})
+
+    def test_profile_matches_id_before_grouping_multiple_profiles_as_one_route(self):
+        def profile(target, returned):
+            return entry(f'https://i.instagram.com/api/v1/users/{target}/info/',
+                         {'user': {'pk': returned, 'username': 'qa.private.member',
+                                   'follower_count': 4, 'following_count': 0}})
+
+        report = self.run_capture('profile', [profile('99881234', '999999001'), profile('99881234', '99881234'),
+                                               profile('999999001', '999999001')])['current']
+        self.assertEqual(report['status'], 'observed')
+        self.assertEqual(report['matching_requests'], 2)
+        self.assertEqual(report['candidates'][0]['entry'], 2)
+        self.assertEqual(report['candidates'][0]['path_template'], '/api/v1/users/{id}/info/')
+
+    def test_profile_matches_graphql_username_and_masks_path_even_if_handle_is_a_known_word(self):
+        user = {'id': '99881234', 'username': 'launcher',
+                'edge_followed_by': {'count': 12}, 'edge_follow': {'count': 4}}
+        old = entry('https://i.instagram.com/api/v1/users/launcher/usernameinfo/', {'user': user})
+        current = entry('https://www.instagram.com/api/graphql/', {'data': {'user': user}},
+                        {'doc_id': '123456', 'variables': json.dumps({'username': 'LAUNCHER'})})
+        report = self.run_capture('profile', [current], previous=([old],))
+        self.assertEqual(report['previous']['candidates'][0]['path_template'], '/api/v1/users/{username}/usernameinfo/')
+        self.assertEqual(report['current']['candidates'][0]['response_shape'], 'user/edges-counts')
+        self.assertEqual(report['changes']['query_id'], {'previous': None, 'current': '123456'})
 
 
 if __name__ == '__main__':

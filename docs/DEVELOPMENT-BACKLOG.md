@@ -1,14 +1,10 @@
 # Geliştirme notları
 
-## En yüksek öncelik · Instagram API alan adlarının otomatik keşfi
+## Instagram istek adreslerinin HAR üzerinden keşfi
 
-Çevrimdışı araç tek HAR veya iki ayrı HAR içinden ilk iki sayfayı eşleştirip gözlenen alan adını ve istek şablonunu çıkarır. Chrome'da takipçi ve takip edilen listelerinin ilk iki sayfası gerçek kayıtlarla doğrulandı. Android'in canlı ağ kaydı bekleniyor. [Kullanım ve doğrulama kapsamı](API-HOST-DISCOVERY.md).
+Çevrimdışı araç bir veya iki HAR dosyasından profil, takipçi, takip edilen ve parola anahtarı isteklerinin alan adını, yöntemini, yol şablonunu ve varsa GraphQL sorgu kimliğini çıkarır. Chrome’da iki liste yönü, Windows istemcisinde parola anahtarı isteği gerçek kayıtla doğrulandı. Profil modu sentetik kayıtlarda doğrulandı. [Kullanım ve doğrulama kapsamı](API-HOST-DISCOVERY.md).
 
-Instagram'ın profil, takipçi ve takip edilen isteklerini hangi sunucu alan adına gönderdiğini bir geliştirici aracı otomatik belirlemeli. İlk kapsam iki liste yönü. Araç, test hesabında Instagram'ın kendi arayüzünde liste açılırken ve sonraki sayfa yüklenirken oluşan ağ olaylarını karşılaştırır. Alan adı, yol, HTTP yöntemi ve varsa GraphQL sorgu kimliğini ayrı ayrı gösterir. Web ve Android bulgularının hangi istemciden geldiği belirtilir.
-
-- Çıktı, eski ve yeni alan adını ve değişen istek parçalarını gösterir. Tanı raporu yalnız istek şablonu, yanıt alanları ve sayfalama kanıtını içerir. Oturum değerleri test cihazında kalır.
-- İlk ve sonraki sayfanın doğru hesabın listesine ait olduğu, devam bilgisinin çalıştığı ve kısıtlı yanıtın tam liste sayılmadığı doğrulanır. Tracker doğrulanmış alan adı ve istek şablonunu sürüm güncellemesindeki izin listesiyle kullanır.
-- Windows 0.2.60, okuma tanısı ve ilgili okuyucuyu duraklatmayı uygular. Uç nokta değişikliği şüphesi geliştirici aracında bir test kaydıyla doğrulanır. [Okuma tanısı](wiki/Sorun-Giderme.md#otomatik-okuma-duraklatıldı).
+Kalan doğrulama işi, gerçek profil HAR kaydı ve Android’e ait canlı ağ kaydıyla analiz sonuçlarını karşılaştırmak. Üretim izin listesi, ilgili istemcide doğrulanan adreslerle sürüm güncellemesinde değiştirilir. Windows’ta okuma tanısı ilgili okuyucuyu duraklatabilir. [Okuma tanısı](wiki/Sorun-Giderme.md#otomatik-okuma-duraklatıldı).
 
 ## 5 Kasım 2026 durum kaydı
 
