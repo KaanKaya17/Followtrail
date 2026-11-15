@@ -2,7 +2,15 @@
 
 [Kılavuz ana sayfası](Home.md) · [Değişiklik kaydı](../../CHANGELOG.md)
 
-**Son içerik denetimi: 13 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+**Son içerik denetimi: 15 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+
+## Windows 0.2.89 yerel giriş testi
+
+15 Kasım’da 0.2.89 yerel test paketinde parolalı giriş ve profil doğrulaması tamamlandı. Sonraki denemede ikinci hesap kaydedildi ve ilk liste isteği HTTP 200 döndürdü. İki hesap da bağlı kaldı.
+
+Eski parola anahtarı adresi parolasız kontrolde HTTP 404 döndürdü. instagrapi 3.2.3’ün kullandığı yeni adres, aynı bilgisayarda HTTP 200 ile geçerli bir anahtar verdi. Bu değişiklik Windows paketine aittir. [Kütüphane düzeltmesi](https://github.com/subzeroid/instagrapi/pull/2923)
+
+0.2.89 yerel test paketidir. Genel indirme durumu aşağıdaki bölümde takip edilir.
 
 ## Windows 0.2.84 önizlemesi ve Android 0.1.100 adayı
 

@@ -1,8 +1,11 @@
 """Fail-closed method/path contracts. Authentication is a scoped exception."""
+import json
 import re
 from urllib.parse import parse_qs, urlsplit
 
 READ_PATH = re.compile(r'/api/v1/(?:users/(?:[1-9][0-9]{0,29}/info|[A-Za-z0-9._]{1,30}/usernameinfo)|friendships/[1-9][0-9]{0,29}/(?:followers|following)|feed/user/[1-9][0-9]{0,29}/story)/')
+PASSWORD_KEY_PATH = '/api/v1/launcher/sync/'
+DEVICE_UUID = re.compile(r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}')
 AUTH_ACTIONS = frozenset((
     'com.bloks.www.bloks.caa.login.process_client_data_and_redirect',
     'com.bloks.www.caa.login.oauth.token.fetch.async',
@@ -20,6 +23,19 @@ AUTH_APPS = frozenset((
 REGISTRATION_ID = '124930351917786857261002920888'
 
 
+def password_key_body(body):
+    if not isinstance(body, (str, bytes)) or len(body) > 256:
+        return False
+    fields = parse_qs(body.decode('utf-8') if isinstance(body, bytes) else body, strict_parsing=True)
+    signed = fields.get('signed_body', [])
+    if set(fields) != {'signed_body'} or len(signed) != 1 or not signed[0].startswith('SIGNATURE.'):
+        return False
+    value = json.loads(signed[0].removeprefix('SIGNATURE.'))
+    return (isinstance(value, dict) and set(value) == {'id', 'server_config_retrieval'} and
+            isinstance(value['id'], str) and DEVICE_UUID.fullmatch(value['id']) is not None and
+            value['server_config_retrieval'] == '1')
+
+
 def allowed(request, authenticating=False):
     try:
         u = urlsplit(request.url)
@@ -31,9 +47,11 @@ def allowed(request, authenticating=False):
         if not authenticating:
             return False
         if request.method == 'GET' and not request.body and u.hostname == 'i.instagram.com':
-            return u.path in ('/api/v1/qe/sync/', '/api/v1/accounts/current_user/')
+            return u.path == '/api/v1/accounts/current_user/'
         if request.method != 'POST' or u.hostname not in ('i.instagram.com', 'b.i.instagram.com') or u.query:
             return False
+        if u.path == PASSWORD_KEY_PATH:
+            return u.hostname == 'i.instagram.com' and password_key_body(request.body)
         if u.path == '/graphql_www' and u.hostname == 'b.i.instagram.com':
             # This registration mutation creates installation context, never a
             # social action. Arbitrary GraphQL documents/queries are forbidden.

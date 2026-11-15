@@ -1240,7 +1240,7 @@ try {
     },
   );
   await check(
-    "Account form and code fields are password protected",
+    "Login password is hidden by default and can be toggled without changing the value",
     async () => {
       await page
         .getByRole("button", { name: "Hesap bağlantısı", exact: true })
@@ -1254,9 +1254,26 @@ try {
         await page.locator("#login-password").getAttribute("autocomplete"),
         "off",
       );
+      const password = page.locator("#login-password");
+      const toggle = page.getByRole("button", { name: "Şifreyi göster", exact: true });
+      await password.fill("SYNTHETIC-PASSWORD");
+      await toggle.click();
+      assert.equal(await toggle.getAttribute("aria-pressed"), "true");
+      assert.equal(await password.getAttribute("type"), "text");
+      assert.equal(await password.inputValue(), "SYNTHETIC-PASSWORD");
+      await toggle.click();
+      assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+      assert.equal(await password.getAttribute("type"), "password");
+      await page.getByRole("button", { name: "Kapat", exact: true }).click();
+      await page.getByRole("button", { name: "Hesap bağlantısı", exact: true }).first().click();
+      assert.equal(await password.getAttribute("type"), "password");
+      assert.equal(await password.inputValue(), "");
       await page.getByRole("button", { name: "Kapat", exact: true }).click();
     },
   );
+  await check("Sidebar shows the exact running package version", async () => {
+    assert.equal(await page.locator(".sidebar-bottom .preview-label > span").last().textContent(), version);
+  });
   await check("Request information preserves HTTP and cooldown", async () => {
     await page.locator('.sidebar a[href="#settings"]').click();
     await page.getByRole("button", { name: "İncele", exact: true }).click();

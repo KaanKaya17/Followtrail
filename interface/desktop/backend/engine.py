@@ -92,6 +92,9 @@ class Engine:
         self.codes = queue.Queue(maxsize=1)
         self.waiting_code = False
         self.operation = None
+        self.login_stage = None
+        self.login_http = None
+        self.login_request = 0
         self.observation_group = None
         self.offline = False
         self.list_scan_active = False
@@ -239,6 +242,7 @@ class Engine:
                 'readHealth': d.get('readHealth', {}),
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
                 'controlIntervals': list(CONTROL_INTERVALS),
+                'lastLoginError': localization.error(d.get('lastLoginError'), d['settings']['language']),
                 'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
                 'monitor': self.monitor_status(),
                 'listPreparation': list_preparation.view(d, self.clock()),
@@ -306,13 +310,22 @@ class Engine:
 
     def progress(self, phase, **details):
         context = {'scan': dict(self.scan_progress)} if self.scan_progress is not None else {}
+        if self.login_stage is not None:
+            context.update(loginStage=self.login_stage, loginHttp=self.login_http)
         self.emit({'type': 'progress', 'phase': phase, **context, **details})
+
+    def set_login_stage(self, stage):
+        self.login_stage = stage
+        self.login_http = None
+        self.progress('login')
 
     def check_cancel(self):
         if self.cancel.is_set():
             raise AppFailure('cancelled', 'İşlem iptal edildi. Tamamlanan gözlemler ve kısmi liste korundu.')
 
     def before_request(self):
+        if self.login_stage is not None:
+            self.login_http = None
         self.check_cancel()
         gate = self.data['gate']
         now = self.clock()
@@ -336,6 +349,8 @@ class Engine:
         gate.update(nextAt=now + self.request_delay(), attempts=gate.get('attempts', 0) + 1, lastAt=now, status=None)
         request_budget.record(gate, self.budget_owner(), now)
         self.save()
+        if self.login_stage is not None:
+            self.login_request += 1
         self.progress('request', attempts=gate['attempts'])
 
     def budget_available_at(self):
@@ -363,14 +378,20 @@ class Engine:
 
     def after_response(self, response):
         self.data['gate']['status'] = response.status_code
+        if self.login_stage is not None:
+            self.login_http = response.status_code
         self.save()
         if response.status_code == 429:
             self.limited(response.headers.get('Retry-After'))
             self.progress('limited', until=self.data['gate']['blockedUntil'], http=429)
-            raise AppFailure('limited', 'Instagram HTTP 429 döndürdü. Tarama durdu; otomatik tekrar yapılmayacak.', http=429)
+            message = ('Instagram HTTP 429 döndürdü. Bağlantı kurulamadı; otomatik tekrar yapılmayacak.'
+                       if self.login_stage else 'Instagram HTTP 429 döndürdü. Tarama durdu; otomatik tekrar yapılmayacak.')
+            raise AppFailure('limited', message, http=429)
 
     def request_code(self, username=None, choice=None):
         self.waiting_code = True
+        if self.login_stage is not None:
+            self.login_stage = 'verification'
         self.progress('code', method=getattr(choice, 'name', '2FA') if choice else '2FA')
         end = time.monotonic() + 300
         try:
@@ -491,6 +512,7 @@ class Engine:
     def connect(self, args, imported=False):
         client = None
         try:
+            self.set_login_stage('session_import' if imported else 'login_setup')
             if imported:
                 path = Path(os.environ['LOCALAPPDATA']) / 'InstagramCounter/session.dat'
                 if not path.is_file() or path.stat().st_size > 1024 * 1024:
@@ -512,10 +534,10 @@ class Engine:
                     raise AppFailure('login_wait', 'Giriş denemeleri arasında en az 15 dakika beklenir.')
                 self.data['gate']['loginAfter'] = now + 900
                 self.save()
-                self.progress('login')
                 client = new_client(self, self.login_device_settings(username))
                 try:
                     self.persist_login_identity(client)
+                    self.set_login_stage('authentication')
                     client.login(username, password)
                 finally:
                     client.password = None
@@ -526,8 +548,10 @@ class Engine:
             if not identity:
                 raise AppFailure('identity', 'Giriş yanıtında hesap kimliği bulunamadı.')
             self.check_connection_identity(identity)
+            self.set_login_stage('account_profile')
             profile = self.read_profile(client, identity)
             self.check_cancel()
+            self.set_login_stage('session_save')
             self.select_connection_account(profile)
             first_connection = self.data['account'] is None
             read_health.success(self.data, 'profile')
@@ -542,6 +566,7 @@ class Engine:
                     record['draft'].pop('seenCursors', None)
             self.data['gate']['manualOnly'] = False
             self.data['lastError'] = None
+            self.data.pop('lastLoginError', None)
             self.save()
         finally:
             args.pop('password', None)
@@ -1079,6 +1104,7 @@ class Engine:
                 record['draft'].pop('seenCursors', None)
         value['settings']['automatic'] = False
         value['lastError'] = None
+        value.pop('lastLoginError', None)
         # Preserve the established backup bound while streaming archive years.
         # No large all-years JSON tree is allocated and an old destination survives refusal.
         stream = io.BytesIO()
@@ -1235,20 +1261,39 @@ class Engine:
                 # Never report volatile edits as successfully persisted records.
                 self.data = self.load_vault()
             error = failure(exc)
+            if self.login_stage is not None:
+                error['loginStage'] = ('verification' if self.login_stage == 'authentication'
+                                       and error['code'] == 'verification' else self.login_stage)
+                if self.login_request:
+                    error['loginRequest'] = self.login_request
+                if self.login_http is not None:
+                    error['http'] = self.login_http
+                    if error['code'] == 'connection':
+                        if self.login_http >= 500:
+                            error.update(code='server', message='Instagram isteği sunucu hatasıyla sonuçlandı.')
+                        else:
+                            error.update(code='response', message='Instagram yanıt verdi ancak bu adım tamamlanamadı.')
             if error['code'] == 'limited' and not self.data['gate'].get('manualOnly'):
                 self.limited()
             if error['code'] in ('session', 'verification'):
                 self.data['gate']['manualOnly'] = True
             self.data['lastError'] = {**error, 'at': self.clock()}
+            if self.login_stage is not None:
+                self.data['lastLoginError'] = self.data['lastError']
             self.event('error', error['message'])
             try:
                 self.save()
             except StorageFailure:
                 pass
-            raise AppFailure(error['code'], error['message']) from exc
+            raise AppFailure(error['code'], error['message'], http=error.get('http'),
+                             login_stage=error.get('loginStage'), request_number=error.get('loginRequest'),
+                             transport_code=error.get('transportCode')) from exc
         finally:
             args.pop('password', None)
             self.operation = None
+            self.login_stage = None
+            self.login_http = None
+            self.login_request = 0
             self.observation_group = None
             # Only the explicit archive operation carries thumbnail details.
             # Later automatic checks must not serialize the album repeatedly.

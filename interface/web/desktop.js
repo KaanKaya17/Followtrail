@@ -285,6 +285,7 @@
       const message = privateListMessage(person(listOwnerId));
       if (message) return message;
     }
+    if (value?.loginStage) return stored(value.message || t("İşlem tamamlanamadı."));
     const messages = {
       limited: t("Instagram istekleri sınırladı. Kontroller geçici olarak duraklatıldı."),
       cooldown: t("Kontroller için mola sürüyor. Yeniden deneme saatini İstek bilgileri bölümünden görebilirsin."),
@@ -296,9 +297,23 @@
     };
     return value && typeof value === 'object' ? messages[value.code] || stored(value.message || t("İşlem tamamlanamadı.")) : stored(value);
   }
+  function loginErrorContext(error) {
+    const stage = window.TrackerOperationProgress.loginStageLabel(error?.loginStage, t);
+    if (!stage) return "";
+    const http = Number.isInteger(error.http) && error.http >= 100 && error.http <= 599
+      ? t("Instagram HTTP {0}", error.http)
+      : t("Bu adım için Instagram HTTP kodu yok.");
+    const details = [
+      t("Giriş adımı: {0}", stage),
+      http,
+      Number.isInteger(error.loginRequest) ? t("Son giriş isteği: {0}", error.loginRequest) : "",
+      Number.isInteger(error.transportCode) ? t("Ağ hata kodu: {0}", error.transportCode) : "",
+    ];
+    return `<p class="dialog-note">${details.filter(Boolean).map(esc).join("<br>")}</p>`;
+  }
   function errorDialog(message, listOwnerId) {
     dialog(
-      `<span class="dialog-symbol peach">${icon("info")}</span><h2 id="dialog-title">${t("İşlem tamamlanamadı")}</h2><p>${esc(userError(message, listOwnerId))}</p>${message && typeof message === 'object' ? `<details><summary>${t("Teknik ayrıntılar")}</summary><p>${esc(message.code)}</p><p>${esc(message.message)}</p></details>` : ''}${data?.gate.blockedUntil > Date.now() / 1000 ? `<p class="dialog-note">${t("En erken {0} yeniden deneyebilirsin. Instagram daha uzun beklemeni isteyebilir.", esc(date(data.gate.blockedUntil)))}</p>` : ""}<div class="dialog-buttons">${button(t("İstek bilgileri"), "requests", "info")}${button(t("Tamam"), "close", null, "primary")}</div>`,
+      `<span class="dialog-symbol peach">${icon("info")}</span><h2 id="dialog-title">${t("İşlem tamamlanamadı")}</h2><p>${esc(userError(message, listOwnerId))}</p>${loginErrorContext(message)}${message && typeof message === 'object' ? `<details><summary>${t("Teknik ayrıntılar")}</summary><p>${esc(message.code)}</p><p>${esc(message.message)}</p></details>` : ''}${data?.gate.blockedUntil > Date.now() / 1000 ? `<p class="dialog-note">${t("En erken {0} yeniden deneyebilirsin. Instagram daha uzun beklemeni isteyebilir.", esc(date(data.gate.blockedUntil)))}</p>` : ""}<div class="dialog-buttons">${button(t("İstek bilgileri"), "requests", "info")}${button(t("Tamam"), "close", null, "primary")}</div>`,
     );
   }
   async function command(operation, args = {}, success = "", showErrors = true) {
@@ -323,7 +338,7 @@
       }
       if (!result.ok && showErrors)
         errorDialog(result.error || t("İşlem tamamlanamadı."), operation === "scan" ? args.id : undefined);
-      else if (success) toast(success);
+      else if (result.ok && success) toast(success);
       return result;
     } catch {
       if (!control) {
@@ -369,7 +384,7 @@
       )
       .join(
         "",
-      )}</nav><div class="sidebar-bottom"><button class="account-switcher" data-action="accounts" aria-label="${t("Hesaplar arasında geçiş")}" ${busy ? "disabled" : ""}>${avatar(data.account)}<span><strong>${data.account ? "@" + esc(data.account.username) : t("Hesabını bağla")}</strong><small>${t("{0} kayıtlı hesap", (data.accounts || []).length)}</small></span>${icon("down")}</button><div class="preview-label"><span class="status-dot"></span> ${t("Yerel masaüstü")} <span>0.2</span></div></div></aside>`;
+      )}</nav><div class="sidebar-bottom"><button class="account-switcher" data-action="accounts" aria-label="${t("Hesaplar arasında geçiş")}" ${busy ? "disabled" : ""}>${avatar(data.account)}<span><strong>${data.account ? "@" + esc(data.account.username) : t("Hesabını bağla")}</strong><small>${t("{0} kayıtlı hesap", (data.accounts || []).length)}</small></span>${icon("down")}</button><div class="preview-label"><span class="status-dot"></span> ${t("Yerel masaüstü")} <span>${esc(data.version || '')}</span></div></div></aside>`;
   }
   function topbar() {
     const own = data.account;
@@ -1388,7 +1403,7 @@
     const own = adding ? null : data.account;
     const connected = !adding && data.connected && !needsReconnect();
     dialog(
-      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", own ? t("Kayıtlı hesap: @") + esc(own.username) + ". " : "")}</p>${connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<p class="dialog-note">${t("İlk bağlantıdan sonra başlangıç listelerin otomatik hazırlanır. Tarama ve sonraki kontrolleri ana ekrandan duraklatabilirsin.")}</p><form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(own?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${own ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
+      `<span class="dialog-symbol lavender">${icon("link")}</span><h2 id="dialog-title">${connected ? t("Hesap bağlantın") : t("Instagram hesabını bağla")}</h2><p>${t("{0}Şifre ve kod yalnız giriş işlemi sırasında kullanılır; dosyaya kaydedilmez.", own ? t("Kayıtlı hesap: @") + esc(own.username) + ". " : "")}</p>${connected ? `<p class="dialog-note">${t("Kayıtlı oturumla profil ve listeleri okuyabilirsin. Yeniden giriş yalnız oturum reddedilirse gerekir.")}</p>${button(t("Profili yenile"), "refresh", "refresh", "primary", netDisabled())}` : ""}<p class="dialog-note">${t("İlk bağlantıdan sonra başlangıç listelerin otomatik hazırlanır. Tarama ve sonraki kontrolleri ana ekrandan duraklatabilirsin.")}</p><form id="login-form"><label class="form-label" for="login-username">${t("Kullanıcı adı")}</label><input id="login-username" name="username" required maxlength="30" pattern="[A-Za-z0-9._]{1,30}" value="${esc(own?.username || "")}" autocomplete="username"><label class="form-label" for="login-password">${t("Şifre")}</label><div class="password-field"><input id="login-password" name="password" type="password" required maxlength="1024" autocomplete="off"><button type="button" class="icon-button" data-action="toggle-login-password" aria-controls="login-password" aria-label="${esc(t("Şifreyi göster"))}" aria-pressed="false">${icon("eye")}</button></div><button class="button primary full-width" type="submit" ${busy ? "disabled" : ""}>${icon("link")} ${own ? t("Yeniden bağla") : t("Hesabı bağla")}</button></form>${data.counterAvailable ? `<div class="import-connection"><p>${t("Önceki Windows prototipinde kayıtlı bir oturum bulundu. Bir kopyası bu uygulamaya alınır; eski dosya değiştirilmez. Hesap kimliği canlı profil yanıtıyla doğrulanır.")}</p>${button(t("Önceki Windows oturumunu kullan"), "import-counter", "laptop", "secondary", busy ? "disabled" : "")}</div>` : ""}<p class="field-hint">${t("Instagram ek güvenlik kontrolü isterse resmî uygulamada tamamla. Otomatik parola tekrarı yapılmaz.")}</p>`,
     );
   }
   function readerLabel(reader) {
@@ -1438,8 +1453,10 @@
   function requestsDialog() {
     const g = data.gate;
     const budget = data.requestBudget;
+    const login = data.lastLoginError;
+    const loginSummary = login ? `<details><summary>${t("Son giriş hatası")}</summary><p>${esc(date(login.at))} · ${esc(userError(login))}</p>${loginErrorContext(login)}</details>` : "";
     dialog(
-      `<span class="dialog-symbol lavender">${icon("info")}</span><h2 id="dialog-title">${t("İstek bilgileri")}</h2><p class="dialog-note">${t("Yerel istek bütçesi: bu hesap saatte {0}, 24 saatte {1}; bütün hesaplar saatte {2}, 24 saatte {3}. Bunlar Meta kotası değildir.", num(budget.accountHourly), num(budget.accountDaily), num(budget.sharedHourly), num(budget.sharedDaily))}</p>${budget.nextAt > Date.now()/1000 ? `<p>${t("Bütçe için sonraki uygun zaman: {0}", esc(date(budget.nextAt)))}</p>` : ""}<div class="detail-pair"><span>${t("Son HTTP")}</span><strong>${g.status || t("Bilinmiyor")}</strong></div>${data.lastError ? `<details><summary>${t("Son hatanın teknik ayrıntıları")}</summary><p>${esc(data.lastError.code)}</p><p>${esc(data.lastError.message)}</p></details>` : ""}${readerDiagnostics()}<div class="detail-pair"><span>${t("İstek sayısı")}</span><strong>${num(g.attempts || 0)}</strong></div><div class="detail-pair"><span>${t("Son istek")}</span><strong>${esc(date(g.lastAt))}</strong></div><div class="detail-pair"><span>${t("Yerel mola bitişi")}</span><strong>${esc(date(g.blockedUntil))}</strong></div><div class="detail-pair"><span>${t("Sunucunun Retry-After zamanı")}</span><strong>${g.serverRetryAt ? esc(date(g.serverRetryAt)) : t("Belirtilmedi")}</strong></div><div class="detail-pair"><span>${t("Sonraki parola girişi")}</span><strong>${esc(date(g.loginAfter))}</strong></div><p class="dialog-note">${t("İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Parola girişleri arasında en az 15 dakika beklenir. HTTP 429 sonrası yerel mola 1–24 saattir; sunucunun daha uzun bekleme süresi korunur. Mola bitişi erişim garantisi değildir.", ...requestSpacing())}</p><p>${t("Otomatik kontrol: {0}", g.manualOnly ? t("Duraklatıldı; önce elle başarılı bir profil kontrolü gerekli.") : data.settings.automatic ? t("Açık.") : t("Kapalı."))}</p>`,
+      `<span class="dialog-symbol lavender">${icon("info")}</span><h2 id="dialog-title">${t("İstek bilgileri")}</h2><p class="dialog-note">${t("Yerel istek bütçesi: bu hesap saatte {0}, 24 saatte {1}; bütün hesaplar saatte {2}, 24 saatte {3}. Bunlar Meta kotası değildir.", num(budget.accountHourly), num(budget.accountDaily), num(budget.sharedHourly), num(budget.sharedDaily))}</p>${budget.nextAt > Date.now()/1000 ? `<p>${t("Bütçe için sonraki uygun zaman: {0}", esc(date(budget.nextAt)))}</p>` : ""}<div class="detail-pair"><span>${t("Son HTTP")}</span><strong>${g.status || t("Bilinmiyor")}</strong></div>${data.lastError ? `<details><summary>${t("Son hatanın teknik ayrıntıları")}</summary><p>${esc(data.lastError.code)}</p><p>${esc(data.lastError.message)}</p>${loginErrorContext(data.lastError)}</details>` : ""}${loginSummary}${readerDiagnostics()}<div class="detail-pair"><span>${t("İstek sayısı")}</span><strong>${num(g.attempts || 0)}</strong></div><div class="detail-pair"><span>${t("Son istek")}</span><strong>${esc(date(g.lastAt))}</strong></div><div class="detail-pair"><span>${t("Yerel mola bitişi")}</span><strong>${esc(date(g.blockedUntil))}</strong></div><div class="detail-pair"><span>${t("Sunucunun Retry-After zamanı")}</span><strong>${g.serverRetryAt ? esc(date(g.serverRetryAt)) : t("Belirtilmedi")}</strong></div><div class="detail-pair"><span>${t("Sonraki parola girişi")}</span><strong>${esc(date(g.loginAfter))}</strong></div><p class="dialog-note">${t("İstekler arasında {0}–{1} saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Parola girişleri arasında en az 15 dakika beklenir. HTTP 429 sonrası yerel mola 1–24 saattir; sunucunun daha uzun bekleme süresi korunur. Mola bitişi erişim garantisi değildir.", ...requestSpacing())}</p><p>${t("Otomatik kontrol: {0}", g.manualOnly ? t("Duraklatıldı; önce elle başarılı bir profil kontrolü gerekli.") : data.settings.automatic ? t("Açık.") : t("Kapalı."))}</p>`,
     );
   }
   function personInformation(view) {
@@ -1664,6 +1681,14 @@
       case "close":
         closeDialog();
         break;
+      case "toggle-login-password": {
+        const password = target.form.elements.password;
+        const visible = password.type === "password";
+        password.type = visible ? "text" : "password";
+        target.setAttribute("aria-pressed", String(visible));
+        target.innerHTML = icon(visible ? "eyeOff" : "eye");
+        break;
+      }
       case "account":
         accountDialog();
         break;

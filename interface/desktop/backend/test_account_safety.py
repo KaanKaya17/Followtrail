@@ -5,9 +5,11 @@ import json
 import tempfile
 import unittest
 from unittest.mock import patch
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from Cryptodome.PublicKey import RSA
+from curl_cffi import CurlECode
+from curl_cffi.requests.exceptions import RequestException as CurlRequestException
 import requests
 from accounts import Accounts
 from engine import Engine
@@ -72,7 +74,12 @@ class AccountSafetyTests(unittest.TestCase):
             elif path.endswith('process_client_data_and_redirect/'):
                 body={'layout':{'bloks_payload':{'data':[{'data':{'key':'CAA_ACCOUNT_ACCESS_CONTEXT:aac','initial':'server-aac'}}]}}}
             elif path.endswith('attestation/create_android_keystore/'):body={'challenge_nonce':'server-nonce'}
-            elif path=='/api/v1/qe/sync/':return self.fake_reply(request,headers={'ig-set-password-encryption-key-id':'7','ig-set-password-encryption-pub-key':key})
+            elif path == '/api/v1/launcher/sync/':
+                self.assertEqual(request.method, 'POST')
+                body = json.loads(parse_qs(request.body)['signed_body'][0].removeprefix('SIGNATURE.'))
+                self.assertEqual(set(body), {'id', 'server_config_retrieval'})
+                self.assertEqual(body['server_config_retrieval'], '1')
+                return self.fake_reply(request, code=405, headers={'ig-set-password-encryption-key-id':'7','ig-set-password-encryption-pub-key':key})
             elif path.endswith('send_login_request/'):body={'layout':{'bloks_payload':{'action':'(f4i '+json.dumps(json.dumps(envelope))+')'}}}
             elif path=='/api/v1/users/100/info/':body=profile()
             elif path.endswith('oauth.token.fetch.async/'):body={'status':'ok'}
@@ -91,6 +98,118 @@ class AccountSafetyTests(unittest.TestCase):
         self.assertNotIn('cookies',device);self.assertNotIn('authorization_data',device)
         self.assertNotIn('SYNTHETIC-SESSION',json.dumps(device))
         self.assertNotIn('SYNTHETIC-PASSWORD',json.dumps(device))
+
+    def test_missing_password_key_reports_its_own_stage_and_stops_before_password_submission(self):
+        def authenticate(client, *_):
+            client.password_publickeys()
+
+        args = {'username': 'qa.owner', 'password': 'SYNTHETIC-PASSWORD'}
+        with patch('network.Client.login', authenticate), patch('requests.Session.send') as send:
+            send.side_effect = lambda request, **_: self.fake_reply(request, {'secret': 'SYNTHETIC-BODY'}, 404)
+            with self.assertRaises(AppFailure) as raised:
+                self.e.run('login', args)
+
+        send.assert_called_once()
+        request = send.call_args.args[0]
+        self.assertEqual(request.method, 'POST')
+        self.assertEqual(urlsplit(request.url).path, '/api/v1/launcher/sync/')
+        self.assertNotIn('SYNTHETIC-PASSWORD', request.body)
+        error = self.e.snapshot()['lastLoginError']
+        self.assertEqual((error['code'], error['loginStage'], error['http'], error['loginRequest']),
+                         ('password_key', 'password_key', 404, 1))
+        self.assertEqual(raised.exception.login_stage, 'password_key')
+        self.assertNotIn('SYNTHETIC-', json.dumps(error))
+        self.assertNotIn('password', args)
+        self.assertFalse(self.e.snapshot()['connected'])
+
+
+    def test_login_rate_limit_reports_profile_step_without_exposing_the_response(self):
+        progress = []
+        self.e.emit = progress.append
+
+        def authenticate(client, *_):
+            client.authorization_data = {'ds_user_id': '100'}
+            self.e.after_response(self.fake_reply(requests.Request('GET', 'https://example.invalid/').prepare()))
+
+        def reject_profile(request, **_):
+            return self.fake_reply(request, {'message': 'SYNTHETIC-PRIVATE-RESPONSE'}, 429)
+
+        args = {'username': 'qa.owner', 'password': 'SYNTHETIC-PASSWORD'}
+        with patch('network.Client.login', authenticate), patch('requests.Session.send', side_effect=reject_profile) as send:
+            with self.assertRaises(AppFailure) as raised:
+                self.e.run('login', args)
+
+        self.assertEqual(send.call_count, 1, repr(raised.exception.__cause__))
+        self.assertEqual((raised.exception.code, raised.exception.login_stage, raised.exception.http),
+                         ('limited', 'account_profile', 429))
+        self.assertIn('account_profile', [event.get('loginStage') for event in progress])
+        self.assertEqual(progress[-1]['loginHttp'], 429)
+        self.assertNotIn('password', args)
+        self.assertFalse(self.e.snapshot()['connected'])
+        summary = self.e.snapshot()['lastError']
+        self.assertEqual((summary['loginStage'], summary['http']), ('account_profile', 429))
+        self.assertNotIn('SYNTHETIC-PRIVATE-RESPONSE', json.dumps(summary))
+        self.e.run('settings', {'compact': True})
+        reopened = Accounts(self.home.name, clock=lambda: self.now[0])
+        self.assertEqual(reopened.snapshot()['lastLoginError'], summary)
+
+    def test_login_timeout_does_not_render_an_earlier_http_status(self):
+        def authenticate(client, *_):
+            self.e.after_response(self.fake_reply(requests.Request('GET', 'https://example.invalid/').prepare()))
+            client.private.get('https://i.instagram.com/api/v1/accounts/current_user/')
+
+        error = requests.exceptions.Timeout('SYNTHETIC-PRIVATE-TRANSPORT')
+        with patch('network.Client.login', authenticate), patch('requests.Session.send', side_effect=error):
+            with self.assertRaises(AppFailure) as raised:
+                self.e.run('login', {'username': 'qa.owner', 'password': 'SYNTHETIC-PASSWORD'})
+
+        self.assertEqual((raised.exception.code, raised.exception.login_stage, raised.exception.http),
+                         ('timeout', 'authentication', None))
+        summary = self.e.snapshot()['lastError']
+        self.assertNotIn('http', summary)
+        self.assertNotIn('SYNTHETIC-PRIVATE-TRANSPORT', json.dumps(summary))
+        self.assertIsNone(self.e.login_stage)
+
+    def test_login_keeps_transport_classification_before_the_library_wraps_it(self):
+        def authenticate(client, *_):
+            client.private.get('https://i.instagram.com/api/v1/accounts/current_user/')
+
+        def fail(request, **_):
+            try:
+                raise CurlRequestException('SYNTHETIC-PRIVATE-TRANSPORT', code=CurlECode.COULDNT_RESOLVE_HOST)
+            except CurlRequestException as exc:
+                raise requests.exceptions.ConnectionError('SYNTHETIC-PRIVATE-DETAIL') from exc
+
+        with patch('network.Client.login', authenticate), patch('requests.Session.send', side_effect=fail) as send:
+            with self.assertRaises(AppFailure) as raised:
+                self.e.run('login', {'username': 'qa.owner', 'password': 'SYNTHETIC-PASSWORD'})
+
+        self.assertEqual(send.call_count, 1)
+        self.assertEqual((raised.exception.code, raised.exception.login_stage, raised.exception.http,
+                          raised.exception.request_number), ('dns', 'authentication', None, 1))
+        summary = self.e.snapshot()['lastLoginError']
+        self.assertNotIn('http', summary)
+        self.assertNotIn('SYNTHETIC-PRIVATE', json.dumps(summary))
+
+    def test_unclassified_login_transport_error_preserves_its_numeric_code(self):
+        def authenticate(client, *_):
+            client.private.get('https://i.instagram.com/api/v1/accounts/current_user/')
+
+        def fail(request, **_):
+            try:
+                raise CurlRequestException('SYNTHETIC-PRIVATE-TRANSPORT', code=CurlECode.URL_MALFORMAT)
+            except CurlRequestException as exc:
+                raise requests.exceptions.RequestException('SYNTHETIC-PRIVATE-DETAIL') from exc
+
+        with patch('network.Client.login', authenticate), patch('requests.Session.send', side_effect=fail):
+            with self.assertRaises(AppFailure) as raised:
+                self.e.run('login', {'username': 'qa.owner', 'password': 'SYNTHETIC-PASSWORD'})
+
+        self.assertEqual((raised.exception.code, raised.exception.transport_code, raised.exception.request_number),
+                         ('transport', int(CurlECode.URL_MALFORMAT), 1))
+        summary = self.e.snapshot()['lastLoginError']
+        self.assertEqual(summary['transportCode'], int(CurlECode.URL_MALFORMAT))
+        self.assertNotIn('SYNTHETIC-PRIVATE', json.dumps(summary))
 
     def test_failed_login_reuses_encrypted_device_context(self):
         clients=[]

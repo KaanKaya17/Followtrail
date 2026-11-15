@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Windows 0.2.89 — 2026-11-15 (yerel test paketi)
+
+- Parolalı girişte şifreleme anahtarı, instagrapi 3.2.3 ile Instagram’ın güncel yapılandırma uç noktasından alınıyor.
+- Windows 0.2.89’da gerçek hesapla giriş, profil doğrulaması ve iki bağlı hesap doğrulandı. İkinci hesabın ilk liste isteği HTTP 200 döndürdü. [Sürüm ve doğrulama](docs/wiki/Surum-ve-Destek.md#windows-0289-yerel-giriş-testi).
+
 ## Android 0.1.100
 
 - Geri takip etmeyenler için hesap bazında şifreli istisnalar ve açık bir yerel veri silme etiketi eklendi.

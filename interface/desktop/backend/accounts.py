@@ -56,6 +56,8 @@ class Accounts(Engine):
                 self.catalog['active'] = self.active_id
                 self.catalog['accounts'][self.active_id] = {'slot': 'legacy'}
                 self.update_entry()
+            else:
+                self.vault = Vault(self.account_directory(None))
             self.catalog['gate'].pop('manualOnly', None)
             self.persist_catalog()
         self.bind_shared_state()

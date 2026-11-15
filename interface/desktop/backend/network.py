@@ -8,6 +8,8 @@ import time
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
 
+from curl_cffi import CurlECode
+from curl_cffi.requests.exceptions import RequestException as CurlRequestException
 from instagrapi import Client
 from instagrapi.exceptions import TwoFactorRequired
 from instagrapi.transports import create_curl_h2_adapter
@@ -18,10 +20,35 @@ from PIL import Image
 
 
 class AppFailure(Exception):
-    def __init__(self, code, message, *, http=None):
+    def __init__(self, code, message, *, http=None, login_stage=None, request_number=None, transport_code=None):
         super().__init__(message)
         self.code = code
         self.http = http
+        self.login_stage = login_stage
+        self.request_number = request_number
+        self.transport_code = transport_code
+
+
+def login_transport_error(exc):
+    cause = exc.__cause__
+    curl = exc if isinstance(exc, CurlRequestException) else cause
+    curl_code = curl.code if isinstance(curl, CurlRequestException) else None
+    if isinstance(exc, requests.exceptions.Timeout) or curl_code == CurlECode.OPERATION_TIMEDOUT:
+        code, message = 'timeout', 'Instagram yanıtı zamanında alınamadı.'
+    elif isinstance(exc, requests.exceptions.SSLError) or curl_code in (
+            CurlECode.SSL_CONNECT_ERROR, CurlECode.PEER_FAILED_VERIFICATION):
+        code, message = 'tls', 'Instagram ile güvenli bağlantı kurulamadı.'
+    elif curl_code == CurlECode.COULDNT_RESOLVE_HOST:
+        code, message = 'dns', 'Instagram sunucusunun adresi çözümlenemedi.'
+    elif curl_code == CurlECode.COULDNT_CONNECT:
+        code, message = 'connect', 'Instagram sunucusuna bağlantı kurulamadı.'
+    elif curl_code in (CurlECode.HTTP2, CurlECode.HTTP2_STREAM, CurlECode.GOT_NOTHING,
+                       CurlECode.SEND_ERROR, CurlECode.RECV_ERROR):
+        code, message = 'transfer', 'Instagram bağlantısı HTTP yanıtı alınmadan kesildi.'
+    else:
+        code, message = 'transport', 'Instagram isteği için kullanılabilir bir HTTP yanıtı alınamadı.'
+    safe_code = int(curl_code) if isinstance(curl_code, int) and 0 < curl_code <= 999 else None
+    return AppFailure(code, message, transport_code=safe_code)
 
 
 def deadline(header, now):
@@ -99,19 +126,41 @@ def new_client(engine, settings=None):
         def send(request, _send=original, **kwargs):
             if not request_policy.allowed(request, client._tracker_authenticating):
                 raise AppFailure('network_policy', 'İzin verilmeyen ağ hedefi durduruldu.')
+            password_key = (client._tracker_authenticating and request.method == 'POST'
+                            and urlsplit(request.url).path == request_policy.PASSWORD_KEY_PATH)
             if client._tracker_authenticating:
                 engine.persist_login_identity(client)
+            original_stage = engine.login_stage
+            if password_key:
+                engine.set_login_stage('password_key')
             engine.before_request()
             kwargs.update(timeout=25, allow_redirects=False, verify=True, proxies={})
-            response = _send(request, **kwargs)
+            try:
+                response = _send(request, **kwargs)
+            except requests.exceptions.RequestException as exc:
+                if engine.login_stage is None:
+                    raise
+                raise login_transport_error(exc) from exc
             engine.after_response(response)
             if 300 <= response.status_code < 400:
                 raise AppFailure('redirect', 'Instagram yönlendirme istedi; otomatik izlenmedi.', http=response.status_code)
             if len(response.content) > 4 * 1024 * 1024:
                 raise AppFailure('response_size', 'Instagram yanıtı beklenen boyutu aşıyor.', http=response.status_code)
+            if password_key:
+                require_password_key(response)
+                engine.set_login_stage(original_stage)
             return response
         session.send = send
     return client
+
+
+def require_password_key(response):
+    key_id = response.headers.get('ig-set-password-encryption-key-id', '')
+    key = response.headers.get('ig-set-password-encryption-pub-key', '')
+    if not ((200 <= response.status_code < 300 or response.status_code in (405, 408)) and
+            re.fullmatch(r'[0-9]{1,3}', key_id) and int(key_id) <= 255 and key.strip()):
+        raise AppFailure('password_key', 'Instagram giriş için gereken şifreleme anahtarını göndermedi.',
+                         http=response.status_code)
 
 
 def close_client(client):
@@ -256,11 +305,26 @@ def parse_page(payload):
 
 def failure(exc):
     if isinstance(exc, AppFailure):
-        return {'code': exc.code, 'message': str(exc)}
+        result = {'code': exc.code, 'message': str(exc)}
+        if type(exc.http) is int and 100 <= exc.http <= 599:
+            result['http'] = exc.http
+        if exc.login_stage is not None:
+            result['loginStage'] = exc.login_stage
+        if exc.request_number is not None:
+            result['loginRequest'] = exc.request_number
+        if exc.transport_code is not None:
+            result['transportCode'] = exc.transport_code
+        return result
+    if isinstance(exc, requests.exceptions.Timeout):
+        return {'code': 'timeout', 'message': 'Instagram yanıtı zamanında alınamadı.'}
+    if isinstance(exc, requests.exceptions.SSLError):
+        return {'code': 'tls', 'message': 'Instagram ile güvenli bağlantı kurulamadı.'}
     name = type(exc).__name__
     messages = {
         'StorageFailure': ('storage', 'Şifreli kayıt okunamadı veya yazılamadı. Dosyalar korundu.'),
         'BadPassword': ('login', 'Instagram girişi reddetti. Şifre ve giriş bağlamını resmî uygulamada kontrol et.'),
+        'ClientRequestTimeout': ('timeout', 'Instagram yanıtı zamanında alınamadı.'),
+        'ClientJSONDecodeError': ('response', 'Instagram yanıtı okunamadı.'),
         'TwoFactorRequired': ('verification', 'Instagram doğrulama istiyor.'),
         'UserNotFound': ('not_found', 'Bu kullanıcı bulunamadı.'),
         'PrivateAccount': ('private', 'Bu hesaba veya listeye erişim iznin yok.'),

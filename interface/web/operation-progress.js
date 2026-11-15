@@ -1,6 +1,18 @@
 (function (root) {
   'use strict';
   const escape = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function loginStageLabel(stage, t) {
+    switch (stage) {
+      case 'login_setup': return t("Giriş hazırlanıyor");
+      case 'session_import': return t("Kayıtlı oturum okunuyor");
+      case 'authentication': return t("Instagram girişi");
+      case 'password_key': return t("Parola şifreleme anahtarı");
+      case 'verification': return t("Instagram doğrulaması");
+      case 'account_profile': return t("Hesap profili doğrulanıyor");
+      case 'session_save': return t("Oturum Windows’a kaydediliyor");
+      default: return "";
+    }
+  }
   function create({element,t,date,number,button,icon}) {
     let state = {busy:false,progress:null,gate:{}}, timer = null;
     function stop() { if(timer!==null) { clearInterval(timer);timer=null; } }
@@ -26,13 +38,15 @@
       const p=state.progress || {}, gate=state.gate || {}, scan=p.scan;
       const paused=!state.busy && Number.isFinite(gate.blockedUntil) && gate.blockedUntil>0 && (gate.blockedUntil>Date.now()/1000 || gate.manualOnly && gate.status===429);
       if(!state.busy && !paused) { element.innerHTML='';return; }
+      const loginStage = loginStageLabel(p.loginStage, t);
+      const loginContext = loginStage ? `<p>${escape(t("Giriş adımı: {0}", loginStage))}${Number.isInteger(p.loginHttp) ? ' · ' + escape(t("Instagram HTTP {0}", p.loginHttp)) : ''}</p>` : '';
       if(paused || p.phase==='limited') {
-        element.innerHTML=`<section class="operation-panel paused"><span class="progress-symbol">${icon('info')}</span><div><strong>${escape(gate.status === 429 || p.phase === "limited" ? t("Instagram istekleri sınırladı") : t("Kontroller duraklatıldı"))}</strong><p>${escape(t("En erken {0} yeniden deneyebilirsin. Yeni deneme kendiliğinden başlamayacak.",date(paused?gate.blockedUntil:p.until)))}</p><small>${escape(t("Instagram daha uzun beklemeni isteyebilir. Mola bitince kontrolü sen başlatabilirsin; kayıtlarını incelemeye devam edebilirsin."))}</small></div>${button(t("İstek bilgileri"),'requests','info')}</section>`;
+        element.innerHTML=`<section class="operation-panel paused"><span class="progress-symbol">${icon('info')}</span><div><strong>${escape(gate.status === 429 || p.phase === "limited" ? t("Instagram istekleri sınırladı") : t("Kontroller duraklatıldı"))}</strong>${loginContext}<p>${escape(t("En erken {0} yeniden deneyebilirsin. Yeni deneme kendiliğinden başlamayacak.",date(paused?gate.blockedUntil:p.until)))}</p><small>${escape(t("Instagram daha uzun beklemeni isteyebilir. Mola bitince kontrolü sen başlatabilirsin; kayıtlarını incelemeye devam edebilirsin."))}</small></div>${button(t("İstek bilgileri"),'requests','info')}</section>`;
         return;
       }
       const messages={preparing:t("İşlem hazırlanıyor…"),login:t("Instagram hesabına bağlanılıyor…"),profile:t("Profil okunuyor…"),avatar:t("Profil fotoğrafı yükleniyor…"),access_health:t("Hesap bağlantın kontrol ediliyor…"),access_target:t("Profilin açılıp açılmadığı kontrol ediliyor…"),access_anonymous:t("Profilin giriş yapmadan açılıp açılmadığı kontrol ediliyor…"),request:t("Instagram yanıtı bekleniyor…"),waiting:t("İstekler arasında kısa mola…"),list:t("Liste sayfaları okunuyor…"),code:t("Doğrulama kodu bekleniyor…"),cancelling:t("İptal isteniyor…")};
-      let title=p.phase==='stories'?t("Hikâyeler kaydediliyor…"):messages[p.phase] || t("İşlem sürüyor…"), context='';
-      if(p.ownerUsername) context=`<p>${escape(t("Bağlı hesap: @{0}",p.ownerUsername))}</p>`;
+      let title=p.phase==='stories'?t("Hikâyeler kaydediliyor…"):messages[p.phase] || t("İşlem sürüyor…"), context=loginContext;
+      if(p.ownerUsername && !loginStage) context=`<p>${escape(t("Bağlı hesap: @{0}",p.ownerUsername))}</p>`;
       if(scan) {
         const direction=scan.direction==='followers'?t("Takipçiler"):t("Takip edilen");
         context+=`<p class="scan-owner">@${escape(scan.username)} · ${escape(direction)}</p>`;
@@ -52,5 +66,5 @@
     window.addEventListener('pagehide',stop);
     return Object.freeze({update(value){state=value;render();}});
   }
-  root.TrackerOperationProgress=Object.freeze({create});
+  root.TrackerOperationProgress=Object.freeze({create,loginStageLabel});
 })(window);

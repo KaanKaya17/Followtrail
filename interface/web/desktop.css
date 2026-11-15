@@ -39,6 +39,19 @@
 .command-palette > header { display: flex; align-items: flex-start; gap: 20px; }
 .command-palette h2 { font-size: 23px; margin-bottom: 8px; }
 .command-palette header p { line-height: 1.6; color: var(--muted); font-size: 13px; }
+.password-field {
+  position: relative;
+}
+.password-field input {
+  padding-inline-end: 50px;
+}
+.password-field .icon-button {
+  position: absolute;
+  inset-inline-end: 3px;
+  top: 2px;
+  width: 39px;
+  height: 39px;
+}
 .command-palette header .icon-button { flex: none; margin-left: auto; }
 .palette-input { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: var(--radius-control); padding: 0 14px; margin: 20px 0 12px; }
 .palette-input:focus-within { outline: 2px solid var(--violet); outline-offset: 2px; }
