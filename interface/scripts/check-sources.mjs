@@ -69,8 +69,8 @@ for (const file of [
 }
 console.log("All interface and desktop JavaScript sources parse.");
 
-// These two files are being split into smaller modules. Each change may only
-// lower the limit: after a move, set it to the new size so the file cannot grow back.
+// These two files are being split into smaller modules. A limit is never raised:
+// once a step of the split lands, lower it to the new size so the file cannot grow back.
 const { readFileSync } = await import("node:fs");
 for (const [file, limit] of [
   ["desktop/backend/engine.py", 1491],
