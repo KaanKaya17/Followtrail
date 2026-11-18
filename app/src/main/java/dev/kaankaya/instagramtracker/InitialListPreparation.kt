@@ -49,7 +49,9 @@ class InitialListPreparation(private val context: Context, private val vault: Se
             val jobs = profiles.flatMap { profile ->
                 val target = records[profile.userId] ?: ListTarget(profile.userId)
                 FollowDirection.entries.mapNotNull { direction ->
-                    if (ReadKind.list(direction) in paused || ListAutomationPolicy.source(target, direction)?.comparable() == true ||
+                    // A baseline is enough unless a later scan is already in progress; finish that one while the app is open.
+                    val inProgress = target.scan(direction).let { it.continuing && it.failure == null }
+                    if (ReadKind.list(direction) in paused || (!inProgress && ListAutomationPolicy.source(target, direction)?.comparable() == true) ||
                         target.scan(direction).failure == ApiFailure.Kind.CAPACITY || ListAutomationPolicy.coverageHeld(target, direction))
                         return@mapNotNull null
                     val state = target.scan(direction)
