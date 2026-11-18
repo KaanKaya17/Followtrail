@@ -5,6 +5,7 @@ from datetime import date
 import daily_stats
 import stories
 import list_pages
+import membership
 import read_health
 from list_pages import public_member
 import json
@@ -139,6 +140,7 @@ class Engine:
         wayback.initialize(data)
         data_privacy.initialize(data)
         validate_archive(data)
+        membership.ensure(data)
         return data
 
     def daily_store(self, owner=None):
@@ -233,7 +235,8 @@ class Engine:
                          'retainedPartial': list_pages.metadata(record.get('retainedPartial')),
                          'visiblePartialId': (list_pages.visible_partial(record) or {}).get('id'),
                          'initialPending': d['lists'][key].get('schedule', {}).get('initial') is not None,
-                         'canResume': list_preparation.resumable(record.get('draft'), self.clock())}
+                         'canResume': list_preparation.resumable(record.get('draft'), self.clock()),
+                         'movement': membership.counts(record.get('membership'))}
                    for key, record in published['records'].items()}
         return {'account': public_person(d['account']) if d['account'] else None,
                 'connected': bool(d['session']), 'people': people,
@@ -819,6 +822,7 @@ class Engine:
                     read_health.success(self.data, direction)
                     draft.update(complete=True, status='complete')
                     record['snapshots'].append(copy.deepcopy({k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}))
+                    returned = set(membership.apply(record, record['snapshots'][-1]))
                     del record['snapshots'][:-6]
                     record.pop('draft', None)
                     record.pop('retainedPartial', None)
@@ -834,6 +838,9 @@ class Engine:
                         changes.update(previousAt=before['finishedAt'], ownerUsername=owner['username'],
                                        membersAdded=[public_member(draft['members'][key]) for key in diff['added']],
                                        membersRemoved=[public_member(before['members'][key]) for key in diff['removed']])
+                        # A return is a member seen before, absent in between and back now.
+                        back = [key for key in diff['added'] if key in returned]
+                        changes.update(returned=len(back), returnedIds=back)
                     self.event('list', f"@{owner['username']} · {direction} listesi kaydedildi", identity, None, changes)
                     if identity == self.data['account']['id'] and direction == 'followers':
                         access_checks.discover(self.data, record, self.clock())
@@ -1384,6 +1391,11 @@ def validate_archive(d):
             identities.append(ids)
         if identities[0] & identities[1]:
             raise ValueError('list difference overlap')
+        if 'returnedIds' in value or 'returned' in value:
+            back = value.get('returnedIds')
+            if (not isinstance(back, list) or type(value.get('returned')) is not int or len(back) != value['returned']
+                    or len(set(back)) != len(back) or not set(back) <= identities[0]):
+                raise ValueError('list difference returns')
     for p in [d.get('account'), *d['people'].values()]:
         if p is None:
             continue
@@ -1421,6 +1433,7 @@ def validate_archive(d):
                 retained.get('ownerId') != owner or retained.get('direction') != direction or
                 'nextCursor' in retained or 'seenCursors' in retained):
             raise ValueError('retained partial')
+        membership.validate(record)
         for snapshot in record['snapshots'] + [s for s in (record.get('draft'),retained) if s is not None]:
             if not isinstance(snapshot, dict) or not isinstance(snapshot.get('members'), dict) or len(snapshot['members']) > MAX_MEMBERS:
                 raise ValueError('members')

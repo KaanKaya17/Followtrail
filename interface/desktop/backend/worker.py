@@ -138,6 +138,8 @@ def main():
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'daily':engine.daily_query(request.get('args'))})
             elif operation == 'list_page':
                 emit({'type':'control', 'id':request['id'], 'ok':True, 'page':engine.list_pages.page(request.get('args'))})
+            elif operation == 'list_membership':
+                emit({'type':'control', 'id':request['id'], 'ok':True, 'membership':engine.list_pages.membership(request.get('args'))})
             elif operation == 'search_avatar':
                 # Automatic work temporarily activates other vaults; images belong to the UI selection.
                 owner=engine.catalog['active']

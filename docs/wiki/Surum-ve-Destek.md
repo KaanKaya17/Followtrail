@@ -4,6 +4,13 @@
 
 **Son içerik denetimi: 18 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.91
+
+18 Kasım’da Windows 0.2.91 herkese açık ZIP önizlemesi yayımlandı. **Takip Listeleri → İlişki filtresi** içinde **Geri gelenler** ve **Ayrılanlar** görünümleri, kişi panelinde **Takip geçmişi** bölümü eklendi. Kişinin listede ilk/son görüldüğü, çıktığı ve geri döndüğü iki tam tarama arası yerel şifreli defterde saklanır; yeni Instagram isteği yoktur. [Takip geçmişi](../FOLLOW-HISTORY-TEST.md).
+
+- Windows 0.2.91: 46 paketli çevrimdışı kontrol, 7 takip geçmişi paket kontrolü, 325 Python ve 72 arayüz testi geçti. EXE Authenticode imzası taşımıyor.
+- Gerçek hesapla canlı liste taraması bu sürümde yapılmadı. Android 0.1.103’te bu görünüm yoktur.
+
 ## Windows 0.2.90 ve Android 0.1.103
 
 18 Kasım’da Windows 0.2.90 herkese açık ZIP ve Android 0.1.103 (sürüm kodu 104) imzalı APK önizlemesi yayımlandı. İki platformda hikâye fotoğraf ve videoları Instagram API sırasından ayrı, kendi medya şeridinde indirilir: dosyalar arasında 1–3 saniye, cihaz başına 400/saat ve 4.000/gün sınır. Hikâye kontrolü API bütçesinden yalnız 1 hak harcar. API aralığı, bütçeler ve 429 kuralları değişmedi. [Ölçüm ve doğrulama](../MEDIA-LANE-TEST.md).
@@ -138,7 +145,8 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-- [Windows 0.2.90 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.90)
+- [Windows 0.2.91 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.91)
+- [Windows 0.2.90 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.90)
 - [Android 0.1.103 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103)
 - [Windows 0.2.89 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89)
 - [Android 0.1.102 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102)

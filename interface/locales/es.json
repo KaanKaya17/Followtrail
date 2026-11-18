@@ -1519,5 +1519,46 @@
   "Instagram isteği için kullanılabilir bir HTTP yanıtı alınamadı.": "No se recibió una respuesta HTTP utilizable para la solicitud a Instagram.",
   "Son giriş isteği: {0}": "Última solicitud de inicio de sesión: {0}",
   "Ağ hata kodu: {0}": "Código de error de red: {0}",
-  "Oturum Windows’a kaydediliyor": "Guardando la sesión en Windows"
+  "Oturum Windows’a kaydediliyor": "Guardando la sesión en Windows",
+  "Zamanlar iki tam liste taraması arasını gösterir; kesin olay saati değildir.": "Las horas muestran el intervalo entre dos escaneos completos de la lista, no el momento exacto.",
+  "Takip geçmişi {0} tarihli ilk tam listeyle başladı.": "El historial de seguimiento empezó con la primera lista completa del {0}.",
+  "Geri gelenler · {0}": "Regresaron · {0}",
+  "Ayrılanlar · {0}": "Se fueron · {0}",
+  "Geri döndü": "Regresó",
+  "Ayrıldı": "Se fue",
+  "{0} – {1} arası": "entre {0} y {1}",
+  "İlk görülme: ilk tam listede vardı": "Visto por primera vez: ya estaba en la primera lista completa",
+  "İlk görülme: {0}": "Visto por primera vez: {0}",
+  "Son görülme: {0}": "Visto por última vez: {0}",
+  "Listeden çıktı: {0}": "Salió de la lista: {0}",
+  "Daha önce {0} kez geri dönmüştü": {
+    "one": "Ya había regresado {0} vez",
+    "other": "Ya había regresado {0} veces",
+    "count": 0
+  },
+  "Geri döndü: {0}": "Regresó: {0}",
+  "Önceki çıkış: {0}": "Salida anterior: {0}",
+  "{0}. geri dönüş": "Regreso n.º {0}",
+  "Kayıtlı tam listelerde görülmedi.": "No aparece en las listas completas guardadas.",
+  "Geri dönüş: {0}": "Regreso: {0}",
+  "Toplam {0} kez geri döndü": {
+    "one": "Regresó {0} vez en total",
+    "other": "Regresó {0} veces en total",
+    "count": 0
+  },
+  "Listede": "En la lista",
+  "Takipçilerinde": "En tus seguidores",
+  "Takip ettiklerinde": "En las cuentas que sigues",
+  "Takip geçmişi": "Historial de seguimiento",
+  "{0} geri döndü": {
+    "one": "{0} regresó",
+    "other": "{0} regresaron",
+    "count": 0
+  },
+  "Geri dönenler": "Regresaron",
+  "Geri dönen: {0} hesap": {
+    "one": "Regresó: {0} cuenta",
+    "other": "Regresaron: {0} cuentas",
+    "count": 0
+  }
 }

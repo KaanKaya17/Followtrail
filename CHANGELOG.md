@@ -1,5 +1,13 @@
 # Değişiklikler
 
+## Windows 0.2.91 — 2026-11-18
+
+- **Takip geçmişi:** Her takip listesi için kalıcı üyelik defteri. Kişinin ilk ve son görüldüğü tarama, listeden çıktığı aralık ve geri döndüğü tarama şifreli kasada saklanır; son altı tarama dönüşünden etkilenmez.
+- **Takip Listeleri → İlişki filtresi** iki yeni görünüm sunar: **Geri gelenler** ve **Ayrılanlar**. Satırlarda geri dönüş zamanı, önceki çıkış aralığı, son görülme ve ilk görülme gösterilir. Normal listede geri dönen hesap **Yeni görüldü** yerine **Geri döndü** rozetini alır.
+- Kişi panelinde **Takip geçmişi** bölümü, bağlı hesabın kendi iki listesindeki hareketleri gösterir. Liste değişikliği kaydı ve Windows bildirimi geri dönen hesap sayısını içerir.
+- Zamanlar iki tam tarama arasını gösterir; kesin olay saati üretilmez. Kısmi taramalar defteri değiştirmez. Eski kasalar saklanan tam taramalardan bir kez doldurulur. Ayrıntılı geçmiş saklama süresi ve profil silme defteri de kapsar. Yeni Instagram isteği yoktur.
+- Dil değiştirildiğinde yüklenmiş liste satırları artık seçilen dilde yeniden çizilir. [Tasarım ve doğrulama](docs/FOLLOW-HISTORY-TEST.md).
+
 ## Windows 0.2.90 ve Android 0.1.103 — 2026-11-18
 
 - Hikâye fotoğraf ve videoları Instagram API sırasından ayrı, kendi medya şeridinde indirilir: dosyalar arasında 1–3 saniye, cihaz başına 400/saat ve 4.000/gün medya sınırı. Medya indirmesi API bütçesinden hak harcamaz.

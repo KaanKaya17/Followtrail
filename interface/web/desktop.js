@@ -518,7 +518,7 @@
     if(kind==='lists') {
       const value=change.after || {};
       const names=(members,total)=>Array.isArray(members) && members.length ? `<span class="notification-member-names">${members.slice(0,2).map(member=>'@'+esc(member.username)).join(', ')}${total>2?' · '+t("ve {0} hesap daha",num(total-2)):''}</span>`:'';
-      detail=`<span class="notification-list-preview"><span><strong>${t("{0} yeni görülen",num(value.added))}</strong>${names(value.membersAdded,value.added)}</span><span><strong>${t("{0} son kayıtta yok",num(value.removed))}</strong>${names(value.membersRemoved,value.removed)}</span></span>`;
+      detail=`<span class="notification-list-preview"><span><strong>${t("{0} yeni görülen",num(value.added))}</strong>${names(value.membersAdded,value.added)}</span><span><strong>${t("{0} son kayıtta yok",num(value.removed))}</strong>${names(value.membersRemoved,value.removed)}</span>${value.returned?`<span><strong>${t("{0} geri döndü",num(value.returned))}</strong></span>`:''}</span>`;
     } else if(Number.isFinite(before) && Number.isFinite(after)) {
       const difference=after-before;
       detail=`<span class="notification-pair"><span class="notification-before">${num(before)}</span>${icon('arrow')}<strong>${num(after)}</strong>${difference?`<span class="notification-delta ${difference>0?'trend-up':'trend-down'}">${difference>0?'+':''}${num(difference)}</span>`:''}</span>`;
@@ -581,7 +581,8 @@
     if (!Array.isArray(value?.membersAdded))
       return `<p>${t("Yeni görülen hesaplar")}: ${num(value?.added)} · ${t("Son kontrolde görünmeyenler")}: ${num(value?.removed)}</p><p class="field-hint">${t("Bu eski kayıtta kişi adları saklanmamış.")}</p>`;
     const preview = (members, label) => members.length ? `<p><strong>${esc(label)}</strong> ${members.slice(0, 3).map(p => '@' + esc(p.username)).join(', ')}${members.length > 3 ? ' · ' + t("ve {0} hesap daha", num(members.length - 3)) : ''}</p>` : '';
-    return `<div class="list-change-preview">${preview(value.membersAdded,t("Yeni görülen hesaplar"))}${preview(value.membersRemoved,t("Son kontrolde görünmeyenler"))}${button(t("Değişen hesapları gör"), "list-changes", "people", "secondary", idattr(id))}</div>`;
+    const back=new Set(value.returnedIds || []);
+    return `<div class="list-change-preview">${preview(value.membersAdded,t("Yeni görülen hesaplar"))}${preview(value.membersRemoved,t("Son kontrolde görünmeyenler"))}${back.size ? `<p><strong>${t("Geri dönenler")}</strong> ${num(back.size)}</p>` : ''}${button(t("Değişen hesapları gör"), "list-changes", "people", "secondary", idattr(id))}</div>`;
   }
   async function listChangesDialog(id, offset = 0, kind = 'all') {
     const change = await historyDetail('change',id);
@@ -596,7 +597,7 @@
     const rows=visibleAdded.slice(offset,offset+size).map(person => [person,true]);
     rows.push(...visibleRemoved.slice(Math.max(0,offset-visibleAdded.length),Math.max(0,offset+size-visibleAdded.length)).map(person => [person,false]));
     const ownerUsername=value.ownerUsername || person(change.personId)?.username;
-    dialog(`<span class="dialog-symbol lavender">${icon("people")}</span><h2 id="dialog-title">${t("Liste değişiklikleri")}</h2><p>${ownerUsername ? '@'+esc(ownerUsername)+' · ' : ''}${value.direction === 'followers' ? t("Takipçiler") : t("Takip edilen")}</p><p>${esc(date(value.previousAt))} → ${esc(date(change.at))}</p><div class="compare-summary list-change-filters"><button class="compare-stat mint" data-action="list-change-filter" ${idattr(id)} data-value="added" aria-pressed="${kind === 'added'}"><strong>${num(added.length)}</strong><span>${t("Yeni görülen hesaplar")}</span></button><button class="compare-stat peach" data-action="list-change-filter" ${idattr(id)} data-value="removed" aria-pressed="${kind === 'removed'}"><strong>${num(removed.length)}</strong><span>${t("Son kontrolde görünmeyenler")}</span></button></div><button class="text-button" data-action="list-change-filter" ${idattr(id)} data-value="all" aria-pressed="${kind === 'all'}">${t("Tümü")}</button><div class="list-change-pagination"><span>${t("{0}–{1} / {2} hesap",num(total ? offset+1 : 0),num(Math.min(offset+size,total)),num(total))}</span>${button(t("Önceki sayfa"),'list-change-page',null,'secondary',`${idattr(id)} data-value="${offset-size}" data-kind="${kind}" ${offset ? '' : 'disabled'}`)}${button(t("Sonraki sayfa"),'list-change-page',null,'secondary',`${idattr(id)} data-value="${offset+size}" data-kind="${kind}" ${offset+size < total ? '' : 'disabled'}`)}</div><ol class="member-change-list">${rows.map(([p,isAdded])=>`<li><span><strong>@${esc(p.username)}</strong><small>${esc(p.name || '')}</small></span><span class="badge ${isAdded ? 'mint' : 'peach'}">${isAdded ? t("Yeni görülen hesaplar") : t("Son kontrolde görünmeyenler")}</span></li>`).join('')}</ol>`,true);
+    dialog(`<span class="dialog-symbol lavender">${icon("people")}</span><h2 id="dialog-title">${t("Liste değişiklikleri")}</h2><p>${ownerUsername ? '@'+esc(ownerUsername)+' · ' : ''}${value.direction === 'followers' ? t("Takipçiler") : t("Takip edilen")}</p><p>${esc(date(value.previousAt))} → ${esc(date(change.at))}</p><div class="compare-summary list-change-filters"><button class="compare-stat mint" data-action="list-change-filter" ${idattr(id)} data-value="added" aria-pressed="${kind === 'added'}"><strong>${num(added.length)}</strong><span>${t("Yeni görülen hesaplar")}</span></button><button class="compare-stat peach" data-action="list-change-filter" ${idattr(id)} data-value="removed" aria-pressed="${kind === 'removed'}"><strong>${num(removed.length)}</strong><span>${t("Son kontrolde görünmeyenler")}</span></button></div><button class="text-button" data-action="list-change-filter" ${idattr(id)} data-value="all" aria-pressed="${kind === 'all'}">${t("Tümü")}</button><div class="list-change-pagination"><span>${t("{0}–{1} / {2} hesap",num(total ? offset+1 : 0),num(Math.min(offset+size,total)),num(total))}</span>${button(t("Önceki sayfa"),'list-change-page',null,'secondary',`${idattr(id)} data-value="${offset-size}" data-kind="${kind}" ${offset ? '' : 'disabled'}`)}${button(t("Sonraki sayfa"),'list-change-page',null,'secondary',`${idattr(id)} data-value="${offset+size}" data-kind="${kind}" ${offset+size < total ? '' : 'disabled'}`)}</div><ol class="member-change-list">${rows.map(([p,isAdded])=>`<li><span><strong>@${esc(p.username)}</strong><small>${esc(p.name || '')}</small></span>${isAdded && (value.returnedIds || []).includes(p.id) ? `<span class="badge lavender">${t("Geri döndü")}</span>` : `<span class="badge ${isAdded ? 'mint' : 'peach'}">${isAdded ? t("Yeni görülen hesaplar") : t("Son kontrolde görünmeyenler")}</span>`}</li>`).join('')}</ol>`,true);
   }
   function needsReconnect() {
     return !!data.account && (!data.connected || data.lastError?.code === 'session');
@@ -776,14 +777,27 @@
     if(Number.isFinite(profile?.following)) counts.push(num(profile.following)+' '+t('takip edilen'));
     return counts.join(' · ');
   }
+  function between(range) {
+    return t("{0} – {1} arası", date(range[0]), date(range[1]));
+  }
+  function movementText(m) {
+    const first = m.baseline ? t("İlk görülme: ilk tam listede vardı") : t("İlk görülme: {0}", date(m.firstSeen));
+    if (!m.present) return [t("Son görülme: {0}", date(m.lastSeen)), t("Listeden çıktı: {0}", between(m.leftBetween)),
+      m.returns ? t("Daha önce {0} kez geri dönmüştü", num(m.returns)) : first].join(' · ');
+    return [t("Geri döndü: {0}", date(m.returnedAt)), t("Önceki çıkış: {0}", between(m.previousLeftBetween)),
+      m.returns > 1 ? t("{0}. geri dönüş", num(m.returns)) : first].join(' · ');
+  }
   function listRow(p) {
     const saved=data.account?.id===p.id ? data.account : data.people.find(x=>x.id===p.id);
     const cached=ui.peerOwner ? profileDetails.peek(data.activeAccountId,p.id) : null;
     const details=(cached?.observedAt ?? 0)>(saved?.observedAt ?? 0) ? cached : saved ?? cached;
     const common=!!ui.peerOwner;
     const metrics=common ? '<small class="common-list-counts">'+esc(commonListCounts(details))+'</small>' : '';
-    const change=p.change==='added' ? t("Yeni görüldü") : p.change==='removed' ? t("Son kayıtta yok") : '';
-    const status=change ? `<span class="badge ${p.change==='removed' ? 'peach':'mint'}">${change}</span>` : `<span class="subtle-status">${t('Kayıtlı')}</span>`;
+    const change=p.change==='added' ? t("Yeni görüldü") : p.change==='removed' ? t("Son kayıtta yok") :
+      p.change==='returned' ? t("Geri döndü") : p.change==='left' ? t("Ayrıldı") : '';
+    const tone={removed:'peach',left:'peach',returned:'lavender'}[p.change] || 'mint';
+    const status=change ? `<span class="badge ${tone}">${change}</span>` : `<span class="subtle-status">${t('Kayıtlı')}</span>`;
+    const movement=p.movement ? `<small class="list-movement">${esc(movementText(p.movement))}</small>` : '';
     const exceptionMenu = p.exception === undefined ? '' : `<details class="list-exception-menu">
       <summary class="icon-button" aria-label="${t("Satır seçenekleri")}">⋯</summary>
       ${button(p.exception ? t("Ana listeye geri al") : t("İstisnalara taşı"),'list-exception',null,'secondary',
@@ -791,7 +805,7 @@
     return `<div class="list-row${common ? ' list-row--common' : ''}">
       <button class="list-person" data-action="person" ${idattr(p.id)} data-photo-scan="${esc(p.photoScan)}" data-photo-owner="${esc(p.photoOwner)}">
         ${avatar(saved?.avatar ? {...p,avatar:saved.avatar} : p)}
-        <span><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small>${metrics}</span>
+        <span><strong>${esc(p.name || p.username)}</strong><small>@${esc(p.username)}</small>${metrics}${movement}</span>
       </button>
       ${common ? '' : `<span class="list-followers">${num(saved?.followers)}<small> ${t('takipçi')}</small></span><span class="list-state">${status}</span>`}
       <button class="icon-button star-button ${saved?.favorite ? 'is-favorite':''}" data-action="star" ${idattr(p.id)} aria-label="${t('{0} favori durumunu değiştir',esc(p.username))}" aria-pressed="${!!saved?.favorite}" ${busy ? 'disabled':''}>${icon('star')}</button>
@@ -805,8 +819,10 @@
     const exceptions=document.getElementById('list-exception-rows');
     const view=listPager.state;
     const count=Number(node.dataset.loaded || 0);
-    if(node.dataset.context!==listPager.key || count>view.items.length) {
-      node.replaceChildren();exceptions.replaceChildren();node.dataset.context=listPager.key;node.dataset.loaded='0';
+    // Rows carry translated labels; a language change repaints them from the loaded page.
+    const context=listPager.key+'|'+language;
+    if(node.dataset.context!==context || count>view.items.length) {
+      node.replaceChildren();exceptions.replaceChildren();node.dataset.context=context;node.dataset.loaded='0';
     }
     const start=Number(node.dataset.loaded || 0);
     if(view.items.length>start) {
@@ -1145,11 +1161,16 @@
       data.lists[
         `${owner}:${ui.direction === "followers" ? "following" : "followers"}`
       ]?.snapshots.at(-1);
-    if (
-      ui.listFilter !== "all" &&
-      (!current || !other || current !== scans.at(-1))
-    )
+    const relationReady = !!current && !!other && current === scans.at(-1);
+    const movement = record.movement;
+    const movementReady = !!current && current === scans.at(-1) && !!movement && movement.scans >= 2 &&
+      movement.appliedAt === current.finishedAt;
+    if (ui.comparison ||
+      (["mutual", "oneway"].includes(ui.listFilter) && !relationReady) ||
+      (["returned", "left"].includes(ui.listFilter) && !movementReady))
       ui.listFilter = "all";
+    const movementNote = movementReady && ["returned", "left"].includes(ui.listFilter) ?
+      `<p class="field-hint list-movement-note">${t("Zamanlar iki tam liste taraması arasını gösterir; kesin olay saati değildir.")} ${t("Takip geçmişi {0} tarihli ilk tam listeyle başladı.", esc(date(movement.baselineAt)))}</p>` : "";
     const initialQueued = !current && record.initialPending && !record.draft &&
       data.connected && data.settings.automatic && data.settings.automaticLists;
     const firstList = initialQueued ? t("İlk liste sırada") : t("İlk tam liste henüz hazır değil");
@@ -1189,7 +1210,7 @@
       <section class="list-coverage card"><strong>${current ? t("Tamamlanan kayıt: ") + num(current.count) + t(" hesap") : firstList}</strong><p>${current ? t("Son tarama: ") + esc(date(current.startedAt)) + " – " + esc(date(current.finishedAt)) : t("Farkları göstermek için iki tamamlanmış liste gerekiyor.")}</p>${privateNotice ? `<p class="notice warning">${esc(privateNotice)}</p>` : ""}${record.draft?.recoveryPass ? `<p class="field-hint">${t("Tekrarlanan hesaplar için tamamlama turu uygulanıyor.")}</p>` : ""}${current?.recoveryPass ? `<p class="field-hint">${t("Bu liste tek tarama içindeki tamamlama turuyla oluşturuldu.")}</p>` : ""}${record.draft ? `<div class="notice warning"><strong>${coverage}</strong><p>${esc(date(record.draft.finishedAt || record.draft.startedAt))}. ${record.draft.status === "running" ? t("Tarama sürüyor.") : record.canResume ? t("Taramaya devam et") : t("Önceki tarama tamamlanmadı. Yeni tarama baştan başlar.")} ${current ? t("Önceki tamamlanmış listen duruyor.") : t("Şimdilik yalnız kaydedilen hesaplar gösteriliyor.")}</p></div>` : ""}</section>
       ${!current && record.retainedPartial && record.visiblePartialId===record.retainedPartial.id ? `<div class="notice"><strong>${t("Önceki yarım listeden {0} hesap gösteriliyor; yeni tarama tamamlanınca güncellenecek.",num(record.retainedPartial.count))}</strong><p>${esc(date(record.retainedPartial.finishedAt || record.retainedPartial.startedAt))}</p></div>` : ""}<div class="comparison-controls card"><label>${t("Önceki kontrol")}<select id="previous-scan" ${scans.length < 2 ? "disabled" : ""}>${scanOptions(previous)}</select></label><label>${t("Yeni kontrol")}<select id="current-scan" ${!scans.length ? "disabled" : ""}>${scanOptions(current)}</select></label>${button(ui.comparison ? t("Listeye dön") : t("Farkları göster"), "compare", "compare", "secondary", !ready ? "disabled" : "")}</div>
       ${ui.comparison && ready ? `<div class="compare-summary"><div class="compare-stat mint"><strong id="compare-added">0</strong><span>${ui.direction === "followers" ? t("Yeni görülen takipçiler") : t("Yeni takip edilen hesaplar")}</span></div><div class="compare-stat peach"><strong id="compare-removed">0</strong><span>${t("Son kontrolde görünmeyenler")}</span></div></div>` : ""}
-      <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${!current || !other || ui.comparison || current !== scans.at(-1) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option></select></label></div>${results}${accessOverview()}`}`;
+      <div class="toolbar"><label class="inline-label">${t("İlişki filtresi")}<select id="relation-filter" ${ui.comparison || (!relationReady && !movementReady) ? "disabled" : ""}><option value="all" ${ui.listFilter === "all" ? "selected" : ""}>${t("Tümü")}</option><option value="mutual" ${ui.listFilter === "mutual" ? "selected" : ""} ${relationReady ? "" : "disabled"}>${t("İki listede de var")}</option><option value="oneway" ${ui.listFilter === "oneway" ? "selected" : ""} ${relationReady ? "" : "disabled"}>${ui.direction === "following" ? t("Seni geri takip etmeyenler") : t("Senin geri takip etmediklerin")}</option><option value="returned" ${ui.listFilter === "returned" ? "selected" : ""} ${movementReady ? "" : "disabled"}>${t("Geri gelenler · {0}", num(movement?.returned ?? 0))}</option><option value="left" ${ui.listFilter === "left" ? "selected" : ""} ${movementReady ? "" : "disabled"}>${t("Ayrılanlar · {0}", num(movement?.left ?? 0))}</option></select></label></div>${movementNote}${results}${accessOverview()}`}`;
   }
   function accessLabel(c) {
     const last = c.checks.at(-1);
@@ -1519,6 +1540,27 @@
       </div>
     </details>`;
   }
+  function paintMembership(value) {
+    const node=document.getElementById('person-membership');
+    if(!node || !value)return;
+    const part=(direction,label)=>{
+      const m=value[direction];
+      if(!m || m.scans<1)return '';
+      const lines=!m.firstSeen ? [t("Kayıtlı tam listelerde görülmedi.")] : [
+        m.baseline ? t("İlk görülme: ilk tam listede vardı") : t("İlk görülme: {0}", date(m.firstSeen)),
+        t("Son görülme: {0}", date(m.lastSeen)),
+        m.leftBetween ? t("Listeden çıktı: {0}", between(m.leftBetween)) : '',
+        m.previousLeftBetween ? t("Önceki çıkış: {0}", between(m.previousLeftBetween)) : '',
+        m.returnedAt ? t("Geri döndü: {0}", date(m.returnedAt)) : m.previousReturnedAt ? t("Geri dönüş: {0}", date(m.previousReturnedAt)) : '',
+        m.returns ? t("Toplam {0} kez geri döndü", num(m.returns)) : '',
+      ].filter(Boolean);
+      const state=!m.firstSeen ? '' : m.present ? `<span class="badge ${m.returns ? 'lavender' : 'mint'}">${m.returns ? t("Geri döndü") : t("Listede")}</span>` : `<span class="badge peach">${t("Ayrıldı")}</span>`;
+      return `<div class="profile-membership-row"><div class="section-heading"><strong>${esc(label)}</strong>${state}</div><ul>${lines.map(line=>`<li>${esc(line)}</li>`).join('')}</ul></div>`;
+    };
+    const html=part('followers',t("Takipçilerinde"))+part('following',t("Takip ettiklerinde"));
+    node.innerHTML=html ? `<h3 id="person-membership-title">${t("Takip geçmişi")}</h3>${html}<p class="field-hint">${t("Zamanlar iki tam liste taraması arasını gösterir; kesin olay saati değildir.")}</p>` : '';
+    node.hidden=!html;
+  }
   function personDialog(id,carry={}) {
     const p=person(id);if(!p)return;
     const previous=personView?.id===id && personView.accountId===data.activeAccountId ? personView : null;
@@ -1539,7 +1581,7 @@
     const notes=saved?`<details class="profile-personal" ${draft?.open?'open':''}><summary><span>${t("Not ve grup")}</span>${group?`<small>${esc(group)}</small>`:''}${icon('down')}</summary><div class="profile-personal-content"><label class="form-label" for="person-group">${t("Grup")}</label><input id="person-group" maxlength="80" value="${esc(group)}" placeholder="${t("Örn. Arkadaşlar")}"><label class="form-label" for="person-note">${t("Sana özel not")}</label><textarea id="person-note" maxlength="2000" rows="4" placeholder="${t("Bu kişiyle ilgili bir not…")}">${esc(note)}</textarea><p class="field-hint">${t("Not ve grup şifreli yerel depoya kaydedilir.")}</p>${button(t("Notu ve grubu kaydet"),'save-note','check','secondary',`${idattr(id)} ${busy?'disabled':''}`)}</div></details>`:'';
     const evidence=!own && data.access?.find(entry=>entry.id===id);
     dialog(`<div class="profile-panel-scroll"><div id="person-profile-info">${personInformation(view)}</div>${localTools}
-      <p id="person-detail-status" class="field-hint" role="status"></p><section class="profile-actions">${button(t("Profili kontrol et"),'refresh-person','refresh','primary profile-refresh',`${idattr(id)} ${netDisabled()}`)}<div class="profile-shortcuts">${button(t("Takip listelerini aç"),'person-lists','list','secondary profile-shortcut',idattr(id))}${archive}${more}</div></section>
+      <p id="person-detail-status" class="field-hint" role="status"></p><section class="profile-actions">${button(t("Profili kontrol et"),'refresh-person','refresh','primary profile-refresh',`${idattr(id)} ${netDisabled()}`)}<div class="profile-shortcuts">${button(t("Takip listelerini aç"),'person-lists','list','secondary profile-shortcut',idattr(id))}${archive}${more}</div></section><section id="person-membership" class="profile-membership" aria-labelledby="person-membership-title" hidden></section>
       ${profileAbout(view,saved || p,managed,carry.showAbout)}${notes}${evidence?`<details class="profile-access" ${carry.showAccess?'open':''}><summary><span>${t("Profil görünürlüğü")}</span><small>${esc(accessLabel(evidence))}</small>${icon('down')}</summary>${accessPanel(id)}</details>`:''}</div>`,false,true);
     document.querySelector('#overlay-root dialog').classList.add('profile-panel');
     const moreMenu=document.querySelector('.profile-more');
@@ -1565,6 +1607,9 @@
       const result=await command('save_profile_about',{accountId:view.accountId,id,about},t("Hesap bilgileri kaydedildi."));
       if(result?.ok && personView===view && view.accountId===data.activeAccountId)personDialog(id,{showAbout:true});
     });
+    if(!own)api.command('list_membership',{accountId:view.accountId,id}).then(response=>{
+      if(personView===view && view.accountId===data.activeAccountId && response?.ok)paintMembership(response.membership);
+    }).catch(()=>{});
     if(source && !view.avatar)listPhotos.get(source).then(result=>{if(personView===view && result?.avatar)receivePersonPhoto(source,result.avatar);});
     profileDetails.open({id,accountId:view.accountId,known:p},state=>{
       if(personView!==view)return;

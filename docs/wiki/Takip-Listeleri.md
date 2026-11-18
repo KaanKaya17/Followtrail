@@ -72,6 +72,17 @@ Windows’ta kendi hesabınızın **Takip edilen → Seni geri takip etmeyenler*
 
 Yalnız “takipçi sayısı 1 azaldı” bilgisi, giden kişinin kimliğini vermez. Üye adları için ilgili listelerin okunması gerekir.
 
+## Geri gelenler ve ayrılanlar
+
+Windows 0.2.91’den itibaren her tam liste taraması kalıcı bir takip geçmişine eklenir. **Takip Listeleri → İlişki filtresi** içinden:
+
+- **Geri gelenler:** Listeden çıkıp sonradan yeniden görülen hesaplar. Satırda geri dönüş zamanı, önceki çıkış aralığı ve ilk görülme yazar.
+- **Ayrılanlar:** Son tam listede olmayan hesaplar. Son görülme ve listeden çıkış aralığı yazar. Eski taramalar döndükçe kaybolmazlar.
+
+Bir kişiye tıklayınca açılan panelde **Takip geçmişi** bölümü, senin takipçi ve takip ettiğin listelerinde bu kişinin hareketlerini gösterir. Normal listede son taramada geri dönen hesabın rozeti **Geri döndü** olur.
+
+Zamanlar iki tam tarama arasıdır: “13 Kas – 14 Kas arası listeden çıktı”, kişinin 13 Kasım taramasında olup 14 Kasım taramasında olmadığını söyler. Kesin saat bilinmez. İlk tam listede zaten olan kişi için “ilk tam listede vardı” yazar; daha önceki takip tarihi bilinmez. Kısmi taramalar geçmişi değiştirmez. Yeni Instagram isteği gönderilmez. [Ayrıntılar](../FOLLOW-HISTORY-TEST.md).
+
 ## Ortak takipçiler ve takip edilenler
 
 **Takip Listeleri** ekranında liste sahibini seçin. **Ortak hesapları karşılaştır** alanından ikinci profili seçin. **Ortak takipçiler** iki profili de takip edenleri, **Ortak takip edilenler** iki profilin de takip ettiği hesapları gösterir.

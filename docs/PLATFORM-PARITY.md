@@ -1,5 +1,9 @@
 # Android / Windows eşitlemesi
 
+## Windows 0.2.91
+
+Takip geçmişi (Geri gelenler, Ayrılanlar ve kişi panelindeki ilk/son görülme, çıkış ve geri dönüş aralıkları) yalnız Windows’ta vardır. Android 0.1.103 son tam taramalar arasındaki farkı göstermeyi sürdürür; kalıcı üyelik defteri henüz yoktur. [Tasarım ve doğrulama](FOLLOW-HISTORY-TEST.md).
+
 ## Windows 0.2.90 ve Android 0.1.103
 
 İki platformda hikâye fotoğraf ve videoları API sırasından ayrı, kendi medya şeridinde indirilir. 10 öğelik bir hikâye kontrolü API bütçesinden 11 yerine 1 hak harcar; sanal bekleme 80 saniyeden 18 saniyeye iner. API aralığı, bütçeler ve 429 kuralları değişmedi. [Ölçüm ve doğrulama](MEDIA-LANE-TEST.md).

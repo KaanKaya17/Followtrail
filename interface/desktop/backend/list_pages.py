@@ -3,6 +3,7 @@ import unicodedata
 import uuid
 import re
 from network import AppFailure, avatar_url
+import membership as ledger_rules
 
 
 def validate_exceptions(data):
@@ -48,7 +49,9 @@ class ListPages:
                             {k:v for k,v in s.items() if k not in ('members','nextCursor','seenCursors')})
                             for s in record.get('snapshots', []) +
                             [s for s in (record.get('draft'), record.get('retainedPartial')) if s]))
-                            for key, record in data['lists'].items()))
+                            for key, record in data['lists'].items()),
+                     tuple((key, ledger.get('appliedId'), id(ledger.get('members')), len(ledger.get('members') or ()))
+                           for key, record in data['lists'].items() for ledger in [record.get('membership') or {}]))
         if signature != self.signature:
             # Copy the membership mapping at a completed publication boundary.
             # Pages use this stable view even while a later network scan runs.
@@ -58,8 +61,11 @@ class ListPages:
                     if scan is None:
                         return None
                     return {**scan, 'members': dict(scan['members'])}
+                ledger = record.get('membership')
                 records[key] = {'snapshots': [freeze(s) for s in record.get('snapshots', [])],
-                                'draft': freeze(record.get('draft')), 'retainedPartial': freeze(record.get('retainedPartial'))}
+                                'draft': freeze(record.get('draft')), 'retainedPartial': freeze(record.get('retainedPartial')),
+                                # Entries are replaced, never mutated: a shallow copy is a stable view.
+                                'membership': {**ledger, 'members': dict(ledger['members'])} if ledger else None}
             self.sources = tuple(s for record in data['lists'].values() for s in record.get('snapshots', []) + [s for s in (record.get('draft'), record.get('retainedPartial')) if s])
             self.view = {'accountId': account, 'revision': uuid.uuid4().hex, 'records': records, 'owners': owners,
                          'followingExceptions': frozenset(exceptions)}
@@ -97,7 +103,8 @@ class ListPages:
                 any(not isinstance(args[k], str) for k in fields - {'comparison','offset'}) or
                 type(args['comparison']) is not bool or type(args['offset']) is not int or args['offset'] < 0 or
                 args['offset'] > 40000 or len(args['query']) > 256 or
-                args['direction'] not in ('followers','following') or args['relation'] not in ('all','mutual','oneway')):
+                args['direction'] not in ('followers','following') or
+                args['relation'] not in ('all','mutual','oneway','returned','left')):
             raise AppFailure('input', 'Geçersiz liste isteği.')
         if not view or args['accountId'] != view['accountId'] or args['revision'] != view['revision']:
             raise AppFailure('list_view', 'Liste güncellendi. Güncel kayıt yükleniyor.')
@@ -128,8 +135,24 @@ class ListPages:
                 rows += [(p, previous['id'], 'removed', args['ownerId']) for i,p in old.items() if i not in members]
             else:
                 rows = [(p, current['id'], 'added' if previous and i not in old else '', args['ownerId']) for i,p in members.items()]
+            ledger = record.get('membership')
+            entries = ledger['members'] if ledger else {}
+            # Mark returns only where the ledger has seen the scan that holds them.
+            rows = [(p, scan, 'returned' if change == 'added' and p['id'] in entries and
+                     ledger_rules.returned_at(entries[p['id']], current.get('finishedAt')) else change, owner)
+                    for p, scan, change, owner in rows]
             other = view['records'].get(args['ownerId'] + ':' + ('following' if args['direction']=='followers' else 'followers'), {}).get('snapshots', [])
-            if args['relation'] != 'all':
+            if args['relation'] in ('returned', 'left'):
+                if (not scans or current is not scans[-1] or args['comparison'] or not ledger
+                        or ledger['appliedId'] != current.get('id')):
+                    raise AppFailure('input', 'Bu kayıt için ilişki filtresi kullanılamıyor.')
+                # Departed members are not in the current scan; keep the photo
+                # source only while that older scan is still retained.
+                retained = {s['id'] for s in scans}
+                rows = [(p, entry['scanId'] if entry['scanId'] in retained else '',
+                         args['relation'], args['ownerId'], ledger_rules.movement(entry, ledger))
+                        for p, entry in ledger_rules.rows(ledger, args['relation'])]
+            elif args['relation'] != 'all':
                 if not scans or current is not scans[-1] or not other or args['comparison']:
                     raise AppFailure('input', 'Bu kayıt için ilişki filtresi kullanılamıyor.')
                 opposite = other[-1]['members']
@@ -148,11 +171,27 @@ class ListPages:
             self.cached = (key, rows, summary)
         start = args['offset']
         items = [{**public_member(p), 'photoScan': scan, 'photoOwner': owner, 'change': change,
+                  **({'movement': extra[0]} if extra else {}),
                   **({'exception': index >= summary['mainTotal']} if 'mainTotal' in summary else {})}
-                 for index, (p, scan, change, owner) in enumerate(rows[start:start+100], start)]
+                 for index, (p, scan, change, owner, *extra) in enumerate(rows[start:start+100], start)]
         return {'accountId':view['accountId'], 'revision':view['revision'], 'offset':start,
                 'items':items, 'total':len(rows), 'nextOffset': start+len(items) if start+len(items)<len(rows) else None,
                 **summary}
+
+    def membership(self, args):
+        """The active account's own two lists, for one person. Local only."""
+        view = self.view
+        if (not isinstance(args, dict) or set(args) != {'accountId', 'id'} or not view
+                or args['accountId'] != view['accountId'] or not isinstance(args['id'], str)):
+            raise AppFailure('input', 'Geçersiz liste isteği.')
+        result = {'accountId': view['accountId'], 'id': args['id']}
+        for direction in ('followers', 'following'):
+            ledger = view['records'].get(f"{view['accountId']}:{direction}", {}).get('membership')
+            entry = ledger['members'].get(args['id']) if ledger else None
+            result[direction] = ({**ledger_rules.movement(entry, ledger), 'scans': ledger['scans'],
+                                  'appliedAt': ledger['appliedAt']} if entry else
+                                 {'present': False, 'scans': ledger['scans'], 'appliedAt': ledger['appliedAt']} if ledger else None)
+        return result
 
     def set_exception(self, data, args):
         view = self.view

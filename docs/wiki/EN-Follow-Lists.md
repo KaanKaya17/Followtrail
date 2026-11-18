@@ -38,6 +38,17 @@ On Windows, compare two complete snapshots or choose **Show changed accounts** f
 
 For your own account on Windows, open **Following → Not following you back** and use the row menu. On Android, open the equivalent result under **Follow Lists → Compare** and tap the account. **Move to exceptions** keeps the row in a separate section without counting it in the main results. **Return to main list** restores it.
 
+## Came back and left
+
+Since Windows 0.2.91 every complete list scan is added to a lasting follow history. Under **Follow Lists → Relationship filter**:
+
+- **Came back:** accounts that left the list and were seen again later. Each row shows when they came back, the previous exit window and when they were first seen.
+- **Left:** accounts missing from the latest complete list, with when they were last seen and the exit window. They stay listed after older scans rotate out.
+
+The person panel has a **Follow history** section for your own followers and following. In the normal list, an account that came back in the latest scan is labelled **Came back** instead of newly seen.
+
+Times are the span between two complete scans, not an exact moment. Someone already in the first complete list shows as “already in the first complete list”; earlier follow dates are unknown. Partial scans do not change the history, and no extra Instagram request is made. [Details](../FOLLOW-HISTORY-TEST.md).
+
 ## Common followers and following
 
 Choose the list owner, then the second profile in the common-accounts comparison. Switch between common followers and common following. Tracker prefers the latest complete snapshots and labels a comparison based on a partial snapshot as limited to the accounts it could read. The dates and coverage of both sources appear above the result. An unavailable list produces a missing-record message. Available photos and counts are reused without a profile request for every row.

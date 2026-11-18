@@ -2,6 +2,8 @@
 import copy
 import math
 
+import membership
+
 CHOICES = (0, 30, 90, 365)
 FIELDS = ('historyRetentionDays', 'dailyRetentionDays')
 DAY = 86400
@@ -44,6 +46,7 @@ def prune(data, before):
         if retained and (retained.get('finishedAt') or retained['startedAt']) < before:
             record.pop('retainedPartial')
         # The current draft belongs to a resumable scan; it is not an old comparison snapshot.
+        membership.prune(record, before)
     data['events'] = [event for event in data['events'] if event['at'] >= before]
     logs = []
     for entry in data['notificationLog']:

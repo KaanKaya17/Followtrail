@@ -41,7 +41,8 @@ function changeNotification(entry, language = 'tr') {
     const names = (members,total=members.length) => members.slice(0,2).map(person => '@'+person.username).join(', ') +
       (total > 2 ? ' · ' + t("ve {0} hesap daha", total-2) : '');
     body += '\n' + [lists.after.membersAdded.length ? t("Yeni: {0}",names(lists.after.membersAdded,lists.after.added)) : '',
-      lists.after.membersRemoved.length ? t("Listede yok: {0}",names(lists.after.membersRemoved,lists.after.removed)) : ''].filter(Boolean).join('\n');
+      lists.after.membersRemoved.length ? t("Listede yok: {0}",names(lists.after.membersRemoved,lists.after.removed)) : '',
+      lists.after.returned ? t("Geri dönen: {0} hesap", lists.after.returned) : ''].filter(Boolean).join('\n');
   }
   return {
     title: access.length

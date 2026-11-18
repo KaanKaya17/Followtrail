@@ -1527,7 +1527,48 @@
     "Instagram isteği için kullanılabilir bir HTTP yanıtı alınamadı.": "No usable HTTP response was received for the Instagram request.",
     "Son giriş isteği: {0}": "Last sign-in request: {0}",
     "Ağ hata kodu: {0}": "Network error code: {0}",
-    "Oturum Windows’a kaydediliyor": "Saving the session on Windows"
+    "Oturum Windows’a kaydediliyor": "Saving the session on Windows",
+    "Zamanlar iki tam liste taraması arasını gösterir; kesin olay saati değildir.": "Times show the span between two complete list scans, not the exact moment.",
+    "Takip geçmişi {0} tarihli ilk tam listeyle başladı.": "Follow history started with the first complete list on {0}.",
+    "Geri gelenler · {0}": "Came back · {0}",
+    "Ayrılanlar · {0}": "Left · {0}",
+    "Geri döndü": "Came back",
+    "Ayrıldı": "Left",
+    "{0} – {1} arası": "between {0} and {1}",
+    "İlk görülme: ilk tam listede vardı": "First seen: already in the first complete list",
+    "İlk görülme: {0}": "First seen: {0}",
+    "Son görülme: {0}": "Last seen: {0}",
+    "Listeden çıktı: {0}": "Left the list: {0}",
+    "Daha önce {0} kez geri dönmüştü": {
+      "one": "Had come back {0} time before",
+      "other": "Had come back {0} times before",
+      "count": 0
+    },
+    "Geri döndü: {0}": "Came back: {0}",
+    "Önceki çıkış: {0}": "Previous exit: {0}",
+    "{0}. geri dönüş": "Return no. {0}",
+    "Kayıtlı tam listelerde görülmedi.": "Not seen in the saved complete lists.",
+    "Geri dönüş: {0}": "Return: {0}",
+    "Toplam {0} kez geri döndü": {
+      "one": "Came back {0} time in total",
+      "other": "Came back {0} times in total",
+      "count": 0
+    },
+    "Listede": "In the list",
+    "Takipçilerinde": "In your followers",
+    "Takip ettiklerinde": "In your following",
+    "Takip geçmişi": "Follow history",
+    "{0} geri döndü": {
+      "one": "{0} came back",
+      "other": "{0} came back",
+      "count": 0
+    },
+    "Geri dönenler": "Came back",
+    "Geri dönen: {0} hesap": {
+      "one": "Came back: {0} account",
+      "other": "Came back: {0} accounts",
+      "count": 0
+    }
   },
   "es": {
     "Satır seçenekleri": "Opciones de la fila",
@@ -3050,7 +3091,48 @@
     "Instagram isteği için kullanılabilir bir HTTP yanıtı alınamadı.": "No se recibió una respuesta HTTP utilizable para la solicitud a Instagram.",
     "Son giriş isteği: {0}": "Última solicitud de inicio de sesión: {0}",
     "Ağ hata kodu: {0}": "Código de error de red: {0}",
-    "Oturum Windows’a kaydediliyor": "Guardando la sesión en Windows"
+    "Oturum Windows’a kaydediliyor": "Guardando la sesión en Windows",
+    "Zamanlar iki tam liste taraması arasını gösterir; kesin olay saati değildir.": "Las horas muestran el intervalo entre dos escaneos completos de la lista, no el momento exacto.",
+    "Takip geçmişi {0} tarihli ilk tam listeyle başladı.": "El historial de seguimiento empezó con la primera lista completa del {0}.",
+    "Geri gelenler · {0}": "Regresaron · {0}",
+    "Ayrılanlar · {0}": "Se fueron · {0}",
+    "Geri döndü": "Regresó",
+    "Ayrıldı": "Se fue",
+    "{0} – {1} arası": "entre {0} y {1}",
+    "İlk görülme: ilk tam listede vardı": "Visto por primera vez: ya estaba en la primera lista completa",
+    "İlk görülme: {0}": "Visto por primera vez: {0}",
+    "Son görülme: {0}": "Visto por última vez: {0}",
+    "Listeden çıktı: {0}": "Salió de la lista: {0}",
+    "Daha önce {0} kez geri dönmüştü": {
+      "one": "Ya había regresado {0} vez",
+      "other": "Ya había regresado {0} veces",
+      "count": 0
+    },
+    "Geri döndü: {0}": "Regresó: {0}",
+    "Önceki çıkış: {0}": "Salida anterior: {0}",
+    "{0}. geri dönüş": "Regreso n.º {0}",
+    "Kayıtlı tam listelerde görülmedi.": "No aparece en las listas completas guardadas.",
+    "Geri dönüş: {0}": "Regreso: {0}",
+    "Toplam {0} kez geri döndü": {
+      "one": "Regresó {0} vez en total",
+      "other": "Regresó {0} veces en total",
+      "count": 0
+    },
+    "Listede": "En la lista",
+    "Takipçilerinde": "En tus seguidores",
+    "Takip ettiklerinde": "En las cuentas que sigues",
+    "Takip geçmişi": "Historial de seguimiento",
+    "{0} geri döndü": {
+      "one": "{0} regresó",
+      "other": "{0} regresaron",
+      "count": 0
+    },
+    "Geri dönenler": "Regresaron",
+    "Geri dönen: {0} hesap": {
+      "one": "Regresó: {0} cuenta",
+      "other": "Regresaron: {0} cuentas",
+      "count": 0
+    }
   },
   "pt-BR": {
     "Satır seçenekleri": "Opções da linha",
@@ -4573,7 +4655,48 @@
     "Instagram isteği için kullanılabilir bir HTTP yanıtı alınamadı.": "Não foi recebida uma resposta HTTP utilizável para a solicitação ao Instagram.",
     "Son giriş isteği: {0}": "Última solicitação de login: {0}",
     "Ağ hata kodu: {0}": "Código de erro de rede: {0}",
-    "Oturum Windows’a kaydediliyor": "Salvando a sessão no Windows"
+    "Oturum Windows’a kaydediliyor": "Salvando a sessão no Windows",
+    "Zamanlar iki tam liste taraması arasını gösterir; kesin olay saati değildir.": "Os horários mostram o intervalo entre duas leituras completas da lista, não o momento exato.",
+    "Takip geçmişi {0} tarihli ilk tam listeyle başladı.": "O histórico de seguimento começou com a primeira lista completa de {0}.",
+    "Geri gelenler · {0}": "Voltaram · {0}",
+    "Ayrılanlar · {0}": "Saíram · {0}",
+    "Geri döndü": "Voltou",
+    "Ayrıldı": "Saiu",
+    "{0} – {1} arası": "entre {0} e {1}",
+    "İlk görülme: ilk tam listede vardı": "Visto pela primeira vez: já estava na primeira lista completa",
+    "İlk görülme: {0}": "Visto pela primeira vez: {0}",
+    "Son görülme: {0}": "Visto pela última vez: {0}",
+    "Listeden çıktı: {0}": "Saiu da lista: {0}",
+    "Daha önce {0} kez geri dönmüştü": {
+      "one": "Já tinha voltado {0} vez",
+      "other": "Já tinha voltado {0} vezes",
+      "count": 0
+    },
+    "Geri döndü: {0}": "Voltou: {0}",
+    "Önceki çıkış: {0}": "Saída anterior: {0}",
+    "{0}. geri dönüş": "Retorno nº {0}",
+    "Kayıtlı tam listelerde görülmedi.": "Não aparece nas listas completas salvas.",
+    "Geri dönüş: {0}": "Retorno: {0}",
+    "Toplam {0} kez geri döndü": {
+      "one": "Voltou {0} vez no total",
+      "other": "Voltou {0} vezes no total",
+      "count": 0
+    },
+    "Listede": "Na lista",
+    "Takipçilerinde": "Nos seus seguidores",
+    "Takip ettiklerinde": "Nas contas que você segue",
+    "Takip geçmişi": "Histórico de seguimento",
+    "{0} geri döndü": {
+      "one": "{0} voltou",
+      "other": "{0} voltaram",
+      "count": 0
+    },
+    "Geri dönenler": "Voltaram",
+    "Geri dönen: {0} hesap": {
+      "one": "Voltou: {0} conta",
+      "other": "Voltaram: {0} contas",
+      "count": 0
+    }
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

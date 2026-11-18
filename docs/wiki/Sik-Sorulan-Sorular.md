@@ -18,6 +18,10 @@ Kesin engelleme tespiti sunulmaz. Windows'ta uygun kayıtlar üzerinden erişim 
 
 Hayır. Önce başlangıç listesi gerekir. Sonraki uygun tam kayıtla karşılaştırma yapılabilir. Uygulama daha önce hiç kaydetmediği geçmiş üyelik hareketlerini geriye dönük üretmez.
 
+## Takipten çıkıp geri gelenleri görebilir miyim?
+
+Windows 0.2.91’den itibaren evet. **Takip Listeleri → İlişki filtresi → Geri gelenler** listeden çıkıp yeniden görülen hesapları, **Ayrılanlar** son tam listede olmayanları gösterir. Zamanlar iki tam tarama arasıdır; kesin saat değildir. Geçmiş, bu özelliğin kaydettiği taramalarla başlar. [Geri gelenler ve ayrılanlar](Takip-Listeleri.md#geri-gelenler-ve-ayrılanlar).
+
 ## Kaydedilen profiller neden bütün takipçilerimi içermiyor?
 
 Kaydedilen Profiller, özel izlemeye aldığınız kişilerdir. Takipçi ve takip edilen kayıtları **Takip Listeleri** bölümündedir.

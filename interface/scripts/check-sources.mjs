@@ -58,6 +58,7 @@ for (const file of [
   "scripts/check-accounts-desktop.mjs",
   "scripts/check-overview-desktop.mjs",
   "scripts/check-list-recovery-desktop.mjs",
+  "scripts/check-membership-desktop.mjs",
   "scripts/check-notifications-desktop.mjs",
   "scripts/check-timeline-desktop.mjs",
   "scripts/check-resource-desktop.mjs",

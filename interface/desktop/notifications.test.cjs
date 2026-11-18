@@ -19,6 +19,17 @@ test('list notification previews frozen names in four languages and respects mut
  assert.match(changeNotification({...entry,changes:[compact]}).body,/101 hesap daha/);
 });
 
+test('list notification counts members who came back, in four languages', () => {
+ const membersAdded=[{id:'300',username:'ada'},{id:'301',username:'deniz'}];
+ const list={eventId:'list-back',category:'lists',username:'qa.owner',label:'Liste taraması',
+  after:{added:2,removed:0,membersAdded,membersRemoved:[],returned:1,returnedIds:['300']}};
+ const entry={id:'group',changes:[list],selectedChangeIds:['list-back']};
+ const expected={tr:/Geri dönen: 1 hesap/,en:/Came back: 1 account$/m,es:/Regresó: 1 cuenta/,'pt-BR':/Voltou: 1 conta/};
+ for(const [language,pattern] of Object.entries(expected)) assert.match(changeNotification(entry,language).body,pattern);
+ const before={...list,after:{...list.after,returned:undefined,returnedIds:undefined}};
+ assert.doesNotMatch(changeNotification({...entry,changes:[before]}).body,/Geri dönen/);
+});
+
 test('notification click switches to owning account before opening its log and never opens a foreign log while busy',async()=>{
  const calls=[],entry={id:'qa-log',ownerId:'100'};
  const backend={state:{activeAccountId:'400'},command:async(operation,args)=>{calls.push({operation,args});return {ok:true};}};

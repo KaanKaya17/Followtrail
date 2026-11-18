@@ -1519,5 +1519,46 @@
   "Instagram isteği için kullanılabilir bir HTTP yanıtı alınamadı.": "No usable HTTP response was received for the Instagram request.",
   "Son giriş isteği: {0}": "Last sign-in request: {0}",
   "Ağ hata kodu: {0}": "Network error code: {0}",
-  "Oturum Windows’a kaydediliyor": "Saving the session on Windows"
+  "Oturum Windows’a kaydediliyor": "Saving the session on Windows",
+  "Zamanlar iki tam liste taraması arasını gösterir; kesin olay saati değildir.": "Times show the span between two complete list scans, not the exact moment.",
+  "Takip geçmişi {0} tarihli ilk tam listeyle başladı.": "Follow history started with the first complete list on {0}.",
+  "Geri gelenler · {0}": "Came back · {0}",
+  "Ayrılanlar · {0}": "Left · {0}",
+  "Geri döndü": "Came back",
+  "Ayrıldı": "Left",
+  "{0} – {1} arası": "between {0} and {1}",
+  "İlk görülme: ilk tam listede vardı": "First seen: already in the first complete list",
+  "İlk görülme: {0}": "First seen: {0}",
+  "Son görülme: {0}": "Last seen: {0}",
+  "Listeden çıktı: {0}": "Left the list: {0}",
+  "Daha önce {0} kez geri dönmüştü": {
+    "one": "Had come back {0} time before",
+    "other": "Had come back {0} times before",
+    "count": 0
+  },
+  "Geri döndü: {0}": "Came back: {0}",
+  "Önceki çıkış: {0}": "Previous exit: {0}",
+  "{0}. geri dönüş": "Return no. {0}",
+  "Kayıtlı tam listelerde görülmedi.": "Not seen in the saved complete lists.",
+  "Geri dönüş: {0}": "Return: {0}",
+  "Toplam {0} kez geri döndü": {
+    "one": "Came back {0} time in total",
+    "other": "Came back {0} times in total",
+    "count": 0
+  },
+  "Listede": "In the list",
+  "Takipçilerinde": "In your followers",
+  "Takip ettiklerinde": "In your following",
+  "Takip geçmişi": "Follow history",
+  "{0} geri döndü": {
+    "one": "{0} came back",
+    "other": "{0} came back",
+    "count": 0
+  },
+  "Geri dönenler": "Came back",
+  "Geri dönen: {0} hesap": {
+    "one": "Came back: {0} account",
+    "other": "Came back: {0} accounts",
+    "count": 0
+  }
 }
