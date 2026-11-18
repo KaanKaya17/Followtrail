@@ -1232,12 +1232,93 @@ class Engine:
                 self.data['account']['id'] != (restored['account'] or {}).get('id')):
             raise AppFailure('backup', 'Yedek başka bir hesaba ait. Önce ilgili hesabı seç.')
 
+    # Operations that read from Instagram; refused in the isolated QA window.
+    NETWORK_OPERATIONS = frozenset({'story_fetch', 'login', 'import_counter', 'refresh', 'scan', 'add_person',
+                                    'search_people', 'profile_detail', 'automatic', 'check_access'})
+    CLEARS_SEARCH_CACHE = frozenset({'login', 'import_counter', 'disconnect', 'delete_all', 'import_backup'})
+    CLEARS_PROFILE_FACTS = CLEARS_SEARCH_CACHE | {'remove_person'}
+    # Handlers are looked up on the engine at call time, so a subclass or a
+    # test that replaces a method on one engine object is still used.
+    OPERATIONS = {
+        'story_view': lambda self, args: self.story_archive(args),
+        'story_fetch': lambda self, args: self.story_archive(args, fetch=True),
+        'story_clear': lambda self, args: self.story_archive(args, clear=True),
+        'daily_clear': lambda self, args: self.clear_daily(args),
+        'wayback': lambda self, args: self.configure_wayback(args),
+        'login': lambda self, args: self.connect(args),
+        'import_counter': lambda self, args: self.connect(args, True),
+        'refresh': lambda self, args: self.refresh(args),
+        'profile_detail': lambda self, args: self.profile_detail(args),
+        'add_person': lambda self, args: self.add_person(args),
+        'scan': lambda self, args: self.scan(args, resume=True),
+        'search_people': lambda self, args: self.search_people(args),
+        'save_person': lambda self, args: self.save_person(args),
+        'save_profile_about': lambda self, args: self.save_profile_about(args),
+        'settings': lambda self, args: self.settings(args),
+        'automatic': lambda self, args: self.automatic(),
+        'check_access': lambda self, args: self.check_access(args),
+        'notification_rule': lambda self, args: self.notification_rule(args),
+        'read_notification': lambda self, args: self.read_notification(args),
+        'read_all_notifications': lambda self, args: self.read_all_notifications(args),
+        'export_list': lambda self, args: self.export_list(args),
+        'export_backup': lambda self, args: self.export_backup(args['path']),
+        'import_backup': lambda self, args: self.import_backup(args['path'])}
+    # Local housekeeping keeps the previous error on screen.
+    LOCAL_OPERATIONS = {
+        'remove_person': lambda self, args: self.erase_person(str(args.get('id', ''))),
+        'disconnect': lambda self, args: self.disconnect(),
+        'delete_all': lambda self, args: self.delete_all(),
+        'list_exception': lambda self, args: self.set_list_exception(args)}
+
+    def disconnect(self):
+        self.data['session'] = None
+        self.data['settings']['automatic'] = False
+        self.save()
+        # Session removal also purges the immediately preceding backup.
+        self.vault.backup.unlink(missing_ok=True)
+
+    def delete_all(self):
+        if self.data['account']:
+            self.daily_store().clear_all(revoke=True)
+            stories.StoryStore(self.vault.path.parent,self.data['account']['id']).clear_all()
+        self.data = blank(dict(self.data['gate']))
+        self.save()
+        self.vault.backup.unlink(missing_ok=True)
+
+    def set_list_exception(self, args):
+        if self.list_pages.set_exception(self.data, args):
+            self.save()
+
     def run(self, operation, args, *, group_id=None, project=True):
+        self.begin_operation(operation, group_id)
+        try:
+            if self.offline and operation in self.NETWORK_OPERATIONS:
+                raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
+            if operation == 'state':
+                return self.snapshot() if project else None
+            if operation in self.LOCAL_OPERATIONS:
+                self.LOCAL_OPERATIONS[operation](self, args)
+            elif operation in self.OPERATIONS:
+                # Changing language is not a new account check; retain the
+                # existing error so its current-language projection can update.
+                if operation != 'read_all_notifications' and (
+                        operation != 'settings' or not set(args).issubset({'language', 'theme'})):
+                    self.data['lastError'] = None
+                self.OPERATIONS[operation](self, args)
+            else:
+                raise AppFailure('operation', 'Desteklenmeyen işlem.')
+            return self.snapshot() if project else None
+        except Exception as exc:
+            raise self.operation_failed(exc) from exc
+        finally:
+            self.end_operation(args)
+
+    def begin_operation(self, operation, group_id):
         self.maintain_privacy()
-        if operation in ('login','import_counter','disconnect','delete_all','import_backup'):
+        if operation in self.CLEARS_SEARCH_CACHE:
             self.search_cache.clear()
         self.operation = operation
-        if operation in ('login', 'import_counter', 'disconnect', 'delete_all', 'remove_person', 'import_backup'):
+        if operation in self.CLEARS_PROFILE_FACTS:
             self.profile_facts.clear()
         self.search_results = None
         self.profile_detail_result = None
@@ -1245,93 +1326,48 @@ class Engine:
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()
+
+    def operation_failed(self, exc):
+        """Record a failed operation and return the error to raise."""
+        if isinstance(exc, StorageFailure):
+            # Never report volatile edits as successfully persisted records.
+            self.data = self.load_vault()
+        error = failure(exc)
+        if self.login_stage is not None:
+            error['loginStage'] = ('verification' if self.login_stage == 'authentication'
+                                   and error['code'] == 'verification' else self.login_stage)
+            if self.login_request:
+                error['loginRequest'] = self.login_request
+            if self.login_http is not None:
+                error['http'] = self.login_http
+                if error['code'] == 'connection':
+                    if self.login_http >= 500:
+                        error.update(code='server', message='Instagram isteği sunucu hatasıyla sonuçlandı.')
+                    else:
+                        error.update(code='response', message='Instagram yanıt verdi ancak bu adım tamamlanamadı.')
+        if error['code'] == 'limited' and not self.data['gate'].get('manualOnly'):
+            self.limited()
+        if error['code'] in ('session', 'verification'):
+            self.data['gate']['manualOnly'] = True
+        self.data['lastError'] = {**error, 'at': self.clock()}
+        if self.login_stage is not None:
+            self.data['lastLoginError'] = self.data['lastError']
+        self.event('error', error['message'])
         try:
-            if self.offline and operation in ('story_fetch', 'login', 'import_counter', 'refresh', 'scan', 'add_person', 'search_people', 'profile_detail', 'automatic', 'check_access'):
-                raise AppFailure('offline', 'Bu yalıtılmış test penceresinde Instagram bağlantısı kapalı.')
-            handlers = {'story_view': lambda:self.story_archive(args), 'story_fetch': lambda:self.story_archive(args,fetch=True),
-                        'story_clear': lambda:self.story_archive(args,clear=True),
-                        'daily_clear': lambda: self.clear_daily(args), 'wayback': lambda: self.configure_wayback(args), 'login': lambda: self.connect(args), 'import_counter': lambda: self.connect(args, True),
-                        'refresh': lambda: self.refresh(args), 'profile_detail': lambda: self.profile_detail(args), 'add_person': lambda: self.add_person(args),
-                        'scan': lambda: self.scan(args, resume=True), 'search_people': lambda: self.search_people(args), 'save_person': lambda: self.save_person(args),
-                        'save_profile_about': lambda: self.save_profile_about(args),
-                        'settings': lambda: self.settings(args), 'automatic': self.automatic,
-                        'check_access': lambda: self.check_access(args),
-                        'notification_rule': lambda: self.notification_rule(args),
-                        'read_notification': lambda: self.read_notification(args),
-                        'read_all_notifications': lambda: self.read_all_notifications(args),
-                        'export_list': lambda: self.export_list(args),
-                        'export_backup': lambda: self.export_backup(args['path']),
-                        'import_backup': lambda: self.import_backup(args['path'])}
-            if operation == 'state':
-                return self.snapshot() if project else None
-            if operation == 'remove_person':
-                identity = str(args.get('id', ''))
-                self.erase_person(identity)
-            elif operation == 'disconnect':
-                self.data['session'] = None
-                self.data['settings']['automatic'] = False
-                self.save()
-                # Session removal also purges the immediately preceding backup.
-                self.vault.backup.unlink(missing_ok=True)
-            elif operation == 'delete_all':
-                if self.data['account']:
-                    self.daily_store().clear_all(revoke=True)
-                    stories.StoryStore(self.vault.path.parent,self.data['account']['id']).clear_all()
-                self.data = blank(dict(self.data['gate']))
-                self.save()
-                self.vault.backup.unlink(missing_ok=True)
-            elif operation == 'list_exception':
-                if self.list_pages.set_exception(self.data, args):
-                    self.save()
-            elif operation in handlers:
-                # Changing language is not a new account check; retain the
-                # existing error so its current-language projection can update.
-                if operation != 'read_all_notifications' and (
-                        operation != 'settings' or not set(args).issubset({'language', 'theme'})):
-                    self.data['lastError'] = None
-                handlers[operation]()
-            else:
-                raise AppFailure('operation', 'Desteklenmeyen işlem.')
-            return self.snapshot() if project else None
-        except Exception as exc:
-            if isinstance(exc, StorageFailure):
-                # Never report volatile edits as successfully persisted records.
-                self.data = self.load_vault()
-            error = failure(exc)
-            if self.login_stage is not None:
-                error['loginStage'] = ('verification' if self.login_stage == 'authentication'
-                                       and error['code'] == 'verification' else self.login_stage)
-                if self.login_request:
-                    error['loginRequest'] = self.login_request
-                if self.login_http is not None:
-                    error['http'] = self.login_http
-                    if error['code'] == 'connection':
-                        if self.login_http >= 500:
-                            error.update(code='server', message='Instagram isteği sunucu hatasıyla sonuçlandı.')
-                        else:
-                            error.update(code='response', message='Instagram yanıt verdi ancak bu adım tamamlanamadı.')
-            if error['code'] == 'limited' and not self.data['gate'].get('manualOnly'):
-                self.limited()
-            if error['code'] in ('session', 'verification'):
-                self.data['gate']['manualOnly'] = True
-            self.data['lastError'] = {**error, 'at': self.clock()}
-            if self.login_stage is not None:
-                self.data['lastLoginError'] = self.data['lastError']
-            self.event('error', error['message'])
-            try:
-                self.save()
-            except StorageFailure:
-                pass
-            raise AppFailure(error['code'], error['message'], http=error.get('http'),
-                             login_stage=error.get('loginStage'), request_number=error.get('loginRequest'),
-                             transport_code=error.get('transportCode')) from exc
-        finally:
-            args.pop('password', None)
-            self.operation = None
-            self.login_stage = None
-            self.login_http = None
-            self.login_request = 0
-            self.observation_group = None
-            # Only the explicit archive operation carries thumbnail details.
-            # Later automatic checks must not serialize the album repeatedly.
-            self.wayback_id = None
+            self.save()
+        except StorageFailure:
+            pass
+        return AppFailure(error['code'], error['message'], http=error.get('http'),
+                          login_stage=error.get('loginStage'), request_number=error.get('loginRequest'),
+                          transport_code=error.get('transportCode'))
+
+    def end_operation(self, args):
+        args.pop('password', None)
+        self.operation = None
+        self.login_stage = None
+        self.login_http = None
+        self.login_request = 0
+        self.observation_group = None
+        # Only the explicit archive operation carries thumbnail details.
+        # Later automatic checks must not serialize the album repeatedly.
+        self.wayback_id = None
