@@ -16,7 +16,7 @@ Open a ZIP from Instagram to browse available follow lists, messages and activit
 
 On Windows, use **Overview → Open Instagram ZIP** on first launch. Later, open **Instagram Data Archive** below **Timeline** and select **Open Instagram ZIP** or drag the file onto the drop area.
 
-On Android 0.1.100, use the ZIP action on the first screen. The older 0.1.92 preview opens the relationship lists through the options menu. See [release status](EN-Releases.md#android).
+On Android 0.1.100 and later, use the ZIP action on the first screen. The older 0.1.92 preview opens the relationship lists through the options menu. See [release status](EN-Releases.md#android).
 
 ![Windows archive overview, with file details, coverage, follow lists, messages and activity](assets/en/zip-arsiv.png)
 

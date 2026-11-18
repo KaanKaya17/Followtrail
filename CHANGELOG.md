@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.101 — 2026-11-18
+
+- Liste hazırlığı yarıda kalan takipçi listesini bitirmeden takip edilenlere geçmez; açıklandığı gibi önce takipçiler, ardından takip edilenler okunur.
+- Uygulama açıkken yarıda kalan sonraki liste taraması 15 dakikalık arka plan aralığını beklemeden kaldığı sayfadan devam eder. Yeni tarama başlatma zamanı değişmedi.
+- Android cihaz testleri güncel davranışa göre düzeltildi.
+
 ## Windows 0.2.89 — 2026-11-18
 
 - Parolalı girişte şifreleme anahtarı, instagrapi 3.2.3 ile Instagram’ın güncel yapılandırma uç noktasından alınıyor.

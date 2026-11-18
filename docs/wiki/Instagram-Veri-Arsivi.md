@@ -25,7 +25,7 @@ Görseller Windows 0.2.84’te örnek ZIP’lerle çekildi. Windows ve Android�
 
 Windows’ta ilk açılışta **Özet → Instagram ZIP’ini aç** yolunu kullanın. Daha sonra sol menüde **Zaman çizelgesi** altından **Instagram Veri Arşivi**’ne gidebilir, **Instagram ZIP yükle** düğmesini kullanabilir veya dosyayı bırakma alanına sürükleyebilirsiniz.
 
-Android 0.1.100’de ilk açılışta **Özet → Instagram ZIP’ini aç** seçeneğini kullanabilirsiniz. GitHub’daki Android 0.1.92 önizlemesinde **⋯ → Instagram ZIP yükle** yoluyla ZIP’teki takip listeleri açılır.
+Android 0.1.100 ve sonrasında ilk açılışta **Özet → Instagram ZIP’ini aç** seçeneğini kullanabilirsiniz. GitHub’daki Android 0.1.92 önizlemesinde **⋯ → Instagram ZIP yükle** yoluyla ZIP’teki takip listeleri açılır.
 
 ![Windows’ta Instagram Veri Arşivi. Üstte dosya bilgileri ve arşiv kapsamı, altta Takipler, Mesajlar ve Etkinliklerin kategorileri.](assets/zip-arsiv.png)
 
