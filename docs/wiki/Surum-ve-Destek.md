@@ -2,7 +2,14 @@
 
 [Kılavuz ana sayfası](Home.md) · [Değişiklik kaydı](../../CHANGELOG.md)
 
-**Son içerik denetimi: 15 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+**Son içerik denetimi: 18 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+
+## Windows 0.2.89 ve Android 0.1.100 yayını
+
+18 Kasım’da Windows 0.2.89 herkese açık ZIP ve Android 0.1.100 imzalı APK önizlemesi `main` dalındaki kaynaktan yeniden derlenerek yayımlandı. [İndirmeler](#kurulum-dosyasını-nereden-alabilirim).
+
+- Windows 0.2.89: 46 paketli çevrimdışı kontrol, 305 Python ve 71 arayüz testi geçti. EXE Authenticode imzası taşımıyor.
+- Android 0.1.100: 195 birim testi, release lint (0 hata), manifest ve imza kontrolü geçti. İmza sertifikası 0.1.92 ile aynı.
 
 ## Windows 0.2.89 yerel giriş testi
 
@@ -10,11 +17,9 @@
 
 Eski parola anahtarı adresi parolasız kontrolde HTTP 404 döndürdü. instagrapi 3.2.3’ün kullandığı yeni adres, aynı bilgisayarda HTTP 200 ile geçerli bir anahtar verdi. Bu değişiklik Windows paketine aittir. [Kütüphane düzeltmesi](https://github.com/subzeroid/instagrapi/pull/2923)
 
-0.2.89 yerel test paketidir. Genel indirme durumu aşağıdaki bölümde takip edilir.
-
 ## Windows 0.2.84 önizlemesi ve Android 0.1.100 adayı
 
-Windows 0.2.84 herkese açık önizleme olarak yayımlandı. Android 0.1.100 (sürüm kodu 101) test adayıdır. [İndirmeler](#kurulum-dosyasını-nereden-alabilirim).
+Windows 0.2.84 herkese açık önizleme olarak yayımlandı. Android 0.1.100 (sürüm kodu 101) o tarihte test adayıydı.
 
 - Windows 0.2.84 yeniden paketlendi. 45 çevrimdışı paket kontrolü geçti. Windows EXE’si Authenticode imzası taşımıyor.
 - Android 0.1.100 için 195 birim testi, release derlemesi, manifest ve imza kontrolü geçti. Lint 0 hata ve 71 uyarı bildirdi. APK’nın imza sertifikası GitHub’daki 0.1.92 APK’sıyla eşleşiyor. Fiziksel telefonda Instagram oturumu oluştu, ardından profil okuması HTTP 429 aldı. İlk listelere kadar yeni bağlantı henüz doğrulanmadı.
@@ -86,9 +91,9 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Android
 
-**GitHub’da belgelenen APK: 0.1.92 · sürüm kodu: 93 · kaynak etiketi: `android-v0.1.92`**
+**GitHub’da belgelenen APK: 0.1.100 · sürüm kodu: 101 · kaynak etiketi: `android-v0.1.100`**
 
-- Dosya: `InstagramTracker-0.1.92.apk`; Android 7.0 / API 24 ve üzeri hedeflenir.
+- Dosya: `InstagramTracker-0.1.100.apk`; Android 7.0 / API 24 ve üzeri hedeflenir. Önceki yayın: `android-v0.1.92`.
 - Android 0.1.87 yeni kayıtlar için ilk liste hazırlığını, gizli hesap açıklamasını, ortak hesap karşılaştırmasını ve okuma tanısını içerir. [Kullanım ve doğrulama kapsamı](../PLATFORM-PARITY.md).
 - 11 Kasım 0.1.86 cihaz testinde mevcut oturumla profil ve iki liste yenilendi. Kullanıcı liste farkı bildirimi aldığını doğruladı. Bekleyen web oturumuyla ayrı profil isteği HTTP 429 aldı.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
@@ -117,11 +122,12 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-- [Windows 0.2.84 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84)
-- [Windows 0.2.73 eski önizlemesi](https://github.com/KaanKaya17/InstagramTracker/releases/tag/desktop-v0.2.73)
-- [Android 0.1.92 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
+- [Windows 0.2.89 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89)
+- [Android 0.1.100 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.100)
+- [Windows 0.2.84 önceki önizlemesi](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84)
+- [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
 
-[Tüm önizlemeler](https://github.com/KaanKaya17/InstagramTracker/releases) ana deponun Releases bölümünde listelenir. Windows 0.2.84 sürümünde ayrıca SHA-256 dosyası yer alır.
+[Tüm önizlemeler](https://github.com/KaanKaya17/InstagramTracker/releases) ana deponun Releases bölümünde listelenir. Her sürümde SHA-256 dosyası yer alır.
 
 <a name="destek-icin-hangi-bilgiler-gerekir"></a>
 
