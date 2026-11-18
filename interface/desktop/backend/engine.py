@@ -724,20 +724,7 @@ class Engine:
             raise AppFailure('input', 'Liste sahibi kayıtlı değil.')
         client = self.client()
         record = self.data['lists'].setdefault(identity + ':' + direction, {'snapshots': []})
-        draft = record.get('draft')
-        continuing = resume and list_preparation.resumable(draft, self.clock())
-        if not continuing:
-            # A new partial read is independent evidence, never a union with
-            # the old page. Preserve the widest partial across fresh attempts;
-            # publication can select a newer scan once its coverage catches up.
-            prior = list_pages.visible_partial(record)
-            if not record['snapshots'] and prior and prior.get('members'):
-                record['retainedPartial'] = {k:v for k,v in prior.items() if k not in ('nextCursor','seenCursors')}
-            draft = {'id': uuid.uuid4().hex, 'ownerId': identity, 'direction': direction,
-                     'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
-                     'status': 'running', 'pages': 0, 'expected': None, 'nextCursor': None, 'seenCursors': [],
-                     'recoveryPass': 0, 'restartPending': False, 'overlapRows': 0, 'recoveryStartCount': 0}
-            record['draft'] = draft
+        draft, continuing = self.scan_draft(record, identity, direction, resume)
         schedule = record.setdefault('schedule', {})
         try:
             self.list_scan_active = True
@@ -762,18 +749,7 @@ class Engine:
                     raise AppFailure('capacity', 'Tarama sayfa sınırına ulaştı; kısmi kayıt korundu.')
                 self.scan_progress.update(page=draft['pages'] + 1)
                 self.progress('list')
-                params = {'count': 50, 'rank_token': client.rank_token,
-                          'search_surface': 'follow_list_page', 'query': '', 'enable_groups': 'true'}
-                if cursor:
-                    params['max_id'] = cursor
-                try:
-                    parsed = parse_page(client.private_request(f'friendships/{identity}/{direction}/', params=params))
-                except Exception as exc:
-                    status = self.diagnose_read(direction, exc, client, identity, continuation=bool(cursor))
-                    if cursor and status in (400, 404):
-                        draft['nextCursor'] = None
-                        draft['seenCursors'] = []
-                    raise
+                parsed = self.read_list_page(client, draft, identity, direction, cursor)
                 members, next_cursor = parsed.members, parsed.cursor
                 if len(set(draft['members']) | set(members)) > MAX_MEMBERS:
                     raise AppFailure('capacity', 'Tarama 20.000 hesap sınırına ulaştı; kısmi kayıt korundu.')
@@ -820,34 +796,7 @@ class Engine:
                             raise AppFailure('list_count', 'Liste sayısı profil sayısıyla uyuşmadı. Kısmi kayıt korundu; fark hesabı yapılmadı.')
                         owner = profile
                     self.check_cancel()
-                    read_health.success(self.data, direction)
-                    draft.update(complete=True, status='complete')
-                    record['snapshots'].append(copy.deepcopy({k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}))
-                    returned = set(membership.apply(record, record['snapshots'][-1]))
-                    del record['snapshots'][:-6]
-                    record.pop('draft', None)
-                    record.pop('retainedPartial', None)
-                    schedule.pop('initial', None)
-                    schedule.update(after=self.clock() + list_preparation.MIN_RESCAN, error=None)
-                    diff = compare(record['snapshots'][-2], record['snapshots'][-1]) if len(record['snapshots']) > 1 else None
-                    changes = {'direction': direction, 'count': len(draft['members']),
-                               'added': len(diff['added']) if diff else None, 'removed': len(diff['removed']) if diff else None}
-                    if diff is not None:
-                        before = record['snapshots'][-2]
-                        # Freeze observed identities and names, not current profile
-                        # lookups. Evidence survives the six-snapshot rotation.
-                        changes.update(previousAt=before['finishedAt'], ownerUsername=owner['username'],
-                                       membersAdded=[public_member(draft['members'][key]) for key in diff['added']],
-                                       membersRemoved=[public_member(before['members'][key]) for key in diff['removed']])
-                        # A return is a member seen before, absent in between and back now.
-                        back = [key for key in diff['added'] if key in returned]
-                        changes.update(returned=len(back), returnedIds=back)
-                    self.event('list', f"@{owner['username']} · {direction} listesi kaydedildi", identity, None, changes)
-                    if identity == self.data['account']['id'] and direction == 'followers':
-                        access_checks.discover(self.data, record, self.clock())
-                        self.data['accessPlan'] = {'status': 'idle'}
-                    self.save()
-                    self.progress('list_received')
+                    self.publish_scan(record, draft, schedule, owner, identity, direction)
                     return
                 draft['status'] = 'queued' if one_page else 'running'
                 self.save()
@@ -857,22 +806,89 @@ class Engine:
             if not one_page:
                 raise AppFailure('capacity', 'Tarama sayfa sınırına ulaştı; kısmi kayıt korundu.')
         except Exception as exc:
-            code = failure(exc)['code']
-            if code in ('list_coverage', 'list_count', 'pagination', 'capacity'):
-                self.diagnose_read(direction, exc, client, identity)
-            draft['status'] = 'cancelled' if self.cancel.is_set() else 'partial'
-            draft['finishedAt'] = self.clock()
-            if code == 'cancelled':
-                self.data['settings']['automaticLists'] = False
-            delay = (0 if code in ('budget', 'cooldown', 'cancelled') else
-                     list_preparation.count_retry_delay(schedule) if code == 'list_count' else 1800)
-            schedule.update(error=code, after=self.clock() + delay)
-            self.save()
+            self.scan_failed(exc, draft, schedule, client, identity, direction)
             raise
         finally:
             self.list_scan_active = False
             self.scan_progress = None
             self.close_client(client)
+
+    def scan_draft(self, record, identity, direction, resume):
+        """Continue a resumable draft or start a fresh one for this list."""
+        draft = record.get('draft')
+        continuing = resume and list_preparation.resumable(draft, self.clock())
+        if not continuing:
+            # A new partial read is independent evidence, never a union with
+            # the old page. Preserve the widest partial across fresh attempts;
+            # publication can select a newer scan once its coverage catches up.
+            prior = list_pages.visible_partial(record)
+            if not record['snapshots'] and prior and prior.get('members'):
+                record['retainedPartial'] = {k:v for k,v in prior.items() if k not in ('nextCursor','seenCursors')}
+            draft = {'id': uuid.uuid4().hex, 'ownerId': identity, 'direction': direction,
+                     'startedAt': self.clock(), 'finishedAt': None, 'members': {}, 'complete': False,
+                     'status': 'running', 'pages': 0, 'expected': None, 'nextCursor': None, 'seenCursors': [],
+                     'recoveryPass': 0, 'restartPending': False, 'overlapRows': 0, 'recoveryStartCount': 0}
+            record['draft'] = draft
+        return draft, continuing
+
+    def read_list_page(self, client, draft, identity, direction, cursor):
+        params = {'count': 50, 'rank_token': client.rank_token,
+                  'search_surface': 'follow_list_page', 'query': '', 'enable_groups': 'true'}
+        if cursor:
+            params['max_id'] = cursor
+        try:
+            return parse_page(client.private_request(f'friendships/{identity}/{direction}/', params=params))
+        except Exception as exc:
+            status = self.diagnose_read(direction, exc, client, identity, continuation=bool(cursor))
+            if cursor and status in (400, 404):
+                draft['nextCursor'] = None
+                draft['seenCursors'] = []
+            raise
+
+    def publish_scan(self, record, draft, schedule, owner, identity, direction):
+        """Store a complete list, compare it with the previous one and announce it."""
+        read_health.success(self.data, direction)
+        draft.update(complete=True, status='complete')
+        record['snapshots'].append(copy.deepcopy({k:v for k,v in draft.items() if k not in ('nextCursor','seenCursors')}))
+        returned = set(membership.apply(record, record['snapshots'][-1]))
+        del record['snapshots'][:-6]
+        record.pop('draft', None)
+        record.pop('retainedPartial', None)
+        schedule.pop('initial', None)
+        schedule.update(after=self.clock() + list_preparation.MIN_RESCAN, error=None)
+        diff = compare(record['snapshots'][-2], record['snapshots'][-1]) if len(record['snapshots']) > 1 else None
+        changes = {'direction': direction, 'count': len(draft['members']),
+                   'added': len(diff['added']) if diff else None, 'removed': len(diff['removed']) if diff else None}
+        if diff is not None:
+            before = record['snapshots'][-2]
+            # Freeze observed identities and names, not current profile
+            # lookups. Evidence survives the six-snapshot rotation.
+            changes.update(previousAt=before['finishedAt'], ownerUsername=owner['username'],
+                           membersAdded=[public_member(draft['members'][key]) for key in diff['added']],
+                           membersRemoved=[public_member(before['members'][key]) for key in diff['removed']])
+            # A return is a member seen before, absent in between and back now.
+            back = [key for key in diff['added'] if key in returned]
+            changes.update(returned=len(back), returnedIds=back)
+        self.event('list', f"@{owner['username']} · {direction} listesi kaydedildi", identity, None, changes)
+        if identity == self.data['account']['id'] and direction == 'followers':
+            access_checks.discover(self.data, record, self.clock())
+            self.data['accessPlan'] = {'status': 'idle'}
+        self.save()
+        self.progress('list_received')
+
+    def scan_failed(self, exc, draft, schedule, client, identity, direction):
+        """Keep a failed read as a partial draft and schedule the retry."""
+        code = failure(exc)['code']
+        if code in ('list_coverage', 'list_count', 'pagination', 'capacity'):
+            self.diagnose_read(direction, exc, client, identity)
+        draft['status'] = 'cancelled' if self.cancel.is_set() else 'partial'
+        draft['finishedAt'] = self.clock()
+        if code == 'cancelled':
+            self.data['settings']['automaticLists'] = False
+        delay = (0 if code in ('budget', 'cooldown', 'cancelled') else
+                 list_preparation.count_retry_delay(schedule) if code == 'list_count' else 1800)
+        schedule.update(error=code, after=self.clock() + delay)
+        self.save()
 
     def known_person(self, identity):
         person = self.data['people'].get(identity)

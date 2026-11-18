@@ -73,7 +73,7 @@ console.log("All interface and desktop JavaScript sources parse.");
 // once a step of the split lands, lower it to the new size so the file cannot grow back.
 const { readFileSync } = await import("node:fs");
 for (const [file, limit] of [
-  ["desktop/backend/engine.py", 1491],
+  ["desktop/backend/engine.py", 1389],
   ["web/desktop.js", 2369],
 ]) {
   const lines = readFileSync(path.join(root, file), "utf8").split("\n").length - 1;
