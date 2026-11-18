@@ -300,6 +300,7 @@
             : make("div", "", "archive-dashboard-category archive-dashboard-metric");
           node.append(make("small", label), make("strong", metric.tooLarge ? t("Çok büyük") : num(metric.count)));
           if (metric.tooLarge) node.title = t("Bu kayıt özet için çok büyük. Dosya tarayıcısında açabilirsin.");
+          if (metric.complete === false) node.append(make("small", t("Kısmi"), "archive-dashboard-partial"));
           return node;
         };
         const tiles = make("div", "", "archive-dashboard-metric-grid");

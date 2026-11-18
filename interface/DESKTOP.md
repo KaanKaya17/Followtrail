@@ -1,6 +1,6 @@
-# InstagramTracker Windows 0.2.92
+# InstagramTracker Windows 0.2.93
 
-Güncel paket **[Windows 0.2.92](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92)**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
+Güncel paket **[Windows 0.2.93](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93)**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
 
 **Takip geçmişi** (0.2.91): Takip Listeleri’ndeki **İlişki filtresi**, **Geri gelenler** ve **Ayrılanlar** görünümlerini sunar; kişi paneli bağlı hesabın kendi listelerindeki ilk/son görülme, çıkış ve geri dönüş aralıklarını gösterir. Defter yalnız tam taramalardan beslenir, yeni istek göndermez. [Ayrıntılar ve testler](../docs/FOLLOW-HISTORY-TEST.md).
 

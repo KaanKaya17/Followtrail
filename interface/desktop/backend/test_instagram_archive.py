@@ -113,6 +113,19 @@ class InstagramArchiveTests(unittest.TestCase):
         self.assertEqual(sorted(found['extras']), ['blocked', 'closeFriends', 'pendingRequests', 'recentlyUnfollowed'])
         self.assertEqual(found['extras']['recentlyUnfollowed']['rows'], [{'username': 'eski', 'timestamp': 1699000000}])
 
+    def test_label_value_rows_of_current_exports_are_read(self):
+        # Shape of current Instagram exports for the extra lists (values synthetic).
+        row = lambda name, ts: {'timestamp': ts, 'media': [], 'fbid': '17800000000000000', 'label_values': [
+            {'label': 'URL', 'value': ''}, {'label': 'Name', 'value': 'QA ' + name}, {'label': 'Username', 'value': name}]}
+        found = self.open_zip({
+            FOLDER + 'followers_1.json': [follower('ada')],
+            FOLDER + 'close_friends.json': [row('ada', 1695000000), row('kitap', 1695000000000)],
+            FOLDER + 'blocked_profiles.json': [row('spam', 1696000000), {'timestamp': 1, 'label_values': [{'label': 'Name', 'value': 'x'}]}],
+        })
+        self.assertEqual(found['extras']['closeFriends']['rows'],
+                         [{'username': 'ada', 'timestamp': 1695000000}, {'username': 'kitap', 'timestamp': 1695000000}])
+        self.assertEqual((found['extras']['blocked']['quality']['skipped'], len(found['extras']['blocked']['rows'])), (1, 1))
+
     def test_rejects_archives_with_nothing_readable(self):
         for entries in ({FOLDER + 'followers_1.html': '<html></html>'}, {'other/file.json': []},
                         {FOLDER + 'followers_1.json': 'broken'}):

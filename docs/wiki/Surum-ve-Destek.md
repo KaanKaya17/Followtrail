@@ -4,12 +4,19 @@
 
 **Son içerik denetimi: 18 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.93
+
+18 Kasım’da Windows 0.2.93 herkese açık ZIP önizlemesi yayımlandı. Güncel Instagram dışa aktarımlarındaki ek takip listeleri (yakın arkadaşlar, engellediğin hesaplar, bekleyen ve gelen istekler, son takipten çıktıkların, kaldırılan öneriler) artık okunur; 0.2.92 bu dosyaların biçimini tanımadığı için bunlar 0 görünüyordu. Okunamayan ek listede **Kısmi** uyarısı görünür.
+
+- Windows 0.2.93: 46 paketli çevrimdışı kontrol, 9 ZIP inceleme paket kontrolü, 336 Python ve 72 arayüz testi geçti. EXE Authenticode imzası taşımıyor.
+- Aynı hesabın iki gerçek tam dışa aktarımı (782 ve 789 MB) paketli uygulamada açıldı; sayılar ZIP’teki satırlarla eşleşti. Dış ağ isteği yapılmadı.
+
 ## Windows 0.2.92
 
 18 Kasım’da Windows 0.2.92 herkese açık ZIP önizlemesi yayımlandı. Hesap bağlamadan ZIP incelemede bozuk satır veya dosya parçası yalnız kendi listesini **Kısmi** yapar; 512 MB üstü tam dışa aktarımlar da okunur. Ek takip ilişkileri (son takipten çıktıkların, bekleyen istekler, yakın arkadaşlar, engellenenler …) ve iki ZIP karşılaştırmasında takip tarihleri, muhtemel ad değişikliği, arama, CSV ve sürükle-bırak eklendi. [ZIP inceleme](../ZIP-ARCHIVE-TEST.md).
 
 - Windows 0.2.92: 46 paketli çevrimdışı kontrol, 9 ZIP inceleme paket kontrolü, 335 Python ve 72 arayüz testi geçti. EXE Authenticode imzası taşımıyor.
-- Testler sentetik ZIP’lerle yapıldı; gerçek bir Instagram ZIP’iyle deneme bu sürümde yapılmadı.
+- Testler sentetik ZIP’lerle yapıldı. Gerçek ZIP denemesinde ek listelerin okunmadığı görüldü; 0.2.93’te düzeltildi.
 
 ## Windows 0.2.91
 
@@ -152,8 +159,8 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-- [Windows 0.2.92 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92)
-- [Windows 0.2.91 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.91)
+- [Windows 0.2.93 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93)
+- [Windows 0.2.92 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92)
 - [Android 0.1.103 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103)
 - [Windows 0.2.89 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89)
 - [Android 0.1.102 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102)

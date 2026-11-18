@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.93 — 2026-11-18
+
+- Güncel Instagram dışa aktarımlarında yakın arkadaşlar, engellediğin hesaplar, bekleyen/gelen istekler, son takipten çıktıkların ve kaldırılan öneriler artık okunur. Bu dosyalar kullanıcı adını `label_values` içinde tutar; 0.2.92 bu biçimi tanımadığı için bu listeler 0 görünüyordu.
+- Okunamayan ek liste kartında 0 yerine **Kısmi** uyarısı görünür.
+- Aynı hesabın iki gerçek tam dışa aktarımıyla (782 ve 789 MB) doğrulandı: takip listeleri, yedi ek liste, özet ve iki ZIP karşılaştırması dosyalardaki satır sayılarıyla eşleşti. [Ayrıntılar](docs/ZIP-ARCHIVE-TEST.md).
+
 ## Windows 0.2.92 — 2026-11-18
 
 - **Hesap bağlamadan ZIP inceleme daha güvenilir:** Bozuk bir satır atlanıp sayılır; okunamayan dosya parçası yalnız kendi listesini **Kısmi** yapar, diğer liste etkilenmez. Önceden tek satır iki listeyi birden okunamaz yapıyordu.

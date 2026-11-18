@@ -99,8 +99,27 @@ def rows_of(document, keys):
     raise ValueError()
 
 
+def stamp(value):
+    if type(value) is not int or value <= 0:
+        return None
+    value = value // 1000 if value >= 10**12 else value
+    return value if value <= 253402300799 else None
+
+
+def label_member(row):
+    """Current exports write the extra lists as label/value rows with a row timestamp."""
+    labels = {}
+    for item in row['label_values']:
+        if isinstance(item, dict) and isinstance(item.get('label'), str):
+            labels.setdefault(item['label'].casefold(), item.get('value') or item.get('href'))
+    name = archive_name(labels.get('username')) or link_name(labels.get('url'))
+    return (name, stamp(row.get('timestamp'))) if name else None
+
+
 def row_member(row):
     """(username, timestamp) for one export row, or None when it cannot be trusted."""
+    if isinstance(row, dict) and isinstance(row.get('label_values'), list) and 'string_list_data' not in row:
+        return label_member(row)
     values = row.get('string_list_data') if isinstance(row, dict) else None
     if not isinstance(values, list) or len(values) != 1 or not isinstance(values[0], dict):
         return None
