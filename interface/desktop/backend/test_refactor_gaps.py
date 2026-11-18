@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 from engine import Engine, blank, validate_archive
 from network import AppFailure, parse_profile
 from storage import protect
-from test_backend import FakeClient, profile
+from test_backend import FakeClient, page, profile
 
 
 def person(identity, username=None):
@@ -188,6 +188,23 @@ class EngineGapTests(unittest.TestCase):
         e.codes.put_nowait('111111')
         e.run('state', {})
         self.assertTrue(e.codes.empty())
+
+    # A list keeps only its six newest complete snapshots, and the vault still opens.
+    def test_list_keeps_six_newest_snapshots(self):
+        e = self.connected()
+        now = [1800000000]
+        e.clock = lambda: now[0]
+        finished = []
+        for n in range(8):
+            now[0] += 86400
+            client = FakeClient([profile(followers=2), page(['301', str(400 + n)])])
+            with patch.object(e, 'client', return_value=client):
+                e.run('scan', {'direction': 'followers'})
+            finished.append(now[0])
+        snapshots = e.data['lists']['100:followers']['snapshots']
+        self.assertEqual([s['finishedAt'] for s in snapshots], finished[-6:])
+        reopened = Engine(self.home.name, clock=lambda: now[0])
+        self.assertEqual(len(reopened.data['lists']['100:followers']['snapshots']), 6)
 
     # Backup import size limit.
     def test_oversized_backup_is_refused_before_reading(self):
