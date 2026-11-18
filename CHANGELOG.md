@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Android 0.1.102 — 2026-11-18
+
+- Android 7 ve öncesinde yaklaşık 100 KB'den büyük şifreli kayıtlar (hesap verisi, takip listesi arşivi, kontrol günlüğü, avatar önbelleği) Keystore'a parça parça verilir. Önceden bu boyuttaki kayıtlar açılamıyor ya da hatalı okunabiliyordu. Önceki sürümün Android 7'de yazdığı yaklaşık 512 KB üstü kayıtlar kurtarılamaz; bunlar için yerel verinin silinip listelerin yeniden hazırlanması gerekir.
+- Avatar önbelleği doluyken aynı saniyede yazılan yeni fotoğraf hemen silinmez.
+- Android cihaz testleri Android 7 (API 24) ve Android 16 emülatörlerinde geçti; eski WebView'da giriş köprüsü testleri atlanır.
+
 ## Android 0.1.101 — 2026-11-18
 
 - Liste hazırlığı yarıda kalan takipçi listesini bitirmeden takip edilenlere geçmez; açıklandığı gibi önce takipçiler, ardından takip edilenler okunur.

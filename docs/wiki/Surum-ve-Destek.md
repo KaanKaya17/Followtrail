@@ -4,6 +4,10 @@
 
 **Son içerik denetimi: 18 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Android 0.1.102
+
+18 Kasım’da Android 0.1.102 (sürüm kodu 103) yayımlandı. Android 7 ve öncesinde yaklaşık 100 KB’den büyük şifreli kayıtlar artık doğru yazılıp okunur; önceden bu kayıtlar açılamıyor ya da hatalı okunabiliyordu. Önceki sürümün Android 7’de yazdığı yaklaşık 512 KB üstü kayıtlar kurtarılamaz. Cihaz testleri Android 7 ve Android 16 emülatörlerinde geçti. İmza sertifikası 0.1.92 ile aynı.
+
 ## Android 0.1.101
 
 18 Kasım’da Android 0.1.101 (sürüm kodu 102) yayımlandı. Liste hazırlığı yarıda kalan takipçi listesini bitirmeden takip edilenlere geçmez; uygulama açıkken yarıda kalan sonraki tarama kaldığı sayfadan devam eder. 195 birim testi, release lint (0 hata) ve Android 16 emülatöründe 298 cihaz testi geçti. İmza sertifikası 0.1.92 ile aynı.
@@ -95,9 +99,9 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 
 ## Android
 
-**GitHub’da belgelenen APK: 0.1.101 · sürüm kodu: 102 · kaynak etiketi: `android-v0.1.101`**
+**GitHub’da belgelenen APK: 0.1.102 · sürüm kodu: 103 · kaynak etiketi: `android-v0.1.102`**
 
-- Dosya: `InstagramTracker-0.1.101.apk`; Android 7.0 / API 24 ve üzeri hedeflenir. Önceki yayınlar: `android-v0.1.100`, `android-v0.1.92`.
+- Dosya: `InstagramTracker-0.1.102.apk`; Android 7.0 / API 24 ve üzeri hedeflenir. Önceki yayınlar: `android-v0.1.101`, `android-v0.1.100`, `android-v0.1.92`.
 - Android 0.1.87 yeni kayıtlar için ilk liste hazırlığını, gizli hesap açıklamasını, ortak hesap karşılaştırmasını ve okuma tanısını içerir. [Kullanım ve doğrulama kapsamı](../PLATFORM-PARITY.md).
 - 11 Kasım 0.1.86 cihaz testinde mevcut oturumla profil ve iki liste yenilendi. Kullanıcı liste farkı bildirimi aldığını doğruladı. Bekleyen web oturumuyla ayrı profil isteği HTTP 429 aldı.
 - Kod sonrası girişten profil kontrolüne geçildiği ve profil 429 aldığında oturumun şifreli devam ekranında korunduğu gerçek telefonda görülmüştür.
@@ -127,7 +131,8 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 ## Kurulum dosyasını nereden alabilirim?
 
 - [Windows 0.2.89 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89)
-- [Android 0.1.101 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.101)
+- [Android 0.1.102 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102)
+- [Android 0.1.101 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.101)
 - [Android 0.1.100 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.100)
 - [Windows 0.2.84 önceki önizlemesi](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84)
 - [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
