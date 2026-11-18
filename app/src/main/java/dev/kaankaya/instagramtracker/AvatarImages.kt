@@ -124,7 +124,9 @@ class AvatarCache(context: Context, slot: String = "avatars") {
         migrate()
         check(directory.isDirectory || directory.mkdirs())
         File(directory, key).writeBytes(magic + cipher.seal(bytes,aad(key)))
-        val files = directory.listFiles().orEmpty().filter { it.isFile }.sortedByDescending { it.lastModified() }
+        // Modification times can share one second; keep the file just written ahead of older ones it ties with.
+        val files = directory.listFiles().orEmpty().filter { it.isFile }
+            .sortedWith(compareByDescending<File> { it.name == key }.thenByDescending { it.lastModified() })
         var total = 0L
         files.forEachIndexed { index, file ->
             total += file.length()
