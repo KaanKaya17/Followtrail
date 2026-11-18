@@ -58,7 +58,9 @@ class InitialListPreparation(private val context: Context, private val vault: Se
                     AutomaticQueue.page(target, direction, now, continuation, ListBasis.of(profile, direction))
                 }
             }
-            val job = jobs.minWithOrNull(compareBy({ it.dueAt }, { records[it.target]?.scan(it.direction)?.attemptAt ?: 0L }))
+            // Every returned job is due; finish a list already in progress before starting the next one.
+            val job = jobs.minWithOrNull(compareBy({ if (records[it.target]?.scan(it.direction)?.continuing == true) 0 else 1 },
+                { it.dueAt }, { records[it.target]?.scan(it.direction)?.attemptAt ?: 0L }))
             if (job == null) {
                 nextAt?.let { main.postDelayed(wake, it - now) }
                 return
