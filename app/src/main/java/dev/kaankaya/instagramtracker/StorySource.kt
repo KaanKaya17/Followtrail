@@ -43,7 +43,7 @@ interface StoryMediaSource {
     fun cancel()
 }
 
-/** Credential-free CDN downloads still reserve the same account/device queue and quota. */
+/** Credential-free CDN downloads use the paced media lane; they never spend the API queue or budget. A CDN 429 restricts both. */
 class StoryCdnSource(private val gate: RequestGate, private val client: Call.Factory = sharedClient) : StoryMediaSource {
     companion object {
         private val sharedClient by lazy { OkHttpClient.Builder()
@@ -65,7 +65,7 @@ class StoryCdnSource(private val gate: RequestGate, private val client: Call.Fac
         var call: Call? = null
         try {
             limiter.claim().use {
-                current(); limiter.begin()
+                current(); limiter.beginMedia()
                 val request = Request.Builder().url(address).get().header("Accept", "video/mp4,image/*")
                     .header("Accept-Encoding", "identity").build()
                 call = client.newCall(request)
@@ -109,6 +109,18 @@ class StoryFetch(private val vault: SessionVault, private val store: StoryArchiv
                 if (!runtime.pause(minOf(wait,250L),cancelled)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
             }
         }
+        fun mediaSlot() {
+            while (true) {
+                current()
+                if (gate.automationHeld()) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+                if (gate.requiresConnection()) throw ApiFailure(ApiFailure.Kind.SESSION_EXPIRED)
+                if (gate.blockedUntil() > runtime.now()) throw ApiFailure(ApiFailure.Kind.LIMITED)
+                if (gate.mediaBudgetNextAt(runtime.now()) > runtime.now()) throw ApiFailure(ApiFailure.Kind.BUDGET)
+                val wait = gate.mediaNextAllowedAt(runtime.now()) - runtime.now()
+                if (wait <= 0) return
+                if (!runtime.pause(minOf(wait,250L),cancelled)) throw ApiFailure(ApiFailure.Kind.CANCELLED)
+            }
+        }
         slot()
         val candidates = source.read(session,target)
         current()
@@ -119,7 +131,7 @@ class StoryFetch(private val vault: SessionVault, private val store: StoryArchiv
             if (store.contains(target,candidate.facts.id)) existing++ else {
                 vault.inspect { verify(it); store.metadata(candidate.facts,runtime.now()) }
                 if (candidate.mediaUrl != null && candidate.facts.kind != StoryKind.UNSUPPORTED) {
-                    slot()
+                    mediaSlot()
                     val bytes = media.read(session,candidate.mediaUrl)
                     vault.inspect { verify(it); store.saveMedia(candidate.facts,bytes) }
                     saved++

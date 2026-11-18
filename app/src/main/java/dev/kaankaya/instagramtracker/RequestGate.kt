@@ -28,7 +28,8 @@ object RetryPolicy {
 }
 
 class RequestGate internal constructor(context: Context, private val name: String, private val clock: () -> Long,
-    private val delayMillis: () -> Long) {
+    private val delayMillis: () -> Long,
+    private val mediaDelayMillis: () -> Long = { kotlin.random.Random.nextLong(RequestDefaults.MEDIA_MIN_SPACING_MS, RequestDefaults.MEDIA_MAX_SPACING_MS + 1) }) {
     // Preserve the original third/trailing lambda as the caller's clock.
     constructor(context: Context, name: String = "request_gate", clock: () -> Long = System::currentTimeMillis) :
         this(context, name, clock, { kotlin.random.Random.nextLong(RequestDefaults.MIN_SPACING_MS, RequestDefaults.MAX_SPACING_MS + 1) })
@@ -45,7 +46,7 @@ class RequestGate internal constructor(context: Context, private val name: Strin
     private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
     private fun settings() = if(name!="request_gate")preferences else this.context.getSharedPreferences(
         "account_flags_"+((owner ?: AccountCatalog.selected(this.context))?.let(AccountCatalog::slot) ?: "empty"),Context.MODE_PRIVATE)
-    fun forAccount(id: String)=RequestGate(context,name,clock,delayMillis).also {it.owner=InstagramIdentity.id(id)}
+    fun forAccount(id: String)=RequestGate(context,name,clock,delayMillis,mediaDelayMillis).also {it.owner=InstagramIdentity.id(id)}
     fun readDiagnosis(kind: ReadKind): ReadDiagnosis? = synchronized(lock) {
         val parts = settings().getString("read_health_${kind.name}", null)?.split('|') ?: return@synchronized null
         if (parts.size != 4) return@synchronized null
@@ -199,6 +200,26 @@ class RequestGate internal constructor(context: Context, private val name: Strin
                 .putLong("last_attempt_at", now).remove("last_http_status").commit()) {
             throw ApiFailure(ApiFailure.Kind.STORAGE)
         }
+    }
+    private fun mediaTimes(): List<Long> = try { RequestBudgetCodec.times(preferences.getString("media_times", "[]")!!) }
+        catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    fun mediaBudgetNextAt(now: Long = clock()): Long = synchronized(lock) {
+        try { RequestBudgetPolicy.mediaNextAt(mediaTimes(), now) } catch (_: Exception) { throw ApiFailure(ApiFailure.Kind.STORAGE) }
+    }
+    /** Media lane: an API restriction still stops it, but the API reservation and budget do not delay it. */
+    fun mediaNextAllowedAt(now: Long = clock()): Long = synchronized(lock) {
+        maxOf(blockedUntil(), preferences.getLong("media_next_at", 0), mediaBudgetNextAt(now))
+    }
+    fun mediaReservations(): Int = synchronized(lock) { mediaTimes().size }
+    fun beginMedia(now: Long = clock()) = synchronized(lock) {
+        if (blockedUntil() > now) throw ApiFailure(ApiFailure.Kind.LIMITED)
+        if (mediaBudgetNextAt(now) > now) throw ApiFailure(ApiFailure.Kind.BUDGET)
+        if (preferences.getLong("media_next_at", 0) > now) throw ApiFailure(ApiFailure.Kind.TOO_SOON)
+        val delay = mediaDelayMillis()
+        require(delay in RequestDefaults.MEDIA_MIN_SPACING_MS..RequestDefaults.MEDIA_MAX_SPACING_MS)
+        if (!preferences.edit().putLong("media_next_at", now + delay)
+                .putString("media_times", org.json.JSONArray(RequestBudgetPolicy.reserve(mediaTimes(), now)).toString())
+                .remove("last_http_status").commit()) throw ApiFailure(ApiFailure.Kind.STORAGE)
     }
     fun limited(header: String?, now: Long = clock(), reason: String = "Instagram bekleme yanıtı") = synchronized(lock) {
         val repeats = (preferences.getInt("limit_streak", 0) + 1).coerceAtMost(6)

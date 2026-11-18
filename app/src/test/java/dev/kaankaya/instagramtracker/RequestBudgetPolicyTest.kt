@@ -15,6 +15,18 @@ class RequestBudgetPolicyTest {
         assertEquals(now + 22 * RequestBudgetPolicy.HOUR, RequestBudgetPolicy.nextAt(times, now))
         assertThrows(Exception::class.java) { RequestBudgetCodec.times(org.json.JSONArray(times + now)) }
     }
+    @Test fun mediaLaneHasItsOwnLedgerIndependentOfTheApiBudget() {
+        assertTrue(RequestDefaults.MEDIA_MAX_SPACING_MS <= RequestDefaults.MIN_SPACING_MS)
+        val fullApiHour = List(RequestDefaults.DEVICE_HOURLY) { now }
+        assertEquals(now + RequestBudgetPolicy.HOUR, RequestBudgetPolicy.nextAt(fullApiHour, now))
+        assertEquals(0L, RequestBudgetPolicy.mediaNextAt(emptyList(), now))
+        val fullMediaHour = List(RequestDefaults.MEDIA_DEVICE_HOURLY) { now }
+        assertEquals(now + RequestBudgetPolicy.HOUR, RequestBudgetPolicy.mediaNextAt(fullMediaHour, now))
+        assertEquals(0L, RequestBudgetPolicy.mediaNextAt(fullMediaHour.drop(1), now))
+        val fullMediaDay = List(RequestDefaults.MEDIA_DEVICE_DAILY) { now - 2 * RequestBudgetPolicy.HOUR }
+        assertEquals(now + 22 * RequestBudgetPolicy.HOUR, RequestBudgetPolicy.mediaNextAt(fullMediaDay, now))
+        assertEquals(fullMediaDay, RequestBudgetCodec.times(org.json.JSONArray(fullMediaDay)))
+    }
     @Test fun automaticProfilesLeaveSharedHeadroomWithoutResettingTheLedger() {
         val count = RequestDefaults.ACCOUNT_HOURLY * RequestDefaults.AUTO_PROFILE_PERCENT / 100
         val times = List(count) { now }

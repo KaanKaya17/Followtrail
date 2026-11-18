@@ -62,7 +62,11 @@ class StoryTests(unittest.TestCase):
         state=self.fetch();archive=state['storyDetail']
         self.assertEqual(len(self.calls),3)
         self.assertTrue(all(r.method=='GET' for r in self.calls))
-        self.assertEqual(self.e.data['gate']['attempts'],3)
+        # One API request; the two cookieless CDN files use the media lane.
+        self.assertEqual(self.e.data['gate']['attempts'],1)
+        self.assertEqual(len(self.e.data['gate']['accountRequestTimes']['100']),1)
+        self.assertEqual(len(self.e.data['gate']['requestTimes']),1)
+        self.assertEqual(len(self.e.data['gate']['mediaTimes']),2)
         self.assertEqual(archive['summary'],{'returned':2,'saved':2,'existing':0,'metadata':0})
         row=next(r for r in archive['items'] if r['id']=='300')
         self.assertEqual(row['mentions'],[{'id':'900','username':'qa.tagged'}])
@@ -187,6 +191,54 @@ class StoryTests(unittest.TestCase):
         self.assertEqual(len(e.run('story_view',self.args)['storyDetail']['items']),2)
         e.run('delete_all',{});self.assertFalse(self.store.path.exists());self.assertFalse(self.store.asset_path('300').exists())
 
+
+    def test_media_lane_paces_cdn_without_api_queue_or_budget(self):
+        self.e.media_delay=lambda:2
+        start=self.now[0];self.fetch()
+        gate=self.e.data['gate']
+        # API reservation is drawn once (6 s); media waits only its own 2 s gap.
+        self.assertEqual(self.e.cancel.waits,[2])
+        self.assertEqual(gate['nextAt'],start+6)
+        self.assertEqual(gate['mediaTimes'],[start,start+2])
+        self.assertEqual(gate['mediaNextAt'],start+4)
+        # The next API request still honours the API gap after the media lane.
+        self.e.cancel.waits.clear()
+        self.e.before_request()
+        self.assertEqual(self.e.cancel.waits,[4])
+        self.assertEqual(self.now[0],start+6)
+
+    def test_api_cooldown_stops_media_lane_before_any_download(self):
+        self.e.data['gate']['blockedUntil']=self.now[0]+600
+        with patch('requests.Session.send') as send,self.assertRaises(AppFailure) as caught:
+            stories.download('https://x.cdninstagram.com/story.jpg','image',self.e)
+        self.assertEqual(caught.exception.code,'cooldown');send.assert_not_called()
+        self.assertEqual(self.e.data['gate'].get('mediaTimes',[]),[])
+
+    def test_full_media_ledger_stops_downloads_and_keeps_metadata_and_api_budget(self):
+        import request_budget
+        self.e.data['gate']['mediaTimes']=[self.now[0]-10]*request_budget.MEDIA[0];self.e.save()
+        with self.assertRaises(AppFailure) as caught:self.fetch()
+        self.assertEqual(caught.exception.code,'budget')
+        self.assertEqual([r for r in self.calls if 'cdninstagram' in r.url],[])
+        self.assertEqual(len(self.e.data['gate']['accountRequestTimes']['100']),1)
+        self.assertEqual(self.store.view('200')['items'][0]['status'],'metadata')
+
+    def test_cdn_429_applies_shared_restriction(self):
+        def send(request,**kwargs):
+            if '/feed/user/200/story/' in request.url:return self.response(request,self.payload)
+            return self.response(request,b'',429,{'Retry-After':'60'})
+        with patch('requests.Session.send',side_effect=send),self.assertRaises(AppFailure) as caught:
+            self.e.run('story_fetch',dict(self.args))
+        self.assertEqual(caught.exception.code,'limited')
+        self.assertGreater(self.e.data['gate']['blockedUntil'],self.now[0])
+        self.assertTrue(self.e.data['gate']['manualOnly'])
+
+    def test_media_ledger_is_validated(self):
+        import request_budget
+        for bad in ({'mediaTimes':[3,1]},{'mediaTimes':'x'},{'mediaNextAt':-1},{'mediaNextAt':float('nan')},
+                    {'mediaTimes':[1]*(request_budget.MAX_MEDIA_STORED+1)}):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):request_budget.validate_gate(bad)
+        request_budget.validate_gate({'mediaTimes':[1,2],'mediaNextAt':5})
 
     def test_metadata_retry_preserves_first_capture_and_saved_asset(self):
         item=stories.parse(self.payload,'200')[0]

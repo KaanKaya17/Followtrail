@@ -8,9 +8,9 @@ InstagramTracker permite revisar exportaciones de Instagram, comparar listas y c
 
 ## Instalación
 
-En Windows, descarga el [ZIP x64 de la versión preliminar 0.2.89](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89). Extrae todo el ZIP y ejecuta **InstagramTracker.exe** en la carpeta extraída. Mantén a su lado las carpetas y archivos del paquete. El ejecutable no tiene firma Authenticode. En la página de la versión se publica el SHA-256 del ZIP. Para actualizar, elige **Salir completamente** en la bandeja y abre la nueva versión desde una carpeta propia.
+En Windows, descarga el [ZIP x64 de la versión preliminar 0.2.90](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.90). Extrae todo el ZIP y ejecuta **InstagramTracker.exe** en la carpeta extraída. Mantén a su lado las carpetas y archivos del paquete. El ejecutable no tiene firma Authenticode. En la página de la versión se publica el SHA-256 del ZIP. Para actualizar, elige **Salir completamente** en la bandeja y abre la nueva versión desde una carpeta propia.
 
-Android necesita Android 7.0 o posterior. La vista previa firmada **0.1.102** está en [Releases](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102) y se instala sobre la 0.1.92. Se instaló en un teléfono. Instagram abrió una sesión y devolvió HTTP 429 al leer el perfil. Queda pendiente verificar una conexión nueva hasta completar las listas en Android. La vista web utiliza datos de ejemplo. [Estado de las versiones (inglés)](EN-Releases.md).
+Android necesita Android 7.0 o posterior. La vista previa firmada **0.1.103** está en [Releases](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103) y se instala sobre la 0.1.92. Se instaló en un teléfono. Instagram abrió una sesión y devolvió HTTP 429 al leer el perfil. Queda pendiente verificar una conexión nueva hasta completar las listas en Android. La vista web utiliza datos de ejemplo. [Estado de las versiones (inglés)](EN-Releases.md).
 
 ## Conexión y primeras listas
 

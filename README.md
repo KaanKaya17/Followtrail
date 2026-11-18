@@ -40,19 +40,21 @@ Tracker’ı yalnızca erişim yetkiniz olan verilerle, geçerli kurallara ve ba
 
 ## İndirmeler ve sürüm durumu
 
-Windows 0.2.89 ve Android 0.1.102 önizlemesinde (sürüm kodu 103) hesap bağlamadan ZIP arşivi inceleme, iki ZIP karşılaştırma ve parolalı Tracker geçmişi dosyası açma kullanılabilir. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
+Windows 0.2.90 ve Android 0.1.103 önizlemesinde (sürüm kodu 104) hesap bağlamadan ZIP arşivi inceleme, iki ZIP karşılaştırma ve parolalı Tracker geçmişi dosyası açma kullanılabilir. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
 **GitHub’da indirilebilen önizlemeler:**
 
-[Windows 0.2.89 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
+[Windows 0.2.90 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
 
-[Android 0.1.102 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102) · [Windows 0.2.84 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84) · [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
+[Android 0.1.103 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103) · [Windows 0.2.89 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89) · [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
 
 [Tüm Windows ve Android önizlemeleri](https://github.com/KaanKaya17/InstagramTracker/releases)
 
+**Windows 0.2.90 / Android 0.1.103:** Hikâye fotoğraf ve videoları API sırasından ayrı, kendi medya şeridinde indirilir; hikâye kontrolü API bütçesinden yalnız 1 hak harcar ve daha kısa sürer. API aralığı ve bütçeler değişmedi. [Medya şeridi](docs/MEDIA-LANE-TEST.md).
+
 **Windows 0.2.73:** Instagram Veri Arşivi, ZIP içindeki kayıtları kategorilere ayırır. Özet kartları ve aylık beğeni grafiği, tüm arşivde arama ve iki ZIP’teki takip listelerini karşılaştırma eklendi. Bildirimler menüsünde ve zil simgesinde okunmamış kayıt sayısı görünür. [Arşiv rehberi](docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
 
-**Android 0.1.102 / kod 103:** Yayımlanmış imzalı APK; tam ZIP arşiv tarayıcısı, iki ZIP karşılaştırma ve taşınabilir geçmiş içerir. Android 7’de büyük şifreli kayıtlar doğru okunur; liste hazırlığı yarım kalan listeyi önce bitirir. İmza 0.1.92 ile aynıdır, mevcut kurulumun üzerine güncellenebilir. Yeni Android hesap bağlantısının uçtan uca durumu [sürüm sayfasında](docs/wiki/Surum-ve-Destek.md) açıklanır.
+**Android 0.1.103 / kod 104:** Yayımlanmış imzalı APK; tam ZIP arşiv tarayıcısı, iki ZIP karşılaştırma ve taşınabilir geçmiş içerir. Hikâye medyası ayrı şeritte indirilir; Android 7’de büyük şifreli kayıtlar doğru okunur. İmza 0.1.92 ile aynıdır, mevcut kurulumun üzerine güncellenebilir. Yeni Android hesap bağlantısının uçtan uca durumu [sürüm sayfasında](docs/wiki/Surum-ve-Destek.md) açıklanır.
 
 **Web:** Sentetik verili arayüz önizlemesi; gerçek hesabı sürekli kontrol eden bir web hizmeti değildir.
 

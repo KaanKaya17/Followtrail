@@ -1,6 +1,6 @@
 """Bounded rolling local budgets, not claimed Instagram quotas."""
 import math
-from request_defaults import ACCOUNT_BUDGET, DEVICE_BUDGET, AUTO_PROFILE_PERCENT
+from request_defaults import ACCOUNT_BUDGET, DEVICE_BUDGET, AUTO_PROFILE_PERCENT, MEDIA_BUDGET
 
 SHARED = DEVICE_BUDGET
 ACCOUNT = ACCOUNT_BUDGET
@@ -9,11 +9,15 @@ PROFILE_SHARED = tuple(max(1, limit * AUTO_PROFILE_PERCENT // 100) for limit in 
 # Old vaults may contain more reservations than the new policy permits. Keep
 # them counted until they age out; lowering a quota must never invalidate/reset it.
 MAX_STORED = max(4800, SHARED[1])
+# Cookieless CDN media has its own device ledger; it never spends API budget.
+MEDIA = MEDIA_BUDGET
+MAX_MEDIA_STORED = MEDIA[1]
 
 
 def policy():
     return {'sharedHourly': SHARED[0], 'sharedDaily': SHARED[1],
             'accountHourly': ACCOUNT[0], 'accountDaily': ACCOUNT[1],
+            'mediaHourly': MEDIA[0], 'mediaDaily': MEDIA[1],
             'automaticProfilePercent': AUTO_PROFILE_PERCENT}
 
 
@@ -51,6 +55,14 @@ def record(gate, owner, now):
     gate['accountRequestTimes'] = accounts
 
 
+def media_next_at(gate, now):
+    return available_at(gate.get('mediaTimes', []), now, MEDIA)
+
+
+def record_media(gate, now):
+    gate['mediaTimes'] = reserve(gate.get('mediaTimes', []), now)
+
+
 def profile_next_at(gate, owner, now):
     """Leave headroom for lists and explicit work; never modify the full ledger."""
     return max(available_at(gate.get('requestTimes', []), now, PROFILE_SHARED),
@@ -59,6 +71,10 @@ def profile_next_at(gate, owner, now):
 
 def validate_gate(gate):
     validate(gate.get('requestTimes', []), MAX_STORED)
+    validate(gate.get('mediaTimes', []), MAX_MEDIA_STORED)
+    media_at = gate.get('mediaNextAt', 0)
+    if type(media_at) not in (int, float) or not math.isfinite(media_at) or media_at < 0:
+        raise ValueError('media reservation')
     accounts = gate.get('accountRequestTimes', {})
     if not isinstance(accounts, dict):
         raise ValueError('account budget')

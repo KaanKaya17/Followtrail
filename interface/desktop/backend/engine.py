@@ -43,7 +43,7 @@ from network import read_avatar, avatar_url
 
 MAX_MEMBERS = 20000
 MAX_PAGES = 400
-from request_defaults import CONTROL_INTERVALS, REQUEST_SPACING, DEFAULT_INTERVAL_MINUTES
+from request_defaults import CONTROL_INTERVALS, REQUEST_SPACING, DEFAULT_INTERVAL_MINUTES, MEDIA_SPACING
 PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'followers', 'following', 'posts', 'picture')
 
 
@@ -79,7 +79,7 @@ def public_person(value):
 
 
 class Engine:
-    def __init__(self, directory, emit=lambda event: None, clock=time.time, *, request_delay=None):
+    def __init__(self, directory, emit=lambda event: None, clock=time.time, *, request_delay=None, media_delay=None):
         self.vault = Vault(directory)
         self._daily_current = None
         self._daily_view = None
@@ -87,6 +87,7 @@ class Engine:
         self.emit = emit
         self.clock = clock
         self.request_delay = request_delay or (lambda: random.uniform(*REQUEST_SPACING))
+        self.media_delay = media_delay or (lambda: random.uniform(*MEDIA_SPACING))
         self.login_identity = LoginIdentity(getattr(self, 'directory', directory))
         self.cancel = threading.Event()
         self.codes = queue.Queue(maxsize=1)
@@ -352,6 +353,32 @@ class Engine:
         if self.login_stage is not None:
             self.login_request += 1
         self.progress('request', attempts=gate['attempts'])
+
+    def before_media_request(self):
+        """Pace a cookieless CDN download on its own lane.
+
+        Media never spends the account/device API budget or moves the API
+        reservation. Any API restriction (429 cooldown, manual stop) still
+        stops media, and a CDN 429 applies the same shared restriction.
+        """
+        self.check_cancel()
+        gate = self.data['gate']
+        now = self.clock()
+        if gate.get('blockedUntil', 0) > now:
+            raise AppFailure('cooldown', 'Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.')
+        if request_budget.media_next_at(gate, now) > now:
+            raise AppFailure('budget', 'Yerel medya indirme sınırı doldu. Kalan hikâyeler sonraki kontrolde indirilebilir.')
+        remaining = gate.get('mediaNextAt', 0) - now
+        if remaining > 0:
+            if self.cancel.wait(remaining):
+                self.check_cancel()
+        self.check_cancel()
+        now = self.clock()
+        if gate.get('blockedUntil', 0) > now:
+            raise AppFailure('cooldown', 'Yerel mola sürüyor. Bitiş saati İstek bilgileri bölümünde.')
+        gate['mediaNextAt'] = now + self.media_delay()
+        request_budget.record_media(gate, now)
+        self.save()
 
     def budget_available_at(self):
         return request_budget.next_at(self.data['gate'], self.budget_owner(), self.clock())
@@ -1167,6 +1194,8 @@ class Engine:
         gate['manualOnly'] = True
         gate['requestTimes'] = old_gate.get('requestTimes', [])
         gate['accountRequestTimes'] = old_gate.get('accountRequestTimes', {})
+        gate['mediaTimes'] = old_gate.get('mediaTimes', [])
+        gate['mediaNextAt'] = max(old_gate.get('mediaNextAt', 0), gate.get('mediaNextAt', 0))
         restored['session'] = None
         restored['settings']['automatic'] = False
         self.data = restored

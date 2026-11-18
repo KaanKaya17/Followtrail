@@ -146,8 +146,9 @@ def download(url, kind, engine):
     if not avatar_url(url):
         raise AppFailure('network_policy', 'İzin verilmeyen ağ hedefi durduruldu.')
     engine.check_cancel()
-    # CDN requests also reserve the common queue/budget. No cookies/auth headers.
-    engine.before_request()
+    # Cookieless CDN media uses its own paced lane and ledger, never the API
+    # budget. API restrictions still stop it; a CDN 429 restricts both.
+    engine.before_media_request()
     with requests.Session() as session:
         session.trust_env = False
         # The API's curl adapter buffers upstream.content even with stream=True.

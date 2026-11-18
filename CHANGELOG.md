@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.90 ve Android 0.1.103 — 2026-11-18
+
+- Hikâye fotoğraf ve videoları Instagram API sırasından ayrı, kendi medya şeridinde indirilir: dosyalar arasında 1–3 saniye, cihaz başına 400/saat ve 4.000/gün medya sınırı. Medya indirmesi API bütçesinden hak harcamaz.
+- 10 öğelik bir hikâye kontrolü API bütçesinden 11 yerine 1 hak kullanır; çevrimdışı ölçümde bekleme 80 saniyeden 18 saniyeye indi. API istek aralığı (6–10 saniye), bütçeler ve 429 kuralları değişmedi.
+- API molası sürerken medya indirilmez; CDN'den gelen HTTP 429 ortak molayı başlatır. Medya sınırı dolarsa hikâye bilgileri kaydedilir, eksik dosyalar sonraki kontrolde indirilebilir. [Ölçüm ve doğrulama](docs/MEDIA-LANE-TEST.md).
+
 ## Android 0.1.102 — 2026-11-18
 
 - Android 7 ve öncesinde yaklaşık 100 KB'den büyük şifreli kayıtlar (hesap verisi, takip listesi arşivi, kontrol günlüğü, avatar önbelleği) Keystore'a parça parça verilir. Önceden bu boyuttaki kayıtlar açılamıyor ya da hatalı okunabiliyordu. Önceki sürümün Android 7'de yazdığı yaklaşık 512 KB üstü kayıtlar kurtarılamaz; bunlar için yerel verinin silinip listelerin yeniden hazırlanması gerekir.

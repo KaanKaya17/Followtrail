@@ -1,5 +1,9 @@
 # Android / Windows eşitlemesi
 
+## Windows 0.2.90 ve Android 0.1.103
+
+İki platformda hikâye fotoğraf ve videoları API sırasından ayrı, kendi medya şeridinde indirilir. 10 öğelik bir hikâye kontrolü API bütçesinden 11 yerine 1 hak harcar; sanal bekleme 80 saniyeden 18 saniyeye iner. API aralığı, bütçeler ve 429 kuralları değişmedi. [Ölçüm ve doğrulama](MEDIA-LANE-TEST.md).
+
 ## Windows 0.2.84 ve Android 0.1.100 yerel paketleri
 
 - İki platformda seçili hesabın yerel kayıtları onayla silinebilir. Diğer hesaplar ve dışa aktarılan dosyalar ayrı yönetilir. Tek işlemle bütün bağlı hesapları silme yoktur.
@@ -48,7 +52,7 @@ Windows erişim/panel/kaydetme arasında doğrulanmış profil bilgisini paylaş
 
 ## Ortak kontrol politikası
 
-- API ve hikâye medya indirmeleri arasındaki yeni rezervasyonlar **6–10 saniye** rastgele aralık kullanır. Önceden ayrılan daha uzun bekleme korunur. Bu değer, kontrol sıklığı veya işlemin bitiş süresi değildir.
+- API istekleri arasındaki yeni rezervasyonlar **6–10 saniye** rastgele aralık kullanır. Windows 0.2.90 / Android 0.1.103'ten itibaren çerezsiz hikâye medyası ayrı bir şeritte **1–3 saniye** aralık ve cihaz başına **400/saat, 4.000/gün** medya sınırı kullanır; API bütçesini harcamaz. API molasında medya da durur. [Medya şeridi](MEDIA-LANE-TEST.md). Önceden ayrılan daha uzun bekleme korunur. Bu değer, kontrol sıklığı veya işlemin bitiş süresi değildir.
 - Hesap başına kayan saat / 24 saat bütçesi **120 / 3000**; aynı cihazdaki hesapların ortak bütçesi **240 / 6000** istektir. Masaüstünün önceki daha yüksek bütçesinden kalan kayıtlar sayılmaya devam eder; kota düşmesi geçmişi veya 429 molasını sıfırlamaz. Farklı cihazlar birbirinin sayacını paylaşmaz.
 - Yeni profil kontrol varsayılanı **5 dakika**; seçenekler **1, 5, 15, 30, 60, 180, 360, 720, 1440 dakika**. Eski tercihler korunur. Android kayıtlı kişinin aralığı kendi ayarında; kendi hesabının aralığı **Seçenekler → Kontrol ayarları** içindedir. Arka planda kendi profilini kontrol etme ayrıca açılır; eski açılışta yenileme tercihi arka plan izni olarak yorumlanmaz.
 - Birden fazla hesap ayrı şifreli kayıtlarını ve hesap bütçelerini kullanır. Aynı cihazın istek sırası ve sunucu sınırlaması ortaktır. Hesap kimliği henüz bilinmeyen giriş adımları, yanlışlıkla seçili eski hesaba yazılmadan ortak bütçede sayılır.

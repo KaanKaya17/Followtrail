@@ -12,4 +12,8 @@ object RequestDefaults {
     const val PROFILE_BASIS_MS = 60000L
     const val DEFAULT_INTERVAL_MINUTES = 5
     val INTERVAL_MINUTES = listOf(1, 5, 15, 30, 60, 180, 360, 720, 1440)
+    const val MEDIA_MIN_SPACING_MS = 1000L
+    const val MEDIA_MAX_SPACING_MS = 3000L
+    const val MEDIA_DEVICE_HOURLY = 400
+    const val MEDIA_DEVICE_DAILY = 4000
 }

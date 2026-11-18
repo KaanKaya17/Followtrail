@@ -8,5 +8,9 @@
   "automaticProfileBudgetPercent": 80,
   "profileBasisFreshnessSeconds": 60,
   "defaultIntervalMinutes": 5,
-  "intervalMinutes": [1, 5, 15, 30, 60, 180, 360, 720, 1440]
+  "intervalMinutes": [1, 5, 15, 30, 60, 180, 360, 720, 1440],
+  "mediaMinimumSpacingMilliseconds": 1000,
+  "mediaMaximumSpacingMilliseconds": 3000,
+  "mediaDeviceHourly": 400,
+  "mediaDeviceDaily": 4000
 }

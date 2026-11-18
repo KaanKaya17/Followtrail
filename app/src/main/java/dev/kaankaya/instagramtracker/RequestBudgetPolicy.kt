@@ -21,6 +21,9 @@ object RequestBudgetPolicy {
             RequestDefaults.DEVICE_DAILY * RequestDefaults.AUTO_PROFILE_PERCENT / 100),
         availableAt(account, now, RequestDefaults.ACCOUNT_HOURLY * RequestDefaults.AUTO_PROFILE_PERCENT / 100,
             RequestDefaults.ACCOUNT_DAILY * RequestDefaults.AUTO_PROFILE_PERCENT / 100))
+    /** Cookieless CDN media: one device ledger, separate from (and never spending) the API budget. */
+    fun mediaNextAt(times: List<Long>, now: Long): Long =
+        availableAt(times, now, RequestDefaults.MEDIA_DEVICE_HOURLY, RequestDefaults.MEDIA_DEVICE_DAILY)
     fun ownerKey(owner: String): String = java.security.MessageDigest.getInstance("SHA-256")
         .digest(InstagramIdentity.id(owner).toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
     fun reserve(times: List<Long>, now: Long) = (times.filter { it > now - DAY } + now).sorted()
