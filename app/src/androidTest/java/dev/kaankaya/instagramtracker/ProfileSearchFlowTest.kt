@@ -33,10 +33,11 @@ class ProfileSearchFlowTest {
                         var ready=false;scenario.onActivity {ready=test(views(it.window.decorView))}
                         if(ready)return;Thread.sleep(30)
                     }
-                    fail("Saved profile search did not reach its expected offline state")
+                    var visible="";scenario.onActivity {visible=views(it.window.decorView).filterIsInstance<TextView>().joinToString(" | ") {view->view.text}}
+                    fail("Saved profile search did not reach its expected offline state: $visible")
                 }
-                await {all->all.filterIsInstance<TextView>().any {it.text==context.getString(R.string.ui_people)}}
-                scenario.onActivity {activity->views(activity.window.decorView).filterIsInstance<TextView>().single {it.text==context.getString(R.string.ui_people)}.performClick()}
+                await {all->all.filterIsInstance<TextView>().any {it.text==AppLanguage.wrap(context).getString(R.string.ui_people)}}
+                scenario.onActivity {activity->views(activity.window.decorView).filterIsInstance<TextView>().single {it.text==AppLanguage.wrap(context).getString(R.string.ui_people)}.performClick()}
                 await {all->all.count {it.tag?.toString()?.startsWith("profile-status:")==true}==2}
                 for(query in listOf("ipe ka","@ipek","yakin","https://instagram.com/ipek.kaya/?igsh=abc")) {
                     var field:EditText?=null
@@ -46,7 +47,7 @@ class ProfileSearchFlowTest {
                 }
                 assertEquals(0L,RequestGate(context,"preview_gate").attempts())
                 assertEquals(2,vault.read()!!.people.size)
-                scenario.onActivity {activity->views(activity.window.decorView).filterIsInstance<TextView>().single {it.text==context.getString(R.string.ui_add_person)}.performClick()}
+                scenario.onActivity {activity->views(activity.window.decorView).filterIsInstance<TextView>().single {it.text==AppLanguage.wrap(context).getString(R.string.ui_add_person)}.performClick()}
                 instrumentation.waitForIdleSync();Thread.sleep(300)
                 instrumentation.uiAutomation.takeScreenshot()?.let {bitmap->
                     java.io.File(context.cacheDir,"profile-search-dialog.png").outputStream().use {bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}

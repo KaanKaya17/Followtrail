@@ -11,6 +11,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import androidx.test.filters.SdkSuppress
 import org.junit.Test
 
 /** Real native theme picker and recreation; isolated offline preview account only. */
@@ -107,6 +108,8 @@ class AppearanceFlowTest {
         assertEquals(until,gate.blockedUntil());assertTrue(gate.manualOnly());assertEquals(before,vault.read())
         scenario!!.onActivity { activity ->assertEquals(AppAppearance.resolved(activity),expected) }
     }
+    // A system-wide dark theme exists from Android 10; older releases have no night mode for "system" to follow.
+    @SdkSuppress(minSdkVersion = 29)
     @Test fun systemChangesRecreateTheScreenWithoutReadingTheAccount() {
         val manager=context.getSystemService(android.app.UiModeManager::class.java)
         val originalMode=manager.nightMode

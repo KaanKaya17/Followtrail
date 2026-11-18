@@ -83,16 +83,18 @@ class DailyStatsFlowTest {
             if(found)return
             SystemClock.sleep(30)
         }
-        fail("Daily UI did not show $part")
+        var visible=""
+        scenario!!.onActivity {a->visible=views(a.window.decorView).filterIsInstance<TextView>().joinToString(" | ") {it.text}}
+        fail("Daily UI did not show $part: $visible")
     }
     @Test fun nativeRangeMetricAndRecreationUseLocalArchive() {
         val target=account.people.single().latest.userId
         scenario=ActivityScenario.launch(Intent(context,DailyStatsActivity::class.java).putExtra("offline_preview",true)
             .putExtra("viewer_id",account.session.userId).putExtra("target_id",target))
-        waitText(context.getString(R.string.daily_scope))
-        scenario!!.onActivity {a->views(a.window.decorView).filterIsInstance<TextView>().first {it.text.toString()==context.getString(R.string.daily_all)}.performClick()}
+        waitText(AppLanguage.wrap(context).getString(R.string.daily_scope))
+        scenario!!.onActivity {a->views(a.window.decorView).filterIsInstance<TextView>().first {it.text.toString()==AppLanguage.wrap(context).getString(R.string.daily_all)}.performClick()}
         waitText("90 gün")
-        scenario!!.onActivity {a->views(a.window.decorView).filterIsInstance<TextView>().first {it.text.toString()==context.getString(R.string.ui_following)}.performClick()}
+        scenario!!.onActivity {a->views(a.window.decorView).filterIsInstance<TextView>().first {it.text.toString()==AppLanguage.wrap(context).getString(R.string.ui_following)}.performClick()}
         waitText("90 gün")
         scenario!!.recreate();waitText("90 gün")
     }

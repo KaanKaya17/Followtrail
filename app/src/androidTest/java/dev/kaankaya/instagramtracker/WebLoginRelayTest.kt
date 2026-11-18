@@ -70,6 +70,9 @@ class WebLoginRelayTest {
     }
     private fun validBody(doc: String = WebLoginContract.DOCUMENT) = SyntheticWebLogin.body(doc)
     private fun open(frame: Boolean = false, security: Boolean = false) {
+        // Old system WebViews lack these features; the app then reports the relay as unavailable instead of using it.
+        org.junit.Assume.assumeTrue(androidx.webkit.WebViewFeature.isFeatureSupported(androidx.webkit.WebViewFeature.WEB_MESSAGE_LISTENER) &&
+            androidx.webkit.WebViewFeature.isFeatureSupported(androidx.webkit.WebViewFeature.DOCUMENT_START_SCRIPT))
         scenario=ActivityScenario.launch(WebRelayFixtureActivity::class.java)
         scenario!!.onActivity { activity ->
             browser=WebView(activity); browser.settings.javaScriptEnabled=true; browser.settings.domStorageEnabled=true
