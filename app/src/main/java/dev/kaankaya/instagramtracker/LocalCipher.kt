@@ -23,13 +23,29 @@ internal class LocalCipher(private val alias: String, private val maxBytes: Int)
         if(value.size>maxBytes)throw ApiFailure(ApiFailure.Kind.CAPACITY)
         val cipher=Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE,key());cipher.updateAAD(aad)
-        return cipher.iv+cipher.doFinal(value)
+        return cipher.iv+streamed(cipher,value,0)
     }
     fun open(value: ByteArray, aad: ByteArray): ByteArray {
         require(value.size in 29..maxBytes+28)
         val cipher=Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE,key(),GCMParameterSpec(128,value.copyOfRange(0,12)));cipher.updateAAD(aad)
-        return cipher.doFinal(value.copyOfRange(12,value.size))
+        return streamed(cipher,value,12)
     }
+    /**
+     * Feed the Keystore in bounded chunks. On Android 6–7 a single large update/doFinal silently
+     * corrupts or rejects AES-GCM data above roughly 100 KiB; chunked calls work on every API level.
+     */
+    private fun streamed(cipher: Cipher, input: ByteArray, from: Int): ByteArray {
+        val output=java.io.ByteArrayOutputStream(input.size-from+16)
+        var offset=from
+        while(offset<input.size) {
+            val count=minOf(CHUNK,input.size-offset)
+            cipher.update(input,offset,count)?.let(output::write)
+            offset+=count
+        }
+        output.write(cipher.doFinal())
+        return output.toByteArray()
+    }
+    private companion object { const val CHUNK=16*1024 }
     fun destroy() {KeyStore.getInstance("AndroidKeyStore").apply {load(null)}.deleteEntry(alias)}
 }
