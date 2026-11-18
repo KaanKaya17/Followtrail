@@ -121,7 +121,8 @@ class AdaptiveMonitoringTest {
         val start = now
         AutomaticEngine(vault, lists, gate, api, noLists, { true }, {}, { _, _, _ -> }, runtime).cycle()
         assertEquals(listOf(start, start + RequestDefaults.MAX_SPACING_MS), starts); assertEquals(2L, gate.attempts())
-        assertEquals(start + MonitorPolicy.POLL_MS, gate.automaticNextAllowedAt())
+        // The next automatic slot follows the selected profile check interval, not the 15-minute job period.
+        assertEquals(start + gate.monitorIntervalMillis(), gate.automaticNextAllowedAt())
         assertEquals(2, vault.journal.read(session).size)
     }
     @Test fun restrictionAndCancellationDoNotReadListsOrClearExistingData() {

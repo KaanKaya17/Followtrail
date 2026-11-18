@@ -198,6 +198,10 @@ class PeopleScreenTest {
                     (android.os.Build.VERSION.SDK_INT >= 26 && it.hintText?.toString() == text)
             }
             if (node != null) return node
+            // Long option lists keep later choices outside the visible dialog rows.
+            roots.flatMap { nodes(it) }.filter { it.isScrollable }
+                .forEach { it.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) }
+            instrumentation.waitForIdleSync()
             Thread.sleep(30)
         }
         error("Dialog control not found: $text")
@@ -300,8 +304,8 @@ class PeopleScreenTest {
     }
     @Test fun addEditAndRemoveUseTheRealDialogsAndEncryptedStorage() {
         launch(); click("Kaydedilen Profiller"); click("Profil ekle")
-        setText("@kullanıcıadı veya profil bağlantısı", "@efe.demo")
-        dialogClick("Profili getir"); awaitLabel("@efe.demo")
+        setText("Ad, kullanıcı adı veya profil bağlantısı", "@efe.demo")
+        dialogClick("Kullanıcı adıyla ekle"); awaitLabel("@efe.demo")
         assertEquals(3, SessionVault(context, "previewaccount").read()!!.people.size)
         click("Diğer"); dialogClick("Not ve grup düzenle")
         setText("Grup (isteğe bağlı)", "Test grubu")

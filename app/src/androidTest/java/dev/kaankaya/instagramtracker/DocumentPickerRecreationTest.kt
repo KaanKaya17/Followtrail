@@ -29,6 +29,11 @@ class DocumentPickerRecreationTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
 
+    /** Pickers carry a MIME type and the openable category, so the monitor must accept both to see them. */
+    private fun picker(action: String) = IntentFilter(action).apply {
+        addCategory(Intent.CATEGORY_OPENABLE); addDataType("*/*")
+    }
+
     @Test fun backupAsksForPasswordAfterRecreationAndWritesTheSelectedDocument() {
         check(context.packageName.endsWith(".debug"))
         val owner = "999999990001"
@@ -36,7 +41,7 @@ class DocumentPickerRecreationTest {
         val previous = catalog.active()
         val vault = SessionVault(context, owner = owner)
         val output = File.createTempFile("recreated-backup-", ".trackerhistory", context.cacheDir)
-        val monitor = instrumentation.addMonitor(IntentFilter(Intent.ACTION_CREATE_DOCUMENT), null, true)
+        val monitor = instrumentation.addMonitor(picker(Intent.ACTION_CREATE_DOCUMENT), null, true)
         val password = "synthetic-backup-password"
         try {
             vault.write(SavedAccount(Session(owner, "ds_user_id=$owner; sessionid=synthetic", "Synthetic UA"),
@@ -78,7 +83,7 @@ class DocumentPickerRecreationTest {
     @Test fun secondZipResultWaitsForFirstZipToReopenAfterRecreation() {
         val first = zip("first_follower")
         val second = zip("second_follower")
-        val monitor = instrumentation.addMonitor(IntentFilter(Intent.ACTION_OPEN_DOCUMENT), null, true)
+        val monitor = instrumentation.addMonitor(picker(Intent.ACTION_OPEN_DOCUMENT), null, true)
         try {
             ActivityScenario.launch(ExportBrowserActivity::class.java).use { scenario ->
                 scenario.onActivity { deliver(it, 21, first) }

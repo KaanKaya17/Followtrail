@@ -63,14 +63,15 @@ class MemberProfileFlowTest {
         click("Yalnız kişilere ekle"); await("Listelerini incele")
         val saved = vault.read()!!; assertEquals(before.people, saved.people.take(2))
         val added = saved.people.single { it.latest.userId == "501" }; assertFalse(added.watching); assertFalse(added.favorite)
-        assertEquals(before.automation, saved.automation); assertEquals(1L, RequestGate(context, "preview_gate").attempts())
+        // A newly saved profile waits in the initial list queue; automation itself stays off.
+        assertEquals(before.automation.copy(initialTargets = before.automation.initialTargets + "501"), saved.automation); assertEquals(1L, RequestGate(context, "preview_gate").attempts())
     }
     @Test fun watchActionExplicitlyRegistersAndEnablesOnlyTheSelectedProfile() {
         if (android.os.Build.VERSION.SDK_INT >= 33) android.os.ParcelFileDescriptor.AutoCloseInputStream(
             instrumentation.uiAutomation.executeShellCommand("pm grant ${context.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
         val before = vault.read()!!; launch(); await("Takipçi · 988"); click("Değişiklikleri izle"); await("İzleme açık")
         val saved = vault.read()!!; assertEquals(before.people, saved.people.take(2))
-        assertTrue(saved.people.single { it.latest.userId == "501" }.watching); assertEquals(before.automation, saved.automation)
+        assertTrue(saved.people.single { it.latest.userId == "501" }.watching); assertEquals(before.automation.copy(initialTargets = before.automation.initialTargets + "501"), saved.automation)
         assertEquals(1L, RequestGate(context, "preview_gate").attempts())
     }
     @Test fun aShortWaitContinuesOnceAndLeavingTheProfileCancelsItsPendingRead() {

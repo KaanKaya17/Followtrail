@@ -46,7 +46,9 @@ class ClarityFlowTest {
             if (ready) return
             Thread.sleep(25)
         }
-        fail("Offline clarity screen did not reach expected state")
+        var visible = ""
+        scenario!!.onActivity { visible = views(it.window.decorView).filterIsInstance<TextView>().filter { view -> view.isShown }.joinToString(" | ") { view -> view.text } }
+        fail("Offline clarity screen did not reach expected state: $visible")
     }
     private fun click(label: String) {
         await { all -> all.filterIsInstance<TextView>().any { it.text == label } }
@@ -80,6 +82,8 @@ class ClarityFlowTest {
         val now = System.currentTimeMillis()
         val person = TrackedPerson((0 until 90).map { n -> Profile("200", "deniz.demo", 3, 4, now - (89 - n) * 60_000) })
         seed(listOf(person)); click("Analizi aç · @deniz.demo")
+        // The observation history is collapsed on the profile screen until it is opened.
+        click("Kontrol geçmişi")
         await { all -> all.filterIsInstance<TextView>().any { it.text.toString().contains("90 kayıt · Kayıtlı aralık: 0 gün 1 saat 29 dakika") } }
         click("7 gün")
         await { all -> all.filterIsInstance<TextView>().any { it.height > 0 && it.text.toString().contains("90 kayıt · Kayıtlı aralık: 0 gün 1 saat 29 dakika") } }

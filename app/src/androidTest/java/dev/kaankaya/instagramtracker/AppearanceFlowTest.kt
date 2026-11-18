@@ -59,8 +59,12 @@ class AppearanceFlowTest {
         val deadline=SystemClock.elapsedRealtime()+5000
         while(SystemClock.elapsedRealtime()<deadline) {
             fun nodes(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo> = listOf(root)+(0 until root.childCount).flatMap { root.getChild(it)?.let(::nodes).orEmpty() }
-            val node=instrumentation.uiAutomation.windows.mapNotNull { it.root }.flatMap(::nodes).firstOrNull { it.text?.toString()==label }
+            val all=instrumentation.uiAutomation.windows.mapNotNull { it.root }.flatMap(::nodes)
+            val node=all.firstOrNull { it.text?.toString()==label }
             if(node!=null) {assertTrue(node.performAction(AccessibilityNodeInfo.ACTION_CLICK));instrumentation.waitForIdleSync();return}
+            // Long option lists keep later choices outside the visible dialog rows.
+            all.filter { it.isScrollable }.forEach { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) }
+            instrumentation.waitForIdleSync()
             Thread.sleep(40)
         }
         fail("Missing theme choice: $label")

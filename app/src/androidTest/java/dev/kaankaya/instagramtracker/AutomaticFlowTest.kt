@@ -331,7 +331,7 @@ class AutomaticFlowTest {
             val snapshot = previewLists.read(seed.session, "100")
             snapshot?.followers?.coverage() == FollowCoverage.END_OBSERVED && snapshot.following?.coverage() == FollowCoverage.END_OBSERVED
         }
-        assertEquals(3L, previewGate.attempts()); assertTrue(previewGate.lastAttemptAt() - firstAt >= 30000)
+        assertEquals(3L, previewGate.attempts()); assertTrue(previewGate.lastAttemptAt() - firstAt >= 2 * RequestDefaults.MIN_SPACING_MS)
         assertEquals(3, previewLists.read(seed.session, "100")!!.followers!!.users.size)
         shell("cmd jobscheduler run -f ${context.packageName} ${PreviewMode.JOB_ID}"); assertEquals(3L, previewGate.attempts())
         previewVault.update(seed.session) { it.copy(automation = ListAutomation()) }

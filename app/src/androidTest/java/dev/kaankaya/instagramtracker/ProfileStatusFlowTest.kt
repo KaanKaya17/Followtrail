@@ -45,6 +45,8 @@ class ProfileStatusFlowTest {
             listOf(FollowUser("501", "sample", null, null, null, null)), FollowField(true, "next"),
             FollowField(true, false), FollowField(true, true), FollowField(false, null), now - 60_000)
         lists.commitCurrent(seed.session, page, null)
+        // Saved targets now join foreground list preparation; hold its pacing so these status checks stay request-free.
+        assertTrue(context.getSharedPreferences("preview_gate", 0).edit().putLong("next_read_at", now + 3_600_000).commit())
     }
     @After fun cleanup() {
         scenario?.close(); PreviewMode.cancel(context); ChangeNotifications(context).clear()

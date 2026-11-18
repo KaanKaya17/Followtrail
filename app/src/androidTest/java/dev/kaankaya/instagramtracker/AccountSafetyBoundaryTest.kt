@@ -32,7 +32,8 @@ class AccountSafetyBoundaryTest {
     }
     @Test fun budgetSurvivesNewGateAndSuccessfulReadDoesNotClearIt(){
         val gate=RequestGate(context,"safety_budget"){now}
-        repeat(120){gate.begin();now+=15001}
+        // This gate has no account owner, so the device-wide hourly budget is the limit that applies.
+        repeat(RequestDefaults.DEVICE_HOURLY){gate.begin();now+=RequestDefaults.MAX_SPACING_MS+1}
         val end=gate.budgetNextAt();val attempts=gate.attempts()
         assertTrue(end>now)
         val failure=assertThrows(ApiFailure::class.java){RequestGate(context,"safety_budget"){now}.begin()}

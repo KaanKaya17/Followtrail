@@ -31,15 +31,16 @@ class VisualHistoryScreenTest {
             vault.write(SavedAccount(session,next));val blue=Bitmap.createBitmap(16,16,Bitmap.Config.ARGB_8888).apply { eraseColor(Color.BLUE) };vault.visual.avatar("900",next,blue)
             val encrypted=File(c.noBackupFilesDir,AccountCatalog(c).storage("900")+"visual.enc").readBytes();assertFalse(String(encrypted,Charsets.ISO_8859_1).contains("Istanbul"))
             val before=RequestGate(c).attempts()
+            // Count gallery photos only; the side-by-side comparison above them shows two more thumbnails.
             ActivityScenario.launch<VisualHistoryActivity>(Intent(c,VisualHistoryActivity::class.java).putExtra("viewer_id","900").putExtra("target_id","900")).use { scenario ->
                 scenario.onActivity { a ->
-                    val views=all(a.window.decorView);assertEquals(2,views.filterIsInstance<ImageView>().size)
+                    val views=all(a.window.decorView);assertEquals(2,views.filterIsInstance<ImageView>().count { it.adjustViewBounds })
                     assertTrue(views.filterIsInstance<TextView>().any { val text=it.text; text is Spanned && text.getSpans(0,text.length,StrikethroughSpan::class.java).isNotEmpty() })
                     views.filterIsInstance<TextView>().single { it.text.toString()==a.getString(R.string.visual_stop) }.performClick()
-                    assertEquals(2,all(a.window.decorView).filterIsInstance<ImageView>().size)
+                    assertEquals(2,all(a.window.decorView).filterIsInstance<ImageView>().count { it.adjustViewBounds })
                     all(a.window.decorView).filterIsInstance<TextView>().single { it.text.toString()==a.getString(R.string.visual_enable) }.performClick()
                 }
-                scenario.recreate();scenario.onActivity { a -> assertEquals(2,all(a.window.decorView).filterIsInstance<ImageView>().size) }
+                scenario.recreate();scenario.onActivity { a -> assertEquals(2,all(a.window.decorView).filterIsInstance<ImageView>().count { it.adjustViewBounds }) }
                 val instrumentation=InstrumentationRegistry.getInstrumentation()
                 instrumentation.waitForIdleSync()
                 instrumentation.uiAutomation.takeScreenshot().let { screenshot ->

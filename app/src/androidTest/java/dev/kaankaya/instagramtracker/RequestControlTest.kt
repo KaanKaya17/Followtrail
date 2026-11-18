@@ -43,6 +43,6 @@ class RequestControlTest {
         assertEquals(1L, gate().attempts())
         gate().begin(now + 16000)
         assertEquals(2L, gate().attempts()); assertNull(gate().lastHttpStatus())
-        assertEquals(setOf("next_read_at", "attempt_count", "last_attempt_at"), preferences.all.keys)
+        assertEquals(setOf("next_read_at", "attempt_count", "last_attempt_at", "budget_times", "budget_accounts"), preferences.all.keys)
     }
 }

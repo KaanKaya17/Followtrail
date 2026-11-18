@@ -50,7 +50,9 @@ class ScreenFlowTest {
             assertFalse(labels.contains("Takipçi"))
             assertFalse(labels.any { it.startsWith("@") })
             assertFalse(labels.any { it.contains("prototip", true) || it.contains("HTTP") })
-            assertTrue(labels.joinToString(" ").split(Regex("\\s+")).size < 60)
+            val words = labels.joinToString(" ").split(Regex("\\s+"))
+            // The welcome screen offers two short paths: open an Instagram ZIP without an account, or connect for live tracking.
+            assertTrue("Welcome uses ${words.size} words: ${labels.joinToString(" | ")}", words.size < 75)
         }
     }
     @Test fun savedCountsAndPauseSurviveActivityRecreationWithoutRequest() {

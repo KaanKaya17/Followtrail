@@ -129,7 +129,8 @@ class WebComparisonScreenTest {
         click(R.string.web_compare_native);until {WebConnectionJournal(context).read().size==2 && WebConnectionJournal(context).read()[1].outcome!=WebConnectionJournal.Outcome.STARTED}
         assertEquals(listOf(WebConnectionJournal.Outcome.SUCCESS,WebConnectionJournal.Outcome.LIMITED),WebConnectionJournal(context).read().map {it.outcome})
         assertEquals(listOf(200,429),WebConnectionJournal(context).read().map {it.http})
-        assertNull(SessionVault(context).read());assertNull(WebSessions(context).pending());assertEquals(2L,RequestGate(context).attempts())
+        // A 429 is recoverable: the encrypted pending session is kept for an explicit retry, but no account is linked.
+        assertNull(SessionVault(context).read());assertNotNull(WebSessions(context).pending());assertEquals(2L,RequestGate(context).attempts())
     }
     @Test fun cancellingAfterBrowserSuccessCannotCommitOrStartNative() {
         open();first();click(R.string.ui_cancel)

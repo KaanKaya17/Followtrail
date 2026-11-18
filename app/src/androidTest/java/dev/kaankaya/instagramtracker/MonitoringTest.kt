@@ -88,7 +88,8 @@ class MonitoringTest {
         val people = vault.read()!!.people
         assertEquals(1, requests); assertEquals(1L, gate.attempts())
         assertTrue(people.first().nextCheckAt >= now + 15 * 60000L)
-        assertTrue(gate.automaticNextAllowedAt() >= now + 15 * 60000L)
+        // The shared automatic slot follows the selected check interval (5 minutes by default).
+        assertTrue(gate.automaticNextAllowedAt() >= now + gate.monitorIntervalMillis())
         assertEquals("789", MonitorPolicy.due(people, now + 16000)!!.latest.userId)
         val state = WatchStatusPolicy.status(people.last(), people,
             WatchConditions(automaticAt = gate.automaticNextAllowedAt()), now + 16000)

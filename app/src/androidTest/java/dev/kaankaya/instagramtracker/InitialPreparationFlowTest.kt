@@ -148,7 +148,8 @@ class InitialPreparationFlowTest {
                 var found=false;scenario!!.onActivity { a->found=all(a.window.decorView).filterIsInstance<TextView>().any { it.text==a.getString(R.string.preparation_paused) } };found
             }
             scenario!!.onActivity { a->
-                assertTrue(all(a.window.decorView).filterIsInstance<TextView>().any { it.text.toString().contains("takipten çıkışlar bilinmiyor") })
+                // The scope guidance now lives in usage notes; the paused card must not claim any past unfollow.
+                assertTrue(all(a.window.decorView).filterIsInstance<TextView>().none { it.text.toString().contains("takipten çıktı") })
                 assertTrue(all(a.window.decorView).filterIsInstance<Button>().any { it.text==a.getString(R.string.preparation_resume) })
             }
         } finally { scenario?.close();scenario=null;preview.clear();cache.clear() }
