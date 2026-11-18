@@ -6,7 +6,11 @@ import sys
 
 root=Path(__file__).resolve().parents[2]
 output=root/'.cache/worker-licenses'
-output.mkdir(parents=True,exist_ok=True)
+# Start from an empty folder so notices of removed or upgraded packages never reach the distribution.
+if output.is_dir():
+    if output.resolve().parent!=(root/'.cache').resolve():raise SystemExit('Unexpected notice folder')
+    shutil.rmtree(output)
+output.mkdir(parents=True)
 names=[line.split('==')[0] for line in (Path(__file__).with_name('requirements.lock.txt')).read_text().splitlines() if '==' in line]
 summary=['Runtime: Python '+sys.version.split()[0], 'Dependencies in the local worker:']
 for name in names:

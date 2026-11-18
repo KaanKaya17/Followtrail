@@ -138,7 +138,7 @@ Yerel kapasite: 200 kişi, profil başına son 366 gözlem, 2.000 olay, her hesa
 
 ## Geliştirme ve doğrulama
 
-Electron 45.0.0 ve Playwright Core 1.64.1 `package-lock.json` ile sabittir. Worker Python 3.12.14 / instagrapi 3.2.0 ile bu makinede derlendi; runtime bağımlılıkları `desktop/backend/requirements.lock.txt`, paketleme bağımlılıkları `build-requirements.lock.txt` ile sabittir. Proje sanal ortamında kilitli dosyalarla kur; sistem Python veya eski prototip ortamını güncelleme.
+Electron 45.0.0 ve Playwright Core 1.64.1 `package-lock.json` ile sabittir. Worker Python 3.14 / instagrapi 3.2.3 ile derlenir; `build-worker.ps1` başka bir Python sürümünü reddeder ve masaüstü CI testleri aynı sürümde çalışır; runtime bağımlılıkları `desktop/backend/requirements.lock.txt`, paketleme bağımlılıkları `build-requirements.lock.txt` ile sabittir. Proje sanal ortamında kilitli dosyalarla kur; sistem Python veya eski prototip ortamını güncelleme.
 
 Windows paketlemesi `resedit` 3.1.0 geliştirme bağımlılığıyla yalnız çıktı EXE'sinin ürün adı, sürümü ve 16–256 piksel boyutlarındaki gömülü logosunu düzenler; Node/Electron kurulumu değiştirilmez. Aynı yerel marka işaretinden pencere ve tepsi görselleri üretilir. Kaynak yöntem: [Electron Packager'ın kaynak düzenleme akışı](https://github.com/electron/packager/blob/main/src/resedit.ts). `node scripts/check-branding-desktop.mjs` paket metadatasını/logosunu ve geçici QA klasöründeki gerçek Windows kısayolunun sahiplik, yedekleme ve tekrar çalıştırma davranışını sınar. Windows aramasının önbelleği veya daha önce sabitlenmiş eski bir kısayol ayrıca yenilenmeyi gerektirebilir; test işletim sisteminin arama dizinini sıfırlamaz.
 

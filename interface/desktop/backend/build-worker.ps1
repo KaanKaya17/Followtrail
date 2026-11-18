@@ -2,6 +2,9 @@ param([string]$Python = $env:TRACKER_BUILD_PYTHON)
 $ErrorActionPreference = 'Stop'
 $InterfaceRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 if (-not $Python) { $Python = (Get-Command python -ErrorAction Stop).Source }
+# The released worker and the desktop CI both use Python 3.14; refuse other interpreters.
+$PythonVersion = (& $Python -c "import sys; print('%d.%d' % sys.version_info[:2])").Trim()
+if ($PythonVersion -ne '3.14') { throw "Worker builds require Python 3.14; found $PythonVersion" }
 $env:PYTHONPATH = Join-Path $InterfaceRoot '.cache/build-tools'
 & $Python -m PyInstaller --noconfirm --clean --onedir --console --name tracker-worker --distpath (Join-Path $InterfaceRoot '.cache/worker-dist') --workpath (Join-Path $InterfaceRoot '.cache/worker-build') --specpath (Join-Path $InterfaceRoot '.cache') --add-data "$(Join-Path $InterfaceRoot 'locales');locales" --collect-all instagrapi --collect-all curl_cffi --collect-all Cryptodome --exclude-module tkinter --exclude-module pytest (Join-Path $PSScriptRoot 'worker.py')
 if ($LASTEXITCODE -ne 0) { throw 'Worker build failed' }
