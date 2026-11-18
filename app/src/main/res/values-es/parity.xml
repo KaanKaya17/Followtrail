@@ -6,6 +6,7 @@
     <string name="parity_baseline">Primera lista guardada</string>
     <plurals name="parity_more_people">
         <item quantity="one">%1$d persona más</item>
+        <item quantity="many">%1$d personas más</item>
         <item quantity="other">%1$d personas más</item>
     </plurals>
     <string name="parity_arrivals">Nuevas: %1$d</string>
@@ -31,6 +32,7 @@
     <string name="parity_no_notifications">Aún no hay notificaciones de cambios. Los nuevos cambios aparecerán aquí.</string>
     <plurals name="parity_records">
         <item quantity="one">%1$d registro</item>
+        <item quantity="many">%1$d registros</item>
         <item quantity="other">%1$d registros</item>
     </plurals>
     <string name="parity_routine_count">Revisiones rutinarias · %1$d</string>
