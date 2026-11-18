@@ -24,7 +24,7 @@ class ProfileDetailTests(unittest.TestCase):
         payload=profile('200',followers=0,following=3,profile_pic_url='https://cdninstagram.com/private.jpg')
         del payload['user']['media_count'];del payload['user']['is_private']
         client=PacedClient(self.engine,[payload])
-        with patch.object(self.engine,'client',return_value=client),patch('engine.read_avatar') as image:
+        with patch.object(self.engine,'client',return_value=client),patch.object(self.engine, 'read_avatar') as image:
             state=self.engine.run('profile_detail',{'accountId':'100','id':'200'})
         self.assertEqual([call[0] for call in client.calls],['users/200/info/'])
         image.assert_not_called()

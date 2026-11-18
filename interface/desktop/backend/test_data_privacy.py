@@ -119,7 +119,7 @@ class PrivacyTests(unittest.TestCase):
         fake=FakeClient([profile('400',username='qa.second')]);fake.user_id=400
         fake.login=lambda *_:None
         fake.get_settings=lambda:dict(cookies=dict(ds_user_id='400',sessionid='SYNTHETIC-SECOND'))
-        with patch('engine.new_client',return_value=fake):app.run('login',dict(username='qa.second',password='SYNTHETIC'))
+        with patch.object(app, 'new_client',return_value=fake):app.run('login',dict(username='qa.second',password='SYNTHETIC'))
         app.record_profile(parse_profile(profile('200')))
         app.data['people']['200']['note']='SECOND-ACCOUNT-NOTE';app.save()
         self.assertEqual(app.data['settings']['historyRetentionDays'],0)

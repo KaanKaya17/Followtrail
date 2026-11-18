@@ -33,7 +33,7 @@ class RequestJitterTests(unittest.TestCase):
         e.save()
 
     def test_default_uniform_bounds_and_one_draw_per_reservation(self):
-        with patch('engine.random.uniform', side_effect=[6.0,10.0,8.375]) as draw:
+        with patch('random.uniform', side_effect=[6.0,10.0,8.375]) as draw:
             e = self.engine()
             for spacing in (6.0,10.0,8.375):
                 e.before_request()

@@ -145,7 +145,7 @@ class DailyTests(unittest.TestCase):
         e.record_profile(parse_profile(profile()),own=True)
         e.daily_store().record('100',[dict(observedAt=1704067200+n*86400,followers=n,following=5,posts=10) for n in range(200)])
         target=Path(self.home.name)/'old.backup';target.write_bytes(b'SYNTHETIC-PREVIOUS')
-        with patch('engine.MAX_VAULT',32768),self.assertRaises(AppFailure):e.export_backup(target)
+        with patch.object(e, 'max_vault', 32768),self.assertRaises(AppFailure):e.export_backup(target)
         self.assertEqual(target.read_bytes(),b'SYNTHETIC-PREVIOUS')
 
     def test_deleted_account_revokes_inflight_archive_migration(self):

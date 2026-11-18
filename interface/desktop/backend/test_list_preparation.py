@@ -25,7 +25,7 @@ class ListPreparationTests(unittest.TestCase):
     def linked(self):
         client=FakeClient([profile(followers=3,following=1)])
         client.login=lambda *_:True
-        with patch('engine.new_client',return_value=client):self.e.run('login',{'username':'qa.owner','password':'SYNTHETIC'})
+        with patch.object(self.e, 'new_client',return_value=client):self.e.run('login',{'username':'qa.owner','password':'SYNTHETIC'})
         self.assertTrue(self.e.data['settings']['automatic']);self.assertTrue(self.e.data['settings']['automaticLists'])
         self.e.run('settings',{'interval':60})  # These list fixtures isolate the list queue from profile refreshes.
 
@@ -251,7 +251,7 @@ class ListPreparationTests(unittest.TestCase):
         self.linked();self.e.run('settings',{'automatic':False,'automaticLists':False})
         self.now[0]+=901
         fake=FakeClient([profile()]);fake.login=lambda *_:True
-        with patch('engine.new_client',return_value=fake):self.e.run('login',{'username':'qa.owner','password':'SYNTHETIC'})
+        with patch.object(self.e, 'new_client',return_value=fake):self.e.run('login',{'username':'qa.owner','password':'SYNTHETIC'})
         self.assertFalse(self.e.data['settings']['automatic'])
         self.assertFalse(self.e.data['settings']['automaticLists'])
         self.e.data['settings']['automaticLists']=True
@@ -272,7 +272,7 @@ class ListPreparationTests(unittest.TestCase):
         client=FakeClient([profile('300',username='qa.second',followers=2,following=1)])
         client.user_id=300;client.login=lambda *_:True
         client.get_settings=lambda:{'cookies':{'ds_user_id':'300','sessionid':'SYNTHETIC-SECOND'}}
-        with patch('engine.new_client',return_value=client):self.e.run('login',{'username':'qa.second','password':'SYNTHETIC'})
+        with patch.object(self.e, 'new_client',return_value=client):self.e.run('login',{'username':'qa.second','password':'SYNTHETIC'})
         first=self.work(page(['201','202']))
         self.assertTrue(first.calls[0][0].startswith('friendships/100/'))
         self.assertEqual(self.e.active_id,'300')

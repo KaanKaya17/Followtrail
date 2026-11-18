@@ -68,3 +68,16 @@ for (const file of [
   });
 }
 console.log("All interface and desktop JavaScript sources parse.");
+
+// These two files are being split into smaller modules. Each change may only
+// lower the limit: after a move, set it to the new size so the file cannot grow back.
+const { readFileSync } = await import("node:fs");
+for (const [file, limit] of [
+  ["desktop/backend/engine.py", 1491],
+  ["web/desktop.js", 2369],
+]) {
+  const lines = readFileSync(path.join(root, file), "utf8").split("\n").length - 1;
+  if (lines > limit)
+    throw new Error(`${file} has ${lines} lines; the limit is ${limit}. Move code out instead of adding it here.`);
+}
+console.log("Engine and desktop window files stay within their line limits.");

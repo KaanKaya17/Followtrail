@@ -128,7 +128,7 @@ class ScanProgressTests(unittest.TestCase):
         client = PacedClient(self.engine, [])
         with patch.object(self.engine, 'client', return_value=client), \
              patch.object(self.engine, 'save', side_effect=OSError('synthetic disk failure')), \
-             patch('engine.close_client') as close, self.assertRaises(OSError):
+             patch.object(self.engine, 'close_client') as close, self.assertRaises(OSError):
             self.engine.scan({'direction': 'followers'})
         close.assert_called_once_with(client)
         self.assertIsNone(self.engine.scan_progress)

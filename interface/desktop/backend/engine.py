@@ -110,6 +110,23 @@ class Engine:
         self.list_pages = list_pages.ListPages()
         self.recover_interrupted()
 
+    # Outside effects go through these methods so tests can replace them on
+    # one engine object. Code moved out of this module keeps calling them
+    # through the engine, so those replacements still apply after the move.
+    max_vault = MAX_VAULT
+
+    def new_client(self, settings):
+        return new_client(self, settings)
+
+    def close_client(self, client):
+        close_client(client)
+
+    def read_avatar(self, profile):
+        read_avatar(profile, self)
+
+    def protect(self, value, *, decrypt=False):
+        return protect(value, decrypt=decrypt)
+
     def recover_interrupted(self):
         # Interrupted scans remain explicitly partial after a restart or switch.
         changed = False
@@ -302,7 +319,7 @@ class Engine:
                     self.save()
                     store.checked(target,self.clock(),summary)
                 finally:
-                    close_client(client)
+                    self.close_client(client)
         finally:
             self.story_detail = store.view(target)
 
@@ -446,9 +463,9 @@ class Engine:
     def client(self):
         if not self.data['session']:
             raise AppFailure('session', 'Önce hesabını bağla.')
-        client = new_client(self, self.data['session'])
+        client = self.new_client(self.data['session'])
         if str(client.user_id or '') != self.data['account']['id']:
-            close_client(client)
+            self.close_client(client)
             raise AppFailure('identity', 'Kayıtlı oturumun hesap kimliği uyuşmuyor.')
         return client
 
@@ -536,7 +553,7 @@ class Engine:
             if result.get('picture') is not None and previous and result['picture'] == previous.get('picture') and previous.get('avatar'):
                 result['avatar'] = previous['avatar']
             else:
-                read_avatar(result, self)
+                self.read_avatar(result)
         return result
 
     def connect(self, args, imported=False):
@@ -547,12 +564,12 @@ class Engine:
                 path = Path(os.environ['LOCALAPPDATA']) / 'InstagramCounter/session.dat'
                 if not path.is_file() or path.stat().st_size > 1024 * 1024:
                     raise AppFailure('import', 'Önceki Windows prototipinde aktarılacak oturum bulunamadı.')
-                payload = json.loads(protect(path.read_bytes(), decrypt=True))
+                payload = json.loads(self.protect(path.read_bytes(), decrypt=True))
                 if (not isinstance(payload, dict) or payload.get('version') != 1
                         or not isinstance(payload.get('settings'), dict)
                         or not isinstance(payload.get('account_id'), str)):
                     raise AppFailure('import', 'Eski oturum dosyası desteklenmiyor.')
-                client = new_client(self, payload['settings'])
+                client = self.new_client(payload['settings'])
                 if str(client.user_id or '') != payload['account_id']:
                     raise AppFailure('identity', 'Aktarılan oturumun hesap kimliği tutarsız.')
             else:
@@ -564,7 +581,7 @@ class Engine:
                     raise AppFailure('login_wait', 'Giriş denemeleri arasında en az 15 dakika beklenir.')
                 self.data['gate']['loginAfter'] = now + 900
                 self.save()
-                client = new_client(self, self.login_device_settings(username))
+                client = self.new_client(self.login_device_settings(username))
                 try:
                     self.persist_login_identity(client)
                     self.set_login_stage('authentication')
@@ -600,7 +617,7 @@ class Engine:
             self.save()
         finally:
             args.pop('password', None)
-            close_client(client)
+            self.close_client(client)
 
     def check_connection_identity(self, identity):
         if self.data['account'] and self.data['account']['id'] != identity:
@@ -622,7 +639,7 @@ class Engine:
             self.data['gate']['manualOnly'] = False
             self.save()
         finally:
-            close_client(client)
+            self.close_client(client)
 
     def profile_detail(self, args):
         identity=args.get('id')
@@ -652,7 +669,7 @@ class Engine:
             self.save()
             self.profile_detail_result={'accountId':owner,'profile':public_person(profile)}
         finally:
-            close_client(client)
+            self.close_client(client)
 
     def configure_wayback(self, args):
         identity = str(args.get('id') or '')
@@ -681,7 +698,7 @@ class Engine:
                 raise AppFailure('identity', 'Aranan kullanıcı adı ile yanıt uyuşmadı.')
             if profile['id'] == self.data['account']['id']:
                 raise AppFailure('input', 'Kendi hesabın zaten Özet bölümünde.')
-            read_avatar(profile, self)
+            self.read_avatar(profile)
             self.check_cancel()
             adding = profile['id'] not in self.data['people']
             self.record_profile(profile)
@@ -690,7 +707,7 @@ class Engine:
             self.data['session'] = client.get_settings()
             self.save()
         finally:
-            close_client(client)
+            self.close_client(client)
 
     def search_people(self, args):
         query=profile_search.query(args.get('query'))
@@ -711,7 +728,7 @@ class Engine:
             self.save()
             self.search_results=self.search_cache.put(owner,query,users,pictures)
         finally:
-            close_client(client)
+            self.close_client(client)
 
     def scan(self, args, *, one_page=False, resume=False, reuse_profile=False):
         direction = args.get('direction')
@@ -871,7 +888,7 @@ class Engine:
         finally:
             self.list_scan_active = False
             self.scan_progress = None
-            close_client(client)
+            self.close_client(client)
 
     def known_person(self, identity):
         person = self.data['people'].get(identity)
@@ -948,7 +965,7 @@ class Engine:
                 self.save()
             raise
         finally:
-            close_client(client)
+            self.close_client(client)
 
     def save_profile_about(self, args):
         own = self.data.get('account')
@@ -1144,7 +1161,7 @@ class Engine:
         stream = io.BytesIO()
         encoder = json.JSONEncoder(ensure_ascii=False,allow_nan=False,separators=(',',':'))
         def write(raw):
-            if stream.tell()+len(raw)>MAX_VAULT-4096:
+            if stream.tell()+len(raw)>self.max_vault-4096:
                 raise AppFailure('backup','Yedek dosyası çok büyük. Mevcut dosya korundu.')
             stream.write(raw)
         def encode(value):
@@ -1157,14 +1174,14 @@ class Engine:
                 if index:write(b',')
                 encode(document)
         write(b']}')
-        atomic_write(Path(path),protect(stream.getvalue()))
+        atomic_write(Path(path),self.protect(stream.getvalue()))
 
     def import_backup(self, path):
         path = Path(path)
-        if path.stat().st_size > MAX_VAULT:
+        if path.stat().st_size > self.max_vault:
             raise AppFailure('backup', 'Yedek dosyası çok büyük.')
         try:
-            value = json.loads(protect(path.read_bytes(), decrypt=True))
+            value = json.loads(self.protect(path.read_bytes(), decrypt=True))
             restored = value['data']
             if value.get('format') != 'InstagramTracker-observations' or value.get('version') != 1:
                 raise ValueError()

@@ -35,7 +35,7 @@ class EfficiencyTests(unittest.TestCase):
 
     def test_automatic_starts_share_recent_profile_without_fabricating_observations(self):
         client = PacedClient(self.engine, [profile(), page(['200', '201']), page(['202'])])
-        with patch.object(self.engine, 'client', return_value=client), patch('engine.read_avatar'):
+        with patch.object(self.engine, 'client', return_value=client), patch.object(self.engine, 'read_avatar'):
             self.engine.refresh({})
             observed = self.engine.data['account']['observedAt']
             checks = len([e for e in self.engine.data['events'] if e['type'] == 'check'])

@@ -179,7 +179,7 @@ class StoryTests(unittest.TestCase):
         e=Accounts(self.home.name,clock=lambda:self.now[0],request_delay=lambda:6)
         fake=FakeClient([profile('400',username='qa.second')]);fake.user_id=400;fake.login=lambda *_:None
         fake.get_settings=lambda:{'cookies':{'ds_user_id':'400','sessionid':'SYNTHETIC-SECOND'}}
-        with patch('engine.new_client',return_value=fake):e.run('login',{'username':'qa.second','password':'SYNTHETIC'})
+        with patch.object(e, 'new_client',return_value=fake):e.run('login',{'username':'qa.second','password':'SYNTHETIC'})
         e.data['people']['200']=parse_profile(profile('200'));e.save()
         second=stories.StoryStore(e.vault.path.parent,'400')
         second.record('200',stories.parse(self.payload,'200')[0],self.now[0],(self.raw,'image/jpeg'))

@@ -33,7 +33,7 @@ class AccountsTests(unittest.TestCase):
         fake.user_id = int(identity)
         fake.login = lambda *_: None
         fake.get_settings = lambda: {'cookies': {'ds_user_id':identity, 'sessionid':'SYNTHETIC-'+identity}}
-        with patch('engine.new_client', return_value=fake):
+        with patch.object(self.e, 'new_client', return_value=fake):
             self.e.run('login', {'username':username,'password':'SYNTHETIC-PASSWORD'})
         return fake
 
@@ -63,7 +63,7 @@ class AccountsTests(unittest.TestCase):
         self.assertFalse(self.e.data['people'])
         self.e.data['people']['200'] = {'id':'200', 'username':'qa.person', 'note':'SECOND-NOTE'}
         self.e.save()
-        with patch('engine.new_client', side_effect=AssertionError('switch must be local')):
+        with patch.object(self.e, 'new_client', side_effect=AssertionError('switch must be local')):
             self.e.run('switch_account', {'id':'100'})
         self.assertEqual(self.e.data['people']['200']['note'], 'FIRST-NOTE')
         self.assertEqual(self.e.data['session']['cookies']['sessionid'], 'SYNTHETIC-FIRST')
@@ -166,7 +166,7 @@ class AccountsTests(unittest.TestCase):
         args = {'username':'qa.invalid','password':'SYNTHETIC-PASSWORD'}
         fake = FakeClient([])
         fake.login = lambda *_: (_ for _ in ()).throw(AppFailure('verification', 'Synthetic challenge'))
-        with patch('engine.new_client', return_value=fake):
+        with patch.object(self.e, 'new_client', return_value=fake):
             with self.assertRaises(AppFailure):
                 self.e.run('login', args)
         self.assertNotIn('password', args)

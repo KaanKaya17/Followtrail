@@ -101,7 +101,7 @@ class BackendTests(unittest.TestCase):
 
     def test_qa_offline_mode_rejects_before_any_session_read_or_network(self):
         e=self.engine;e.offline=True
-        with patch('engine.new_client') as factory,patch('engine.protect') as decrypt:
+        with patch.object(e, 'new_client') as factory,patch.object(e, 'protect') as decrypt:
             with self.assertRaises(AppFailure):e.run('import_counter',{})
             factory.assert_not_called();decrypt.assert_not_called()
         self.assertEqual(e.data['gate'].get('attempts',0),0)
@@ -165,18 +165,18 @@ class BackendTests(unittest.TestCase):
         e.record_profile(saved,True)
         client=Mock(user_id=100)
         client.private_request.return_value=profile(followers=42,profile_pic_id='123',profile_pic_url='https://a.cdninstagram.com/rotated')
-        with patch('engine.read_avatar') as reader:
+        with patch.object(e, 'read_avatar') as reader:
             result=e.read_profile(client,'100')
         reader.assert_not_called()
         self.assertEqual(result['followers'],42)
         self.assertEqual(result['avatar'],saved['avatar'])
         for picture in ('456',None):
             client.private_request.return_value=profile(profile_pic_id=picture)
-            with patch('engine.read_avatar') as reader:e.read_profile(client,'100')
+            with patch.object(e, 'read_avatar') as reader:e.read_profile(client,'100')
             reader.assert_called_once()
         e.data['account']['avatar']=None
         client.private_request.return_value=profile(profile_pic_id='123')
-        with patch('engine.read_avatar') as reader:e.read_profile(client,'100')
+        with patch.object(e, 'read_avatar') as reader:e.read_profile(client,'100')
         reader.assert_called_once()
 
     def test_picture_cache_does_not_cross_numeric_identities(self):
@@ -184,7 +184,7 @@ class BackendTests(unittest.TestCase):
         saved=parse_profile(profile(profile_pic_id='123'));saved['avatar']='data:image/jpeg;base64,QA=='
         e.record_profile(saved,True)
         client=Mock(user_id=100);client.private_request.return_value=profile('200',profile_pic_id='123')
-        with patch('engine.read_avatar') as reader:e.read_profile(client,'200')
+        with patch.object(e, 'read_avatar') as reader:e.read_profile(client,'200')
         reader.assert_called_once()
 
     def test_actual_caa_code_path_never_prints_or_uses_console(self):
@@ -219,7 +219,7 @@ class BackendTests(unittest.TestCase):
         e=self.connected();before=copy.deepcopy(e.data['account'])
         client=Mock();client.login.side_effect=AppFailure('login','Synthetic failure')
         args={'username':'qa.owner','password':'QA-never-persist-password'}
-        with patch('engine.new_client',return_value=client),self.assertRaises(AppFailure):e.run('login',args)
+        with patch.object(e, 'new_client',return_value=client),self.assertRaises(AppFailure):e.run('login',args)
         self.assertEqual(e.data['account'],before)
         self.assertNotIn('password',args)
         self.assertIsNone(client.password)
