@@ -20,6 +20,11 @@ class WebPendingConnectionTest {
     private var scenario: ActivityScenario<WebPendingConnectionActivity>? = null
     private fun all(view: View): List<View> = listOf(view) +
         if (view is ViewGroup) (0 until view.childCount).flatMap { all(view.getChildAt(it)) } else emptyList()
+    private fun owner(view: View): android.app.Activity? {
+        var context: android.content.Context? = view.context
+        while (context is android.content.ContextWrapper) { if (context is android.app.Activity) return context; context = context.baseContext }
+        return null
+    }
     @Before fun setup() { check(context.packageName.endsWith(".debug")); cleanup() }
     @After fun cleanup() {
         scenario?.close(); scenario = null; MonitorScheduler.cancel(context)
@@ -55,7 +60,8 @@ class WebPendingConnectionTest {
                 .single { it.text == a.getString(R.string.web_pending_forget) }.performClick()
         }
         scenario!!.onActivity { a ->
-            WindowInspector.getGlobalWindowViews().flatMap(::all).filterIsInstance<Button>()
+            // Use only this activity's dialog; a window left by an earlier test could carry the same button.
+            WindowInspector.getGlobalWindowViews().filter { it.isShown && owner(it) === a }.flatMap(::all).filterIsInstance<Button>()
                 .single { it.id == android.R.id.button1 && it.text == a.getString(R.string.web_pending_forget) }.performClick()
         }
         assertNull(WebSessions(context).pending()); assertEquals(existing, SessionVault(context).read())
