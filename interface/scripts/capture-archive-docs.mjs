@@ -108,12 +108,12 @@ try {
     const summary = archive.locator('.archive-dashboard-compare-count').first();
     await summary.waitFor();
     assert.equal(await summary.innerText(),'3 → 4');
-    await archive.getByText(t('Yalnız ilk ZIP’te')+' · 1',{exact:true}).click();
-    await archive.getByText(t('Yalnız ikinci ZIP’te')+' · 2',{exact:true}).click();
+    await archive.getByText(t('Takipten çıkanlar')+' · 1',{exact:true}).click();
+    await archive.getByText(t('Yeni takipçiler')+' · 2',{exact:true}).click();
     for (const username of ['@ornek.efe','@ornek.ada','@ornek.mert']) {
         await archive.getByRole('link',{name:username,exact:true}).first().waitFor();
     }
-    await capture('zip-karsilastirma-sonuc', comparison.locator(':scope > .archive-dashboard-rows'));
+    await capture('zip-karsilastirma-sonuc', comparison.locator('.archive-dashboard-rows'));
     const after = (await page.evaluate(() => window.TrackerDesktop.command('state'))).state;
     assert.equal(after.connected,false);
     assert.deepEqual(after.gate,before.gate);

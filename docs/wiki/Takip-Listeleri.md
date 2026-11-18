@@ -8,10 +8,10 @@
 
 Instagram Hesaplar Merkezi’nde **Bilgilerin ve izinlerin → Bilgilerini dışa aktar** bölümünden Instagram hesabını seçin. Veri seçimi ekranında **Takipçiler ve takip edilenler**, biçim olarak **HTML** veya **JSON**, tarih aralığı olarak **Tüm zamanlar** seçin. Dosya hazır olduğunda ZIP’i cihazınıza indirin. [Meta Hesaplar Merkezi](https://accountscenter.instagram.com/info_and_permissions/).
 
-- Windows’ta **Instagram Veri Arşivi → ZIP takip karşılaştırması** yolunu kullanın.
+- Windows’ta ZIP’i **Instagram Veri Arşivi** ekranında açın ve **Takip ilişkileri** düğmesine tıklayın. Açık ZIP kullanılır; dosya yeniden sorulmaz.
 - Android’de ana ekrandaki **⋯ → Instagram ZIP yükle** seçeneğini açıp ZIP’i seçin.
 
-Arşivdeki listelerde arama yapabilirsiniz. İki yön de varsa karşılıklı takipleri, sizi geri takip etmeyenleri ve sizin geri takip etmediklerinizi görebilirsiniz. Eşleşme arşivdeki kullanıcı adlarına göre yapılır. Sonuç, dosyayı oluştururken seçtiğiniz veri ve tarih aralığına bağlıdır.
+Arşivdeki listelerde arama yapabilirsiniz. Son takipten çıktıklarınız, bekleyen ve gelen istekler, yakın arkadaşlar, engellediğiniz ve kısıtladığınız hesaplar da ZIP’te varsa tarihleriyle listelenir; **Seni takip etmeyen yakın arkadaşların** görünümü de vardır. Okunamayan satır olursa pencerede uyarı görünür. İki yön de varsa karşılıklı takipleri, sizi geri takip etmeyenleri ve sizin geri takip etmediklerinizi görebilirsiniz. Eşleşme arşivdeki kullanıcı adlarına göre yapılır. Sonuç, dosyayı oluştururken seçtiğiniz veri ve tarih aralığına bağlıdır.
 
 Takip tarihlerini görmek için JSON biçimini seçin. Arşivdeki tarihli kayıtlar en yeni veya en eski tarihe göre sıralanabilir ve başlangıç ve bitiş günleri dahil olacak şekilde filtrelenebilir. Karşılıklı takiplerde iki yönün tarihi gösterilir. Bu görünümde tarih filtresi, diğer hesabın sizi takip etmeye başladığı tarihi kullanır.
 

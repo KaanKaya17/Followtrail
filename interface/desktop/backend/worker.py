@@ -55,6 +55,8 @@ def main():
         'export_browser_compare': archive.compare,
         'export_browser_prepare_comparison': archive.prepare_comparison,
         'export_browser_comparison_page': archive.comparison_page,
+        'export_browser_comparison_csv': archive.comparison_csv,
+        'export_browser_lists': archive.lists,
         'export_browser_media': archive.media,
         'export_browser_save': archive.save,
         'export_browser_close': archive.release,

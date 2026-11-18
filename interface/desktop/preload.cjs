@@ -11,6 +11,11 @@ contextBridge.exposeInMainWorld(
       if (!path) return {ok:false};
       return ipcRenderer.invoke("tracker:open-dropped-archive", path);
     },
+    prepareDroppedComparison: (token, file) => {
+      const path = webUtils.getPathForFile(file);
+      if (!path) return {ok:false};
+      return ipcRenderer.invoke("tracker:prepare-dropped-comparison", token, path);
+    },
     openLink: url => ipcRenderer.invoke('tracker:open-link',url),
     subscribe: (callback) => {
       const listener = (_event, data) => callback(data);

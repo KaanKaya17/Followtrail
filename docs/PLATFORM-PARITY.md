@@ -1,5 +1,9 @@
 # Android / Windows eşitlemesi
 
+## Windows 0.2.92
+
+ZIP takip listelerinin satır/parça bazında okunması, ek takip ilişkileri (son takipten çıkılanlar, istekler, yakın arkadaşlar, engellenenler …), iki ZIP karşılaştırmasındaki takip tarihleri, muhtemel ad değişikliği, arama ve CSV yalnız Windows’ta vardır. Android 0.1.103 ZIP okuyucusu önceki kurallarla çalışır. [ZIP inceleme](ZIP-ARCHIVE-TEST.md).
+
 ## Windows 0.2.91
 
 Takip geçmişi (Geri gelenler, Ayrılanlar ve kişi panelindeki ilk/son görülme, çıkış ve geri dönüş aralıkları) yalnız Windows’ta vardır. Android 0.1.103 son tam taramalar arasındaki farkı göstermeyi sürdürür; kalıcı üyelik defteri henüz yoktur. [Tasarım ve doğrulama](FOLLOW-HISTORY-TEST.md).

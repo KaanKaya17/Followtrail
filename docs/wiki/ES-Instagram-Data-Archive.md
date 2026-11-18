@@ -30,7 +30,7 @@ En Windows, usa **Resumen → Abrir ZIP de Instagram** al iniciar. Después pued
 
 ## Lee los resultados
 
-Abre **Solo en el primer ZIP** o **Solo en el segundo ZIP** en la sección de seguidores o de cuentas seguidas.
+En seguidores abre **Nuevos seguidores** o **Dejaron de seguirte**; en cuentas seguidas, **Empezaste a seguir** o **Dejaste de seguir**. Cada nombre muestra su fecha de seguimiento. Puedes buscar, ordenar por fecha y **Guardar como CSV**. Un único cambio de nombre con la misma fecha aparece en **Puede haber cambiado de nombre de usuario**; no es seguro.
 
 ![Los seguidores pasan de 3 a 4. Dos nombres solo están en el ZIP nuevo y uno solo en el antiguo.](assets/es/zip-karsilastirma-sonuc.png)
 

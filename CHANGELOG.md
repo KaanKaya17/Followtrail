@@ -1,5 +1,14 @@
 # Değişiklikler
 
+## Windows 0.2.92 — 2026-11-18
+
+- **Hesap bağlamadan ZIP inceleme daha güvenilir:** Bozuk bir satır atlanıp sayılır; okunamayan dosya parçası yalnız kendi listesini **Kısmi** yapar, diğer liste etkilenmez. Önceden tek satır iki listeyi birden okunamaz yapıyordu.
+- **Takip ilişkileri** (eski adı “ZIP takip karşılaştırması”) 512 MB üstü tam dışa aktarımları da okur ve açık ZIP’i kullanır; dosyayı yeniden sormaz.
+- Son takipten çıktıkların, bekleyen ve gelen istekler, yakın arkadaşlar, engellediğin ve kısıtladığın hesaplar, hikâyeni gizlediklerin ve kaldırılan öneriler tarihleriyle gösterilir. **Seni takip etmeyen yakın arkadaşların** görünümü eklendi.
+- **İki ZIP karşılaştır:** Kaynak kartlarında iki ZIP’in liste sayıları, sonuçlarda takip tarihleri, yöne göre başlıklar (**Yeni takipçiler**, **Takipten çıkanlar** …), aynı takip tarihine dayanan **Kullanıcı adını değiştirmiş olabilir** eşleşmesi, arama, tarih sıralaması, **CSV olarak kaydet** ve sürükle-bırak. Sonuç başka görünüme geçince kaybolmaz.
+- Dosya adındaki hesap, ZIP’te hesap bilgisi yoksa “(dosya adından)” etiketiyle kullanılır. Özete yorumlar ve mesaj sohbet sayısı eklendi; çok büyük kayıtlar “Çok büyük” olarak görünür; eski klasör düzenleri okunur.
+- Gizli kalması gereken **Daha fazla göster** düğmeleri artık görünmez; arama ve filtre satırı düzeltildi. [Ayrıntılar ve doğrulama](docs/ZIP-ARCHIVE-TEST.md).
+
 ## Windows 0.2.91 — 2026-11-18
 
 - **Takip geçmişi:** Her takip listesi için kalıcı üyelik defteri. Kişinin ilk ve son görüldüğü tarama, listeden çıktığı aralık ve geri döndüğü tarama şifreli kasada saklanır; son altı tarama dönüşünden etkilenmez.

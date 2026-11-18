@@ -40,15 +40,17 @@ Tracker’ı yalnızca erişim yetkiniz olan verilerle, geçerli kurallara ve ba
 
 ## İndirmeler ve sürüm durumu
 
-Windows 0.2.91 ve Android 0.1.103 önizlemesinde (sürüm kodu 104) hesap bağlamadan ZIP arşivi inceleme, iki ZIP karşılaştırma ve parolalı Tracker geçmişi dosyası açma kullanılabilir. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
+Windows 0.2.92 ve Android 0.1.103 önizlemesinde (sürüm kodu 104) hesap bağlamadan ZIP arşivi inceleme, iki ZIP karşılaştırma ve parolalı Tracker geçmişi dosyası açma kullanılabilir. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
 **GitHub’da indirilebilen önizlemeler:**
 
-[Windows 0.2.91 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
+[Windows 0.2.92 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
 
-[Android 0.1.103 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103) · [Windows 0.2.90 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.90) · [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
+[Android 0.1.103 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103) · [Windows 0.2.91 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.91) · [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
 
 [Tüm Windows ve Android önizlemeleri](https://github.com/KaanKaya17/InstagramTracker/releases)
+
+**Windows 0.2.92:** Hesap bağlamadan ZIP incelemede bozuk satır artık bütün listeyi düşürmez; büyük tam dışa aktarımlar okunur. Son takipten çıktıkların, bekleyen istekler, yakın arkadaşlar ve engellenenler gösterilir. İki ZIP karşılaştırması takip tarihi, muhtemel ad değişikliği, arama ve CSV sunar. [ZIP inceleme](docs/ZIP-ARCHIVE-TEST.md).
 
 **Windows 0.2.91:** Takip Listeleri’nde **Geri gelenler** ve **Ayrılanlar** görünümleri; kişinin listede ilk/son görüldüğü, çıktığı ve geri döndüğü tarama aralığı yerelde saklanır. Kişi panelinde **Takip geçmişi** bölümü vardır. Yeni Instagram isteği yoktur. [Takip geçmişi](docs/FOLLOW-HISTORY-TEST.md).
 

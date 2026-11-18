@@ -1,10 +1,10 @@
-# InstagramTracker Windows 0.2.91
+# InstagramTracker Windows 0.2.92
 
-Güncel paket **[Windows 0.2.91](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.91)**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
+Güncel paket **[Windows 0.2.92](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92)**. [Sürüm ve canlı doğrulama durumu](../docs/wiki/Surum-ve-Destek.md), [ortak istek politikası](../docs/REQUEST-POLICY.md) ve [son yanıt paylaşımı kontrolleri](../docs/RESPONSE-SHARING-TEST.md). Aşağıdaki eski sürüm numaraları ilgili özelliğin ilk uygulamasını gösterir; güncel kota ve sürüm için bu başlığı esas alın.
 
 **Takip geçmişi** (0.2.91): Takip Listeleri’ndeki **İlişki filtresi**, **Geri gelenler** ve **Ayrılanlar** görünümlerini sunar; kişi paneli bağlı hesabın kendi listelerindeki ilk/son görülme, çıkış ve geri dönüş aralıklarını gösterir. Defter yalnız tam taramalardan beslenir, yeni istek göndermez. [Ayrıntılar ve testler](../docs/FOLLOW-HISTORY-TEST.md).
 
-**Instagram Veri Arşivi**, Zaman Çizelgesi’nin altında açılır. Özet, arama ve iki ZIP’in takip listelerini karşılaştırma yerelde çalışır. [Kullanım ve sonuçların anlamı](../docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
+**Instagram Veri Arşivi**, Zaman Çizelgesi’nin altında açılır. 0.2.92’den itibaren takip listeleri satır ve dosya parçası bazında okunur; okunamayan kısım yalnız kendi listesini **Kısmi** yapar. **Takip ilişkileri** açık ZIP’i kullanır ve ek listeleri gösterir. [ZIP inceleme ve testler](../docs/ZIP-ARCHIVE-TEST.md). Özet, arama ve iki ZIP’in takip listelerini karşılaştırma yerelde çalışır. [Kullanım ve sonuçların anlamı](../docs/wiki/Takip-Listeleri.md#instagram-zip-arşivi).
 
 Biyografi satır sonları masaüstü ve ortak web panelinde korunur; Instagram’da alt alta yazılan metin aynı satır düzeniyle gösterilir. Bu bir sunum düzeltmesidir; kayıtlı biyografi yeniden yazılmaz. Android metin bileşeni zaten bu düzeni korur.
 

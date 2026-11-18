@@ -73,7 +73,7 @@ const rendererUpdates = new RendererUpdates({
 const allowed = new Set([
   "export_browser_summary", "export_browser_content", "export_browser_search", "export_browser_compare", "export_browser_comparison_page",
   "export_browser_portable_page", "export_browser_portable_close",
-  "export_browser_text", "export_browser_media", "export_browser_close", "export_browser_browse",
+  "export_browser_text", "export_browser_media", "export_browser_close", "export_browser_browse", "export_browser_lists",
   "history_page", "history_detail",
   "state",
   "switch_account",
@@ -139,7 +139,8 @@ function validate(operation, args) {
     export_browser_portable_close: [],
     export_browser_search: ['token','query','index','start'],
     export_browser_compare: ['token','candidate','reverse'],
-    export_browser_comparison_page: ['token','direction','change','offset'],
+    export_browser_comparison_page: ['token','direction','change','offset','query','order'],
+    export_browser_lists: ['token'],
     export_browser_media: ['token','index'],
     export_browser_close: ['token'],
     history_page: ['accountId','revision','kind','type','personId','section','read','offset'],
@@ -339,11 +340,17 @@ else
         throw new Error("Invalid dropped archive");
       return backend.command("export_browser_open", {path:filename});
     });
+    ipcMain.handle("tracker:prepare-dropped-comparison", async (event, token, filename) => {
+      if (!senderValid(event) || typeof token !== "string" || !/^[0-9a-f]{32}$/.test(token) ||
+          typeof filename !== "string" || !path.isAbsolute(filename) || path.extname(filename).toLowerCase() !== ".zip")
+        throw new Error("Invalid dropped archive");
+      return backend.command("export_browser_prepare_comparison", {token, path:filename});
+    });
     ipcMain.handle("tracker:file", async (event, action, args = {}) => {
       const fileFields =
         action === "export_list" ? ["id", "direction", "snapshotId"] :
         action === "export_browser_save" ? ["token", "index", "name"] :
-        action === "export_browser_prepare_comparison" ? ["token"] :
+        action === "export_browser_prepare_comparison" || action === "export_browser_comparison_csv" ? ["token"] :
         ["open_portable_backup","export_portable_backup"].includes(action) ? ["password"] : [];
       if (
         !args ||
@@ -359,7 +366,7 @@ else
           "import_backup",
           "open_portable_backup", "export_portable_backup",
           "import_instagram_zip",
-          "export_browser_open", "export_browser_save", "export_browser_prepare_comparison",
+          "export_browser_open", "export_browser_save", "export_browser_prepare_comparison", "export_browser_comparison_csv",
           "export_list",
           "open_storage",
         ].includes(action)
@@ -401,6 +408,15 @@ else
         });
         if (selection.canceled) return { ok: true, cancelled: true };
         return backend.command(action, { ...args, path: selection.filePaths[0] });
+      }
+      if (action === "export_browser_comparison_csv") {
+        const selection = await dialog.showSaveDialog(window, {
+          title: t("Karşılaştırmayı CSV olarak kaydet"),
+          defaultPath: "InstagramTracker-zip-karsilastirma.csv",
+          filters: [{ name: "CSV", extensions: ["csv"] }],
+        });
+        if (selection.canceled) return { ok: true, cancelled: true };
+        return backend.command(action, { token: args.token, path: selection.filePath });
       }
       if (action === "export_browser_save") {
         if (!Number.isSafeInteger(args.index) || args.index < 0 || typeof args.name !== 'string' || args.name.length > 512)

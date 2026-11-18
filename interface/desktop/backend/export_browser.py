@@ -11,6 +11,7 @@ from tempfile import NamedTemporaryFile
 from uuid import uuid4
 from zipfile import BadZipFile, ZipFile, _EndRecData, _ECD_SIZE, _ECD_ENTRIES_TOTAL
 
+import csv
 from instagram_archive import ENTRY, archive_name, read_relationships
 
 MAX_ARCHIVE = 8 * 1024**3
@@ -22,16 +23,21 @@ MAX_PREVIEW = 32 * 1024**2
 MAX_COPY = 512 * 1024**2
 PAGE = 24_000
 ARCHIVE_ERRORS = (OSError, ValueError, TypeError, AttributeError, RuntimeError, NotImplementedError, BadZipFile, RecursionError)
+# Each metric lists (folder, file stem) pairs: current exports first, then
+# the older layout without the your_instagram_activity/connections prefix.
 SUMMARY_FILES = {
-    'profileChanges': ('personal_information/personal_information/', 'profile_changes'),
-    'likes': ('your_instagram_activity/likes/', 'liked_posts'),
-    'saved': ('your_instagram_activity/saved/', 'saved_posts'),
-    'stories': ('your_instagram_activity/media/', 'stories'),
-    'contacts': ('connections/contacts/', 'synced_contacts'),
+    'profileChanges': (('personal_information/personal_information/', 'profile_changes'),
+                       ('personal_information/', 'profile_changes')),
+    'likes': (('your_instagram_activity/likes/', 'liked_posts'), ('likes/', 'liked_posts')),
+    'saved': (('your_instagram_activity/saved/', 'saved_posts'), ('saved/', 'saved_posts')),
+    'comments': (('your_instagram_activity/comments/', 'post_comments'), ('your_instagram_activity/comments/', 'reels_comments'),
+                 ('comments/', 'post_comments'), ('comments/', 'reels_comments')),
+    'stories': (('your_instagram_activity/media/', 'stories'), ('content/', 'stories'), ('media/', 'stories')),
+    'contacts': (('connections/contacts/', 'synced_contacts'), ('contacts/', 'synced_contacts')),
 }
 TREND_METRICS = ('Followers', 'Accounts Reached', 'Accounts reached', 'Content Interactions')
 PROFILE_FILE = 'personal_information/personal_information/personal_information.json'
-EXPORT_NAME = re.compile(r'instagram-[A-Za-z0-9._]{1,30}-(\d{4}-\d{2}-\d{2})-[A-Za-z0-9]{8}\.zip', re.I)
+EXPORT_NAME = re.compile(r'instagram-([A-Za-z0-9._]{1,30})-(\d{4}-\d{2}-\d{2})-[A-Za-z0-9]{8}\.zip', re.I)
 MESSAGE_FILE = re.compile(r'(?:your_instagram_activity/)?messages/(?:[^/]+/)+message_\d+\.(?:json|html)')
 CONTENT_FILES = re.compile(r'(your_instagram_activity/media|logged_information/past_instagram_insights)/(stories|reels|posts)(?:_[1-9]\d{0,3})?\.json')
 CONTENT_METRICS = {
@@ -369,7 +375,7 @@ class ExportBrowser:
         for file in self.files:
             if file.filename in ('start_here.html', PROFILE_FILE):
                 sources.setdefault(file.filename, []).append(file)
-        account = exported_at = date_range = None
+        account = exported_at = date_range = footer_account = None
         try:
             entry, = sources.get('start_here.html', ())
             footer = ExportFooter()
@@ -377,6 +383,7 @@ class ExportBrowser:
             footer.close()
             if len(footer.records) == 1:
                 account, stamp = footer.records[0]
+                footer_account = account
                 exported_at = export_stamp(stamp)
             if len(footer.ranges) == 1:
                 start, end = map(export_stamp, footer.ranges[0])
@@ -392,13 +399,18 @@ class ExportBrowser:
             profile_account = None
         if profile_account:
             account = profile_account if account in (None, profile_account) else None
+        match = EXPORT_NAME.fullmatch(self.path.name)
+        named = archive_name(match[1]) if match else None
         result = {'account': account, 'exportedAt': exported_at.isoformat() if exported_at else None}
+        if named and not footer_account and not profile_account:
+            # Instagram names downloads instagram-<account>-<date>-<id>.zip; this is
+            # used only when the archive itself names no account, and is labelled.
+            result.update(account=named, accountSource='filename')
         if date_range:
             result['dateRange'] = date_range
-        match = EXPORT_NAME.fullmatch(self.path.name)
         if not exported_at and match:
             try:
-                result['filenameDate'] = datetime.strptime(match[1], '%Y-%m-%d').date().isoformat()
+                result['filenameDate'] = datetime.strptime(match[2], '%Y-%m-%d').date().isoformat()
             except ValueError:
                 pass
         return result
@@ -418,34 +430,48 @@ class ExportBrowser:
             elif scope['messages'] == 'missing' and file.filename in (
                     'your_instagram_activity/messages/no-data.txt', 'messages/no-data.txt'):
                 scope['messages'] = 'empty'
-        try:
-            self.relationships = read_relationships(self.zip)
-        except ARCHIVE_ERRORS:
-            pass
-        if self.relationships:
-            for name, rows in self.relationships.items():
-                if rows is not None:
-                    scope[name] = 'present'
-                    candidates = [(index, file.filename) for index, file in enumerate(self.files)
-                                  if Path(file.filename).parent.name == 'followers_and_following' and
-                                  re.fullmatch(name + r'(?:_1)?\.(json|html)', Path(file.filename).name)]
-                    if candidates:
-                        index, source = candidates[0]
-                        metrics[name] = {'count': len(rows), 'index': index if source.endswith('.json') else None}
-        months = Counter()
-        for key, (folder, base) in SUMMARY_FILES.items():
-            matched = []
-            for index, file in enumerate(self.files):
-                name = file.filename.removeprefix(folder)
-                if name == file.filename:
+        relations = {}
+        lists = self.read_lists()
+        if lists:
+            indexes = {file.filename: index for index, file in enumerate(self.files)}
+            source = lambda key: (indexes.get(lists['files'].get(key))
+                                  if str(lists['files'].get(key, '')).endswith('.json') else None)
+            for name in ('followers', 'following'):
+                quality = lists['quality'].get(name)
+                if quality is None:
                     continue
-                part = re.fullmatch(base + r'(?:_([1-9][0-9]{0,3}))?\.json', name)
-                if part:
-                    matched.append((int(part[1] or '1'), index, file))
-            matched.sort(key=lambda item: item[:2])
-            if not matched or [part for part, _, _ in matched] != list(range(1, len(matched) + 1)):
+                if lists[name] is None:
+                    scope[name] = 'unreadable'
+                    continue
+                scope[name] = 'present' if quality['complete'] else 'partial'
+                metrics[name] = {'count': len(lists[name]), 'index': source(name), 'complete': quality['complete'],
+                                 'skipped': quality['skipped'], 'missingParts': quality['missingParts']}
+            for key, value in lists['extras'].items():
+                relations[key] = {'count': len(value['rows']), 'index': source(key), 'complete': value['quality']['complete']}
+        threads = {str(Path(file.filename).parent) for file in self.files if MESSAGE_FILE.fullmatch(file.filename)}
+        if threads:
+            metrics['messages'] = {'count': len(threads), 'index': None}
+        months = Counter()
+        for key, layouts in SUMMARY_FILES.items():
+            groups = []
+            for folder, base in layouts:
+                matched = []
+                for index, file in enumerate(self.files):
+                    name = file.filename.removeprefix(folder)
+                    if name == file.filename:
+                        continue
+                    part = re.fullmatch(base + r'(?:_([1-9][0-9]{0,3}))?\.json', name)
+                    if part:
+                        matched.append((int(part[1] or '1'), index, file))
+                matched.sort(key=lambda item: item[:2])
+                if matched and [part for part, _, _ in matched] == list(range(1, len(matched) + 1)):
+                    groups.append(matched)
+            if not groups:
                 continue
+            # Comments come from post and reels files; other metrics use the first layout found.
+            matched = [item for group in (groups if key == 'comments' else groups[:1]) for item in group]
             if sum(file.file_size for _, _, file in matched) > MAX_JSON:
+                metrics[key] = {'count': None, 'index': matched[0][1], 'tooLarge': True}
                 continue
             count = 0
             try:
@@ -464,9 +490,33 @@ class ExportBrowser:
                     months.clear()
                 continue
             metrics[key] = {'count': count, 'index': matched[0][1]}
-        self.summary_data = {'metrics': metrics, 'months': monthly_likes(months),
+        self.summary_data = {'metrics': metrics, 'months': monthly_likes(months), 'relations': relations,
                              'scope': scope, 'metadata': self.metadata}
         return self.summary_data
+
+    def read_lists(self):
+        if self.relationships is None:
+            try:
+                self.relationships = read_relationships(self.zip)
+            except ARCHIVE_ERRORS:
+                self.relationships = False
+        return self.relationships or None
+
+    def lists(self, token):
+        """The open ZIP's lists in the shape of the single-file relationship view."""
+        self.validate_token(token)
+        found = self.read_lists()
+        if not found:
+            raise ValueError('archive_entry')
+        return {'fileName': self.path.name, **found}
+
+    @staticmethod
+    def list_summary(found):
+        if not found:
+            return {'followers': None, 'following': None}
+        return {name: ({'count': len(found[name]), 'complete': found['quality'][name]['complete']}
+                       if found[name] is not None else ({'unreadable': True} if name in found['quality'] else None))
+                for name in ('followers', 'following')}
 
     def content(self, token, month=None, day=None, offset=0):
         self.validate_token(token)
@@ -609,10 +659,16 @@ class ExportBrowser:
                 lists = None
         finally:
             other.close()
+        first['lists'] = self.list_summary(self.read_lists())
+        second['lists'] = self.list_summary(lists)
         candidate = uuid4().hex
         different_accounts = bool(first['account'] and second['account'] and first['account'] != second['account'])
+        unknown_account = not (first['account'] and second['account'])
         self.comparison_candidate = (candidate, lists)
-        return {'candidate': candidate, 'first': first, 'second': second, 'differentAccounts': different_accounts}
+        return {'candidate': candidate, 'first': first, 'second': second, 'differentAccounts': different_accounts,
+                'unknownAccount': unknown_account,
+                'comparable': any(first['lists'][d] and 'count' in first['lists'][d] and second['lists'][d] and 'count' in second['lists'][d]
+                                  for d in ('followers', 'following'))}
 
     def compare(self, token, candidate, reverse=False):
         self.validate_token(token)
@@ -623,33 +679,79 @@ class ExportBrowser:
         if other is None:
             raise ValueError('archive_entry')
         self.comparison = None
-        if self.relationships is None:
-            self.relationships = read_relationships(self.zip)
-        before, after = (other, self.relationships) if reverse else (self.relationships, other)
-        data = {}
-        for direction, rows in before.items():
-            newer = after[direction]
+        mine = self.read_lists()
+        if not mine:
+            raise ValueError('archive_entry')
+        before, after = (other, mine) if reverse else (mine, other)
+        data, missing = {}, {}
+        for direction in ('followers', 'following'):
+            rows, newer = before[direction], after[direction]
             if rows is None or newer is None:
+                missing[direction] = 'both' if rows is None and newer is None else 'first' if rows is None else 'second'
                 continue
-            old_names = {row['username'] for row in rows}
-            new_names = {row['username'] for row in newer}
+            old = {row['username']: row['timestamp'] for row in rows}
+            new = {row['username']: row['timestamp'] for row in newer}
+            added = sorted(set(new) - set(old))
+            removed = sorted(set(old) - set(new))
+            # The export has no account IDs. A follow date survives a username
+            # change, so a single removed/added pair with the same date is
+            # reported as a probable rename, never silently merged.
+            by_date = lambda names, source: {stamp: [n for n in names if source[n] == stamp]
+                                             for stamp in {source[n] for n in names} if stamp is not None}
+            gone, came = by_date(removed, old), by_date(added, new)
+            renamed = [{'from': gone[stamp][0], 'to': came[stamp][0], 'timestamp': stamp}
+                       for stamp in sorted(set(gone) & set(came)) if len(gone[stamp]) == 1 and len(came[stamp]) == 1]
+            paired_old = {pair['from'] for pair in renamed}
+            paired_new = {pair['to'] for pair in renamed}
             data[direction] = {
-                'before': len(old_names), 'after': len(new_names),
-                'added': sorted(new_names - old_names), 'removed': sorted(old_names - new_names),
+                'before': len(old), 'after': len(new),
+                'added': [{'username': n, 'timestamp': new[n]} for n in added if n not in paired_new],
+                'removed': [{'username': n, 'timestamp': old[n]} for n in removed if n not in paired_old],
+                'renamed': renamed,
+                'complete': before['quality'][direction]['complete'] and after['quality'][direction]['complete'],
             }
         self.comparison = data
         return {'directions': {
             direction: {key: len(value) if isinstance(value, list) else value for key, value in values.items()}
             for direction, values in data.items()
-        }}
+        }, 'missing': missing}
 
-    def comparison_page(self, token, direction, change, offset=0):
+    def comparison_page(self, token, direction, change, offset=0, query='', order='name'):
         self.validate_token(token)
-        if (not self.comparison or direction not in self.comparison or change not in ('added', 'removed')
-                or type(offset) is not int or offset < 0):
+        if (not self.comparison or direction not in self.comparison or change not in ('added', 'removed', 'renamed')
+                or type(offset) is not int or offset < 0 or not isinstance(query, str) or len(query) > 60
+                or order not in ('name', 'newest', 'oldest')):
             raise ValueError('archive_entry')
-        names = self.comparison[direction][change]
-        return {'names': names[offset:offset + 50], 'total': len(names)}
+        rows = self.comparison[direction][change]
+        needle = query.strip().casefold().lstrip('@')
+        if needle:
+            rows = [row for row in rows if needle in (row.get('username') or row['from'] + ' ' + row['to'])]
+        if order != 'name':
+            rows = sorted(rows, key=lambda row: (row['timestamp'] is None, (row['timestamp'] or 0) * (-1 if order == 'newest' else 1)))
+        return {'rows': rows[offset:offset + 50], 'total': len(rows)}
+
+    def comparison_csv(self, token, path):
+        self.validate_token(token)
+        if not self.comparison:
+            raise ValueError('archive_entry')
+        def cell(value):
+            value = '' if value is None else str(value)
+            return "'" + value if value.startswith(('=', '+', '-', '@', '\t', '\r', '\n')) else value
+        def day(stamp):
+            return datetime.fromtimestamp(stamp, timezone.utc).date().isoformat() if stamp else ''
+        path = Path(path).resolve()
+        if path.suffix.lower() != '.csv' or path == self.path:
+            raise ValueError('archive_entry')
+        with open(path, 'w', encoding='utf-8-sig', newline='') as stream:
+            writer = csv.writer(stream, quoting=csv.QUOTE_ALL)
+            writer.writerow(['list', 'change', 'username', 'previous_username', 'follow_date_utc'])
+            for direction, values in self.comparison.items():
+                for change in ('added', 'removed'):
+                    writer.writerows([cell(direction), cell(change), cell(row['username']), '', day(row['timestamp'])]
+                                     for row in values[change])
+                writer.writerows([cell(direction), 'renamed', cell(row['to']), cell(row['from']), day(row['timestamp'])]
+                                 for row in values['renamed'])
+        return {'saved': True}
 
     def browse(self, token, index, query='', offset=0, since=None, until=None, order=None, record=None):
         entry = self.file(token, index)

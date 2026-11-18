@@ -875,8 +875,11 @@
     paintListPage();
     listPager.mount(document.getElementById('list-pagination'),windowVisible);
   }
-  async function openInstagramArchive() {
-    const selected = await api.file("import_instagram_zip").catch(() => null);
+  async function openInstagramArchive(token) {
+    // With a ZIP open in the archive view, its lists are reused; no second file dialog.
+    const selected = token
+      ? await api.command("export_browser_lists", {token}).then(result => ({ok:result?.ok, instagramArchive:result?.archiveBrowser})).catch(() => null)
+      : await api.file("import_instagram_zip").catch(() => null);
     if (selected?.cancelled) return;
     if (!selected?.ok || !selected.instagramArchive) {
       if (selected?.error?.code === "busy") return errorDialog(selected.error);
@@ -896,12 +899,25 @@
         [t("İki listede de var"), archive.followers.filter(row => followingDates.has(row.username)), "followers", true],
       );
     }
-    const directionLabels = {followers: t("Seni takip etmeye başladı"), following: t("Takip etmeye başladın")};
+    const extraLabels = {recentlyUnfollowed:t("Son takipten çıktıkların"), pendingRequests:t("Bekleyen takip isteklerin"),
+      recentRequests:t("Son takip istekleri"), receivedRequests:t("Gelen takip istekleri"), closeFriends:t("Yakın arkadaşlar"),
+      blocked:t("Engellediğin hesaplar"), restricted:t("Kısıtladığın hesaplar"), hideStoryFrom:t("Hikâyeni gizlediklerin"),
+      removedSuggestions:t("Kaldırılan öneriler")};
+    for (const [key, label] of Object.entries(extraLabels))
+      if (archive.extras?.[key]) choices.push([label, archive.extras[key].rows, "extra"]);
+    if (archive.followers && archive.extras?.closeFriends) {
+      const followers = new Set(archive.followers.map(row => row.username));
+      choices.push([t("Seni takip etmeyen yakın arkadaşların"), archive.extras.closeFriends.rows.filter(row => !followers.has(row.username)), "extra"]);
+    }
+    const partial = ["followers", "following"].filter(key => archive.quality?.[key] && !archive.quality[key].complete)
+      .map(key => key === "followers" ? t("Takipçiler") : t("Takip edilen"));
+    const directionLabels = {followers: t("Seni takip etmeye başladı"), following: t("Takip etmeye başladın"), extra: t("Tarih")};
     const formatDay = new Intl.DateTimeFormat(i18n.locale(language), {dateStyle: "medium"});
     dialog(`<h2 id="dialog-title">${t("Instagram ZIP arşivi")}</h2>
       <p>${esc(archive.fileName)}</p>
       <p>${t("Listeler, ZIP hazırlanırken dışa aktarılan kayıtları gösterir.")}</p>
       <p>${t("Arşivdeki hesaplar kullanıcı adına göre karşılaştırılır. Sonuç, dosyanın dışa aktarma kapsamına bağlıdır.")}</p>
+      ${partial.length ? `<p class="notice warning">${t("Bazı satırlar veya dosya parçaları okunamadı: {0}. Bu listeler eksik olabilir.", esc(partial.join(", ")))}</p>` : ""}
       <label class="form-label" for="instagram-archive-filter">${t("Liste")}</label>
       <select id="instagram-archive-filter">${choices.map(([label, names], index) =>
         `<option value="${index}">${esc(label)} · ${num(names.length)}</option>`).join("")}</select>

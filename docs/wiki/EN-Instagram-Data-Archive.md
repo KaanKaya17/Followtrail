@@ -36,7 +36,7 @@ On Android 0.1.100 and later, use the ZIP action on the first screen. The older 
 
 ## Read results
 
-Expand **Only in the first ZIP** or **Only in the second ZIP** under **Followers** or **Following** to view usernames.
+Under **Followers**, expand **New followers** or **Unfollowed you**; under **Following**, expand **You started following** or **You stopped following**. Each name shows its follow date. You can search the results, sort them by follow date and **Save as CSV**. ZIPs have no account IDs: a single name that disappears and another that appears with the same follow date are shown under **May have changed username**, which is not certain. Source cards show each ZIP's list counts; a **Partial** list had unreadable rows. You can also drop the second ZIP onto the comparison.
 
 ![Follower count goes from 3 to 4, with two names only in the newer file and one only in the older file](assets/en/zip-karsilastirma-sonuc.png)
 

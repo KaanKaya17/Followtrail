@@ -4,6 +4,13 @@
 
 **Son içerik denetimi: 18 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.92
+
+18 Kasım’da Windows 0.2.92 herkese açık ZIP önizlemesi yayımlandı. Hesap bağlamadan ZIP incelemede bozuk satır veya dosya parçası yalnız kendi listesini **Kısmi** yapar; 512 MB üstü tam dışa aktarımlar da okunur. Ek takip ilişkileri (son takipten çıktıkların, bekleyen istekler, yakın arkadaşlar, engellenenler …) ve iki ZIP karşılaştırmasında takip tarihleri, muhtemel ad değişikliği, arama, CSV ve sürükle-bırak eklendi. [ZIP inceleme](../ZIP-ARCHIVE-TEST.md).
+
+- Windows 0.2.92: 46 paketli çevrimdışı kontrol, 9 ZIP inceleme paket kontrolü, 335 Python ve 72 arayüz testi geçti. EXE Authenticode imzası taşımıyor.
+- Testler sentetik ZIP’lerle yapıldı; gerçek bir Instagram ZIP’iyle deneme bu sürümde yapılmadı.
+
 ## Windows 0.2.91
 
 18 Kasım’da Windows 0.2.91 herkese açık ZIP önizlemesi yayımlandı. **Takip Listeleri → İlişki filtresi** içinde **Geri gelenler** ve **Ayrılanlar** görünümleri, kişi panelinde **Takip geçmişi** bölümü eklendi. Kişinin listede ilk/son görüldüğü, çıktığı ve geri döndüğü iki tam tarama arası yerel şifreli defterde saklanır; yeni Instagram isteği yoktur. [Takip geçmişi](../FOLLOW-HISTORY-TEST.md).
@@ -145,8 +152,8 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-- [Windows 0.2.91 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.91)
-- [Windows 0.2.90 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.90)
+- [Windows 0.2.92 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92)
+- [Windows 0.2.91 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.91)
 - [Android 0.1.103 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103)
 - [Windows 0.2.89 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89)
 - [Android 0.1.102 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102)

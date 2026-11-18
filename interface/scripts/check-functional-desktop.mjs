@@ -104,7 +104,7 @@ try {
     await page.locator('.sidebar nav a[href="#lists"]').click();
     assert.equal(await page.getByRole('button', {name: 'Instagram ZIP yükle'}).count(), 0);
     await page.locator('.sidebar nav a[href="#archive"]').click();
-    await page.getByRole('button', {name: 'ZIP takip karşılaştırması'}).click();
+    await page.getByRole('button', {name: 'Takip ilişkileri'}).click();
     await page.getByRole('heading', {name: 'Instagram ZIP arşivi'}).waitFor();
     await page.locator('#instagram-archive-filter').selectOption({label: 'Seni geri takip etmeyenler · 1'});
     const rows = page.locator('#instagram-archive-rows li');
@@ -183,7 +183,7 @@ try {
     const fileInfo = await overview.locator('.archive-dashboard-file-info').innerText();
     assert.ok(fileInfo.startsWith(path.basename(archivePath)));
     assert.match(fileInfo, /@qa\.owner.*Dışa aktarım.*2024/);
-    assert.deepEqual(await coverage.locator('li').allTextContents(), ['Takipçiler2', 'Takip edilenBu ZIP’te yok', 'MesajlarVar']);
+    assert.deepEqual(await coverage.locator('li').allTextContents(), ['Takipçiler2', 'Takip edilenBu ZIP’te yok', 'Mesajlar1 sohbet']);
     const months = overview.locator('.archive-dashboard-months');
     const february = months.getByText('ZIP’te kayıt yok',{exact:true}).locator('..');
     await february.waitFor();
@@ -285,7 +285,7 @@ try {
     await dashboard.getByRole('button', {name:'Yine de karşılaştır'}).waitFor();
     assert.equal(await dashboard.locator('.archive-dashboard-compare-count').count(), 0);
     await dashboard.getByText(/ZIP’ler farklı kullanıcı adlarına ait/).waitFor();
-    await dashboard.getByRole('button', {name:'İkinci ZIP’i seç'}).click();
+    await dashboard.getByRole('button', {name:'İkinci ZIP’i değiştir'}).click();
     const reversal = dashboard.getByText(/İlk ZIP daha yeni görünüyor/);
     await reversal.waitFor();
     assert.match(await comparison.getByText(/Tarih aralığı/).innerText(), /2023.*2024/);
@@ -294,11 +294,11 @@ try {
     assert.equal(await reversal.count(), 0);
     assert.equal(await comparison.locator('section').first().getByText(path.basename(comparisonPath),{exact:true}).count(), 1);
     await compare.click();
-    await dashboard.getByText('Yalnız ilk ZIP’te · 1', {exact:true}).click();
+    await dashboard.getByText('Takipten çıkanlar · 1', {exact:true}).click();
     await dashboard.getByRole('link', {name:'@archive_added'}).waitFor();
-    await dashboard.getByText('Yalnız ikinci ZIP’te · 1', {exact:true}).click();
+    await dashboard.getByText('Yeni takipçiler · 1', {exact:true}).click();
     await dashboard.getByRole('link', {name:'@archive_old'}).waitFor();
-    await dashboard.getByText('Bu liste iki ZIP’te de bulunmadığı için karşılaştırılamadı.', {exact:true}).waitFor();
+    await dashboard.getByText('Bu liste iki ZIP’te de yok.', {exact:true}).waitFor();
     await page.getByRole('button', {name:'Dosya tarayıcısı'}).click();
     const modal = page.getByRole('dialog', {name:'Instagram Veri Arşivi'});
     await modal.getByRole('button', {name:'example.json'}).click();
@@ -1498,7 +1498,7 @@ try {
       execFileSync(python, ['-c', 'import sys, zipfile; z=zipfile.ZipFile(sys.argv[1],"w"); z.writestr("connections/followers_and_following/followers_1.json","bad"); z.close()', broken]);
       await dispatch(broken);
       await coverage.getByText('Okunamadı',{exact:true}).waitFor();
-      assert.deepEqual(await coverage.locator('li').allTextContents(), ['TakipçilerOkunamadı', 'Takip edilenBu ZIP’te yok', 'MesajlarBu ZIP’te yok']);
+      assert.deepEqual(await coverage.locator('li').allTextContents(), ['TakipçilerOkunamadıDosya var ama okunamadı. Dosya tarayıcısında açabilirsin.', 'Takip edilenBu ZIP’te yok', 'MesajlarBu ZIP’te yok']);
     } finally { await cdp.detach(); }
   });
   await check("Portable history opens Android-compatible backups without modifying local records", async () => {

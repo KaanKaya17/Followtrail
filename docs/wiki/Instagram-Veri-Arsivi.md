@@ -49,12 +49,14 @@ Android 0.1.100 ve sonrasında ilk açılışta **Özet → Instagram ZIP’ini 
 
 ## 4. Sonucu okuyun
 
-**Takipçiler** ve **Takip edilen** ayrı sonuçlar verir. **Yalnız ilk ZIP’te** ve **Yalnız ikinci ZIP’te** başlıklarını açarak kullanıcı adlarını görebilirsiniz.
+**Takipçiler** ve **Takip edilen** ayrı sonuçlar verir. Takipçilerde **Yeni takipçiler** ve **Takipten çıkanlar**, takip edilenlerde **Takip etmeye başladıkların** ve **Takibi bıraktıkların** başlıklarını açarak kullanıcı adlarını ve takip tarihlerini görebilirsiniz. Sonuçlarda arama yapabilir, takip tarihine göre sıralayabilir ve **CSV olarak kaydet** ile dışa aktarabilirsiniz.
+
+ZIP’te hesap kimliği yoktur. Eski ZIP’ten kaybolan ve yeni ZIP’te beliren tek bir ad aynı takip tarihini taşıyorsa **Kullanıcı adını değiştirmiş olabilir** altında “eski ad → yeni ad” olarak gösterilir. Bu eşleşme kesin değildir. Kaynak kartları iki ZIP’teki liste sayılarını gösterir. Bir liste **Kısmi** ise bazı satırları okunamamıştır; sonuç eksik olabilir. İkinci ZIP’i sürükleyip bırakarak da seçebilirsiniz.
 
 ![Örnek karşılaştırma sonucu. Takipçiler 3’ten 4’e çıkmış, ikinci ZIP’te iki yeni isim ve yalnız ilk ZIP’te bir isim var. Takip edilen sayısı 2’den 3’e çıkmış.](assets/zip-karsilastirma-sonuc.png)
 
 Örnekte takipçi sayısı **3 → 4**. İki kullanıcı adı yalnız yeni arşivde, bir kullanıcı adı yalnız eski arşivde bulunuyor. Toplam sayı aynı kalsaydı bile bu başlıklar iki listede yer değiştiren üyeleri gösterebilirdi. Farklar kullanıcı adına göre hesaplanır. Kullanıcı adı değişikliği veya dışa aktarım kapsamındaki fark sonucu etkileyebilir.
 
-Bir liste iki dosyadan birinde eksikse o yön için karşılaştırma yapılamadığı gösterilir. İki arşiv yalnız dışa aktarıldıkları andaki kayıtları karşılaştırır. Arada kısa süreli gerçekleşip geri alınan değişiklikler ve kesin olay zamanı bu dosyalardan belirlenemez.
+Bir liste dosyalardan birinde yoksa hangi ZIP’te bulunmadığı yazılır ve o yön karşılaştırılmaz. İki arşiv yalnız dışa aktarıldıkları andaki kayıtları karşılaştırır. Arada kısa süreli gerçekleşip geri alınan değişiklikler ve kesin olay zamanı bu dosyalardan belirlenemez.
 
 **Canlı takip kullanıyorsanız** bağlantıdan sonra oluşan liste kayıtlarını [Takip Listeleri](Takip-Listeleri.md) ekranında karşılaştırabilirsiniz.
