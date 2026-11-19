@@ -204,7 +204,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-1>"
    },
@@ -1128,7 +1128,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-1>"
    },
@@ -2085,7 +2085,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-1>",
     "200": "<id-26>"
@@ -3327,7 +3327,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-28>",
     "200": "<id-26>"
@@ -5539,7 +5539,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-31>",
     "200": "<id-26>"
@@ -7913,7 +7913,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-31>",
     "200": "<id-34>"
@@ -10324,7 +10324,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-31>",
     "200": "<id-34>"
@@ -12735,7 +12735,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-31>",
     "200": "<id-34>"
@@ -15192,7 +15192,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-31>",
     "200": "<id-37>"
@@ -17714,7 +17714,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-38>",
     "200": "<id-37>"
@@ -20302,7 +20302,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-38>",
     "200": "<id-37>"
@@ -22920,7 +22920,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-39>",
     "200": "<id-37>"
@@ -25727,7 +25727,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-40>",
     "200": "<id-37>"
@@ -28764,7 +28764,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-40>",
     "200": "<id-37>"
@@ -31826,7 +31826,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-40>",
     "200": "<id-37>"
@@ -34906,7 +34906,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-40>",
     "200": "<id-44>"
@@ -38085,7 +38085,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-44>"
@@ -41266,7 +41266,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-44>"
@@ -44446,7 +44446,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-44>"
@@ -47626,7 +47626,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-44>"
@@ -50814,7 +50814,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-47>"
@@ -53993,7 +53993,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-47>"
@@ -57173,7 +57173,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-47>"
@@ -60480,7 +60480,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-46>",
     "200": "<id-48>"
@@ -64080,7 +64080,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-59>",
     "200": "<id-48>"
@@ -67657,7 +67657,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-59>",
     "200": "<id-48>"
@@ -71257,7 +71257,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-64>",
     "200": "<id-48>"
@@ -74958,7 +74958,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-65>",
     "200": "<id-48>"
@@ -78595,7 +78595,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-68>",
     "200": "<id-48>"
@@ -81770,7 +81770,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-68>",
     "200": "<id-48>"
@@ -84962,7 +84962,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-68>",
     "200": "<id-48>"
@@ -88138,7 +88138,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-68>"
    },
@@ -90799,7 +90799,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {
     "100": "<id-68>"
    },
@@ -93376,7 +93376,7 @@
     720,
     1440
    ],
-   "counterAvailable": true,
+   "counterAvailable": false,
    "dailyRevision": {},
    "dailyWarning": false,
    "events": [],

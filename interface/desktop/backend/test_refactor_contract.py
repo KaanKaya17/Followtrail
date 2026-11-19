@@ -135,7 +135,10 @@ def normalize(value, home):
 
 def session():
     """Run the scripted session in a fresh directory and return its normalized record."""
-    with tempfile.TemporaryDirectory(prefix='TrackerQA-') as home:
+    # The state reports whether an old Windows prototype session exists under
+    # LOCALAPPDATA. Point it at the empty home so this machine's files never
+    # reach the recorded file.
+    with tempfile.TemporaryDirectory(prefix='TrackerQA-') as home, patch.dict(os.environ, {'LOCALAPPDATA': home}):
         now = [START]
         emitted = []
         app = Accounts(home, emit=emitted.append, clock=lambda: now[0], request_delay=lambda: 7)
