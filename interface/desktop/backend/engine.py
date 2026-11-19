@@ -9,7 +9,6 @@ import membership
 import read_health
 from list_pages import public_member
 import json
-import io
 import math
 import os
 from pathlib import Path
@@ -37,12 +36,13 @@ from profile_facts import ProfileFacts, PROFILE_DETAILS_SECONDS
 from story_limits import CAPABILITIES_JSON
 from login_identity import LoginIdentity, device_settings
 
-from storage import Vault, StorageFailure, protect, atomic_write, MAX_VAULT
+from storage import Vault, StorageFailure, protect, MAX_VAULT
 from network import (AppFailure, new_client, close_client, parse_profile,
                      parse_page, failure, deadline)
 from network import read_avatar, avatar_url
 
 from archive_schema import MAX_MEMBERS, blank, initialize_schedule, validate_archive
+from backup_service import BackupService
 MAX_PAGES = 400
 from request_defaults import CONTROL_INTERVALS, REQUEST_SPACING, DEFAULT_INTERVAL_MINUTES, MEDIA_SPACING
 PROFILE_FIELDS = ('username', 'name', 'bio', 'url', 'private', 'verified', 'followers', 'following', 'posts', 'picture')
@@ -1145,86 +1145,10 @@ class Engine:
         self.refresh({'id': identity})
 
     def export_backup(self, path):
-        value = copy.deepcopy(self.data)
-        own = (value['account'] or {}).get('id')
-        value['gate']['accountRequestTimes'] = {key:times for key,times in value['gate'].get('accountRequestTimes', {}).items() if key == own}
-        value['session'] = None
-        for record in value['lists'].values():
-            if record.get('draft'):
-                record['draft'].pop('nextCursor', None)
-                record['draft'].pop('seenCursors', None)
-        value['settings']['automatic'] = False
-        value['lastError'] = None
-        value.pop('lastLoginError', None)
-        # Preserve the established backup bound while streaming archive years.
-        # No large all-years JSON tree is allocated and an old destination survives refusal.
-        stream = io.BytesIO()
-        encoder = json.JSONEncoder(ensure_ascii=False,allow_nan=False,separators=(',',':'))
-        def write(raw):
-            if stream.tell()+len(raw)>self.max_vault-4096:
-                raise AppFailure('backup','Yedek dosyası çok büyük. Mevcut dosya korundu.')
-            stream.write(raw)
-        def encode(value):
-            for chunk in encoder.iterencode(value):write(chunk.encode('utf-8'))
-        write(b'{"format":"InstagramTracker-observations","version":1,"data":')
-        encode(value)
-        write(b',"daily":[')
-        if own:
-            for index,document in enumerate(self.daily_store().export_iter()):
-                if index:write(b',')
-                encode(document)
-        write(b']}')
-        atomic_write(Path(path),self.protect(stream.getvalue()))
+        BackupService(self).export(path)
 
     def import_backup(self, path):
-        path = Path(path)
-        if path.stat().st_size > self.max_vault:
-            raise AppFailure('backup', 'Yedek dosyası çok büyük.')
-        try:
-            value = json.loads(self.protect(path.read_bytes(), decrypt=True))
-            restored = value['data']
-            if value.get('format') != 'InstagramTracker-observations' or value.get('version') != 1:
-                raise ValueError()
-            # Round-trip through the exact vault schema validator before replace.
-            access_checks.initialize(restored)
-            notification_log.initialize(restored)
-            localization.initialize(restored)
-            restored['settings'].setdefault('theme', 'system')
-            initialize_schedule(restored)
-            list_preparation.initialize(restored)
-            wayback.initialize(restored)
-            data_privacy.initialize(restored)
-            validate_archive(restored)
-            documents = value.get('daily', [])
-            owner = (restored['account'] or {}).get('id')
-            if not isinstance(documents,list) or (documents and not owner):raise ValueError('daily backup')
-            unique = set()
-            for document in documents:
-                daily_stats.validate(document,owner)
-                key = (document['target'],document['year'])
-                if key in unique:raise ValueError('duplicate daily backup')
-                unique.add(key)
-        except Exception as exc:
-            raise AppFailure('backup', 'Yedek geçersiz veya başka bir Windows kullanıcısına ait. Mevcut kayıtlar korundu.') from exc
-        self.prepare_restore(restored)
-        # Loading an old backup cannot silently disable current retention preferences.
-        for key in data_privacy.FIELDS:restored['settings'][key]=self.data['settings'][key]
-        restored['privacyMaintenance']={'at':0,'failed':False}
-        if documents:self.daily_store(owner).restore(documents)
-        old_gate = self.data['gate']
-        gate = restored['gate']
-        for key in ('blockedUntil', 'nextAt', 'loginAfter', 'attempts', 'streak'):
-            gate[key] = max(old_gate.get(key, 0), gate.get(key, 0))
-        gate['manualOnly'] = True
-        gate['requestTimes'] = old_gate.get('requestTimes', [])
-        gate['accountRequestTimes'] = old_gate.get('accountRequestTimes', {})
-        gate['mediaTimes'] = old_gate.get('mediaTimes', [])
-        gate['mediaNextAt'] = max(old_gate.get('mediaNextAt', 0), gate.get('mediaNextAt', 0))
-        restored['session'] = None
-        restored['settings']['automatic'] = False
-        self.data = restored
-        self.save()
-        self.maintain_privacy(force=True)
+        BackupService(self).restore(path)
 
     def export_list(self, args):
         if args.get('accountId') != (self.data['account'] or {}).get('id'):

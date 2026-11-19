@@ -217,6 +217,28 @@ class EngineGapTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'backup')
         decrypt.assert_not_called()
 
+    # A backup carries only the owner's request history.
+    def test_backup_keeps_only_the_owner_request_times(self):
+        e = self.connected()
+        e.data['gate']['accountRequestTimes'] = {'100': [1799999000], '999': [1799999500]}
+        target = Path(self.home.name) / 'owner.backup'
+        e.export_backup(target)
+        saved = json.loads(protect(target.read_bytes(), decrypt=True))
+        self.assertEqual(saved['data']['gate']['accountRequestTimes'], {'100': [1799999000]})
+        self.assertEqual(e.data['gate']['accountRequestTimes']['999'], [1799999500])
+
+    # Restoring an old backup keeps the retention choices made since.
+    def test_restore_keeps_the_current_retention_preferences(self):
+        e = self.connected()
+        e.data['settings'].update(historyRetentionDays=30, dailyRetentionDays=90)
+        target = Path(self.home.name) / 'retention.backup'
+        e.export_backup(target)
+        e.data['settings'].update(historyRetentionDays=365, dailyRetentionDays=0)
+        e.save()
+        e.import_backup(target)
+        self.assertEqual((e.data['settings']['historyRetentionDays'], e.data['settings']['dailyRetentionDays']),
+                         (365, 0))
+
     # Archive validation of stored list differences.
     def test_valid_list_difference_is_accepted(self):
         validate_archive(archive_with(list_change()))
