@@ -77,6 +77,7 @@ for (const name of [
   "request-quota.js",
   "export-browser.js",
   "archive-dashboard.js",
+  "archive-insights.js",
   "profile-search.js",
   "list-photos.js",
   "list-pages.js",

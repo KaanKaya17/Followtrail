@@ -36,6 +36,7 @@ Yalnız kendi hesabını ve erişim yetkin olan verileri kullan. Başkalarının
 - Yakın arkadaşlar, bekleyen ve gelen istekler, son takipten çıktıkların ve diğer ek listeler.
 - İki ZIP karşılaştırması: yeni gelenler, gidenler, muhtemel ad değişiklikleri, arama ve CSV.
 - Beğeni, yorum, kayıt ve mesaj özetleri; arşivin tamamında arama.
+- **İçgörüler:** hiç etkileşmediğin takipler, seni takip etmeyenler, etkinlik saatleri ısı haritası, giriş ve cihaz geçmişi, reklamverenler ve paylaşılabilir yıl özeti.
 
 **Hesap bağlamalı modda (Windows)**
 - Kendi takip listelerinin düzenli kaydı; gelenler, gidenler ve **geri gelenler**, kişinin listede ilk ve son görüldüğü zaman aralığıyla.

@@ -9,6 +9,7 @@ for (const file of [
   "web/request-quota.js",
   "web/export-browser.js",
   "web/archive-dashboard.js",
+  "web/archive-insights.js",
   "web/profile-search.js",
   "web/list-photos.js",
   "web/list-pages.js",

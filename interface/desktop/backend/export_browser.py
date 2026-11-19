@@ -13,6 +13,7 @@ from zipfile import BadZipFile, ZipFile, _EndRecData, _ECD_SIZE, _ECD_ENTRIES_TO
 
 import csv
 from instagram_archive import ENTRY, archive_name, read_relationships
+import archive_insights
 
 MAX_ARCHIVE = 8 * 1024**3
 MAX_DIRECTORY = 32 * 1024**2
@@ -276,6 +277,7 @@ class ExportBrowser:
         self.metadata = None
         self.content_data = None
         self.comparison_candidate = None
+        self.insights_data = None
 
     def release(self, token):
         if token == self.token:
@@ -573,6 +575,15 @@ class ExportBrowser:
             day = datetime.fromtimestamp(item['at'], timezone.utc).date().isoformat()
             dates.setdefault(day, []).append(item)
         return dates, skipped
+
+    def insights(self, token, offset=0):
+        """Interaction, activity-time, login and ads insights; offset is the viewer's UTC offset in minutes."""
+        self.validate_token(token)
+        if type(offset) is not int or not -900 <= offset <= 900:
+            raise ValueError('archive_entry')
+        if not self.insights_data or self.insights_data[0] != offset:
+            self.insights_data = offset, archive_insights.build(self, offset)
+        return self.insights_data[1]
 
     def search(self, token, query, index=0, start=-1):
         self.validate_token(token)

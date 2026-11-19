@@ -1,5 +1,10 @@
 # Değişiklikler
 
+## Yayımlanmamış
+
+- **Instagram Veri Arşivi → İçgörüler:** Açık ZIP’ten, hesap bağlamadan ve Instagram’a istek göndermeden beş görünüm hesaplanır. **Etkileşim:** takip ettiğin hesaplardan hiç veya son 12 ayda etkileşmediklerin, seni takip etmeyenler (takip süresiyle) ve en çok etkileştiklerin; beğeni, yorum, hikâye tepkisi ve kaydetmeler sayılır, mesajlar sayılmaz. **Etkinlik saatleri:** haftanın günü × saat ısı haritası. **Hesap güvenliği:** giriş kayıtları, cihazlar, farklı IP sayısı, parola ve gizlilik değişiklikleri; son 30 günde ilk kez görülen cihaz uyarısı, varsayılan olarak kısaltılmış IP. **Reklamlar:** etkinliğini kullanan reklamverenler, görülen/tıklanan reklamlar ve atanmış ilgi alanları. **Yıl özeti:** yıllık sayılar ve kullanıcı adı içermeyen, PNG olarak kaydedilebilen görsel.
+- Güncel dışa aktarımlarda gönderi sahibinin `label_values` içinde iç içe yazıldığı beğeni satırları da okunur. 24 MiB’den büyük veya okunamayan kaynaklar atlanır ve görünümde adıyla belirtilir.
+
 ## Windows 0.2.95 — 2026-11-19
 
 - **Yeni ad: Followtrail.** Uygulama, pencere, EXE (`Followtrail.exe`), Başlat menüsü kısayolu, bildirimler ve belgeler yeni adı kullanır. Veri klasörleri, şifreli kasalar, bildirim kimliği ve yedek dosyası biçimi değişmedi; eski sürümden güncellerken kayıtlar olduğu gibi açılır. Eski “InstagramTracker Desktop” kısayolu yenisiyle değiştirilir.

@@ -33,6 +33,14 @@ Android 0.1.100 ve sonrasında ilk açılışta **Özet → Instagram ZIP’ini 
 - **Takipler**, **Mesajlar** ve **Etkinliklerin** gibi kategoriler ZIP’in içeriğine göre görünür. **Tüm arşivde ara** ile okunabilir kayıt alanlarına, **Dosya tarayıcısı** ile tek bir dosyaya ulaşabilirsiniz.
 - **İçerik ve etkileşim** takviminde bir gün seçin. ZIP’te o güne ait gönderi, Reels veya hikâye varsa görüntülenir. Medya ve etkileşim sayıları ilgili dosyalar arşivde bulunduğunda açılır.
 
+- **İçgörüler** (Windows) yalnız açık ZIP’ten hesaplanır; Instagram’a istek gönderilmez ve sonuç kaydedilmez:
+  - **Etkileşim:** Takip ettiğin hesapları senin beğenilerin, yorumların, hikâye tepkilerin ve kaydettiklerinle eşleştirir. **Hiç etkileşmediklerin**, **Son 12 ayda etkileşmediklerin**, **Seni takip etmeyenler** (takip süresiyle) ve **En çok etkileştiklerin** görünümleri vardır. Mesajlar sayılmaz; ZIP’in tarih aralığı dışındaki etkileşimler görünmez.
+  - **Etkinlik saatleri:** Tarihli etkinliklerini haftanın günü ve saate göre ısı haritasında gösterir. Saatler bilgisayarın şu anki saat dilimine göre hesaplanır.
+  - **Hesap güvenliği:** Giriş kayıtları, cihazlar, farklı IP sayısı ve parola/gizlilik değişiklikleri. Son 30 günde ilk kez görülen cihaz uyarıyla gösterilir. IP adresleri varsayılan olarak kısaltılır.
+  - **Reklamlar:** Etkinliğini kullanan reklamverenler, gördüğün/tıkladığın reklam sayısı ve Instagram’ın sana atadığı ilgi alanları.
+  - **Yıl özeti:** Yıla göre sayılar ve kullanıcı adı içermeyen, **PNG olarak kaydedilebilen** bir görsel.
+  Bir bölüm boşsa dışa aktarımda ilgili veri seçilmemiştir (ör. **Güvenlik ve giriş bilgileri**, **Reklam bilgileri**).
+
 ![İçerik ve etkileşim takvimi. Seçilen günün altında bir kayıt var ve sağ tarafta o günün örnek gönderisi görünüyor.](assets/zip-icerik-takvimi.png)
 
 <a name="iki-zipi-karsilastirin"></a>

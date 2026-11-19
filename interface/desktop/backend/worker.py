@@ -57,6 +57,7 @@ def main():
         'export_browser_browse': archive.browse,
         'export_browser_summary': archive.read_summary,
         'export_browser_content': archive.content,
+        'export_browser_insights': archive.insights,
         'export_browser_search': archive.search,
         'export_browser_compare': archive.compare,
         'export_browser_prepare_comparison': archive.prepare_comparison,

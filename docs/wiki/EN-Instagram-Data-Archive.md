@@ -24,6 +24,14 @@ On Android 0.1.100 and later, use the ZIP action on the first screen. The older 
 - Use categories to explore the available items, **Search the entire archive** to find readable fields, or **File browser** to inspect or save an individual file. Supported local media can be previewed.
 - **Content and engagement** opens a calendar. Select a day to see posts, Reels or stories available in the export. Media and engagement counts depend on the archive. When applicable, the calendar can also show your linked account’s local story records.
 
+- **Insights** (Windows) are calculated only from the open ZIP; nothing is sent to Instagram and nothing is saved:
+  - **Interactions** match the accounts you follow with your own likes, comments, story reactions and saves: **Never interacted**, **No interaction in 12 months**, **Don’t follow you back** (with how long you have followed them) and **Most interacted**. Messages are not counted, and anything outside the ZIP’s date range is not visible.
+  - **Activity hours** show a weekday × hour heat map of your dated activity in this computer’s current time zone.
+  - **Account security** lists logins, devices, distinct IP addresses and password or privacy changes. A device first seen in the last 30 days is highlighted. IP addresses are shortened by default.
+  - **Ads** shows advertisers using your activity, ads you saw or clicked, and the interests Instagram assigned to you.
+  - **Year in review** shows yearly totals and a numbers-only image you can **save as PNG**.
+  An empty section means the export did not include that data (for example **Security and login information** or **Ads information**).
+
 ![Content calendar with one sample post on the selected date](assets/en/zip-icerik-takvimi.png)
 
 ## Compare two ZIPs

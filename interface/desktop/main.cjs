@@ -74,7 +74,7 @@ const rendererUpdates = new RendererUpdates({
   }),
 });
 const allowed = new Set([
-  "export_browser_summary", "export_browser_content", "export_browser_search", "export_browser_compare", "export_browser_comparison_page",
+  "export_browser_summary", "export_browser_content", "export_browser_insights", "export_browser_search", "export_browser_compare", "export_browser_comparison_page",
   "export_browser_portable_page", "export_browser_portable_close",
   "export_browser_text", "export_browser_media", "export_browser_close", "export_browser_browse", "export_browser_lists",
   "history_page", "history_detail",
@@ -138,6 +138,7 @@ function validate(operation, args) {
     export_browser_browse: ['token','index','query','offset','since','until','order','record'],
     export_browser_summary: ['token'],
     export_browser_content: ['token','month','day','offset'],
+    export_browser_insights: ['token','offset'],
     export_browser_portable_page: ['section','offset','index'],
     export_browser_portable_close: [],
     export_browser_search: ['token','query','index','start'],
@@ -366,6 +367,7 @@ else
         action === "export_list" ? ["id", "direction", "snapshotId"] :
         action === "export_browser_save" ? ["token", "index", "name"] :
         action === "export_browser_prepare_comparison" || action === "export_browser_comparison_csv" ? ["token"] :
+        action === "save_insight_image" ? ["png", "name"] :
         ["open_portable_backup","export_portable_backup"].includes(action) ? ["password"] : [];
       if (
         !args ||
@@ -382,6 +384,7 @@ else
           "open_portable_backup", "export_portable_backup",
           "import_instagram_zip",
           "export_browser_open", "export_browser_save", "export_browser_prepare_comparison", "export_browser_comparison_csv",
+          "save_insight_image",
           "export_list",
           "open_storage",
         ].includes(action)
@@ -432,6 +435,22 @@ else
         });
         if (selection.canceled) return { ok: true, cancelled: true };
         return backend.command(action, { token: args.token, path: selection.filePath });
+      }
+      if (action === "save_insight_image") {
+        // A numbers-only PNG drawn by the renderer; written here, never sent to the worker.
+        if (typeof args.png !== "string" || args.png.length > 8_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(args.png) ||
+            typeof args.name !== "string" || !/^Followtrail-\d{4}\.png$/.test(args.name))
+          throw new Error("Invalid image");
+        const image = Buffer.from(args.png, "base64");
+        if (image.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") throw new Error("Invalid image");
+        const selection = await dialog.showSaveDialog(window, {
+          title: t("İçgörü görselini kaydet"),
+          defaultPath: args.name,
+          filters: [{ name: "PNG", extensions: ["png"] }],
+        });
+        if (selection.canceled) return { ok: true, cancelled: true };
+        await fs.writeFile(selection.filePath, image);
+        return { ok: true };
       }
       if (action === "export_browser_save") {
         if (!Number.isSafeInteger(args.index) || args.index < 0 || typeof args.name !== 'string' || args.name.length > 512)

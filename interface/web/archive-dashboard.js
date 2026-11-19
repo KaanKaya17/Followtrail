@@ -109,6 +109,7 @@
     const load = action(t("Instagram ZIP yükle"), () => open(), "button primary");
     toolbar.append(description, load);
     toolbar.append(action(t("İçerik ve etkileşim"), showContent));
+    toolbar.append(action(t("İçgörüler"), showInsights));
     const relations = openLists ? action(t("Takip ilişkileri"), () => openLists(archive?.token)) : null;
     if (relations) toolbar.append(relations);
     const raw = action(t("Dosya tarayıcısı"), () => openRaw(archive));
@@ -348,6 +349,12 @@
       body.replaceChildren(heading);
       body.hidden = false;
       return current;
+    }
+
+    function showInsights() {
+      const current = toolView(t("İçgörüler"));
+      window.TrackerArchiveInsights.render(body, {api, t, num, language, archive, profile,
+        active:() => !closed && current === generation});
     }
 
     async function showContent() {
