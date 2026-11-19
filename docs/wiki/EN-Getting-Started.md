@@ -8,11 +8,11 @@ On **Overview**, choose **Open Instagram ZIP** to inspect an export on your devi
 
 ## Connect an account
 
-Complete any Instagram verification, then wait for Tracker to read your own profile. When your profile and counters appear, Tracker can begin the first list preparation. Android can also show a [pending connection](EN-Accounts.md#finish-a-pending-connection) after Instagram sign-in.
+Complete any Instagram verification, then wait for Followtrail to read your own profile. When your profile and counters appear, Followtrail can begin the first list preparation. Android can also show a [pending connection](EN-Accounts.md#finish-a-pending-connection) after Instagram sign-in.
 
 ## First list preparation
 
-- **Preparing** means Tracker is reading and storing list pages.
+- **Preparing** means Followtrail is reading and storing list pages.
 - **Waiting** means a request interval, budget or Instagram cooldown is in effect.
 - **Paused** means an action or setting may be needed. Review the explanation and use the resume action if available.
 - **Ready** means the first complete snapshot exists for that direction.
@@ -31,6 +31,6 @@ Updates preserve automation preferences. A first complete snapshot provides the 
 
 ## Start tracking a profile
 
-Use **Saved Profiles → Add person**, search by name or username, or paste a profile link. Select the right result and enable **Watch profile** for periodic checks. Then choose the [types of notifications](EN-Monitoring.md#notification-preferences) you want. Saving a profile only changes Tracker’s local records.
+Use **Saved Profiles → Add person**, search by name or username, or paste a profile link. Select the right result and enable **Watch profile** for periodic checks. Then choose the [types of notifications](EN-Monitoring.md#notification-preferences) you want. Saving a profile only changes Followtrail’s local records.
 
-Tracker supports Turkish, English, Spanish and Brazilian Portuguese. Choose your app language and the system, light, dark or OLED theme in settings.
+Followtrail supports Turkish, English, Spanish and Brazilian Portuguese. Choose your app language and the system, light, dark or OLED theme in settings.

@@ -6,7 +6,7 @@
 
 In **Settings**, enable automatic profile checks and, if needed, automatic follow-list comparisons. Turn on **Watch profile** for each saved person you want to monitor. The default profile interval is five minutes, evaluated per profile. The shared queue and connection can affect actual timing. A full list scan can require multiple requests.
 
-Tracker can keep monitoring in the Windows system tray while the computer is awake and online. Locking Windows still allows checks if the machine stays awake. **Quit completely**, sleep and shutdown stop checks. A disconnected computer cannot perform new checks.
+Followtrail can keep monitoring in the Windows system tray while the computer is awake and online. Locking Windows still allows checks if the machine stays awake. **Quit completely**, sleep and shutdown stop checks. A disconnected computer cannot perform new checks.
 
 ## Android
 

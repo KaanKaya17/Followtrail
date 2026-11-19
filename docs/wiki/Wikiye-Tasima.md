@@ -40,7 +40,7 @@ python scripts/prepare-wiki.py --output interface/.cache/wiki-export
 
 Araç Markdown sayfalarını ve görselleri ayrı çıktı klasörüne kopyalar. Sayfa bağlantılarını Wiki adreslerine; teknik kaynak/görsel bağlantılarını kaynak deponun belirtilen Git referansına dönüştürür. `_Sidebar.md` ve `_Footer.md` korunur.
 
-Varsayılan kaynak referansı çalışılan Git dalıdır. Farklı bir referans için `--ref` kullanılabilir. `--repository KaanKaya17/InstagramTracker` hedefi açıkça seçer. Farklı bir depoya aktarırken görsellerin bulunduğu kaynak deposunu da buna göre düzenleyin.
+Varsayılan kaynak referansı çalışılan Git dalıdır. Farklı bir referans için `--ref` kullanılabilir. `--repository KaanKaya17/Followtrail` hedefi açıkça seçer. Farklı bir depoya aktarırken görsellerin bulunduğu kaynak deposunu da buna göre düzenleyin.
 
 Görsel adresleri, `?raw=true` ile kaynak depodaki PNG dosyalarına yönlenir; dosyalar ayrıca çıktıdaki `assets/` klasöründe bulunur. Özellikle özel depoda, Wiki açıldığında görsellerin okuyucu yetkileriyle yüklendiğini kontrol edin. [GitHub'ın Wiki görsel açıklaması](https://docs.github.com/en/communities/documenting-your-project-with-wikis/editing-wiki-content).
 

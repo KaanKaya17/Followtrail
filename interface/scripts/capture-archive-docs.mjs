@@ -7,7 +7,7 @@ import { _electron as electron } from 'playwright-core';
 
 const [exe, folder, language = 'tr'] = process.argv.slice(2);
 if (!exe || !folder || !['tr','en','es','pt-BR'].includes(language)) {
-    throw new Error('Usage: node capture-archive-docs.mjs <InstagramTracker.exe> <output-directory> [tr|en|es|pt-BR]');
+    throw new Error('Usage: node capture-archive-docs.mjs <Followtrail.exe> <output-directory> [tr|en|es|pt-BR]');
 }
 const executablePath = path.resolve(exe);
 const output = path.resolve(folder);

@@ -1,23 +1,30 @@
-# InstagramTracker
+# Followtrail
 
 [Türkçe](README.md) · [English](README.en.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md)
 
-Consulta archivos de Instagram, compara listas de seguidores y de cuentas seguidas y revisa el historial local de los perfiles que elijas.
+**Una herramienta local y de código abierto para tu historial de seguidores en Instagram.**
 
-[Descargar para Windows](https://github.com/KaanKaya17/InstagramTracker/releases/latest) · [Guía en español](docs/wiki/ES-Home.md) · [Guía ilustrada del ZIP](docs/wiki/ES-Instagram-Data-Archive.md)
+Consulta en tu dispositivo la exportación que descargas de Instagram y compara dos exportaciones para ver quién llegó y quién se fue. Si quieres, vincula tu cuenta para registrar cómo cambian tus listas con el tiempo. Tus registros quedan cifrados en tu equipo.
 
-## Finalidad y uso responsable
-
-InstagramTracker facilita la consulta de tus archivos de Instagram y de los cambios en cuentas a las que tienes acceso autorizado. La aplicación no envía archivos ZIP, contraseñas ni registros de cuentas al equipo del proyecto, ni recopila datos de uso en un servidor propio. Para el seguimiento en vivo y la verificación, tu dispositivo se conecta a Instagram/Meta.
-
-Usa Tracker solo con datos a los que tengas acceso autorizado. Respeta las normas aplicables y la privacidad de otras personas. El proyecto no respalda el acceso no autorizado a cuentas, el acoso ni el uso ilegal.
+[Descargar para Windows](https://github.com/KaanKaya17/Followtrail/releases/latest) · [Guía en español](docs/wiki/ES-Home.md) · [Guía ilustrada del ZIP](docs/wiki/ES-Instagram-Data-Archive.md)
 
 ![Archivo de Instagram con datos de ejemplo en Windows](docs/wiki/assets/es/zip-arsiv.png)
 
-Abre un ZIP oficial de Instagram para consultar sus datos sin vincular tu cuenta. Si tienes dos exportaciones de la misma cuenta, revisa qué nombres aparecen solo en la antigua o en la nueva. En Windows también puedes vincular una cuenta para registrar cambios, historial y notificaciones según el acceso que permita Instagram.
+> Antes se publicaba como **InstagramTracker**. Al actualizar desde una versión anterior, tus registros se abren tal como estaban.
 
-La versión pública de Windows es un ZIP portátil x64. Extrae todo el paquete y abre **InstagramTracker.exe**. El ejecutable no está firmado. La página de la versión publica el SHA-256. [Estado de Android y ayuda](docs/wiki/ES-Home.md#instalación).
+## Lee esto primero
 
-Los registros se almacenan localmente con cifrado. Las lecturas en vivo se conectan a Instagram. InstagramTracker es independiente de Instagram y Meta.
+Followtrail no está afiliado a Instagram ni a Meta y no es una app oficial.
+
+- **Modo ZIP** (recomendado): lee la exportación de **Descargar tu información**. No inicia sesión, no envía solicitudes a Instagram y el archivo no sale de tu dispositivo.
+- **Modo con cuenta**: inicia sesión y usa interfaces de Instagram que no son públicas oficialmente. Puede contradecir las Condiciones de uso de Instagram; Instagram puede pedir verificación, limitar solicitudes o restringir tu cuenta. Úsalo solo si aceptas ese riesgo.
+
+Úsala solo con tu propia cuenta y con datos a los que tengas acceso autorizado. El proyecto no respalda el acceso no autorizado, el acoso ni el uso ilegal.
+
+## Descarga
+
+La [última versión para Windows](https://github.com/KaanKaya17/Followtrail/releases/latest) es un ZIP portátil x64. Extrae todo el ZIP en su propia carpeta y abre **Followtrail.exe**. El ejecutable no está firmado; comprueba el SHA-256 en la página de la versión.
+
+Sin servidor propio, anuncios ni telemetría. *Followtrail es independiente de Instagram y Meta. Instagram es una marca de Meta Platforms, Inc.*
 
 [Licencia MIT](LICENSE)

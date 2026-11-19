@@ -14,7 +14,7 @@ execFileSync(python,[path.join(root,'interface/desktop/backend/seed_qa.py'),'--h
 const checks=[],errors=[],external=[];let app,browser,server;
 try{
  const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  const page=await app.firstWindow();page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!/^(file:|data:)/.test(r.url()))external.push(r.url());});
  await page.getByRole('heading',{name:'Çevrende neler oluyor?'}).waitFor();
  const state=await page.evaluate(()=>window.TrackerDesktop.command('wayback',{id:'200'}));
@@ -42,7 +42,7 @@ try{
  assert.equal(await page.locator('.wayback-gallery img').count(),3);checks.push('Pausing preserves archive contents');
  await page.evaluate(()=>window.TrackerDesktop.command('settings',{language:'en'}));
  await app.close();app=null;
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  const english=await app.firstWindow();english.setDefaultTimeout(12000);await english.getByRole('heading',{name:'What is happening in your circle?'}).waitFor();
  await english.locator('.sidebar a[href="#people"]').click();await english.locator('.person-title[data-id="200"]').click();await english.locator('.profile-more > summary').click();await english.getByRole('button',{name:'Profile time tunnel',exact:true}).click();
  await english.getByRole('heading',{name:'Biography time tunnel'}).waitFor();assert.equal(await english.locator('.wayback-gallery img').count(),3);checks.push('Archive and paused preference survive process restart in English');

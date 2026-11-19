@@ -4,7 +4,7 @@
 // them send the maintainers a report that holds no account data.
 const i18n = require('../web/i18n.js');
 
-const ISSUES = 'https://github.com/KaanKaya17/InstagramTracker/issues/new';
+const ISSUES = 'https://github.com/KaanKaya17/Followtrail/issues/new';
 const READERS = {profile: 'Profil okuması', followers: 'Takipçiler', following: 'Takip edilen'};
 // Mirrors read_health.ROUTES: the request without its target ID.
 const ROUTES = {

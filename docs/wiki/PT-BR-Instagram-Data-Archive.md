@@ -2,7 +2,7 @@
 
 [Guia](PT-BR-Home.md) · [English](EN-Instagram-Data-Archive.md) · [Türkçe](Instagram-Veri-Arsivi.md) · [Español](ES-Instagram-Data-Archive.md)
 
-Abra um ZIP do Instagram para consultar listas, mensagens e atividades no dispositivo. Compare duas exportações da mesma conta sem vinculá-la ao Tracker. As capturas mostram o Windows 0.2.84 com dados de exemplo.
+Abra um ZIP do Instagram para consultar listas, mensagens e atividades no dispositivo. Compare duas exportações da mesma conta sem vinculá-la ao Followtrail. As capturas mostram o Windows 0.2.84 com dados de exemplo.
 
 ## Baixe o ZIP
 

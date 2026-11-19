@@ -15,7 +15,7 @@ delete environment.ELECTRON_RUN_AS_NODE;
 const desktop = await electron.launch({
   executablePath: path.join(
     root,
-    "artifacts/Tracker-Desktop-UI/InstagramTracker.exe",
+    "artifacts/Tracker-Desktop-UI/Followtrail.exe",
   ),
   env: environment,
 });
@@ -63,7 +63,7 @@ try {
     path.join(output, "desktop-checks.json"),
     JSON.stringify(
       {
-        executable: "artifacts/Tracker-Desktop-UI/InstagramTracker.exe",
+        executable: "artifacts/Tracker-Desktop-UI/Followtrail.exe",
         preferences,
         rendererNodeApi: false,
         localSearch: true,

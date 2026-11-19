@@ -54,6 +54,6 @@ Hayır. Mevcut düğme profil bağlantısını tarayıcıda açar. Threads gönd
 
 Böyle bir garanti verilmez. Salt okuma, bekleme ve bütçe kuralları olsa da erişim kararını Instagram verir. Sınırlama durumunda [sorun giderme adımlarını](Sorun-Giderme.md#instagram-guvenlik-molasi-veya-http-429) izleyin.
 
-## InstagramTracker resmî bir Instagram uygulaması mı?
+## Followtrail resmî bir Instagram uygulaması mı?
 
-Hayır. InstagramTracker, Instagram ve Meta'dan bağımsızdır.
+Hayır. Followtrail, Instagram ve Meta'dan bağımsızdır.

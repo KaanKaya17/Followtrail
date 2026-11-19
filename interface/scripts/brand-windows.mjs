@@ -18,8 +18,8 @@ export async function brandWindows(executable, icon, version) {
   info.setFileVersion(...numbers,0);
   info.setProductVersion(...numbers,0);
   info.setStringValues(languages[0],{
-    ProductName:'InstagramTracker',FileDescription:'InstagramTracker',CompanyName:'InstagramTracker',
-    InternalName:'InstagramTracker',OriginalFilename:'InstagramTracker.exe',FileVersion:version,ProductVersion:version,
+    ProductName:'Followtrail',FileDescription:'Followtrail',CompanyName:'Followtrail',
+    InternalName:'Followtrail',OriginalFilename:'Followtrail.exe',FileVersion:version,ProductVersion:version,
   });
   info.outputToResourceEntries(resources.entries);
   resources.outputResource(exe);

@@ -46,7 +46,7 @@ test('Windows notification uses current language and retained selection', () => 
   const entry = { id: 'log', selectedChangeIds: ['event'], changes: [{ eventId: 'event', username: 'qa.person', category: 'followers', label: 'Takipçi sayısı', title: 'original' }] };
   const before = JSON.stringify(entry);
   const content = changeNotification(entry, 'en');
-  assert.equal(content.title, 'InstagramTracker · New observation');
+  assert.equal(content.title, 'Followtrail · New observation');
   assert.equal(content.body, '@qa.person · Follower count changed. Open details.');
   assert.equal(content.logId, 'log');
   assert.equal(JSON.stringify(entry), before);
@@ -56,7 +56,7 @@ test('strong suspicion notification translates the method without inventing cert
   const title='Güçlü engellenme şüphesi · @qa.person: Aynı hesap oturumsuz görünür, bağlı oturumdan erişilemiyor. Kesin engelleme kanıtı değildir.';
   const entry={id:'strong',selectedChangeIds:['event'],changes:[{eventId:'event',username:'qa.person',category:'access',title,after:{reason:'anonymous_visible'}}]};
   const notification=changeNotification(entry,'en');
-  assert.equal(notification.title,'InstagramTracker · Strong suspicion of a block');
+  assert.equal(notification.title,'Followtrail · Strong suspicion of a block');
   assert.match(notification.body,/same account is visible while logged out/);
   assert.match(notification.body,/not definitive proof/);
 });

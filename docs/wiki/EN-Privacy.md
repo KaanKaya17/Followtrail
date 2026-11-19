@@ -4,19 +4,19 @@
 
 ## Purpose and acceptable use
 
-InstagramTracker helps you review your Instagram exports and understand changes in accounts you’re authorized to access. The app does not send ZIP files, passwords or account records to the project team, and it does not collect usage data on a project server. For live monitoring and verification, your device connects to Instagram/Meta.
+Followtrail helps you review your Instagram exports and understand changes in accounts you’re authorized to access. The app does not send ZIP files, passwords or account records to the project team, and it does not collect usage data on a project server. For live monitoring and verification, your device connects to Instagram/Meta.
 
-Use Tracker only with data you’re authorized to access. Follow applicable rules and respect other people’s privacy. The project does not support unauthorized account access, harassment or unlawful use.
+Use Followtrail only with data you’re authorized to access. Follow applicable rules and respect other people’s privacy. The project does not support unauthorized account access, harassment or unlawful use.
 
 ## Local storage and network access
 
-Windows protects local records with DPAPI tied to the Windows user. Android uses Android Keystore and AES-GCM. Sessions, saved profiles and observations are encrypted locally and each linked account has its own data. Tracker provides no cloud backup or automatic device sync. Android app backup and transfer are disabled for these records. Clearing app data or losing the encryption key can make records inaccessible.
+Windows protects local records with DPAPI tied to the Windows user. Android uses Android Keystore and AES-GCM. Sessions, saved profiles and observations are encrypted locally and each linked account has its own data. Followtrail provides no cloud backup or automatic device sync. Android app backup and transfer are disabled for these records. Clearing app data or losing the encryption key can make records inaccessible.
 
-Live sign-in and reads connect directly to Instagram/Meta. Profile photos come from eligible Meta CDN hosts. Instagram verification may use Meta or Google CAPTCHA resources after you allow them. Website and social links open in your regular browser. Tracker has no data server, ads, analytics or crash-reporting SDK. Website icons are bundled locally.
+Live sign-in and reads connect directly to Instagram/Meta. Profile photos come from eligible Meta CDN hosts. Instagram verification may use Meta or Google CAPTCHA resources after you allow them. Website and social links open in your regular browser. Followtrail has no data server, ads, analytics or crash-reporting SDK. Website icons are bundled locally.
 
 ## Read-only monitoring and credentials
 
-Tracker does not offer following, unfollowing, likes or direct messages. The reader rejects disallowed operations before sending them. Sign-in and supported verification have separate narrowly scoped requests. Passwords and verification codes are not kept as a log or vault record. The resulting session may be stored encrypted for later reads. Protect it as you would a password.
+Followtrail does not offer following, unfollowing, likes or direct messages. The reader rejects disallowed operations before sending them. Sign-in and supported verification have separate narrowly scoped requests. Passwords and verification codes are not kept as a log or vault record. The resulting session may be stored encrypted for later reads. Protect it as you would a password.
 
 **Request information** records limited diagnostic outcomes. It excludes raw credentials, codes, cookies and response bodies. Review screenshots for personal information before sharing them. [Technical privacy notes](../PRIVACY.md).
 

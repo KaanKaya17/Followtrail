@@ -1,6 +1,6 @@
 # Dokümantasyon Dizini
 
-**Kullanıcılar için başlangıç: [InstagramTracker Kullanım Kılavuzu](wiki/Home.md).**
+**Kullanıcılar için başlangıç: [Followtrail Kullanım Kılavuzu](wiki/Home.md).**
 
 Bu dizindeki teknik belgeler araştırma, uygulama ve test geçmişini korur. Dosya adındaki sürüm/tarih o belgenin kapsamını belirtir; eski bir deney güncel ürün davranışı gibi okunmamalıdır. Güncel platform durumu [kullanıcı kılavuzunda](wiki/Surum-ve-Destek.md), yayın değişiklikleri [değişiklik kaydında](../CHANGELOG.md) yer alır.
 

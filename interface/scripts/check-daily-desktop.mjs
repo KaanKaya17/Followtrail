@@ -14,7 +14,7 @@ execFileSync(python,[path.join(root,'interface/desktop/backend/seed_qa.py'),'--h
 execFileSync(python,[path.join(root,'interface/scripts/seed-daily-qa.py'),'--home',home]);
 const output=path.join(root,`artifacts/desktop-${version}-qa/daily`);await mkdir(output,{recursive:true});
 const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
-const app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+const app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
 const page=await app.firstWindow();page.setDefaultTimeout(15000);
 const errors=[],requests=[],checks=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!/^(file:|data:)/.test(r.url()))requests.push(r.url());});

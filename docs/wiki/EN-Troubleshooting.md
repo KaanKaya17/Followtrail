@@ -4,7 +4,7 @@
 
 ## Automatic reads are paused
 
-Open **Request information → Read diagnostics**. Tracker reports profile, follower and following reads separately. Repeated incompatible responses can pause the affected operation after three failures. A changed endpoint is only a possible cause. Missing profiles, incomplete lists and HTTP 429 have separate states.
+Open **Request information → Read diagnostics**. Followtrail reports profile, follower and following reads separately. Repeated incompatible responses can pause the affected operation after three failures. A changed endpoint is only a possible cause. Missing profiles, incomplete lists and HTTP 429 have separate states.
 
 On Windows, a read paused this way sends one Windows notification (when general notifications are on). The overview notice says that earlier records are kept and that the failing request is not sent again. If the response shape changed, **Read diagnostics** also lists the missing field names (for example `users.pk`).
 
@@ -14,7 +14,7 @@ A continuation request that receives HTTP 400 or 404 can restart from page one o
 
 ## Sign-in, codes and CAPTCHA
 
-Confirm that a fresh sign-in works in Instagram itself. If it works there but stalls in Tracker, report the version and redacted diagnostic status. HTTP 200 alone does not establish a completed login. Complete a supported verification challenge in the displayed Instagram page. Submit a code once and wait for the result.
+Confirm that a fresh sign-in works in Instagram itself. If it works there but stalls in Followtrail, report the version and redacted diagnostic status. HTTP 200 alone does not establish a completed login. Complete a supported verification challenge in the displayed Instagram page. Submit a code once and wait for the result.
 
 If Android shows that the Instagram session opened and asks to finish the connection, see [Finish a pending connection](EN-Accounts.md#finish-a-pending-connection). The continuation button waits until it may send a single profile check. Closing the screen preserves the pending session.
 
@@ -36,4 +36,4 @@ The Threads shortcut requires an explicit address or an active badge. An older r
 
 ## Windows local data service closed
 
-Use **Quit completely** from the tray, check that another Tracker version is not running, and reopen the current EXE. Extract the entire ZIP before running the app and keep its companion files beside the EXE. Existing local data is kept when the service closes. If it keeps happening, report the version and the error text.
+Use **Quit completely** from the tray, check that another Followtrail version is not running, and reopen the current EXE. Extract the entire ZIP before running the app and keep its companion files beside the EXE. Existing local data is kept when the service closes. If it keeps happening, report the version and the error text.

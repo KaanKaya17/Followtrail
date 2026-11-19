@@ -4,7 +4,7 @@
 
 [English](EN-Instagram-Data-Archive.md) · [Español](ES-Instagram-Data-Archive.md) · [Português (Brasil)](PT-BR-Instagram-Data-Archive.md)
 
-Instagram’dan indirdiğiniz ZIP’i Tracker’da açarak takip listelerinizi, mesajlarınızı ve etkinlik kayıtlarınızı inceleyebilirsiniz. Aynı hesabın iki ZIP’i varsa takip listelerini karşılaştırabilirsiniz. Dosyalar cihazda okunur ve bu işlemler için Tracker’a Instagram hesabı bağlamanız gerekmez.
+Instagram’dan indirdiğiniz ZIP’i Followtrail’de açarak takip listelerinizi, mesajlarınızı ve etkinlik kayıtlarınızı inceleyebilirsiniz. Aynı hesabın iki ZIP’i varsa takip listelerini karşılaştırabilirsiniz. Dosyalar cihazda okunur ve bu işlemler için Followtrail’e Instagram hesabı bağlamanız gerekmez.
 
 Görseller Windows 0.2.84’te örnek ZIP’lerle çekildi. Windows ve Android’de hangi arşiv özelliklerinin bulunduğunu görmek için [sürüm durumuna](Surum-ve-Destek.md) bakın.
 
@@ -14,10 +14,10 @@ Görseller Windows 0.2.84’te örnek ZIP’lerle çekildi. Windows ve Android�
 
 ## 1. ZIP dosyasını alın
 
-1. Tracker’da **Instagram ZIP dosyası nasıl alınır?** bağlantısını açın. Kılavuzdaki **Hesaplar Merkezi’ni aç** düğmesi Instagram’ın dışa aktarma ayarlarına götürür.
+1. Followtrail’de **Instagram ZIP dosyası nasıl alınır?** bağlantısını açın. Kılavuzdaki **Hesaplar Merkezi’ni aç** düğmesi Instagram’ın dışa aktarma ayarlarına götürür.
 2. Dışa aktaracağınız Instagram hesabını seçin ve dosyayı **cihaza** aktarmayı seçin. İki ZIP’i karşılaştıracaksanız **Takipçiler ve takip edilenler** verisini her iki dışa aktarımda da seçin. Mesaj, etkinlik veya medya incelemek için ilgili kategorileri de seçebilirsiniz.
 3. Biçimi **JSON**, tarih aralığını **Tüm zamanlar** seçin. Karşılaştıracağınız dosyalarda aynı seçimleri kullanın.
-4. Instagram dosyayı hazırladığında indirin. Tracker’da doğrudan ZIP’i seçebilirsiniz.
+4. Instagram dosyayı hazırladığında indirin. Followtrail’de doğrudan ZIP’i seçebilirsiniz.
 
 <a name="arsivi-acip-inceleyin"></a>
 

@@ -10,7 +10,7 @@ On Windows, use the story archive action for your account or a saved profile. On
 
 Use the previous and next month buttons, then choose a day. Narrow screens open the day viewer. Wider screens can show the calendar and viewer together. Both platforms group days by UTC, which can differ from your local date near midnight.
 
-When available, Tracker shows the saved media, time, mentions, links, locations, hashtags and shared posts. A mention can exist without a repost. Music and stickers may behave differently from Instagram's viewer. A failed media download can leave metadata only.
+When available, Followtrail shows the saved media, time, mentions, links, locations, hashtags and shared posts. A mention can exist without a repost. Music and stickers may behave differently from Instagram's viewer. A failed media download can leave metadata only.
 
 ## Storage and limits
 

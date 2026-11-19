@@ -18,7 +18,7 @@ const home = await mkdtemp(path.join(os.tmpdir(), 'TrackerQA-'));
 const python = process.env.TRACKER_BUILD_PYTHON || path.resolve(root, '../InstagramCounter/.venv/Scripts/python.exe');
 execFileSync(python, [path.join(root, 'interface/desktop/backend/seed_qa.py'), '--home', home, ...(large ? ['--performance'] : []), ...(accounts ? ['--accounts'] : [])]);
 const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
-const app = await electron.launch({ executablePath: path.join(root, `artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`), args: [`--tracker-test-home=${home}`], env });
+const app = await electron.launch({ executablePath: path.join(root, `artifacts/Followtrail-Desktop-${version}/Followtrail.exe`), args: [`--tracker-test-home=${home}`], env });
 const page = await app.firstWindow();
 let changes = 0;
 let sampleProcess;

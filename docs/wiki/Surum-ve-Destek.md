@@ -4,6 +4,13 @@
 
 **Son içerik denetimi: 19 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
 
+## Windows 0.2.95 — Followtrail
+
+19 Kasım’da proje **Followtrail** adını aldı ve Windows 0.2.95 yayımlandı. Pencere, EXE (`Followtrail.exe`), Başlat menüsü kısayolu ve bildirimler yeni adı kullanır. Veri klasörleri (`%LOCALAPPDATA%\InstagramTracker-Desktop`), şifreli kasalar, bildirim kimliği ve yedek biçimi değişmedi; eski sürümden güncellerken kayıtlar olduğu gibi açılır. **Özet → Kontrol durumu** kartı bu hesabın son 1 saatte ve son 24 saatte kullandığı istek sayısını uygulamanın kendi sınırıyla gösterir.
+
+- Windows 0.2.95: paketli çevrimdışı kontroller, okuma uyarısı ve kota kontrolleri, 370 Python ve 77 arayüz testi geçti. EXE Authenticode imzası taşımıyor.
+- Android 0.1.103 bu değişiklikleri içermez; Android uygulamasının adı henüz değişmedi.
+
 ## Windows 0.2.94
 
 19 Kasım’da Windows 0.2.94 herkese açık ZIP önizlemesi yayımlandı. Profil veya takip listesi okuması Instagram’ın değişmiş olabilecek yanıtı yüzünden durduğunda bir kez Windows bildirimi gelir; ana ekran eski kayıtların korunduğunu söyler. **Geliştiriciye bildir**, hesap verisi içermeyen bir uyumluluk raporu gösterir ve kullanıcı isterse GitHub’da yeni konu taslağı açar. [Ayrıntılar](Sorun-Giderme.md#otomatik-okuma-duraklatıldı)
@@ -126,12 +133,12 @@ Windows 0.2.56 / Android 0.1.86 için 160 seçili Python, 183 JVM, 6 profil pane
 **GitHub’da belgelenen önizleme: 0.2.73 · kaynak etiketi: `desktop-v0.2.73`**
 
 - Taşınabilir Windows x64 dağıtımıdır.
-- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.73`; içindeki `InstagramTracker.exe` çalıştırılır.
+- Dağıtım klasörü: `InstagramTracker-Desktop-0.2.73`; içindeki `Followtrail.exe` çalıştırılır.
 - Hesap/profil okuma ve kendi hesabının iki liste yönünde gerçek yanıtlar görülmüştür. Bu canlı örnekler bütün hesapları veya her büyüklükteki listeyi kapsamaz.
 - Son Threads düzeltmesinde, bildirilen profilin gerçek Instagram rozeti okunup bağlantı kayda alınmıştır. Ayrı Threads sorgusu yapılmamıştır.
 - Windows doğrulama ve kaynak ölçümü kapsamı [0.2.47 optimizasyon notunda](../DESKTOP-RESOURCE-OPTIMIZATION.md) bulunur. 0.2.48 saklama/silme güncellemesi ve sınırları [veri yaşam döngüsünde](../DATA-LIFECYCLE.md) bulunur.
 
-0.2.49, Windows kısayolunda ve görev çubuğunda Tracker ICO simgesini açıkça kullanır; uygulamaya ait eski kısayolları yedekleyerek kaldırır.
+0.2.49, Windows kısayolunda ve görev çubuğunda Followtrail ICO simgesini açıkça kullanır; uygulamaya ait eski kısayolları yedekleyerek kaldırır.
 
 ## Android
 
@@ -166,17 +173,18 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-- [Windows 0.2.94 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.94)
-- [Windows 0.2.93 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93)
-- [Android 0.1.103 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103)
-- [Windows 0.2.89 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89)
-- [Android 0.1.102 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102)
-- [Android 0.1.101 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.101)
-- [Android 0.1.100 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.100)
-- [Windows 0.2.84 önceki önizlemesi](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84)
-- [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
+- [Windows 0.2.95 herkese açık ZIP](https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.95)
+- [Windows 0.2.94 önceki ZIP’i](https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.94)
+- [Windows 0.2.93 önceki ZIP’i](https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.93)
+- [Android 0.1.103 imzalı APK](https://github.com/KaanKaya17/Followtrail/releases/tag/android-v0.1.103)
+- [Windows 0.2.89 önceki ZIP’i](https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.89)
+- [Android 0.1.102 önceki APK’sı](https://github.com/KaanKaya17/Followtrail/releases/tag/android-v0.1.102)
+- [Android 0.1.101 önceki APK’sı](https://github.com/KaanKaya17/Followtrail/releases/tag/android-v0.1.101)
+- [Android 0.1.100 önceki APK’sı](https://github.com/KaanKaya17/Followtrail/releases/tag/android-v0.1.100)
+- [Windows 0.2.84 önceki önizlemesi](https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.84)
+- [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/Followtrail/releases/tag/android-v0.1.92)
 
-[Tüm önizlemeler](https://github.com/KaanKaya17/InstagramTracker/releases) ana deponun Releases bölümünde listelenir. Her sürümde SHA-256 dosyası yer alır.
+[Tüm önizlemeler](https://github.com/KaanKaya17/Followtrail/releases) ana deponun Releases bölümünde listelenir. Her sürümde SHA-256 dosyası yer alır.
 
 <a name="destek-icin-hangi-bilgiler-gerekir"></a>
 
@@ -218,4 +226,4 @@ Android 0.1.82 CAPTCHA içerik sorgusu ve tanı kopyalama düzeltmesi: [kanıt/t
 
 Android 0.1.83, CAPTCHA’nın gerçek içerik şemasını ve gözlenen sonuç gönderme adımlarını ekler; [canlı kanıt ve bekleyen doğrulama](../ANDROID-CAPTCHA-CONTENT.md).
 
-0.1.83 fiziksel testinde CAPTCHA sonrasında şifreli bekleyen Instagram oturumu oluştu; sonraki profil okuması HTTP 429 aldı. Tracker profil/liste bağlantısı henüz tamamlanmadı. [Son canlı sonuç](../ANDROID-CAPTCHA-CONTENT.md).
+0.1.83 fiziksel testinde CAPTCHA sonrasında şifreli bekleyen Instagram oturumu oluştu; sonraki profil okuması HTTP 429 aldı. Followtrail profil/liste bağlantısı henüz tamamlanmadı. [Son canlı sonuç](../ANDROID-CAPTCHA-CONTENT.md).

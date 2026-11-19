@@ -1,8 +1,8 @@
-# InstagramTracker User Guide
+# Followtrail User Guide
 
 [English](EN-Home.md) · [Türkçe](Home.md) · [Español](ES-Home.md) · [Português (Brasil)](PT-BR-Home.md)
 
-InstagramTracker lets you inspect Instagram exports, compare follow lists, and keep a local history of changes to selected profiles.
+Followtrail lets you inspect Instagram exports, compare follow lists, and keep a local history of changes to selected profiles.
 
 ![Windows Overview with sample follower counts, list preparation and daily history](assets/ozet.png)
 

@@ -852,12 +852,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 0,
+    "accountHourUsed": 0,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 1,
+    "sharedHourUsed": 1,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -1776,12 +1780,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 0,
+    "accountHourUsed": 0,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 1,
+    "sharedHourUsed": 1,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -2775,12 +2783,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 1,
+    "accountHourUsed": 1,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 2,
+    "sharedHourUsed": 2,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -4049,12 +4061,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 4,
+    "accountHourUsed": 4,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 5,
+    "sharedHourUsed": 5,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -6293,12 +6309,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 6,
+    "accountHourUsed": 6,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 7,
+    "sharedHourUsed": 7,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -8690,12 +8710,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 8,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 9,
+    "sharedHourUsed": 9,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -11101,12 +11125,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 8,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 9,
+    "sharedHourUsed": 9,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -13512,12 +13540,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 8,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 9,
+    "sharedHourUsed": 9,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -15969,12 +16001,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 9,
+    "accountHourUsed": 1,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 10,
+    "sharedHourUsed": 1,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -18491,12 +18527,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 10,
+    "accountHourUsed": 2,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 11,
+    "sharedHourUsed": 2,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -21083,12 +21123,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 11,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 12,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -23697,12 +23741,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 12,
+    "accountHourUsed": 4,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 13,
+    "sharedHourUsed": 4,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -26520,12 +26568,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 15,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 16,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -29557,12 +29609,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 15,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 16,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -32619,12 +32675,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 16,
+    "accountHourUsed": 4,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 17,
+    "sharedHourUsed": 4,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -35722,12 +35782,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 17,
+    "accountHourUsed": 5,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 18,
+    "sharedHourUsed": 5,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -38878,12 +38942,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 19,
+    "accountHourUsed": 7,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 20,
+    "sharedHourUsed": 7,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -42059,12 +42127,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 20,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 21,
+    "sharedHourUsed": 8,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -45239,12 +45311,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 20,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 21,
+    "sharedHourUsed": 8,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -48419,12 +48495,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 20,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 21,
+    "sharedHourUsed": 8,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -51607,12 +51687,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 20,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 21,
+    "sharedHourUsed": 8,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -54786,12 +54870,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 20,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 21,
+    "sharedHourUsed": 8,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -57966,12 +58054,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 20,
+    "accountHourUsed": 8,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 21,
+    "sharedHourUsed": 8,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -61451,12 +61543,16 @@
    },
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 22,
+    "accountHourUsed": 2,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 23,
+    "sharedHourUsed": 2,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -65065,12 +65161,16 @@
    },
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 24,
+    "accountHourUsed": 4,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 25,
+    "sharedHourUsed": 4,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -68641,12 +68741,16 @@
    },
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 24,
+    "accountHourUsed": 4,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 25,
+    "sharedHourUsed": 4,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -72243,12 +72347,16 @@
    },
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 25,
+    "accountHourUsed": 1,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 26,
+    "sharedHourUsed": 1,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -75948,12 +76056,16 @@
    },
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 27,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 28,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -79352,12 +79464,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 27,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 28,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -82531,12 +82647,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 27,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 28,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -85723,12 +85843,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 27,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 28,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -88729,12 +88853,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 27,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 28,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -91390,12 +91518,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 27,
+    "accountHourUsed": 3,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 28,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {
@@ -93513,12 +93645,16 @@
    "readHealth": {},
    "requestBudget": {
     "accountDaily": 3000,
+    "accountDayUsed": 0,
+    "accountHourUsed": 0,
     "accountHourly": 120,
     "automaticProfilePercent": 80,
     "mediaDaily": 4000,
     "mediaHourly": 400,
     "nextAt": 0,
     "sharedDaily": 6000,
+    "sharedDayUsed": 28,
+    "sharedHourUsed": 3,
     "sharedHourly": 240
    },
    "requestPacing": {

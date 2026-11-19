@@ -130,7 +130,7 @@
     guide.append(steps);
     const center = link("https://accountscenter.instagram.com/info_and_permissions/", t("Hesaplar Merkezi’ni aç"));
     if (center) guide.append(center);
-    const automation = make("p", t("Tracker şu anda Instagram’dan yeni ZIP istemiyor. İndirdiğin dosyayı cihazında açıyor."), "field-hint");
+    const automation = make("p", t("Followtrail şu anda Instagram’dan yeni ZIP istemiyor. İndirdiğin dosyayı cihazında açıyor."), "field-hint");
     guide.append(automation);
     const overview = make("section", "", "card archive-dashboard-overview");
     const dropHint = make("p", t("ZIP dosyasını buraya bırak"), "archive-dashboard-drop field-hint");

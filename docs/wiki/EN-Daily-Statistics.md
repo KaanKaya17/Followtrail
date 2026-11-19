@@ -10,7 +10,7 @@ Choose followers or following and a 7-day, 30-day, one-year or all-time range. L
 
 ## Read a day
 
-Tracker stores the first, last, minimum and maximum observed values, the times and the number of checks. Post counts are included when available. The chart uses the last value observed that day, and today’s point can still change. Open a chart point to inspect the range.
+Followtrail stores the first, last, minimum and maximum observed values, the times and the number of checks. Post counts are included when available. The chart uses the last value observed that day, and today’s point can still change. Open a chart point to inspect the range.
 
 Days use UTC on both platforms. A day without observations remains missing. A net increase from 100 to 103 does not tell you how many accounts joined and left along the way. [Compare complete follow lists](EN-Follow-Lists.md).
 

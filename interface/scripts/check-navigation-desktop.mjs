@@ -14,7 +14,7 @@ const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
 async function launch(flags) {
  const home=await mkdtemp(path.join(os.tmpdir(),'TrackerQA-'));
  execFileSync(path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe'),[path.join(root,'interface/desktop/backend/seed_qa.py'),'--home',home,...flags]);
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  page=await app.firstWindow();page.setDefaultTimeout(12000);
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!/^(file:|data:)/.test(r.url()))requests.push(r.url());});
  await page.getByRole('heading',{name:'Çevrende neler oluyor?'}).waitFor();

@@ -14,7 +14,7 @@ const output=path.join(root,`artifacts/desktop-${version}-qa/list-pages`);await 
 execFileSync(process.env.TRACKER_BUILD_PYTHON || path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe'),
   [path.join(root,'interface/desktop/backend/seed_qa.py'),'--home',home,'--performance','--accounts']);
 const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
-const app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+const app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
 const page=await app.firstWindow();page.setDefaultTimeout(15000);
 const errors=[],external=[],checks=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!/^(file:|data:)/.test(r.url()))external.push(r.url());});

@@ -20,7 +20,7 @@ const row=id=>page.locator(`.timeline-event[data-id="${id}"]`);
 const filter=key=>page.locator(`[data-action="event-filter"][data-value="${key}"]`);
 const reset=()=>page.locator('[data-action="reset-events"]').click();
 try {
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  page=await app.firstWindow();page.setDefaultTimeout(15000);
  page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});
  await page.locator('.account-switcher').waitFor();await page.locator('.sidebar nav a[href="#timeline"]').click();

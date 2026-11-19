@@ -192,7 +192,7 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--check', action='store_true', help='validate sources without exporting')
     mode.add_argument('--output', type=Path, help='empty or previously owned export directory')
-    parser.add_argument('--repository', default='KaanKaya17/InstagramTracker', help='GitHub OWNER/REPOSITORY')
+    parser.add_argument('--repository', default='KaanKaya17/Followtrail', help='GitHub OWNER/REPOSITORY')
     parser.add_argument('--ref', help='source reference for repository/image links; defaults to current Git branch')
     args = parser.parse_args()
     try:

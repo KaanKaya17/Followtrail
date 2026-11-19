@@ -1,8 +1,8 @@
-# InstagramTracker Kullanım Kılavuzu
+# Followtrail Kullanım Kılavuzu
 
 [Türkçe](Home.md) · [English](EN-Home.md) · [Español](ES-Home.md) · [Português (Brasil)](PT-BR-Home.md)
 
-InstagramTracker; takipçi ve takip edilen listelerini karşılaştırmanıza, seçtiğiniz profillerdeki değişiklikleri izlemenize ve kayıtlarınızı cihazınızda incelemenize yardımcı olur.
+Followtrail; takipçi ve takip edilen listelerini karşılaştırmanıza, seçtiğiniz profillerdeki değişiklikleri izlemenize ve kayıtlarınızı cihazınızda incelemenize yardımcı olur.
 
 [İlk kullanım](Ilk-Kullanim.md) · [Kurulum](Kurulum.md) · [Sorun giderme](Sorun-Giderme.md) · [Sürüm durumu](Surum-ve-Destek.md)
 
@@ -40,4 +40,4 @@ Platforma özgü adımlar **Windows** veya **Android** etiketiyle belirtilir. Ay
 
 Kullanıcı kılavuzu güncel davranışı anlatır. Eski test sonuçları, teknik araştırmalar ve geliştirme notları için [teknik dokümantasyon dizinine](../README.md) bakın. Kılavuzun Wiki'ye aktarılması proje yöneticileri için [ayrı bir sayfada](Wikiye-Tasima.md) açıklanmıştır.
 
-*InstagramTracker, Instagram ve Meta'dan bağımsız bir uygulamadır.*
+*Followtrail, Instagram ve Meta'dan bağımsız bir uygulamadır.*

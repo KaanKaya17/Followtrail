@@ -14,7 +14,7 @@ execFileSync(path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe'),[
 const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
 const checks=[],errors=[],requests=[];let app,page;
 try {
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  page=await app.firstWindow();page.setDefaultTimeout(12000);
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!/^(file:|data:)/.test(r.url()))requests.push(r.url());});
  await page.getByRole('button',{name:'Şimdi kontrol et',exact:true}).waitFor();

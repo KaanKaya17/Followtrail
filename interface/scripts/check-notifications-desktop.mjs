@@ -20,7 +20,7 @@ const command=(operation,args={})=>page.evaluate(({operation,args})=>window.Trac
 const row=id=>page.locator(`.notification-card[data-id="${id}"]`);
 const type=key=>page.locator(`[data-action="notification-type"][data-value="${key}"]`);
 async function launch() {
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  page=await app.firstWindow();page.setDefaultTimeout(15000);
  page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});
  await page.locator('.account-switcher').waitFor();await page.locator('.sidebar nav a[href="#notifications"]').click();await row('qa-multi-change').waitFor();

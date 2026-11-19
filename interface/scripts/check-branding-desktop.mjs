@@ -9,15 +9,15 @@ import {Data,NtExecutable,NtExecutableResource,Resource} from 'resedit';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const {version}=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
-const packagePath=path.resolve(root,`../artifacts/InstagramTracker-Desktop-${version}`);
-const executablePath=path.join(packagePath,'InstagramTracker.exe');
+const packagePath=path.resolve(root,`../artifacts/Followtrail-Desktop-${version}`);
+const executablePath=path.join(packagePath,'Followtrail.exe');
 const resources=NtExecutableResource.from(NtExecutable.from(await readFile(executablePath)));
 const info=Resource.VersionInfo.fromEntries(resources.entries)[0];
 for (const lang of info.getAllLanguagesForStringValues()) {
   const strings=info.getStringValues(lang);
-  assert.equal(strings.ProductName,'InstagramTracker');
-  assert.equal(strings.FileDescription,'InstagramTracker');
-  assert.equal(strings.OriginalFilename,'InstagramTracker.exe');
+  assert.equal(strings.ProductName,'Followtrail');
+  assert.equal(strings.FileDescription,'Followtrail');
+  assert.equal(strings.OriginalFilename,'Followtrail.exe');
   assert.equal(strings.ProductVersion,version);
 }
 const icons=Resource.IconGroupEntry.fromEntries(resources.entries)[0].getIconItemsFromEntries(resources.entries);
@@ -25,7 +25,7 @@ const expected=Data.IconFile.from(await readFile(path.join(packagePath,'resource
 const bytes=item=>Buffer.from(item.isRaw() ? item.bin : item.generate());
 assert.deepEqual(icons.map(bytes),expected.icons.map(item=>bytes(item.data)));
 assert.equal(icons.length,7);
-console.log('PASS packaged EXE has Tracker name, current version and seven embedded brand-icon sizes');
+console.log('PASS packaged EXE has Followtrail name, current version and seven embedded brand-icon sizes');
 
 const home=await mkdtemp(path.join(os.tmpdir(),'TrackerQA-'));
 const python=process.env.TRACKER_BUILD_PYTHON || path.resolve(root,'../..','InstagramCounter/.venv/Scripts/python.exe');
@@ -35,14 +35,14 @@ let desktop;
 try {
   desktop=await electron.launch({executablePath,args:[`--tracker-test-home=${home}`],env});
   const page=await desktop.firstWindow();
-  await page.getByRole('heading',{name:'Çevrende neler oluyor?',exact:true}).waitFor();
+  await page.getByRole('heading',{name:'Nasıl başlamak istersin?',exact:true}).waitFor();
   const state=await page.evaluate(()=>window.TrackerDesktop.command('state'));
   assert.equal(state.state.settings.notifications,false);
   const result=await desktop.evaluate(({app,shell},{home,executablePath})=>{
     const require=process.getBuiltinModule('module').createRequire(app.getAppPath()+'/package.json');
     const path=require('node:path'), fs=require('node:fs');
     const {ensureShortcut,APP_ID,appIconPath}=require(path.join(app.getAppPath(),'desktop/notifications.cjs'));
-    const link=path.join(home,'shortcuts/InstagramTracker Desktop.lnk');
+    const link=path.join(home,'shortcuts/Followtrail.lnk');
     const initial=shell.readShortcutLink(link);
     const options={app,shell,testHome:home,dataDir:home};
     const before=fs.readFileSync(link);
@@ -65,6 +65,13 @@ try {
     ensureShortcut(options);
     const oldNameRetired=!fs.existsSync(oldName) && fs.readdirSync(home).filter(name=>name.startsWith('legacy-tracker-shortcut-'))
       .some(name=>{const file=path.join(home,name,'InstagramTracker.lnk');return fs.existsSync(file) && oldBytes.equals(fs.readFileSync(file));});
+    // The shortcut name used up to 0.2.94; an update to Followtrail must not leave two Start entries.
+    const desktopName=path.join(home,'shortcuts/InstagramTracker Desktop.lnk');
+    shell.writeShortcutLink(desktopName,{...initial,icon:'',target:path.join(home,'old-release/InstagramTracker.exe')});
+    const desktopBytes=fs.readFileSync(desktopName);
+    ensureShortcut(options);
+    const oldDesktopRetired=!fs.existsSync(desktopName) && fs.readdirSync(home).filter(name=>name.startsWith('legacy-tracker-shortcut-'))
+      .some(name=>{const file=path.join(home,name,'InstagramTracker Desktop.lnk');return fs.existsSync(file) && desktopBytes.equals(fs.readFileSync(file));});
     shell.writeShortcutLink(oldName,{...initial,appUserModelId:'foreign.qa.app'});
     const foreignAlias=fs.readFileSync(oldName);
     ensureShortcut(options);
@@ -80,7 +87,7 @@ try {
     try { ensureShortcut(options); } catch { foreignRejected=true; }
     const foreignUnchanged=foreign.equals(fs.readFileSync(link));
     shell.writeShortcutLink(link,updated);
-    return {initial,updated,idempotent,backedUp,foreignRejected,foreignUnchanged,legacyMoved,legacyPreserved,foreignLegacyPreserved,oldNameRetired,foreignAliasPreserved,appId:APP_ID,executablePath,icon:appIconPath(app)};
+    return {initial,updated,idempotent,backedUp,foreignRejected,foreignUnchanged,legacyMoved,legacyPreserved,foreignLegacyPreserved,oldNameRetired,oldDesktopRetired,foreignAliasPreserved,appId:APP_ID,executablePath,icon:appIconPath(app)};
   },{home,executablePath});
   assert.equal(result.initial.target,executablePath);
   assert.equal(result.initial.icon,result.icon);
@@ -88,8 +95,8 @@ try {
   assert.equal(result.initial.iconIndex,0);
   assert.equal(result.initial.appUserModelId,result.appId);
   assert.equal(result.updated.icon,result.icon);
-  for (const key of ['idempotent','backedUp','foreignRejected','foreignUnchanged','legacyMoved','legacyPreserved','foreignLegacyPreserved','oldNameRetired','foreignAliasPreserved']) assert.equal(result[key],true,key);
-  console.log('PASS native Start shortcut is branded with notifications off; updates preserve backup and respect ownership');
+  for (const key of ['idempotent','backedUp','foreignRejected','foreignUnchanged','legacyMoved','legacyPreserved','foreignLegacyPreserved','oldNameRetired','oldDesktopRetired','foreignAliasPreserved']) assert.equal(result[key],true,key);
+  console.log('PASS native Start shortcut is branded with notifications off; updates preserve backup, retire the InstagramTracker shortcuts and respect ownership');
 } finally {
   if (desktop) await desktop.close();
 }

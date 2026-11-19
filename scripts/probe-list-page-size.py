@@ -22,7 +22,7 @@ import profile_search
 
 
 def require_stopped():
-    for name in ('InstagramTracker.exe','tracker-worker.exe'):
+    for name in ('Followtrail.exe','InstagramTracker.exe','tracker-worker.exe'):
         result=subprocess.run(['tasklist','/FI',f'IMAGENAME eq {name}','/FO','CSV','/NH'],capture_output=True,text=True,check=True)
         if any(row and row[0].lower()==name.lower() for row in csv.reader(io.StringIO(result.stdout))):
             raise AppFailure('busy','Close the desktop app and its worker before this diagnostic.')

@@ -35,7 +35,7 @@ const {
 } = require("./notifications.cjs");
 const { readAlertNotification, readReport, openReadAlert } = require("./read-alerts.cjs");
 
-app.setName("InstagramTracker");
+app.setName("Followtrail");
 app.setAppUserModelId(APP_ID);
 app.setToastActivatorCLSID(TOAST_ID);
 const testArg = process.argv.find((x) => x.startsWith("--tracker-test-home="));
@@ -49,6 +49,7 @@ if (testArg) {
   )
     throw new Error("Invalid isolated test home");
 }
+// The data folders keep the pre-Followtrail name so existing encrypted vaults keep opening.
 app.setPath(
   "userData",
   testHome
@@ -223,7 +224,7 @@ function open() {
     minWidth: 960,
     minHeight: 680,
     backgroundColor: themeBackgrounds[nativeTheme.shouldUseDarkColors ? 'dark' : 'light'],
-    title: "InstagramTracker",
+    title: "Followtrail",
     icon: path.join(__dirname, '..', ...(app.isPackaged ? ['desktop'] : ['.cache']), 'app-icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
@@ -239,7 +240,7 @@ function open() {
     appId:APP_ID,
     appIconPath:appIconPath(app),
     appIconIndex:0,
-    relaunchDisplayName:'InstagramTracker',
+    relaunchDisplayName:'Followtrail',
     relaunchCommand:`"${process.execPath}"${testHome ? ` --tracker-test-home="${testHome}"` : app.isPackaged ? '' : ` "${app.getAppPath()}"`}`,
   });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
@@ -399,9 +400,9 @@ else
         if (typeof args.password !== "string" || !args.password || Buffer.byteLength(args.password) > 512 ||
             (saving && Array.from(args.password).length < 12))
           throw new Error("Invalid backup password");
-        const filters = [{ name: "Tracker", extensions: ["trackerhistory"] }];
+        const filters = [{ name: "Followtrail", extensions: ["trackerhistory"] }];
         const selection = saving
-          ? await dialog.showSaveDialog(window, {filters, defaultPath:"InstagramTracker.trackerhistory"})
+          ? await dialog.showSaveDialog(window, {filters, defaultPath:"Followtrail.trackerhistory"})
           : await dialog.showOpenDialog(window, {filters, properties:["openFile"]});
         if (selection.canceled) return {ok:true,cancelled:true};
         if (saving && accountChanged()) return accountChangedResult();
@@ -426,7 +427,7 @@ else
       if (action === "export_browser_comparison_csv") {
         const selection = await dialog.showSaveDialog(window, {
           title: t("Karşılaştırmayı CSV olarak kaydet"),
-          defaultPath: "InstagramTracker-zip-karsilastirma.csv",
+          defaultPath: "Followtrail-zip-karsilastirma.csv",
           filters: [{ name: "CSV", extensions: ["csv"] }],
         });
         if (selection.canceled) return { ok: true, cancelled: true };
@@ -444,7 +445,7 @@ else
         const selection = await dialog.showOpenDialog(window, {
           title: t("Şifreli gözlem yedeğini seç"),
           properties: ["openFile"],
-          filters: [{ name: t("Tracker yedeği"), extensions: ["trackerbackup"] }],
+          filters: [{ name: t("Followtrail yedeği"), extensions: ["trackerbackup"] }],
         });
         if (selection.canceled) return { ok: true, cancelled: true };
         if (accountChanged()) return accountChangedResult();
@@ -467,11 +468,11 @@ else
           ? t("Şifreli gözlem yedeğini kaydet")
           : t("Listeyi CSV olarak dışa aktar"),
         defaultPath: backup
-          ? "InstagramTracker.trackerbackup"
-          : "InstagramTracker-liste.csv",
+          ? "Followtrail.trackerbackup"
+          : "Followtrail-liste.csv",
         filters: [
           {
-            name: backup ? t("Tracker yedeği") : "CSV",
+            name: backup ? t("Followtrail yedeği") : "CSV",
             extensions: [backup ? "trackerbackup" : "csv"],
           },
         ],
@@ -534,7 +535,7 @@ else
     );
     if (image.isEmpty())
       throw new Error(
-        "Tracker tray icon is missing. Rebuild the desktop package.",
+        "Followtrail tray icon is missing. Rebuild the desktop package.",
       );
     background = new Background({
       Tray,

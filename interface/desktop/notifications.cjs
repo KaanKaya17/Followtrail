@@ -5,11 +5,11 @@ const APP_ID = "dev.kaankaya.instagramtracker.desktop";
 const TOAST_ID = "{D3085DD3-667D-4514-BD5F-1C8C0C8A5927}";
 
 function retireLegacyShortcuts({shell,shortcut,dataDir}) {
-  for(const name of ['Electron.lnk','InstagramTracker.lnk']) {
+  for(const name of ['Electron.lnk','InstagramTracker.lnk','InstagramTracker Desktop.lnk']) {
     const legacy=path.join(path.dirname(shortcut),name);
     if (!fs.existsSync(legacy)) continue;
     const previous=shell.readShortcutLink(legacy);
-    if (previous.appUserModelId!==APP_ID || path.basename(previous.target).toLowerCase()!=='instagramtracker.exe') continue;
+    if (previous.appUserModelId!==APP_ID || !['instagramtracker.exe','followtrail.exe'].includes(path.basename(previous.target).toLowerCase())) continue;
     fs.mkdirSync(dataDir,{recursive:true});
     const backup=fs.mkdtempSync(path.join(dataDir,'legacy-tracker-shortcut-'));
     fs.renameSync(legacy,path.join(backup,name));
@@ -46,8 +46,8 @@ function changeNotification(entry, language = 'tr') {
   }
   return {
     title: access.length
-      ? strong ? t("InstagramTracker · Güçlü engellenme şüphesi") : t("InstagramTracker · Engellenme şüphesi")
-      : t("InstagramTracker · Yeni gözlem"),
+      ? strong ? t("Followtrail · Güçlü engellenme şüphesi") : t("Followtrail · Engellenme şüphesi")
+      : t("Followtrail · Yeni gözlem"),
     body,
     logId: entry.id,
   };
@@ -56,14 +56,14 @@ function changeNotification(entry, language = 'tr') {
 function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
   const t = message => i18n.translate(message, [], language);
   const shortcut = testHome
-    ? path.join(testHome, "shortcuts", "InstagramTracker Desktop.lnk")
+    ? path.join(testHome, "shortcuts", "Followtrail.lnk")
     : path.join(
         app.getPath("appData"),
         "Microsoft",
         "Windows",
         "Start Menu",
         "Programs",
-        "InstagramTracker Desktop.lnk",
+        "Followtrail.lnk",
       );
   const options = {
     target: process.execPath,
@@ -73,7 +73,7 @@ function ensureShortcut({ app, shell, testHome, dataDir, language = "tr" }) {
       : app.isPackaged
         ? ""
         : `"${app.getAppPath()}"`,
-    description: t("InstagramTracker — yerel hesap gözlemleri"),
+    description: t("Followtrail — yerel hesap gözlemleri"),
     appUserModelId: APP_ID,
     toastActivatorClsid: TOAST_ID,
     icon: appIconPath(app),

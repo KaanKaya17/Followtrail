@@ -36,6 +36,16 @@ def available_at(times, now, limits):
                recent[-limits[1]] + 86400 if len(recent) >= limits[1] else 0)
 
 
+def usage(gate, owner, now):
+    """Requests counted against each window right now; future stamps after a clock rollback still count."""
+    def used(times, window):
+        return sum(1 for t in times if t > now - window)
+    mine = gate.get('accountRequestTimes', {}).get(owner, []) if owner else []
+    shared = gate.get('requestTimes', [])
+    return {'accountHourUsed': used(mine, 3600), 'accountDayUsed': used(mine, 86400),
+            'sharedHourUsed': used(shared, 3600), 'sharedDayUsed': used(shared, 86400)}
+
+
 def reserve(times, now):
     return sorted([t for t in times if t > now - 86400] + [now])
 

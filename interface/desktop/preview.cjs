@@ -2,10 +2,10 @@
 const { app, BrowserWindow, session } = require("electron");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
-app.setName("InstagramTracker UI Preview");
+app.setName("Followtrail UI Preview");
 app.setPath(
   "userData",
-  path.join(app.getPath("appData"), "InstagramTracker-UI-Preview"),
+  path.join(app.getPath("appData"), "Followtrail-UI-Preview"),
 );
 const entry = path.join(__dirname, "..", "web", "index.html");
 app.whenReady().then(() => {
@@ -19,7 +19,7 @@ app.whenReady().then(() => {
     minWidth: 960,
     minHeight: 680,
     backgroundColor: "#FAF9F6",
-    title: "Tracker — Arayüz önizlemesi",
+    title: "Followtrail — Arayüz önizlemesi",
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,

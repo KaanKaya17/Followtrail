@@ -14,9 +14,11 @@ Windows ve Android'de normal sayaçlı istekler arasında 6–10 saniyelik rastg
 
 Yerel sınırlar hesap başına **120/saat ve 3.000/24 saat**, aynı cihazdaki hesaplar için toplam **240/saat ve 6.000/24 saat**tir. Otomatik profil işleri aynı hareketli geçmişin %80 eşiğinde ertelenir; listeler ve elle işlemler tam ortak bütçeyi kullanabilir. Bu, her elle işlem için garanti yer olduğu anlamına gelmez. [Teknik politika](../REQUEST-POLICY.md).
 
+Windows’ta **Özet → Kontrol durumu** kartının altındaki **İstek kotası** bölümü, bu hesabın son 1 saatte ve son 24 saatte kullandığı istek sayısını bu sınırlarla birlikte gösterir; altındaki satır bütün hesapların toplamıdır. Pencereler kayan zaman aralığıdır: bir saat önceki istek düştükçe sayı azalır. Sayılar her işlemden sonra güncellenir.
+
 ## Windows arka planda nasıl çalışır?
 
-Pencereyi kapatmak uygulamayı tepsiye alabilir. Kontrollerin sürmesi için Tracker işlemi, bilgisayar ve ağ bağlantısı çalışıyor olmalıdır.
+Pencereyi kapatmak uygulamayı tepsiye alabilir. Kontrollerin sürmesi için Followtrail işlemi, bilgisayar ve ağ bağlantısı çalışıyor olmalıdır.
 
 Tepsi menüsündeki **Tamamen çık** uygulamayı durdurur. Uyku, bilgisayarın kapanması veya internet kesintisi sırasında yeni kontroller ve buna bağlı yeni değişiklik bildirimleri beklenmez.
 

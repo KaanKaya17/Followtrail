@@ -1,4 +1,4 @@
-**InstagramTracker**
+**Followtrail**
 
 [Kılavuz ana sayfası](Home.md)
 

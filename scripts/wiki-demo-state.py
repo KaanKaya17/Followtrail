@@ -43,6 +43,9 @@ def main():
         engine.event('profile','@demo.deniz · bio','200',{'bio':'Tasarım ve fotoğraf.'},{'bio':deniz['bio']})
         engine.data['settings'].update(language='tr',theme='light',notifications=True,automatic=True,automaticLists=True,interval=5)
         engine.data['gate'].update(status=200,blockedUntil=0,nextAt=0,manualOnly=False,attempts=18,lastAt=now)
+        # A plausible day of reads for the overview quota: 18 in the last hour, 312 in 24 hours.
+        mine=sorted([now-60-i*170 for i in range(18)]+[now-3700-i*265 for i in range(294)])
+        engine.data['gate'].update(requestTimes=sorted(mine+[now-5000-i*900 for i in range(40)]),accountRequestTimes={'100':mine})
         # Only truthiness is used by snapshot(). No account client is constructed and no save is made.
         engine.data['session'] = {'documentation_example':True}
         state=engine.snapshot()

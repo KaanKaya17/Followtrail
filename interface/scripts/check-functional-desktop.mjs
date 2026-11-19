@@ -31,7 +31,7 @@ const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
 const executablePath = path.join(
   root,
-  `artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`,
+  `artifacts/Followtrail-Desktop-${version}/Followtrail.exe`,
 );
 const checks = [],
   errors = [],
@@ -805,7 +805,7 @@ try {
       const details = await desktop.evaluate(
         ({ shell }, qaHome) =>
           shell.readShortcutLink(
-            qaHome + "/shortcuts/InstagramTracker Desktop.lnk",
+            qaHome + "/shortcuts/Followtrail.lnk",
           ),
         home,
       );
@@ -871,7 +871,7 @@ try {
         .getByText("Dosya işlemi tamamlandı.", { exact: true })
         .waitFor();
       const backup = await readFile(
-        path.join(home, "InstagramTracker.trackerbackup"),
+        path.join(home, "Followtrail.trackerbackup"),
       );
       assert.equal(backup.includes(Buffer.from("Saved QA note")), false);
       await page.locator('.sidebar a[href="#lists"]').click();
@@ -888,7 +888,7 @@ try {
       // Native save writes asynchronously; wait through the invocation boundary.
       await waitForState(page, reply => (!reply.busy));
       const csv = await readFile(
-        path.join(home, "InstagramTracker-liste.csv"),
+        path.join(home, "Followtrail-liste.csv"),
         "utf8",
       );
       assert.equal(csv.includes("qa.203"), true);
@@ -929,7 +929,7 @@ try {
       await desktop.evaluate(({ dialog }, qaHome) => {
         dialog.showOpenDialog = async () => ({
           canceled: false,
-          filePaths: [qaHome + "/InstagramTracker.trackerbackup"],
+          filePaths: [qaHome + "/Followtrail.trackerbackup"],
         });
         dialog.showMessageBox = async () => ({ response: 1 });
       }, home);

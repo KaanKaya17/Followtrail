@@ -60,7 +60,7 @@ try {
   const titles = { overview: 'Overview', people: 'Saved Profiles', lists: 'Follow Lists', timeline: 'Timeline', settings: 'Settings' };
   for (const route of ['overview', 'people', 'lists', 'timeline', 'settings']) {
     await page.evaluate(route => { location.hash = '#' + route; }, route);
-    await page.waitForFunction(title => document.title === title + ' — Tracker', titles[route]);
+    await page.waitForFunction(title => document.title === title + ' — Followtrail', titles[route]);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, route);
   }
   checks.push('Five English routes without mobile overflow');
@@ -81,7 +81,7 @@ try {
     await page.getByRole('heading', { name: heading, exact: true }).waitFor();
     assert.equal(await page.evaluate(value => window.TrackerI18n.formats(value).number.format(1200), language), formatted);
     await page.evaluate(() => { location.hash = '#overview'; });
-    await page.waitForFunction(value => document.title === value + ' — Tracker', overview);
+    await page.waitForFunction(value => document.title === value + ' — Followtrail', overview);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
   }
   checks.push('Spanish and Brazilian Portuguese settings, number formats and overview render without overflow');

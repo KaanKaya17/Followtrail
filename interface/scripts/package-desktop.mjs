@@ -56,10 +56,10 @@ await writeFile(
 if (process.platform === "win32" && !refresh)
   await rename(
     path.join(output, "electron.exe"),
-    path.join(output, "InstagramTracker.exe"),
+    path.join(output, "Followtrail.exe"),
   );
 await writeFile(
   path.join(output, "ONCE-OKU.txt"),
-  "InstagramTracker — Arayüz önizlemesi\r\n\r\nInstagramTracker.exe dosyasını çalıştır. Diğer dosyaları aynı klasörde tut.\r\nBütün hesaplar ve sayılar örnektir. Instagram girişi veya veri okuma bağlı değildir.\r\nBu önizleme mevcut Windows InstagramCounter oturumunu okumaz veya değiştirmez.\r\n",
+  "Followtrail — Arayüz önizlemesi\r\n\r\nFollowtrail.exe dosyasını çalıştır. Diğer dosyaları aynı klasörde tut.\r\nBütün hesaplar ve sayılar örnektir. Instagram girişi veya veri okuma bağlı değildir.\r\nBu önizleme mevcut Windows InstagramCounter oturumunu okumaz veya değiştirmez.\r\n",
 );
 process.stdout.write(`Desktop preview: ${output}\n`);

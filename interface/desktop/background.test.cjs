@@ -116,7 +116,7 @@ test("tray open, toggle and explicit quit use the same application callbacks", a
   const s = setup();
   s.owner.tray.emit("click");
   s.owner.tray.emit("double-click");
-  s.owner.tray.menu.find((item) => item.label === "Tracker'ı aç").click();
+  s.owner.tray.menu.find((item) => item.label === "Followtrail'i aç").click();
   await s.owner.tray.menu.find((item) => item.type === "checkbox").click();
   s.owner.tray.menu.find((item) => item.label === "Tamamen çık").click();
   assert.deepEqual(s.actions, ["show", "show", "show", "quit"]);
@@ -158,9 +158,9 @@ test("progress events reuse the tray menu until an actionable state changes", ()
 test("changing display language refreshes the tray without touching automatic preferences", () => {
   const s = setup();
   s.backend.state.settings.language = 'en'; s.owner.update();
-  assert.equal(s.owner.tray.menu[0].label, 'Open Tracker');
+  assert.equal(s.owner.tray.menu[0].label, 'Open Followtrail');
   assert.match(s.owner.tray.tooltip, /Automatic checks enabled/);
   assert.equal(s.backend.state.settings.automatic, true);
   s.backend.state.settings.language = 'tr'; s.owner.update();
-  assert.equal(s.owner.tray.menu[0].label, "Tracker'ı aç");
+  assert.equal(s.owner.tray.menu[0].label, "Followtrail'i aç");
 });

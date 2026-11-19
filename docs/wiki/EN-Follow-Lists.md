@@ -10,13 +10,13 @@ If both directions are present, search for names or inspect mutual follows, acco
 
 ## Select a list
 
-In **Follow Lists**, choose the list owner, then **Followers** or **Following**. Each saved profile and your own account have separate records. Instagram limits which lists can be read. For a private account, Tracker can explain that follow approval is required when the last complete list of accounts you follow is available and matches your profile count.
+In **Follow Lists**, choose the list owner, then **Followers** or **Following**. Each saved profile and your own account have separate records. Instagram limits which lists can be read. For a private account, Followtrail can explain that follow approval is required when the last complete list of accounts you follow is available and matches your profile count.
 
 ## First snapshot and later comparisons
 
 The first complete scan becomes the baseline. With profile and list automation enabled, Windows and Android queue both directions for a newly saved profile. To keep checking a saved profile after preparation, turn on monitoring for it.
 
-For example, if the first complete list is A, B and C, and the next is A, C and D, Tracker flags D as newly seen and B as absent. It shows the net difference between observations. Earlier changes and exact event times are unknown.
+For example, if the first complete list is A, B and C, and the next is A, C and D, Followtrail flags D as newly seen and B as absent. It shows the net difference between observations. Earlier changes and exact event times are unknown.
 
 ## Large and incomplete lists
 
@@ -26,7 +26,7 @@ Lists are read one page at a time. Progress shows the rows or pages that have be
 
 A partial list can appear when the number read differs from the profile count or the scan stops early:
 
-- Tracker keeps the last complete snapshot for comparison.
+- Followtrail keeps the last complete snapshot for comparison.
 - It can resume from an eligible cursor or restart at the first page when the cursor is unusable. Partial runs are kept distinct.
 - A partial result does not establish who disappeared. A new profile's first mismatch can get an early retry after around 30 minutes. The daily plan applies if the mismatch persists, subject to pacing and available budget.
 
@@ -51,7 +51,7 @@ Times are the span between two complete scans, not an exact moment. Someone alre
 
 ## Common followers and following
 
-Choose the list owner, then the second profile in the common-accounts comparison. Switch between common followers and common following. Tracker prefers the latest complete snapshots and labels a comparison based on a partial snapshot as limited to the accounts it could read. The dates and coverage of both sources appear above the result. An unavailable list produces a missing-record message. Available photos and counts are reused without a profile request for every row.
+Choose the list owner, then the second profile in the common-accounts comparison. Switch between common followers and common following. Followtrail prefers the latest complete snapshots and labels a comparison based on a partial snapshot as limited to the accounts it could read. The dates and coverage of both sources appear above the result. An unavailable list produces a missing-record message. Available photos and counts are reused without a profile request for every row.
 
 ## Automatic scans, search and photos
 

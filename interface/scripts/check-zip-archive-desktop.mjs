@@ -32,7 +32,7 @@ with zipfile.ZipFile(sys.argv[2], "w") as z:
 `, older, newer]);
 const output = path.join(root, `artifacts/desktop-${version}-qa/zip-archive`); await mkdir(output, {recursive: true});
 const env = {...process.env}; delete env.ELECTRON_RUN_AS_NODE;
-const app = await electron.launch({executablePath: path.join(root, `artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`), args: [`--tracker-test-home=${home}`], env});
+const app = await electron.launch({executablePath: path.join(root, `artifacts/Followtrail-Desktop-${version}/Followtrail.exe`), args: [`--tracker-test-home=${home}`], env});
 const page = await app.firstWindow(); page.setDefaultTimeout(15000);
 await page.setViewportSize({width: 1280, height: 900});
 const errors = [], network = [], checks = [];

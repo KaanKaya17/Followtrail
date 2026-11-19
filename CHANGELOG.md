@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.95 — 2026-11-19
+
+- **Yeni ad: Followtrail.** Uygulama, pencere, EXE (`Followtrail.exe`), Başlat menüsü kısayolu, bildirimler ve belgeler yeni adı kullanır. Veri klasörleri, şifreli kasalar, bildirim kimliği ve yedek dosyası biçimi değişmedi; eski sürümden güncellerken kayıtlar olduğu gibi açılır. Eski “InstagramTracker Desktop” kısayolu yenisiyle değiştirilir.
+- **Özet → Kontrol durumu** kartı istek kotasını gösterir: bu hesabın son 1 saatte ve son 24 saatte kullandığı istek sayısı, uygulamanın kendi sınırıyla birlikte; altında bütün hesapların toplamı. Bu sınırlar Instagram’ın kotası değildir.
+- README baştan yazıldı: hesap bağlamadan ZIP modu öne alındı; hesap bağlamalı modun Instagram kullanım şartlarıyla çelişebileceği ve hesabın kısıtlanabileceği açıkça yazıldı.
+
 ## Windows 0.2.94 — 2026-11-19
 
 - **Instagram okuma yolunu değiştirirse haber verir:** Profil veya takip listesi okuması üst üste üç uyumsuz yanıt alıp durduğunda bir kez Windows bildirimi gelir. Ana ekrandaki uyarı eski kayıtların korunduğunu ve aynı hatalı isteğin tekrar gönderilmediğini söyler. Arka planda kontrol edilen diğer hesaplar için de çalışır.

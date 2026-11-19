@@ -263,7 +263,7 @@
   const iconButton = (symbol, label, action, extra = "") =>
     `<button type="button" class="icon-button" aria-label="${esc(t(label))}" title="${esc(t(label))}" data-action="${action}" ${extra}>${icon(symbol)}</button>`;
   function sidebar() {
-    return `<aside class="sidebar"><a class="brand" href="#overview"><span class="brand-mark">${icon("chart")}</span><span><strong>${t("Tracker")}</strong><small>${t("Çevren, tek bakışta.")}</small></span></a>
+    return `<aside class="sidebar"><a class="brand" href="#overview"><span class="brand-mark">${icon("chart")}</span><span><strong>${t("Followtrail")}</strong><small>${t("Çevren, tek bakışta.")}</small></span></a>
       <span class="nav-label">${t("ÇALIŞMA ALANIN")}</span><nav aria-label="${t("Ana gezinme")}">${Object.entries(
         pages,
       )
@@ -275,7 +275,7 @@
       <div class="sidebar-bottom"><div class="preview-label"><span class="status-dot"></span> ${t("Arayüz önizlemesi")} <span>01</span></div></div></aside>`;
   }
   function topbar() {
-    return `<header class="topbar"><a class="mobile-brand" href="#overview"><span class="brand-mark">${icon("chart")}</span>${t("Tracker")}</a><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[state.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${t("Örnek veriler")}</span>${iconButton("bell", t("Örnek bildirimler"), "notifications")}<button class="account-button" data-action="account" aria-label="${t("Örnek hesap bağlantısını incele")}">${avatar(own)}<span><strong>${t("@benim.demo")}</strong><small>${t("Örnek hesap")}</small></span>${icon("down")}</button></div></header>`;
+    return `<header class="topbar"><a class="mobile-brand" href="#overview"><span class="brand-mark">${icon("chart")}</span>${t("Followtrail")}</a><div class="breadcrumbs"><span>${t("Çalışma alanım")}</span>${icon("chevron")}<strong>${t(pages[state.page][0])}</strong></div><button class="global-search" data-action="search">${icon("search")}<span>${t("Kişi ara")}</span><kbd>${t("Ctrl K")}</kbd></button><div class="top-actions"><span class="sample-pill">${t("Örnek veriler")}</span>${iconButton("bell", t("Örnek bildirimler"), "notifications")}<button class="account-button" data-action="account" aria-label="${t("Örnek hesap bağlantısını incele")}">${avatar(own)}<span><strong>${t("@benim.demo")}</strong><small>${t("Örnek hesap")}</small></span>${icon("down")}</button></div></header>`;
   }
   function title(kicker, heading, text, action = "") {
     return `<div class="page-heading"><div><span class="eyebrow">${kicker}</span><h1>${heading}</h1>${text ? `<p>${text}</p>` : ""}</div>${action}</div>`;
@@ -487,7 +487,7 @@
     document.documentElement.lang = language;
     document.querySelector('.skip-link').textContent = t('İçeriğe geç');
     document.body.dataset.density = state.compact ? "compact" : "comfortable";
-    document.title = `${t(pages[state.page][0])} — Tracker`;
+    document.title = `${t(pages[state.page][0])} — Followtrail`;
     const contents = { overview, people, lists, timeline, settings }[
       state.page
     ]();

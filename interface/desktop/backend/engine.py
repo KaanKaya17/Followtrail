@@ -248,7 +248,7 @@ class Engine:
                 'requestPacing': {'minSeconds': REQUEST_SPACING[0], 'maxSeconds': REQUEST_SPACING[1]},
                 'controlIntervals': list(CONTROL_INTERVALS),
                 'lastLoginError': localization.error(d.get('lastLoginError'), d['settings']['language']),
-                'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at()},
+                'requestBudget': {**request_budget.policy(), 'nextAt':self.budget_available_at(), **request_budget.usage(d['gate'], (d['account'] or {}).get('id'), self.clock())},
                 'monitor': self.monitor_status(),
                 'listPreparation': list_preparation.view(d, self.clock()),
                 'access': access_checks.cases_view(d), 'accessPlan': d['accessPlan'],

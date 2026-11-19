@@ -15,7 +15,7 @@ Güncel ZIP ve APK bağlantıları [sürüm sayfasındadır](Surum-ve-Destek.md#
 ## Windows kurulumu
 
 1. ZIP paketini bilgisayarınızdaki bir klasöre **tamamen çıkarın**.
-2. Çıkarılan klasördeki `InstagramTracker.exe` dosyasını açın.
+2. Çıkarılan klasördeki `Followtrail.exe` dosyasını açın.
 3. EXE'nin yanındaki `resources` ve diğer paket dosyalarını aynı klasörde tutun.
 4. ZIP’inizi incelemek için [Instagram Veri Arşivi rehberini](Instagram-Veri-Arsivi.md), canlı takip için [hesap bağlama adımlarını](Hesaplar-ve-Giris.md#windows) izleyin.
 
@@ -34,7 +34,7 @@ Menü adları telefon üreticisine göre değişebilir. USB hata ayıklama, emü
 
 ### Windows
 
-1. Tepsideki Tracker simgesine sağ tıklayıp **Tamamen çık** seçeneğini kullanın.
+1. Tepsideki Followtrail simgesine sağ tıklayıp **Tamamen çık** seçeneğini kullanın.
 2. Yeni ZIP'i ayrı bir sürüm klasörüne çıkarın.
 3. Yeni klasördeki EXE'yi açın. Mevcut şifreli kayıtlar aynı Windows kullanıcı bağlamından yüklenir.
 

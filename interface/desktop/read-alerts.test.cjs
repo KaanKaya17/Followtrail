@@ -25,7 +25,7 @@ test('report holds the route template and diagnosis only, never account data', (
   assert.match(report.text, /^Observed: 2027-01-15 08:00 UTC$/m);
   assert.doesNotMatch(report.text, /qa\.owner/);
   const url = new URL(report.url);
-  assert.equal(url.origin + url.pathname, 'https://github.com/KaanKaya17/InstagramTracker/issues/new');
+  assert.equal(url.origin + url.pathname, 'https://github.com/KaanKaya17/Followtrail/issues/new');
   assert.equal(url.searchParams.get('title'), 'Read compatibility: followers · format · HTTP 200 · Windows 0.2.94');
   assert.equal(url.searchParams.get('body'), report.text);
   assert.deepEqual([...url.searchParams.keys()], ['title', 'body']);

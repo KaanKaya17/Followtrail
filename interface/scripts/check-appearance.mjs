@@ -35,7 +35,7 @@ try {
  execFileSync(path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe'),[path.join(root,'interface/desktop/backend/seed_qa.py'),'--home',home,'--keyboard','--hold','--wayback']);
  const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
  const launch=async()=>{
-   app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+   app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
    const page=await app.firstWindow();page.setDefaultTimeout(12000);observe(page);
    await page.getByRole('heading',{name:'Çevrende neler oluyor?'}).waitFor();return page;
  };

@@ -105,7 +105,7 @@ test("one observation log is delivered once with suspicion priority and a log-de
     },
   });
   assert.equal(received.length, 1);
-  assert.equal(received[0].title, "InstagramTracker · Engellenme şüphesi");
+  assert.equal(received[0].title, "Followtrail · Engellenme şüphesi");
   assert.equal(received[0].logId, "control1");
   assert.equal(received[0].body.includes("şüphesi"), true);
   assert.equal(received[0].body.includes("engelledi"), false);

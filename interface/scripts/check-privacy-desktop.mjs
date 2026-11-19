@@ -16,7 +16,7 @@ const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
 const errors=[],network=[],checks=[];let app,page;
 const command=(operation,args={})=>page.evaluate(({operation,args})=>window.TrackerDesktop.command(operation,args),{operation,args});
 try {
-  app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+  app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
   page=await app.firstWindow();page.setDefaultTimeout(15000);
   page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});
   await page.locator('.account-switcher').waitFor();

@@ -35,7 +35,7 @@ Karşılaştırma iki seçili kaydın net farkını gösterir. Aradaki ayrı de�
 
 ## Bu hesap hakkında
 
-Profil ayrıntılarındaki **Bu hesap hakkında** bölümünden Instagram profilini açın. Instagram bu menüyü gösteriyorsa katılım ayı/yılı, hesabın bulunduğu ülke veya kullanıcı adı değişiklik sayısı gibi alanları görebilirsiniz. Kendi veya kaydettiğiniz profil için bu değerleri Tracker’a elle yazabilirsiniz. Alanı boş bırakıp kaydetmek yerel değeri siler. Bu bölümün kaynağı elle girilen kayıttır.
+Profil ayrıntılarındaki **Bu hesap hakkında** bölümünden Instagram profilini açın. Instagram bu menüyü gösteriyorsa katılım ayı/yılı, hesabın bulunduğu ülke veya kullanıcı adı değişiklik sayısı gibi alanları görebilirsiniz. Kendi veya kaydettiğiniz profil için bu değerleri Followtrail’e elle yazabilirsiniz. Alanı boş bırakıp kaydetmek yerel değeri siler. Bu bölümün kaynağı elle girilen kayıttır.
 
 ## Engellenme şüphesini okumak
 

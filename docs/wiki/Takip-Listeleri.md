@@ -15,13 +15,13 @@ Arşivdeki listelerde arama yapabilirsiniz. Son takipten çıktıklarınız, bek
 
 Takip tarihlerini görmek için JSON biçimini seçin. Arşivdeki tarihli kayıtlar en yeni veya en eski tarihe göre sıralanabilir ve başlangıç ve bitiş günleri dahil olacak şekilde filtrelenebilir. Karşılıklı takiplerde iki yönün tarihi gösterilir. Bu görünümde tarih filtresi, diğer hesabın sizi takip etmeye başladığı tarihi kullanır.
 
-Listeler ekran kapanana kadar bellekte gösterilir. Arşivdeki adlar canlı tarama geçmişine eklenmez. Bu işlem için Tracker’da Instagram oturumu gerekmez.
+Listeler ekran kapanana kadar bellekte gösterilir. Arşivdeki adlar canlı tarama geçmişine eklenmez. Bu işlem için Followtrail’de Instagram oturumu gerekmez.
 
 ## Listeyi seçmek
 
 **Takip Listeleri** ekranında önce liste sahibini, ardından **Takipçiler** veya **Takip edilen** yönünü seçin. Kendi hesabınızın ve erişebildiğiniz kaydedilmiş profillerin kayıtlarını ayrı ayrı değerlendirin.
 
-Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profilin sayaçlarını görebilmek, o profilin bütün takipçi listesini okuyabileceğiniz anlamına gelmez. Tracker, gizli bir profil son tam takip edilen listenizde yoksa ve bu liste son sayaçla uyuşuyorsa liste ekranında takip isteğinin onaylanması gerektiğini açıklar.
+Liste erişimi Instagram'ın verdiği yetkiye ve yanıta bağlıdır. Bir profilin sayaçlarını görebilmek, o profilin bütün takipçi listesini okuyabileceğiniz anlamına gelmez. Followtrail, gizli bir profil son tam takip edilen listenizde yoksa ve bu liste son sayaçla uyuşuyorsa liste ekranında takip isteğinin onaylanması gerektiğini açıklar.
 
 <a name="ilk-kayit-ve-sonraki-karsilastirma"></a>
 
@@ -87,7 +87,7 @@ Zamanlar iki tam tarama arasıdır: “13 Kas – 14 Kas arası listeden çıkt�
 
 **Takip Listeleri** ekranında liste sahibini seçin. **Ortak hesapları karşılaştır** alanından ikinci profili seçin. **Ortak takipçiler** iki profili de takip edenleri, **Ortak takip edilenler** iki profilin de takip ettiği hesapları gösterir.
 
-Tracker her profil için son tam listeyi kullanır. Tam liste yoksa varsa kısmi kayıtla karşılaştırır ve sonucu **Okunan hesaplar arasında** olarak etiketler. Ekranda iki listenin kayıt tarihi ve kapsamı görünür. Bir kaynak eksikse ortak hesap sayısı yerine kayıt eksikliği gösterilir. Arama ve karşılaştırma cihazda yapılır. Satırlarda eldeki profil fotoğrafı ve bilinen takipçi/takip edilen sayıları görünür. Fotoğraf önbellekte yoksa görsel bağlantısı kullanılabilir. Karşılaştırma satırları otomatik profil sorgusu başlatmaz.
+Followtrail her profil için son tam listeyi kullanır. Tam liste yoksa varsa kısmi kayıtla karşılaştırır ve sonucu **Okunan hesaplar arasında** olarak etiketler. Ekranda iki listenin kayıt tarihi ve kapsamı görünür. Bir kaynak eksikse ortak hesap sayısı yerine kayıt eksikliği gösterilir. Arama ve karşılaştırma cihazda yapılır. Satırlarda eldeki profil fotoğrafı ve bilinen takipçi/takip edilen sayıları görünür. Fotoğraf önbellekte yoksa görsel bağlantısı kullanılabilir. Karşılaştırma satırları otomatik profil sorgusu başlatmaz.
 
 ## Otomatik yeni taramalar
 

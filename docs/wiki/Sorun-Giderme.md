@@ -18,7 +18,7 @@ Devam isteği 400 veya 404 alırsa sonraki uygun tarama ilk sayfadan başlar. So
 
 Aynı kullanıcı adı ve parolayla normal Instagram'da sıfırdan giriş yapabildiğinizi ayırın. Kayıtlı bir oturumun hâlâ açık olması bu doğrulamayı sağlamaz. Normal Instagram da bilgileri reddediyorsa önce hesap bilgilerini oradan doğrulayın.
 
-Normal giriş çalıştığı halde Tracker ilerlemiyorsa sürümü ve **İstek bilgileri** sonucunu paylaşın. Parola veya kod paylaşmayın. HTTP 200, tek başına başarılı oturum veya tamamlanmış profil bağlantısı anlamına gelmez.
+Normal giriş çalıştığı halde Followtrail ilerlemiyorsa sürümü ve **İstek bilgileri** sonucunu paylaşın. Parola veya kod paylaşmayın. HTTP 200, tek başına başarılı oturum veya tamamlanmış profil bağlantısı anlamına gelmez.
 
 ## Kod veya CAPTCHA ekranında kalıyor
 
@@ -71,6 +71,6 @@ Fotoğraf ayrı yüklenir ve geçici olarak alınamayabilir. Baş harf görünme
 
 ## Yerel veri hizmeti kapandı
 
-Windows'ta uygulamadan **Tamamen çık** ile çıkın; aynı anda başka bir Tracker sürümü çalışmadığını kontrol edip güncel EXE'yi yeniden açın. ZIP'in bütünüyle çıkarıldığını ve paket dosyalarının yanında durduğunu doğrulayın.
+Windows'ta uygulamadan **Tamamen çık** ile çıkın; aynı anda başka bir Followtrail sürümü çalışmadığını kontrol edip güncel EXE'yi yeniden açın. ZIP'in bütünüyle çıkarıldığını ve paket dosyalarının yanında durduğunu doğrulayın.
 
 Hizmet kapanması mevcut dosyaların otomatik silindiği anlamına gelmez. Sorunu gidermek amacıyla şifreli veri klasörünü elle silmeyin. Devam ediyorsa sürüm ve görülen açıklamayla [destek kaydı](Surum-ve-Destek.md#destek-icin-hangi-bilgiler-gerekir) hazırlayın.

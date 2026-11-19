@@ -1,6 +1,6 @@
-# Tracker — ortak web ve masaüstü arayüzü
+# Followtrail — ortak web ve masaüstü arayüzü
 
-**Windows dağıtımı:** GitHub önizlemesi [0.2.84](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.84). Paketin içindeki `InstagramTracker.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
+**Windows dağıtımı:** GitHub önizlemesi [0.2.84](https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.84). Paketin içindeki `Followtrail.exe` açılır. Python kurmak gerekmez; uygulama klasörü bütün halinde tutulur. [Masaüstü kullanımı, kapsamı ve derleme](DESKTOP.md). `npm run desktop` bu işlevli uygulamayı başlatır; önce yerel worker derlenmelidir. Aşağıdaki bölüm, korunmuş **örnek verili web/tasarım önizlemesini** anlatır.
 
 Ayarlar → Tema: Sistem / Açık tema / Koyu / OLED siyahı. Varsayılan Sistem canlı sistem değişimini izler; açık seçimler bu tarayıcıda saklanır. Aynı ortak palet Windows 0.2.11 ve Android 0.1.32’de de kullanılır.
 
@@ -9,7 +9,7 @@ Bu aşama, gerçek Instagram işlevlerinden önce hazırlanan **etkileşimli ara
 ## Açma
 
 - Web: `start-web.cmd` veya `npm run preview`, ardından `http://127.0.0.1:4173`. Yalnız loopback üzerinde çalışır. Durdurmak için terminalde Ctrl+C.
-- Masaüstü: hazırlanmış `../artifacts/Tracker-Desktop-UI/InstagramTracker.exe`. Yanındaki dosyalar aynı klasörde kalmalı. Bu bir taşınabilir önizlemedir; sistem kurulumu veya kod imzası iddiası taşımaz.
+- Masaüstü: hazırlanmış `../artifacts/Tracker-Desktop-UI/Followtrail.exe`. Yanındaki dosyalar aynı klasörde kalmalı. Bu bir taşınabilir önizlemedir; sistem kurulumu veya kod imzası iddiası taşımaz.
 - Kaynaktan tasarım önizlemesi: `npm ci`, `node node_modules/electron/install.js`, `npm run desktop:preview`. Electron **45.0.0** proje içinde sabittir; sistem Node/Electron kurulumu güncellenmez. Bu sürümün paketinde indirme otomatik postinstall olarak çalışmadığından binary adımı açıktır.
 
 ## Tasarım ve kapsam

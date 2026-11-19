@@ -13,7 +13,7 @@ execFileSync(path.resolve(root,'../InstagramCounter/.venv/Scripts/python.exe'),[
 const checks=[],errors=[],external=[];let app;
 try {
  const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  const page=await app.firstWindow();page.setDefaultTimeout(12000);
  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!/^(file:|data:)/.test(r.url()))external.push(r.url());});
  await page.getByRole('heading',{name:'Çevrende neler oluyor?'}).waitFor();
@@ -36,7 +36,7 @@ try {
  await page.locator('.sidebar a[href="#notifications"]').click();await page.locator('.notification-log-row').first().click();
  assert.match(await page.getByRole('dialog').innerText(),/Oturumsuz karşılaştırma/);checks.push('Notification log retains the exact comparison evidence');await close();
  await page.evaluate(()=>window.TrackerDesktop.command('settings',{language:'en'}));await app.close();app=null;
- app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+ app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
  const english=await app.firstWindow();english.setDefaultTimeout(12000);english.on('pageerror',e=>errors.push(e.message));
  english.on('request',r=>{if(!/^(file:|data:)/.test(r.url()))external.push(r.url());});
  await english.getByRole('heading',{name:'What is happening in your circle?'}).waitFor();

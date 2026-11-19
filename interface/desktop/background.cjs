@@ -64,10 +64,10 @@ class Background {
         : held
           ? t("Otomatik kontrol bekliyor")
           : t("Otomatik kontrol açık");
-    this.tray.setToolTip(`InstagramTracker — ${status}`);
+    this.tray.setToolTip(`Followtrail — ${status}`);
     this.tray.setContextMenu(
       this.Menu.buildFromTemplate([
-        { label: t("Tracker'ı aç"), click: this.showWindow },
+        { label: t("Followtrail'i aç"), click: this.showWindow },
         { label: status, enabled: false },
         {
           label: this.backend.state?.accounts ? t("Seçili hesabın otomatik kontrolü") : t("Otomatik profil kontrolü"),

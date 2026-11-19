@@ -4,9 +4,9 @@
 
 ## Can I see who visited my profile or hid a story from me?
 
-Tracker cannot identify profile visitors or detect a hidden story. Story access depends on what the linked account can see. [Story archive](EN-Story-Archive.md).
+Followtrail cannot identify profile visitors or detect a hidden story. Story access depends on what the linked account can see. [Story archive](EN-Story-Archive.md).
 
-## Does Tracker prove that someone blocked me?
+## Does Followtrail prove that someone blocked me?
 
 A missing profile or list entry can support a suspicion. Other explanations include a rename, account closure or a temporary restriction. [Profile visibility](EN-History.md#possible-blocks-and-visibility).
 
@@ -28,12 +28,12 @@ Yes. Select or add an account in the account switcher. Each account has separate
 
 ## Do checks continue when the PC is off? Is there device sync?
 
-Windows checks need a running Tracker process, an awake computer and a network connection. Android has different [background scheduling](EN-Monitoring.md#android). Observations do not sync automatically. [Portable history](EN-Privacy.md#backups-and-exports) can be opened on another device.
+Windows checks need a running Followtrail process, an awake computer and a network connection. Android has different [background scheduling](EN-Monitoring.md#android). Observations do not sync automatically. [Portable history](EN-Privacy.md#backups-and-exports) can be opened on another device.
 
 ## Does the Threads button analyze Threads?
 
-It opens a reported profile link. Tracker does not use it to monitor Threads activity.
+It opens a reported profile link. Followtrail does not use it to monitor Threads activity.
 
 ## Is this official or guaranteed to avoid Instagram restrictions?
 
-InstagramTracker operates independently of Instagram and Meta. Instagram can require verification or reject requests. [Cooldowns and diagnostics](EN-Troubleshooting.md#instagram-cooldown-or-http-429).
+Followtrail operates independently of Instagram and Meta. Instagram can require verification or reject requests. [Cooldowns and diagnostics](EN-Troubleshooting.md#instagram-cooldown-or-http-429).

@@ -13,7 +13,7 @@ for(const script of ['interface/desktop/backend/seed_qa.py','interface/scripts/s
  execFileSync(python,[path.join(root,script),'--home',home],{stdio:'pipe'});
 const output=path.join(root,`artifacts/desktop-${version}-qa/list-recovery`);await mkdir(output,{recursive:true});
 const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
-const app=await electron.launch({executablePath:path.join(root,`artifacts/InstagramTracker-Desktop-${version}/InstagramTracker.exe`),args:[`--tracker-test-home=${home}`],env});
+const app=await electron.launch({executablePath:path.join(root,`artifacts/Followtrail-Desktop-${version}/Followtrail.exe`),args:[`--tracker-test-home=${home}`],env});
 const page=await app.firstWindow();page.setDefaultTimeout(15000);
 const errors=[],network=[],checks=[];
 page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>{if(/^https?:/.test(request.url()))network.push(request.url());});

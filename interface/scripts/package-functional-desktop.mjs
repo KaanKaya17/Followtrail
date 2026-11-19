@@ -16,7 +16,7 @@ const version = JSON.parse(
 const controlIntervals = JSON.parse(await readFile(path.join(root,'../design/request-policy.json'),'utf8')).intervalMinutes.join('/');
 const output = path.resolve(
   root,
-  `../artifacts/InstagramTracker-Desktop-${version}`,
+  `../artifacts/Followtrail-Desktop-${version}`,
 );
 const resources = path.join(output, "resources/app");
 const worker = path.join(root, ".cache/worker-dist/tracker-worker");
@@ -33,7 +33,7 @@ if (refresh) {
     `../artifacts/desktop-${version}-source-${new Date().toISOString().replace(/[:.]/g, "-")}`,
   );
   await cp(resources, backup, { recursive: true });
-  await cp(path.join(output, 'InstagramTracker.exe'), path.join(backup, 'InstagramTracker.exe'));
+  await cp(path.join(output, 'Followtrail.exe'), path.join(backup, 'Followtrail.exe'));
 } else {
   try {
     await access(output);
@@ -49,7 +49,7 @@ if (refresh) {
   });
   await rename(
     path.join(output, "electron.exe"),
-    path.join(output, "InstagramTracker.exe"),
+    path.join(output, "Followtrail.exe"),
   );
 }
 await mkdir(path.join(resources, "desktop"), { recursive: true });
@@ -74,6 +74,7 @@ for (const name of [
   "desktop.js",
   "usage-notes.js",
   "read-health.js",
+  "request-quota.js",
   "export-browser.js",
   "archive-dashboard.js",
   "profile-search.js",
@@ -105,7 +106,7 @@ await cp(
 );
 for (const extension of ['png','ico'])
   await cp(path.join(root, `.cache/app-icon.${extension}`), path.join(resources, `desktop/app-icon.${extension}`));
-await brandWindows(path.join(output,'InstagramTracker.exe'),path.join(resources,'desktop/app-icon.ico'),version);
+await brandWindows(path.join(output,'Followtrail.exe'),path.join(resources,'desktop/app-icon.ico'),version);
 await cp(
   path.join(root, ".cache/worker-licenses"),
   path.join(output, "Python-dependency-notices"),
@@ -116,7 +117,7 @@ await writeFile(
   JSON.stringify(
     {
       name: "instagramtracker-desktop",
-      productName: "InstagramTracker",
+      productName: "Followtrail",
       version,
       main: "desktop/main.cjs",
     },
@@ -126,10 +127,10 @@ await writeFile(
 );
 await writeFile(
   path.join(output, "ONCE-OKU.txt"),
-  `InstagramTracker Windows ${version}\r\n\r\nInstagramTracker.exe dosyasını aç. Klasördeki diğer dosyaları aynı yerde tut. Python kurman gerekmez.\r\nHesap bağlantısından giriş yap veya önceki Windows prototipindeki oturumu doğrulayarak aktar.\r\nSol alttaki hesap menüsünden Hesap ekle ile ayrı şifreli hesaplar oluşturup oturum kapatmadan geçiş yapabilirsin. Kontrol/bildirim tercihleri hesap başına ayrıdır; istek sırası ve 429 molası ortaktır. Yerel verileri sil yalnız seçili hesabı siler. Güncellemeden sonra eski sürümü aynı veri klasöründe kullanma.\r\nProfil sayıları, listeler ve notlar yerel şifreli depoda tutulur. Instagram erişimi sunucunun izin verdiği ölçüde çalışır.\r\nTakipçi ve takip edilen listelerini ayrı ayrı tara. Kısmi listeler tam kayıt sayılmaz.\r\nOtomatik profil kontrolü Ayarlar’dan açılır. ${controlIntervals} dakika seçenekleri her profil için ayrı uygulanır; profil sayısıyla çarpılmaz. İstekler arasında 6–10 saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Pencereyi kapatınca sistem tepsisinde devam eder; tamamen çıkmak için tepsi simgesine sağ tıkla ve Tamamen çık seç.\r\nKaybolan kayıtlı takipçi incelemesi Ayarlar’dan isteğe bağlı açılır. Engellenme şüphesi kesin engelleme tespiti değildir; hesap kapanmış da olabilir.\r\nHesaba göre bildirim türleri kişi ayrıntısındaki Bildirim tercihleri veya Ayarlar üzerinden seçilir. Aynı kontrol tek bildirime toplanır; eski/yeni değerler Bildirimler ekranında açılır.\r\nWindows yedeği aynı Windows kullanıcısıyla açılır ve uygulamadaki kayıtları geri yükler. Parolalı taşınabilir geçmiş Windows veya Android’de ayrı bir arşiv olarak açılır. İki yedek de oturum içermez. CSV dosyaları şifresizdir.\r\nBu uygulama Instagram’dan bağımsızdır.\r\n`,
+  `Followtrail Windows ${version}\r\n\r\nFollowtrail.exe dosyasını aç. Klasördeki diğer dosyaları aynı yerde tut. Python kurman gerekmez.\r\nHesap bağlantısından giriş yap veya önceki Windows prototipindeki oturumu doğrulayarak aktar.\r\nSol alttaki hesap menüsünden Hesap ekle ile ayrı şifreli hesaplar oluşturup oturum kapatmadan geçiş yapabilirsin. Kontrol/bildirim tercihleri hesap başına ayrıdır; istek sırası ve 429 molası ortaktır. Yerel verileri sil yalnız seçili hesabı siler. Güncellemeden sonra eski sürümü aynı veri klasöründe kullanma.\r\nProfil sayıları, listeler ve notlar yerel şifreli depoda tutulur. Instagram erişimi sunucunun izin verdiği ölçüde çalışır.\r\nTakipçi ve takip edilen listelerini ayrı ayrı tara. Kısmi listeler tam kayıt sayılmaz.\r\nOtomatik profil kontrolü Ayarlar’dan açılır. ${controlIntervals} dakika seçenekleri her profil için ayrı uygulanır; profil sayısıyla çarpılmaz. İstekler arasında 6–10 saniyelik rastgele aralık ayrılır; gerçek bekleme daha uzun olabilir. Pencereyi kapatınca sistem tepsisinde devam eder; tamamen çıkmak için tepsi simgesine sağ tıkla ve Tamamen çık seç.\r\nKaybolan kayıtlı takipçi incelemesi Ayarlar’dan isteğe bağlı açılır. Engellenme şüphesi kesin engelleme tespiti değildir; hesap kapanmış da olabilir.\r\nHesaba göre bildirim türleri kişi ayrıntısındaki Bildirim tercihleri veya Ayarlar üzerinden seçilir. Aynı kontrol tek bildirime toplanır; eski/yeni değerler Bildirimler ekranında açılır.\r\nWindows yedeği aynı Windows kullanıcısıyla açılır ve uygulamadaki kayıtları geri yükler. Parolalı taşınabilir geçmiş Windows veya Android’de ayrı bir arşiv olarak açılır. İki yedek de oturum içermez. CSV dosyaları şifresizdir.\r\nBu uygulama Instagram’dan bağımsızdır.\r\n`,
 );
 await writeFile(
   path.join(output, "START-HERE.txt"),
-  `InstagramTracker for Windows ${version}\r\n\r\nRun InstagramTracker.exe and keep all files in this folder together. No Python installation is required.\r\nChoose Turkish, English, Spanish or Brazilian Portuguese in Settings > App language. Your choice is saved locally.\r\nUse the bottom-left account selector to add and switch accounts without signing out. Each account has its own encrypted vault and monitoring preferences; request pacing and 429 pauses are shared. Delete local data affects only the selected account. Do not use an older app version with the same data folder after upgrading.\r\nSessions and observations are encrypted for your Windows user. Passwords and verification codes are not saved.\r\nA Windows backup restores local records under the same Windows user. A password-protected portable backup opens as a separate history archive on Windows or Android.\r\nAccount requests go directly to Instagram; no intermediary or translation service receives your data.\r\nClosing the window keeps checks running in the system tray. Right-click the tray icon > Quit completely to stop the app.\r\nInstagram may limit access or require verification. A suspected block is not definitive evidence of a block.\r\nThe browser preview uses sample data; real account features are in this Windows app.\r\nInstagramTracker is independent of Instagram.\r\n`,
+  `Followtrail for Windows ${version}\r\n\r\nRun Followtrail.exe and keep all files in this folder together. No Python installation is required.\r\nChoose Turkish, English, Spanish or Brazilian Portuguese in Settings > App language. Your choice is saved locally.\r\nUse the bottom-left account selector to add and switch accounts without signing out. Each account has its own encrypted vault and monitoring preferences; request pacing and 429 pauses are shared. Delete local data affects only the selected account. Do not use an older app version with the same data folder after upgrading.\r\nSessions and observations are encrypted for your Windows user. Passwords and verification codes are not saved.\r\nA Windows backup restores local records under the same Windows user. A password-protected portable backup opens as a separate history archive on Windows or Android.\r\nAccount requests go directly to Instagram; no intermediary or translation service receives your data.\r\nClosing the window keeps checks running in the system tray. Right-click the tray icon > Quit completely to stop the app.\r\nInstagram may limit access or require verification. A suspected block is not definitive evidence of a block.\r\nThe browser preview uses sample data; real account features are in this Windows app.\r\nFollowtrail is independent of Instagram.\r\n`,
 );
 console.log(output);
