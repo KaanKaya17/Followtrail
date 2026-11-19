@@ -1,0 +1,39 @@
+{
+    "version": "0.2.95",
+    "description": "Local, open-source tool for reviewing your Instagram data export and follow history. Not affiliated with Instagram or Meta.",
+    "homepage": "https://github.com/KaanKaya17/Followtrail",
+    "license": "MIT",
+    "notes": [
+        "Followtrail keeps its encrypted records in %LOCALAPPDATA%\\InstagramTracker-Desktop, outside the Scoop folder.",
+        "Before 'scoop update followtrail', quit the app completely from the tray icon."
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/KaanKaya17/Followtrail/releases/download/windows-v0.2.95/Followtrail-Desktop-0.2.95.zip",
+            "hash": "128df3dc3c7f1f65c000a8416c52a244cdb1faf9c81c20d281d713a74704028d"
+        }
+    },
+    "extract_dir": "Followtrail-Desktop-0.2.95",
+    "shortcuts": [
+        [
+            "Followtrail.exe",
+            "Followtrail"
+        ]
+    ],
+    "checkver": {
+        "url": "https://api.github.com/repos/KaanKaya17/Followtrail/releases/latest",
+        "jsonpath": "$.tag_name",
+        "regex": "windows-v([\\d.]+)"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/KaanKaya17/Followtrail/releases/download/windows-v$version/Followtrail-Desktop-$version.zip"
+            }
+        },
+        "extract_dir": "Followtrail-Desktop-$version",
+        "hash": {
+            "url": "$baseurl/SHA256SUMS.txt"
+        }
+    }
+}

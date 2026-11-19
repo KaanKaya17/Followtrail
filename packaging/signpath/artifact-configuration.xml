@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Paste into SignPath → Project → Artifact configurations.
+     The GitHub artifact is the packaged folder (Followtrail-Desktop-X) zipped by
+     actions/upload-artifact, so paths are relative to that folder. Only the two
+     executables built from this repository are signed; Electron and Python
+     runtime files keep their upstream signatures. -->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="Followtrail.exe">
+      <authenticode-sign />
+    </pe-file>
+    <pe-file path="resources/app/worker/tracker-worker.exe">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
+PackageIdentifier: KaanKaya.Followtrail
+PackageVersion: 0.2.95
+MinimumOSVersion: 10.0.17763.0
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+- RelativeFilePath: Followtrail-Desktop-0.2.95\Followtrail.exe
+  PortableCommandAlias: followtrail
+# Electron loads resources next to the real EXE, so winget adds the folder to
+# PATH instead of linking the EXE from another directory.
+ArchiveBinariesDependOnPath: true
+ReleaseDate: 2026-11-19
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/KaanKaya17/Followtrail/releases/download/windows-v0.2.95/Followtrail-Desktop-0.2.95.zip
+  InstallerSha256: 128DF3DC3C7F1F65C000A8416C52A244CDB1FAF9C81C20D281D713A74704028D
+ManifestType: installer
+ManifestVersion: 1.10.0

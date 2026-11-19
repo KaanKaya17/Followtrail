@@ -35,6 +35,10 @@ It cannot create history it never recorded, does not show profile visitors, and 
 
 The [latest Windows release](https://github.com/KaanKaya17/Followtrail/releases/latest) is a portable x64 ZIP. Extract the whole ZIP to its own folder and run **Followtrail.exe** from there. The EXE is unsigned, so Windows SmartScreen may warn you; check the SHA-256 on the release page. Before updating, choose **Quit completely** from the tray icon.
 
+With [Scoop](https://scoop.sh): `scoop bucket add followtrail https://github.com/KaanKaya17/Followtrail` and `scoop install followtrail`. [Package managers](packaging/README.md)
+
+**Code signing policy:** Releases are built from this repository on GitHub Actions, tested before publishing and carry a build provenance attestation. An application to SignPath Foundation for Authenticode signing is in preparation. [How releases are built and verified](docs/CODE-SIGNING.md) (Turkish)
+
 Current releases: **Windows 0.2.95** and the **Android 0.1.103** preview. Android is developed separately; see [release status](docs/wiki/EN-Releases.md). [All releases](https://github.com/KaanKaya17/Followtrail/releases) · [Changelog](CHANGELOG.md)
 
 ## Privacy

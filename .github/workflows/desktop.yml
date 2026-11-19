@@ -31,7 +31,7 @@ jobs:
         working-directory: interface/desktop/backend
         run: python -m unittest discover -p "test_*.py"
       - name: Developer script tests
-        run: python -m unittest scripts/test_discover_list_hosts.py scripts/test_probe_list_page_size.py scripts/test_watch_instagram_exports.py
+        run: python -m unittest scripts/test_discover_list_hosts.py scripts/test_probe_list_page_size.py scripts/test_watch_instagram_exports.py scripts/test_release_notes.py
       - name: Offline backend check
         run: python scripts/test-backend-offline.py
       - name: Desktop interface tests

@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.locale.1.10.0.schema.json
+PackageIdentifier: KaanKaya.Followtrail
+PackageVersion: 0.2.95
+PackageLocale: tr-TR
+Publisher: Kaan Kaya
+PackageName: Followtrail
+License: MIT
+ShortDescription: Instagram veri arşivin ve takip geçmişin için yerel, açık kaynak bir araç.
+Description: |-
+  Followtrail, Instagram'ın "Bilgilerini indir" seçeneğiyle aldığın ZIP'i kendi bilgisayarında açar: tarihleriyle
+  takipçiler ve takip edilenler, yakın arkadaşlar, bekleyen istekler, iki arşivin karşılaştırması ve kendi
+  etkinliğine dair içgörüler. ZIP modu istek göndermez; dosya cihazdan çıkmaz. İsteğe bağlı hesap modu kendi takip
+  listelerindeki değişimi kaydeder; Instagram'ın resmî olarak sunmadığı arayüzleri kullanır ve kullanım şartlarıyla
+  çelişebilir. Kayıtlar Windows DPAPI ile şifrelenir. Followtrail Instagram veya Meta ile bağlantılı değildir.
+ReleaseNotesUrl: https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.95
+ManifestType: locale
+ManifestVersion: 1.10.0

@@ -1,0 +1,89 @@
+name: Package manager manifests
+# Installs the published Windows ZIP through the winget and Scoop manifests in
+# this repository on a throwaway runner, checks the files land where the app
+# expects them, and uninstalls. Nothing is submitted to winget-pkgs here.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/packaging.yml
+      - packaging/winget/**
+      - bucket/**
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: packaging-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  winget:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Find the newest manifest
+        id: manifest
+        shell: pwsh
+        run: |
+          $dir = Get-ChildItem packaging/winget/manifests/k/KaanKaya/Followtrail -Directory |
+            Sort-Object { [version]$_.Name } | Select-Object -Last 1
+          "dir=$($dir.FullName)" >> $env:GITHUB_OUTPUT
+          "version=$($dir.Name)" >> $env:GITHUB_OUTPUT
+      - name: Validate manifest
+        run: winget validate --manifest "${{ steps.manifest.outputs.dir }}" --disable-interactivity
+      - name: Allow local manifests on this runner
+        run: winget settings --enable LocalManifestFiles
+      - name: Install from manifest
+        run: winget install --manifest "${{ steps.manifest.outputs.dir }}" --accept-package-agreements --accept-source-agreements --disable-interactivity
+      - name: Check the installed files
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:LOCALAPPDATA 'Microsoft/WinGet/Packages'
+          $exe = Get-ChildItem $root -Recurse -Filter Followtrail.exe | Select-Object -First 1
+          if (-not $exe) { throw 'Followtrail.exe was not installed' }
+          $folder = $exe.Directory.FullName
+          foreach ($path in 'resources/app/desktop/main.cjs', 'resources/app/worker/tracker-worker.exe', 'resources/app/web/desktop.html') {
+            if (-not (Test-Path (Join-Path $folder $path))) { throw "Missing $path next to Followtrail.exe" }
+          }
+          if ($exe.VersionInfo.ProductVersion -ne '${{ steps.manifest.outputs.version }}') { throw "Unexpected version $($exe.VersionInfo.ProductVersion)" }
+          "Installed $($exe.FullName) $($exe.VersionInfo.ProductVersion)"
+      - name: Uninstall
+        run: winget uninstall --id KaanKaya.Followtrail --disable-interactivity
+
+  scoop:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Install Scoop
+        shell: pwsh
+        run: |
+          Invoke-RestMethod -Uri https://get.scoop.sh -OutFile install-scoop.ps1
+          # The hosted runner is elevated; Scoop refuses that without -RunAsAdmin.
+          ./install-scoop.ps1 -RunAsAdmin
+          Join-Path $env:USERPROFILE 'scoop/shims' >> $env:GITHUB_PATH
+      - name: Install from the bucket manifest
+        shell: pwsh
+        run: scoop install ./bucket/followtrail.json
+      - name: Check the installed files
+        shell: pwsh
+        run: |
+          $current = Join-Path $env:USERPROFILE 'scoop/apps/followtrail/current'
+          $version = (Get-Content bucket/followtrail.json -Raw | ConvertFrom-Json).version
+          $exe = Get-Item (Join-Path $current 'Followtrail.exe')
+          if ($exe.VersionInfo.ProductVersion -ne $version) { throw "Unexpected version $($exe.VersionInfo.ProductVersion)" }
+          if (-not (Test-Path (Join-Path $current 'resources/app/worker/tracker-worker.exe'))) { throw 'Worker missing' }
+          $shortcut = Join-Path $env:APPDATA 'Microsoft/Windows/Start Menu/Programs/Scoop Apps/Followtrail.lnk'
+          if (-not (Test-Path $shortcut)) { throw 'Start menu shortcut missing' }
+          "Installed $($exe.FullName) $version"
+      - name: Check that autoupdate finds the latest release
+        shell: pwsh
+        run: |
+          $checkver = Join-Path $env:USERPROFILE 'scoop/apps/scoop/current/bin/checkver.ps1'
+          & $checkver -App followtrail -Dir bucket
+      - name: Uninstall
+        shell: pwsh
+        run: scoop uninstall followtrail

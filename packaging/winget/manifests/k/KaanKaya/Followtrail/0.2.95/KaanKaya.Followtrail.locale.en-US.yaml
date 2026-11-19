@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json
+PackageIdentifier: KaanKaya.Followtrail
+PackageVersion: 0.2.95
+PackageLocale: en-US
+Publisher: Kaan Kaya
+PublisherUrl: https://github.com/KaanKaya17
+PublisherSupportUrl: https://github.com/KaanKaya17/Followtrail/issues
+PrivacyUrl: https://github.com/KaanKaya17/Followtrail/blob/main/docs/PRIVACY.md
+PackageName: Followtrail
+PackageUrl: https://github.com/KaanKaya17/Followtrail
+License: MIT
+LicenseUrl: https://github.com/KaanKaya17/Followtrail/blob/main/LICENSE
+ShortDescription: Local, open-source tool for reviewing your Instagram data export and follow history.
+Description: |-
+  Followtrail opens the ZIP you download from Instagram's "Download your information" on your own computer:
+  followers and following with dates, close friends, pending requests, a comparison of two exports and
+  insights about your own activity. ZIP mode sends no requests and the file never leaves the device.
+  An optional account mode records changes in your own follow lists over time; it uses interfaces Instagram
+  does not officially offer and may conflict with Instagram's terms. Records are encrypted with Windows DPAPI.
+  Followtrail is not affiliated with Instagram or Meta.
+Moniker: followtrail
+Tags:
+- instagram
+- data-export
+- privacy
+- local-first
+- archive-viewer
+ReleaseNotesUrl: https://github.com/KaanKaya17/Followtrail/releases/tag/windows-v0.2.95
+Documentations:
+- DocumentLabel: User guide
+  DocumentUrl: https://github.com/KaanKaya17/Followtrail/blob/main/docs/wiki/EN-Home.md
+ManifestType: defaultLocale
+ManifestVersion: 1.10.0

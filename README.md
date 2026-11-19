@@ -55,6 +55,10 @@ Uygulama hiç kaydetmediği bir geçmişi üretemez: ilk liste başlangıç kayd
 
 [Windows için son sürüm](https://github.com/KaanKaya17/Followtrail/releases/latest) taşınabilir bir x64 ZIP’tir. ZIP’i ayrı bir klasöre tamamen çıkar ve **Followtrail.exe** dosyasını o klasörden çalıştır. EXE imzasız olduğu için Windows SmartScreen uyarı gösterebilir; sürüm sayfasındaki SHA-256 değeriyle dosyayı doğrulayabilirsin. Güncellerken önce sistem tepsisinden **Tamamen çık** seç.
 
+[Scoop](https://scoop.sh) kullanıyorsan: `scoop bucket add followtrail https://github.com/KaanKaya17/Followtrail` ve `scoop install followtrail`. [Paket yöneticileri](packaging/README.md)
+
+**Kod imzalama politikası:** Sürümler GitHub Actions’ta bu depodan üretilir, yayımlanmadan önce test edilir ve kaynak kanıtı taşır. Authenticode imzası için SignPath Foundation başvurusu hazırlanıyor. [Nasıl üretildiğini ve nasıl doğrulanacağını gör](docs/CODE-SIGNING.md)
+
 Güncel sürümler: **Windows 0.2.95** ve **Android 0.1.103** önizlemesi. Android ayrı geliştiriliyor; durumu [sürüm sayfasında](docs/wiki/Surum-ve-Destek.md). [Tüm sürümler](https://github.com/KaanKaya17/Followtrail/releases) · [Değişiklik kaydı](CHANGELOG.md)
 
 ## Gizlilik
