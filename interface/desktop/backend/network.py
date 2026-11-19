@@ -163,6 +163,18 @@ def require_password_key(response):
                          http=response.status_code)
 
 
+def keeps_payload(parse):
+    """A rejected response stays on its error, so read_health can name the missing fields."""
+    def checked(payload, *args, **kwargs):
+        try:
+            return parse(payload, *args, **kwargs)
+        except AppFailure as exc:
+            exc.payload = payload
+            raise
+    checked.__name__, checked.__doc__ = parse.__name__, parse.__doc__
+    return checked
+
+
 def close_client(client):
     if client:
         client.password = None
@@ -172,6 +184,7 @@ def close_client(client):
                 session.close()
 
 
+@keeps_payload
 def parse_profile(payload, expected_id=None):
     user = payload.get('user') if isinstance(payload, dict) else None
     if not isinstance(user, dict):
@@ -267,6 +280,7 @@ class FollowPage:
     coverage: str
 
 
+@keeps_payload
 def parse_page(payload):
     if not isinstance(payload, dict) or payload.get('status') != 'ok' or not isinstance(payload.get('users'), list):
         raise AppFailure('list', 'Liste yanıtı eksik; tarama tamamlanmış sayılmadı.')

@@ -104,6 +104,7 @@ class Backend {
       if (this.appVersion !== null) message.state = {...message.state, version:this.appVersion};
       this.state = message.state;
       this.onNotifications?.(entries);
+      if (Array.isArray(message.readAlerts) && message.readAlerts.length) this.onReadAlerts?.(message.readAlerts);
     }
     if (message.type === "ready") this.ready = true;
     if (message.type === "progress") {

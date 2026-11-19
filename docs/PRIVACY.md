@@ -2,6 +2,10 @@
 
 Güncel kullanıcı açıklaması: [Gizlilik ve veriler](wiki/Gizlilik-ve-Veriler.md). Aşağıdaki sürümlü bölümler teknik davranış ve gelişim geçmişini kaydeder.
 
+## Windows okuma uyumluluk raporu
+
+Profil veya liste okuması Instagram’ın değişmiş olabilecek yanıtı nedeniyle durduğunda tanı kaydına yalnız beklenen alan adları eklenir (ör. `users.pk`); değer, kullanıcı adı, kimlik veya ham yanıt eklenmez. **Geliştiriciye bildir** raporu ana süreçte bu kayıttan oluşturulur; renderer metni değiştiremez. Rapor yalnız kullanıcı **Metni kopyala** veya **GitHub’da bildir** seçtiğinde panoya ya da tarayıcıda açılan GitHub yeni konu sayfasına gider. GitHub’da gönderme kararı kullanıcınındır. Otomatik telemetri, arka planda gönderim veya yeni sunucu yoktur.
+
 ## Windows 0.2.56 / Android 0.1.86 geçici paylaşım
 
 Windows hesap/oturum kapsamında en fazla 20 normalize profil kaydını süreç belleğinde tutar. Otomatik liste için 60 saniye, panel/kaydetme için 5 dakika tazelik gerekir; hesap/bağlantı değişimi ve silmede temizlenir. Ham yanıt, parola, kod, fotoğraf adresi/dosyası veya kullanıcı notları bu profil önbelleğine kopyalanmaz. Windows ve Android aynı görsel yükleyicisindeki eşzamanlı tüketiciler için indirme işini paylaşır; Android farklı yükleyici örnekleri arasında süreç genelinde tek indirme garantisi vermez. Yeni üçüncü taraf servis veya veri aktarımı eklenmez. [Sahiplik, iptal ve doğrulama](RESPONSE-SHARING-TEST.md).

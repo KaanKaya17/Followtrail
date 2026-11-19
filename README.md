@@ -40,15 +40,17 @@ Tracker’ı yalnızca erişim yetkiniz olan verilerle, geçerli kurallara ve ba
 
 ## İndirmeler ve sürüm durumu
 
-Windows 0.2.93 ve Android 0.1.103 önizlemesinde (sürüm kodu 104) hesap bağlamadan ZIP arşivi inceleme, iki ZIP karşılaştırma ve parolalı Tracker geçmişi dosyası açma kullanılabilir. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
+Windows 0.2.94 ve Android 0.1.103 önizlemesinde (sürüm kodu 104) hesap bağlamadan ZIP arşivi inceleme, iki ZIP karşılaştırma ve parolalı Tracker geçmişi dosyası açma kullanılabilir. [Platform kapsamı ve doğrulama](docs/PLATFORM-PARITY.md).
 
 **GitHub’da indirilebilen önizlemeler:**
 
-[Windows 0.2.93 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
+[Windows 0.2.94 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/latest)
 
-[Android 0.1.103 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103) · [Windows 0.2.92 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92) · [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
+[Android 0.1.103 APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103) · [Windows 0.2.93 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93) · [Android 0.1.92 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.92)
 
 [Tüm Windows ve Android önizlemeleri](https://github.com/KaanKaya17/InstagramTracker/releases)
+
+**Windows 0.2.94:** Instagram bir okuma yolunu değiştirirse Windows bildirimi gelir, eski kayıtlar korunur ve hesap verisi içermeyen bir rapor GitHub’da paylaşılabilir.
 
 **Windows 0.2.93:** Güncel dışa aktarımlardaki yakın arkadaşlar, engellenenler, istekler ve son takipten çıkılanlar okunur (0.2.92’de 0 görünüyordu). İki gerçek tam dışa aktarımla doğrulandı.
 

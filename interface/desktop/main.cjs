@@ -6,6 +6,7 @@ const {
   dialog,
   Notification,
   shell,
+  clipboard,
   Tray,
   Menu,
   nativeImage,
@@ -32,6 +33,7 @@ const {
   changeNotification,
   openAccountNotification,
 } = require("./notifications.cjs");
+const { readAlertNotification, readReport, openReadAlert } = require("./read-alerts.cjs");
 
 app.setName("InstagramTracker");
 app.setAppUserModelId(APP_ID);
@@ -327,6 +329,18 @@ else
       }
       return backend.command(operation, args);
     });
+    ipcMain.handle('tracker:read-report', async (event, reader, action) => {
+      if (!senderValid(event)) throw new Error('Untrusted sender');
+      // Built from the worker state, never from renderer text.
+      const report = readReport(backend.state, reader, app.getVersion());
+      if (!report || !['preview', 'copy', 'open'].includes(action)) return {ok: false};
+      if (action === 'copy') clipboard.writeText(report.text);
+      if (action === 'open') {
+        if (testHome) return {ok: true, url: report.url, opened: false};
+        await shell.openExternal(report.url);
+      }
+      return {ok: true, text: report.text};
+    });
     ipcMain.handle('tracker:open-link',async(event,value)=>{
       if(!senderValid(event))throw new Error('Untrusted sender');
       const url=profileLinks.webUrl(value);
@@ -493,6 +507,21 @@ else
               message:
                 t("Windows bildirimi gösterilemedi. Gözlem zaman çizelgesine kaydedildi."),
             }),
+        });
+      }
+    };
+    backend.onReadAlerts = (alerts) => {
+      for (const alert of alerts) {
+        const content = readAlertNotification(alert, backend.state?.settings.language || 'tr');
+        showNotification({
+          Notification,
+          title: content.title,
+          body: content.body,
+          onClick: () => openReadAlert({alert, backend, showWindow, send,
+            onBusy: () => send({type:'notification_warning', message:t("Bildirimi açmak için devam eden işlemi bitirip ilgili hesabı seç.")}),
+          }),
+          // The pause is also shown on the overview; a lost toast loses nothing.
+          onFailure: () => {},
         });
       }
     };

@@ -1016,3 +1016,5 @@ summary:focus-visible { outline: 3px solid var(--violet); outline-offset: 4px; }
 .archive-dashboard-compare-filters select { width: auto; flex: 0 1 220px; }
 .archive-dashboard-compare-filters .button { flex: 0 0 auto; }
 .archive-dashboard-compare-filters[hidden] { display: none; }
+.read-pause-actions { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.read-report { margin: 12px 0; padding: 12px; max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.55 ui-monospace, Consolas, monospace; color: var(--ink); background: var(--subtle-surface); border: 1px solid var(--line); border-radius: var(--radius-control); }

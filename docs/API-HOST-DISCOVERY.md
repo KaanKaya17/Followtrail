@@ -2,6 +2,10 @@
 
 `scripts/discover-list-hosts.py` yerel HAR kaydında profil, takipçi, takip edilen ve parola şifreleme anahtarı isteklerini bulur. Alan adı ve yol, HTTPS `instagram.com` ve alt alan adlarında gözlenen trafik üzerinden belirlenir. Tarayıcı HAR kaydı tarayıcının kullandığı adresleri gösterir. Windows worker veya Android’in kullandığı adres için o istemciye ait bir kayıt gerekir.
 
+## Uygulamadan gelen rapor
+
+Windows, bir okuma üç kez üst üste uyumsuz yanıt alıp durduğunda kullanıcıya **Geliştiriciye bildir** raporu sunar. Raporda istek yolu şablonu, neden, HTTP durumu ve eksik alan adları vardır; hesap verisi yoktur. Bu rapor hangi okuma için HAR kaydı alınacağını gösterir. Rapordaki `Request` satırı, aracın bulduğu adresle karşılaştırılacak uygulama adresidir. [Kullanıcı tarafı](wiki/Sorun-Giderme.md#otomatik-okuma-duraklatıldı)
+
 ## Test kaydını alma
 
 1. Bir test hesabıyla Instagram web'de oturum açın. Test profilini açın ve DevTools'ta **Network** kaydını temizleyin.

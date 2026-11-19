@@ -1613,5 +1613,17 @@
   "CSV kaydedilemedi.": "Não foi possível salvar o CSV.",
   "Seni takip etmeyen yakın arkadaşların": "Amigos próximos que não seguem você",
   "Bazı satırlar veya dosya parçaları okunamadı: {0}. Bu listeler eksik olabilir.": "Algumas linhas ou partes de arquivos não puderam ser lidas: {0}. Essas listas podem estar incompletas.",
-  "Karşılaştırmayı CSV olarak kaydet": "Salvar a comparação como CSV"
+  "Karşılaştırmayı CSV olarak kaydet": "Salvar a comparação como CSV",
+  "Instagram okuma yolu değişmiş olabilir": "O Instagram pode ter mudado uma solicitação de leitura",
+  "{0}: otomatik okuma duraklatıldı. Eski kayıtların korunuyor. Ayrıntılar İstek bilgileri’nde.": "{0}: as leituras automáticas estão pausadas. Seus registros anteriores foram mantidos. Os detalhes estão em Detalhes da solicitação.",
+  "Eski kayıtların korunuyor. Aynı hatalı istek tekrar gönderilmez; uygulama güncellenene kadar bu okuma bekler.": "Seus registros anteriores foram mantidos. A solicitação com falha não é enviada de novo; esta leitura aguarda até o app ser atualizado.",
+  "Geliştiriciye bildir": "Informar ao desenvolvedor",
+  "Yanıtta eksik alanlar: {0}": "Campos ausentes na resposta: {0}",
+  "Bu okuma için gönderilecek bir rapor yok.": "Não há relatório para enviar sobre esta leitura.",
+  "Bu rapor, Instagram’ın hangi isteği değiştirmiş olabileceğini gösterir. Kullanıcı adı, hesap kimliği, çerez veya yanıt içeriği eklenmez.": "Este relatório mostra qual solicitação o Instagram pode ter mudado. Não inclui nome de usuário, ID da conta, cookies nem conteúdo de respostas.",
+  "GitHub’da bildir, herkese açık yeni bir konu taslağı açar. Göndermeden önce metni GitHub’da görüp değiştirebilirsin. GitHub hesabı gerekir.": "Informar no GitHub abre o rascunho de uma nova issue pública. Você pode ver e editar o texto no GitHub antes de enviar. É preciso ter uma conta no GitHub.",
+  "Metni kopyala": "Copiar texto",
+  "GitHub’da bildir": "Informar no GitHub",
+  "Rapor panoya kopyalandı.": "Relatório copiado para a área de transferência.",
+  "Rapor kopyalanamadı.": "Não foi possível copiar o relatório."
 }

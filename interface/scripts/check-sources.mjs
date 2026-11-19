@@ -5,6 +5,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 for (const file of [
   "web/app.js",
   "web/usage-notes.js",
+  "web/read-health.js",
   "web/export-browser.js",
   "web/archive-dashboard.js",
   "web/profile-search.js",
@@ -35,6 +36,7 @@ for (const file of [
   "desktop/preload.cjs",
   "desktop/service.cjs",
   "desktop/notifications.cjs",
+  "desktop/read-alerts.cjs",
   "desktop/background.cjs",
   "desktop/renderer-updates.cjs",
   "scripts/profile-desktop.mjs",
@@ -59,6 +61,7 @@ for (const file of [
   "scripts/check-overview-desktop.mjs",
   "scripts/check-list-recovery-desktop.mjs",
   "scripts/check-membership-desktop.mjs",
+  "scripts/check-read-alert-desktop.mjs",
   "scripts/check-notifications-desktop.mjs",
   "scripts/check-timeline-desktop.mjs",
   "scripts/check-resource-desktop.mjs",

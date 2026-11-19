@@ -508,12 +508,10 @@ class Engine:
         self.profile_facts.record(self.data, profile)
 
     def diagnose_read(self, reader, error, client, identity, *, continuation=False):
-        code = failure(error)['code']
-        local = code in ('cancelled', 'budget', 'cooldown', 'network_policy')
-        status = None if local else read_health.http_status(error, getattr(client, 'last_response', None))
-        own = identity == (self.data['account'] or {}).get('id')
-        reason = read_health.diagnose(error, code, status=status, own=own, continuation=continuation)
-        read_health.record(self.data, reader, reason, status, self.clock())
+        status, paused = read_health.observe(self.data, reader, error, getattr(client, 'last_response', None), self.clock(),
+                                             own=identity == (self.data['account'] or {}).get('id'), continuation=continuation)
+        if paused and self.data['settings']['notifications']:  # one Windows notification per pause
+            self.read_alerts.append({'reader': reader, 'reason': self.data['readHealth'][reader]['reason']})
         return status
 
     def read_profile(self, client, identity, avatar=True):
@@ -1263,6 +1261,7 @@ class Engine:
         self.search_results = None
         self.profile_detail_result = None
         self.story_detail = None
+        self.read_alerts = []
         self.observation_group = group_id or uuid.uuid4().hex
         while not self.codes.empty():
             self.codes.get_nowait()

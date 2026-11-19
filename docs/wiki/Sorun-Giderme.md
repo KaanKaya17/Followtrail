@@ -8,6 +8,10 @@
 
 Windows ve Android, **İstek bilgileri → Okuma tanısı** bölümünde profil, takipçi ve takip edilen okumalarının nedenini ayrı gösterir. Yanıtın beklenen biçime uymaması veya aynı yolun art arda reddedilmesi gibi üç uyumluluk hatasında ilgili otomatik okuma durur. Uç noktanın değiştiği doğrulanana kadar bu durum olası neden olarak gösterilir. Tek hedefin bulunamaması, eksik liste ve HTTP 429 ayrı durumlar olarak ele alınır.
 
+Windows’ta bir okuma bu nedenle durduğunda bir kez Windows bildirimi gelir (genel bildirimler açıksa). Ana ekrandaki uyarı eski kayıtların korunduğunu ve aynı hatalı isteğin yeniden gönderilmediğini söyler. Yanıt biçimi değiştiyse **Okuma tanısı** eksik alan adlarını da gösterir (ör. `users.pk`).
+
+**Geliştiriciye bildir**, değer içermeyen kısa bir rapor gösterir: uygulama sürümü, okuma türü, istek yolu şablonu (`{id}` ile), neden, HTTP durumu, eksik alan adları ve hata sayısı. Kullanıcı adı, hesap kimliği, çerez veya yanıt içeriği eklenmez. **Metni kopyala** raporu panoya alır. **GitHub’da bildir** herkese açık yeni bir konu taslağı açar; göndermeden önce metni görüp değiştirebilirsiniz. Uygulama raporu kendiliğinden hiçbir yere göndermez.
+
 Devam isteği 400 veya 404 alırsa sonraki uygun tarama ilk sayfadan başlar. Son tam kayıt karşılaştırma için saklanır. Duraklatılan okuma elle başarıyla tamamlandığında otomatik kontroller o okuma için devam eder. Windows’ta profil okuması durduysa yeni liste başlangıçları da taze profil bilgisi alana kadar bekler. Profil bilgisi hazır olan devam taramaları sırasını kullanabilir.
 
 ## Giriş kabul edilmiyor

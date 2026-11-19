@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld(
       return ipcRenderer.invoke("tracker:prepare-dropped-comparison", token, path);
     },
     openLink: url => ipcRenderer.invoke('tracker:open-link',url),
+    readReport: (reader, action) => ipcRenderer.invoke('tracker:read-report', reader, action),
     subscribe: (callback) => {
       const listener = (_event, data) => callback(data);
       ipcRenderer.on("tracker:event", listener);

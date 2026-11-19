@@ -30,6 +30,7 @@ class Accounts(Engine):
         self.persisted_catalog = copy.deepcopy(self.catalog)
         self.active_id = None
         self.notifications = []
+        self.read_alerts = []
         self.initializing = True
         if self.catalog is not None:
             self.validate_catalog()
@@ -263,6 +264,7 @@ class Accounts(Engine):
 
     def run(self, operation, args, *, group_id=None):
         self.notifications = []
+        self.read_alerts = []
         original = self.active_id
         detail = None
         group_id = group_id or uuid.uuid4().hex
@@ -319,6 +321,8 @@ class Accounts(Engine):
                     self.notifications = [{**entry, 'ownerId': self.active_id, 'ownerUsername': owner['username']}
                                           for entry in self.data['notificationLog'] if
                                           entry['id'] == group_id and entry.get('desktopEligible')]
+                    self.read_alerts = [{**alert, 'ownerId': self.active_id, 'ownerUsername': owner['username']}
+                                        for alert in self.read_alerts]
                     self.update_entry()
                     self.persist_catalog()
             finally:

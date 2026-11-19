@@ -24,6 +24,12 @@ sys.stdout.reconfigure(encoding='utf-8', line_buffering=True)
 write_lock = threading.Lock()
 
 
+def read_alerts(engine):
+    """Readers that this operation paused, for one Windows notification each."""
+    return [{key: alert[key] for key in ('reader', 'reason', 'ownerId', 'ownerUsername') if key in alert}
+            for alert in getattr(engine, 'read_alerts', [])[:3]]
+
+
 def emit(value):
     with write_lock:
         sys.stdout.write(json.dumps(value, ensure_ascii=False, separators=(',', ':'), allow_nan=False) + '\n')
@@ -105,7 +111,8 @@ def main():
             if request['operation'] in ('remove_person','delete_all'):images.cancel(clear_cache=True)
             state = engine.run(request['operation'], request.get('args') or {}, group_id=group_id)
             publish({'type': 'result', 'id': request['id'], 'ok': True, 'state': history.publish(state),
-                  'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})
+                  'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id,
+                  'readAlerts': read_alerts(engine)})
         except Exception as exc:
             if request['operation'] == 'export_portable_backup':
                 emit({'type': 'result', 'id': request['id'], 'ok': False, 'error': {'code': 'backup'}})
@@ -115,7 +122,8 @@ def main():
                 return
             publish({'type': 'result', 'id': request['id'], 'ok': False,
                   'error': localization.error(failure(exc), engine.data['settings']['language']), 'state': history.publish(engine.snapshot()),
-                  'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id})
+                  'notifications': [preview_log(e) for e in engine.notifications], 'notificationGroupId': group_id,
+                  'readAlerts': read_alerts(engine)})
         finally:
             active.release()
 

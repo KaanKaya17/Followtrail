@@ -1,5 +1,11 @@
 # Değişiklikler
 
+## Windows 0.2.94 — 2026-11-19
+
+- **Instagram okuma yolunu değiştirirse haber verir:** Profil veya takip listesi okuması üst üste üç uyumsuz yanıt alıp durduğunda bir kez Windows bildirimi gelir. Ana ekrandaki uyarı eski kayıtların korunduğunu ve aynı hatalı isteğin tekrar gönderilmediğini söyler. Arka planda kontrol edilen diğer hesaplar için de çalışır.
+- **Okuma tanısı** yanıtta eksik gelen alan adlarını gösterir (ör. `users.pk`). Değer, kullanıcı adı veya ham yanıt saklanmaz.
+- **Geliştiriciye bildir:** Uygulama sürümü, okuma türü, istek yolu şablonu, neden, HTTP durumu ve eksik alanlardan oluşan değer içermeyen bir rapor gösterir. **Metni kopyala** veya **GitHub’da bildir** ile kullanıcı isterse paylaşır; uygulama kendiliğinden göndermez. [Sorun giderme](docs/wiki/Sorun-Giderme.md#otomatik-okuma-duraklatıldı).
+
 ## Windows 0.2.93 — 2026-11-18
 
 - Güncel Instagram dışa aktarımlarında yakın arkadaşlar, engellediğin hesaplar, bekleyen/gelen istekler, son takipten çıktıkların ve kaldırılan öneriler artık okunur. Bu dosyalar kullanıcı adını `label_values` içinde tutar; 0.2.92 bu biçimi tanımadığı için bu listeler 0 görünüyordu.

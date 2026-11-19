@@ -60,6 +60,7 @@ for (const name of [
   "preload.cjs",
   "service.cjs",
   "notifications.cjs",
+  "read-alerts.cjs",
   "background.cjs",
   "renderer-updates.cjs",
 ])
@@ -72,6 +73,7 @@ for (const name of [
   "appearance.js",
   "desktop.js",
   "usage-notes.js",
+  "read-health.js",
   "export-browser.js",
   "archive-dashboard.js",
   "profile-search.js",

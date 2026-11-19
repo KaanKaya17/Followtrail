@@ -6,6 +6,10 @@
 
 Open **Request information → Read diagnostics**. Tracker reports profile, follower and following reads separately. Repeated incompatible responses can pause the affected operation after three failures. A changed endpoint is only a possible cause. Missing profiles, incomplete lists and HTTP 429 have separate states.
 
+On Windows, a read paused this way sends one Windows notification (when general notifications are on). The overview notice says that earlier records are kept and that the failing request is not sent again. If the response shape changed, **Read diagnostics** also lists the missing field names (for example `users.pk`).
+
+**Report to the developer** shows a short report with no values in it: app version, reader, request path template (with `{id}`), reason, HTTP status, missing field names and failure count. No username, account ID, cookie or response content is included. **Copy text** puts it on the clipboard. **Report on GitHub** opens a draft of a new public issue that you can read and edit before sending. The app never sends the report by itself.
+
 A continuation request that receives HTTP 400 or 404 can restart from page one on the next eligible scan. The last complete snapshot is kept. A successful manual read resumes that operation. On Windows, new list scans wait if a fresh profile read is required.
 
 ## Sign-in, codes and CAPTCHA

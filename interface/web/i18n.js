@@ -1621,7 +1621,19 @@
     "CSV kaydedilemedi.": "The CSV could not be saved.",
     "Seni takip etmeyen yakın arkadaşların": "Close friends who don't follow you",
     "Bazı satırlar veya dosya parçaları okunamadı: {0}. Bu listeler eksik olabilir.": "Some rows or file parts could not be read: {0}. These lists may be incomplete.",
-    "Karşılaştırmayı CSV olarak kaydet": "Save the comparison as CSV"
+    "Karşılaştırmayı CSV olarak kaydet": "Save the comparison as CSV",
+    "Instagram okuma yolu değişmiş olabilir": "Instagram may have changed a read request",
+    "{0}: otomatik okuma duraklatıldı. Eski kayıtların korunuyor. Ayrıntılar İstek bilgileri’nde.": "{0}: automatic reads are paused. Your earlier records are kept. Details are in Request information.",
+    "Eski kayıtların korunuyor. Aynı hatalı istek tekrar gönderilmez; uygulama güncellenene kadar bu okuma bekler.": "Your earlier records are kept. The failing request is not sent again; this read waits until the app is updated.",
+    "Geliştiriciye bildir": "Report to the developer",
+    "Yanıtta eksik alanlar: {0}": "Fields missing from the response: {0}",
+    "Bu okuma için gönderilecek bir rapor yok.": "There is no report to send for this read.",
+    "Bu rapor, Instagram’ın hangi isteği değiştirmiş olabileceğini gösterir. Kullanıcı adı, hesap kimliği, çerez veya yanıt içeriği eklenmez.": "This report shows which request Instagram may have changed. No username, account ID, cookie or response content is included.",
+    "GitHub’da bildir, herkese açık yeni bir konu taslağı açar. Göndermeden önce metni GitHub’da görüp değiştirebilirsin. GitHub hesabı gerekir.": "Report on GitHub opens a draft of a new public issue. You can see and edit the text on GitHub before sending it. A GitHub account is required.",
+    "Metni kopyala": "Copy text",
+    "GitHub’da bildir": "Report on GitHub",
+    "Rapor panoya kopyalandı.": "Report copied to the clipboard.",
+    "Rapor kopyalanamadı.": "The report could not be copied."
   },
   "es": {
     "Satır seçenekleri": "Opciones de la fila",
@@ -3238,7 +3250,19 @@
     "CSV kaydedilemedi.": "No se pudo guardar el CSV.",
     "Seni takip etmeyen yakın arkadaşların": "Amigos cercanos que no te siguen",
     "Bazı satırlar veya dosya parçaları okunamadı: {0}. Bu listeler eksik olabilir.": "No se pudieron leer algunas filas o partes de archivos: {0}. Estas listas pueden estar incompletas.",
-    "Karşılaştırmayı CSV olarak kaydet": "Guardar la comparación como CSV"
+    "Karşılaştırmayı CSV olarak kaydet": "Guardar la comparación como CSV",
+    "Instagram okuma yolu değişmiş olabilir": "Es posible que Instagram haya cambiado una solicitud de lectura",
+    "{0}: otomatik okuma duraklatıldı. Eski kayıtların korunuyor. Ayrıntılar İstek bilgileri’nde.": "{0}: las lecturas automáticas están en pausa. Tus registros anteriores se conservan. Los detalles están en Detalles de la solicitud.",
+    "Eski kayıtların korunuyor. Aynı hatalı istek tekrar gönderilmez; uygulama güncellenene kadar bu okuma bekler.": "Tus registros anteriores se conservan. La solicitud fallida no se vuelve a enviar; esta lectura espera hasta que se actualice la app.",
+    "Geliştiriciye bildir": "Informar al desarrollador",
+    "Yanıtta eksik alanlar: {0}": "Campos que faltan en la respuesta: {0}",
+    "Bu okuma için gönderilecek bir rapor yok.": "No hay ningún informe que enviar para esta lectura.",
+    "Bu rapor, Instagram’ın hangi isteği değiştirmiş olabileceğini gösterir. Kullanıcı adı, hesap kimliği, çerez veya yanıt içeriği eklenmez.": "Este informe muestra qué solicitud pudo haber cambiado Instagram. No incluye nombre de usuario, ID de cuenta, cookies ni contenido de respuestas.",
+    "GitHub’da bildir, herkese açık yeni bir konu taslağı açar. Göndermeden önce metni GitHub’da görüp değiştirebilirsin. GitHub hesabı gerekir.": "Informar en GitHub abre un borrador de una nueva incidencia pública. Puedes ver y editar el texto en GitHub antes de enviarlo. Se necesita una cuenta de GitHub.",
+    "Metni kopyala": "Copiar texto",
+    "GitHub’da bildir": "Informar en GitHub",
+    "Rapor panoya kopyalandı.": "Informe copiado al portapapeles.",
+    "Rapor kopyalanamadı.": "No se pudo copiar el informe."
   },
   "pt-BR": {
     "Satır seçenekleri": "Opções da linha",
@@ -4855,7 +4879,19 @@
     "CSV kaydedilemedi.": "Não foi possível salvar o CSV.",
     "Seni takip etmeyen yakın arkadaşların": "Amigos próximos que não seguem você",
     "Bazı satırlar veya dosya parçaları okunamadı: {0}. Bu listeler eksik olabilir.": "Algumas linhas ou partes de arquivos não puderam ser lidas: {0}. Essas listas podem estar incompletas.",
-    "Karşılaştırmayı CSV olarak kaydet": "Salvar a comparação como CSV"
+    "Karşılaştırmayı CSV olarak kaydet": "Salvar a comparação como CSV",
+    "Instagram okuma yolu değişmiş olabilir": "O Instagram pode ter mudado uma solicitação de leitura",
+    "{0}: otomatik okuma duraklatıldı. Eski kayıtların korunuyor. Ayrıntılar İstek bilgileri’nde.": "{0}: as leituras automáticas estão pausadas. Seus registros anteriores foram mantidos. Os detalhes estão em Detalhes da solicitação.",
+    "Eski kayıtların korunuyor. Aynı hatalı istek tekrar gönderilmez; uygulama güncellenene kadar bu okuma bekler.": "Seus registros anteriores foram mantidos. A solicitação com falha não é enviada de novo; esta leitura aguarda até o app ser atualizado.",
+    "Geliştiriciye bildir": "Informar ao desenvolvedor",
+    "Yanıtta eksik alanlar: {0}": "Campos ausentes na resposta: {0}",
+    "Bu okuma için gönderilecek bir rapor yok.": "Não há relatório para enviar sobre esta leitura.",
+    "Bu rapor, Instagram’ın hangi isteği değiştirmiş olabileceğini gösterir. Kullanıcı adı, hesap kimliği, çerez veya yanıt içeriği eklenmez.": "Este relatório mostra qual solicitação o Instagram pode ter mudado. Não inclui nome de usuário, ID da conta, cookies nem conteúdo de respostas.",
+    "GitHub’da bildir, herkese açık yeni bir konu taslağı açar. Göndermeden önce metni GitHub’da görüp değiştirebilirsin. GitHub hesabı gerekir.": "Informar no GitHub abre o rascunho de uma nova issue pública. Você pode ver e editar o texto no GitHub antes de enviar. É preciso ter uma conta no GitHub.",
+    "Metni kopyala": "Copiar texto",
+    "GitHub’da bildir": "Informar no GitHub",
+    "Rapor panoya kopyalandı.": "Relatório copiado para a área de transferência.",
+    "Rapor kopyalanamadı.": "Não foi possível copiar o relatório."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

@@ -4,7 +4,9 @@
 
 ## Windows
 
-[Windows 0.2.93 public preview](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93) reads the extra lists of current Instagram exports (close friends, blocked accounts, pending and received requests, recently unfollowed, removed suggestions), which 0.2.92 showed as 0, and marks an unreadable one as partial. It was checked with two real full exports of the same account (782 and 789 MB) and passed 46 offline package checks, 9 ZIP review checks, 336 Python and 72 interface tests.
+[Windows 0.2.94 public preview](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.94) tells you when Instagram may have changed a read request: a profile or list read paused after three incompatible responses sends one Windows notification, the overview says earlier records are kept, and **Report to the developer** shows a report with no account data that you can copy or open as a GitHub issue draft. It passed 46 offline package checks, 7 read alert package checks, 368 Python and 77 interface tests.
+
+[Windows 0.2.93](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93) reads the extra lists of current Instagram exports (close friends, blocked accounts, pending and received requests, recently unfollowed, removed suggestions), which 0.2.92 showed as 0, and marks an unreadable one as partial. It was checked with two real full exports of the same account (782 and 789 MB) and passed 46 offline package checks, 9 ZIP review checks, 336 Python and 72 interface tests.
 
 [Windows 0.2.92](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92) makes sign-in-free ZIP review sturdier: an unreadable row or file part marks only its own list as partial, full exports over 512 MB are read, extra lists (recently unfollowed, pending requests, close friends, blocked …) are shown, and comparing two ZIPs adds follow dates, probable renames, search, CSV and drag and drop. It passed 46 offline package checks, 9 ZIP review package checks, 335 Python and 72 interface tests, with synthetic ZIPs only. [Details](../ZIP-ARCHIVE-TEST.md).
 

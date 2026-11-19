@@ -2,7 +2,14 @@
 
 [Kılavuz ana sayfası](Home.md) · [Değişiklik kaydı](../../CHANGELOG.md)
 
-**Son içerik denetimi: 18 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+**Son içerik denetimi: 19 Kasım 2026.** Bu sayfa, uygulanmış özelliklerle canlı ortamda doğrulanmış kapsamı ayırır.
+
+## Windows 0.2.94
+
+19 Kasım’da Windows 0.2.94 herkese açık ZIP önizlemesi yayımlandı. Profil veya takip listesi okuması Instagram’ın değişmiş olabilecek yanıtı yüzünden durduğunda bir kez Windows bildirimi gelir; ana ekran eski kayıtların korunduğunu söyler. **Geliştiriciye bildir**, hesap verisi içermeyen bir uyumluluk raporu gösterir ve kullanıcı isterse GitHub’da yeni konu taslağı açar. [Ayrıntılar](Sorun-Giderme.md#otomatik-okuma-duraklatıldı)
+
+- Windows 0.2.94: 46 paketli çevrimdışı kontrol, 7 okuma uyarısı paket kontrolü, 368 Python ve 77 arayüz testi geçti. EXE Authenticode imzası taşımıyor.
+- Uyarı sentetik tanı kaydıyla sınandı; Instagram’ın gerçek bir yol değişikliği henüz gözlenmedi. Windows bildiriminin ekranda görünmesi otomatik testte doğrulanmadı.
 
 ## Windows 0.2.93
 
@@ -159,8 +166,8 @@ Türkçe, English, Español ve Português (Brasil) paketleri bulunur. Sistem, a�
 
 ## Kurulum dosyasını nereden alabilirim?
 
-- [Windows 0.2.93 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93)
-- [Windows 0.2.92 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.92)
+- [Windows 0.2.94 herkese açık ZIP](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.94)
+- [Windows 0.2.93 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.93)
 - [Android 0.1.103 imzalı APK](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.103)
 - [Windows 0.2.89 önceki ZIP’i](https://github.com/KaanKaya17/InstagramTracker/releases/tag/windows-v0.2.89)
 - [Android 0.1.102 önceki APK’sı](https://github.com/KaanKaya17/InstagramTracker/releases/tag/android-v0.1.102)
