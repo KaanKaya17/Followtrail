@@ -21,7 +21,7 @@ PYTHON=python node --test "viewer/test/*.test.mjs"
 CHROME_PATH=/path/to/chrome node viewer/test/browser.check.mjs [screenshot-dir]
 ```
 
-`PARITY_CASES` sets the number of random exports (default 120), `PARITY_SEED` reproduces a failing one. The browser check needs `npm ci --prefix interface --ignore-scripts` for `playwright-core`.
+`PARITY_CASES` sets the number of random exports (default 120), `PARITY_SEED` reproduces a failing one. `VIEWER_URL=https://kaankaya17.github.io/Followtrail/` runs the browser check against the published page instead of a local server. The browser check needs `npm ci --prefix interface --ignore-scripts` for `playwright-core`.
 
 ## Publishing
 

@@ -4,6 +4,7 @@
 //
 //   node viewer/test/browser.check.mjs [screenshot-dir]
 // CHROME_PATH selects the browser (defaults to the usual install locations).
+// VIEWER_URL checks a published copy (e.g. GitHub Pages) instead of serving viewer/ locally.
 import {createRequire} from 'node:module';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -28,7 +29,7 @@ const chrome = process.env.CHROME_PATH || [
 assert.ok(chrome, 'Set CHROME_PATH to a Chrome or Chromium executable');
 
 const TYPES = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml'};
-const server = createServer(async (request, response) => {
+const server = process.env.VIEWER_URL ? null : createServer(async (request, response) => {
   const name = new URL(request.url, 'http://x').pathname.replace(/^\/$/, '/index.html');
   const file = path.join(root, path.normalize(name));
   if (!file.startsWith(root + path.sep) || name.includes('/test/') || !TYPES[path.extname(file)]) {
@@ -41,8 +42,11 @@ const server = createServer(async (request, response) => {
     response.writeHead(404).end();
   }
 });
-await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const origin = `http://127.0.0.1:${server.address().port}`;
+if (server) await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+// Every request must stay under this prefix: the page folder itself.
+const base = process.env.VIEWER_URL
+  ? new URL(process.env.VIEWER_URL.replace(/\/?$/, '/')).href
+  : `http://127.0.0.1:${server.address().port}/`;
 
 const F = 'connections/followers_and_following/';
 const fr = (name, at) => ({title: '', string_list_data: [{href: `https://www.instagram.com/${name}`, value: name, timestamp: at}]});
@@ -68,7 +72,7 @@ try {
   page.on('request', request => requests.push(request.url()));
   page.on('pageerror', error => failures.push('page error: ' + error.message));
   page.on('console', message => { if (message.type() === 'error') failures.push('console: ' + message.text()); });
-  await page.goto(origin + '/');
+  await page.goto(base);
   await page.getByRole('heading', {name: 'Instagram arşivini tarayıcında incele'}).waitFor();
   assert.match(await page.locator('#guide').getAttribute('href'), /Instagram-Veri-Arsivi\.md$/, 'Turkish guide link');
   assert.equal(await page.locator('#result').isVisible(), false, 'results stay hidden until a ZIP is read');
@@ -123,11 +127,11 @@ try {
   assert.equal(blocked, true, 'fetch is blocked by connect-src none');
   failures.splice(0, failures.length, ...failures.filter(text => !/Content Security Policy|example\.com|Failed to fetch/.test(text)));
 
-  const outside = requests.filter(url => !url.startsWith(origin + '/') && !url.startsWith('blob:') && !url.startsWith('data:'));
-  assert.deepEqual(outside, [], 'no request outside the page origin');
+  const outside = requests.filter(url => !url.startsWith(base) && !url.startsWith('blob:') && !url.startsWith('data:'));
+  assert.deepEqual(outside, [], 'no request outside the page folder');
   assert.deepEqual(failures, []);
-  console.log('Viewer browser check passed:', requests.length, 'same-origin requests, 0 external.');
+  console.log('Viewer browser check passed:', requests.length, 'requests under', base, '0 elsewhere.');
 } finally {
   await browser.close();
-  server.close();
+  server?.close();
 }
