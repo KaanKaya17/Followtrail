@@ -70,9 +70,10 @@ try {
   page.on('console', message => { if (message.type() === 'error') failures.push('console: ' + message.text()); });
   await page.goto(origin + '/');
   await page.getByRole('heading', {name: 'Instagram arşivini tarayıcında incele'}).waitFor();
+  assert.equal(await page.locator('#result').isVisible(), false, 'results stay hidden until a ZIP is read');
 
   await page.locator('#file').setInputFiles(file('instagram-ada-2026-11-01-AbCdEf12.zip', newer));
-  await page.locator('#result').waitFor();
+  await page.locator('#cards .card').first().waitFor();
   const cards = await page.locator('#cards').innerText();
   assert.match(cards, /Takipçiler\s+153/);
   assert.match(cards, /Takip ettiklerin\s+3/);

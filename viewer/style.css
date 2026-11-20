@@ -14,6 +14,8 @@
   }
 }
 * { box-sizing: border-box; }
+/* Author display rules must not reveal elements hidden with the hidden attribute. */
+[hidden] { display: none !important; }
 body { margin: 0; background: var(--background); color: var(--ink); line-height: 1.5; }
 a { color: var(--accent-text); text-underline-offset: 3px; }
 .top, main, footer { width: min(100% - 32px, 1040px); margin-inline: auto; }
