@@ -8,9 +8,9 @@ Instagram’dan indirdiğin veri arşivini cihazında incele, iki arşivi karş�
 
 [Windows sürümünü indir](https://github.com/KaanKaya17/Followtrail/releases/latest) · [Kullanım kılavuzu](docs/wiki/Home.md) · [ZIP rehberi](docs/wiki/Instagram-Veri-Arsivi.md) · [Sürüm durumu](docs/wiki/Surum-ve-Destek.md)
 
-![Örnek verilerle Followtrail Windows Özet ekranı](docs/wiki/assets/ozet.png)
+![Followtrail Windows: Instagram ZIP’ini aç, iki dışa aktarımı karşılaştır, içgörülere bak](docs/wiki/assets/readme-demo.gif)
 
-*Windows arayüzü, örnek verilerle gösterilmiştir.*
+*Windows arayüzü, tamamen uydurma örnek verilerle: ZIP’i aç → iki dışa aktarımı karşılaştır → içgörüler ve yıl özeti.*
 
 > Proje daha önce **InstagramTracker** adıyla yayımlandı. Eski sürümlerden güncellerken kayıtların olduğu gibi açılır.
 

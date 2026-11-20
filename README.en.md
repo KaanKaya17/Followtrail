@@ -8,7 +8,9 @@ Review the data export you download from Instagram on your own device, and compa
 
 [Download for Windows](https://github.com/KaanKaya17/Followtrail/releases/latest) · [User guide](docs/wiki/EN-Home.md) · [ZIP guide](docs/wiki/EN-Instagram-Data-Archive.md) · [Release status](docs/wiki/EN-Releases.md)
 
-![Followtrail for Windows showing an example archive and its coverage](docs/wiki/assets/en/zip-arsiv.png)
+![Followtrail for Windows: open an Instagram ZIP, compare two exports, look at insights](docs/wiki/assets/en/readme-demo.gif)
+
+*Windows app with made-up sample data: open a ZIP → compare two exports → insights and year in review.*
 
 > This project was previously published as **InstagramTracker**. Updating from an older version opens your existing records as they are.
 
