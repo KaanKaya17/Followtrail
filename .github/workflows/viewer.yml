@@ -1,0 +1,49 @@
+name: Web viewer checks
+# The browser viewer must read exports exactly like the desktop app: the parity
+# test runs the Python reader and the JavaScript reader on the same random ZIPs.
+on:
+  push:
+    branches: [main]
+    paths:
+      - viewer/**
+      - interface/desktop/backend/instagram_archive.py
+      - interface/desktop/backend/export_browser.py
+      - .github/workflows/viewer.yml
+  pull_request:
+    paths:
+      - viewer/**
+      - interface/desktop/backend/instagram_archive.py
+      - interface/desktop/backend/export_browser.py
+      - .github/workflows/viewer.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+      # Only playwright-core is needed; skip Electron's download script.
+      - name: Install test dependencies
+        run: npm ci --prefix interface --ignore-scripts
+      - name: Unit and parity tests
+        env:
+          PYTHON: python
+          PARITY_CASES: '400'
+        run: node --test "viewer/test/*.test.mjs"
+      - name: Browser check
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node viewer/test/browser.check.mjs

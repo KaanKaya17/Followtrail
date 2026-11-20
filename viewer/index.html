@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- No request can leave this page: the ZIP is read only in this browser. -->
+    <meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="description" content="Instagram veri arşivini (ZIP) tarayıcında, hiçbir yere yüklemeden incele. Followtrail, açık kaynak." />
+    <title>Followtrail · Instagram ZIP görüntüleyici</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="https://github.com/KaanKaya17/Followtrail" rel="noopener noreferrer">
+        <img src="favicon.svg" alt="" width="36" height="36" />
+        <span><strong>Followtrail</strong><small data-t="tagline"></small></span>
+      </a>
+      <div class="languages" role="group" aria-label="Language">
+        <button type="button" data-language="tr">TR</button>
+        <button type="button" data-language="en">EN</button>
+      </div>
+    </header>
+    <main>
+      <section class="intro">
+        <h1 data-t="title"></h1>
+        <p data-t="lead"></p>
+        <p class="privacy"><span aria-hidden="true">🔒</span> <span data-t="privacy"></span></p>
+        <details class="verify">
+          <summary data-t="verifyTitle"></summary>
+          <p data-t="verifyBody"></p>
+        </details>
+      </section>
+      <section class="drop" id="drop">
+        <p data-t="drop"></p>
+        <label class="button primary">
+          <span data-t="choose"></span>
+          <input id="file" type="file" accept=".zip,application/zip" hidden />
+        </label>
+        <p class="hint"><a data-t="howToGet" href="https://github.com/KaanKaya17/Followtrail/blob/main/docs/wiki/EN-Instagram-Data-Archive.md" rel="noopener noreferrer"></a></p>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </section>
+      <section id="result" hidden>
+        <div class="file-line" id="file-line"></div>
+        <div class="notices" id="notices"></div>
+        <div class="cards" id="cards"></div>
+        <section class="panel">
+          <div class="panel-head">
+            <h2 data-t="lists"></h2>
+            <div class="controls">
+              <select id="list" aria-label="List"></select>
+              <input id="search" type="search" maxlength="60" />
+              <select id="order" aria-label="Order"></select>
+              <button type="button" class="button" id="csv" data-t="csv"></button>
+            </div>
+          </div>
+          <p class="count" id="count"></p>
+          <ol class="rows" id="rows"></ol>
+          <button type="button" class="button" id="more" data-t="more" hidden></button>
+        </section>
+        <section class="panel" id="compare-panel">
+          <div class="panel-head">
+            <h2 data-t="compareTitle"></h2>
+            <label class="button">
+              <span data-t="compareChoose"></span>
+              <input id="second" type="file" accept=".zip,application/zip" hidden />
+            </label>
+          </div>
+          <p class="hint" data-t="compareLead"></p>
+          <div id="compare"></div>
+        </section>
+      </section>
+    </main>
+    <footer>
+      <p><a data-t="desktop" href="https://github.com/KaanKaya17/Followtrail/releases/latest" rel="noopener noreferrer"></a>
+        · <a data-t="source" href="https://github.com/KaanKaya17/Followtrail" rel="noopener noreferrer"></a></p>
+      <p data-t="independent"></p>
+    </footer>
+  </body>
+</html>
