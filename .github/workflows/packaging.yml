@@ -30,6 +30,10 @@ jobs:
             Sort-Object { [version]$_.Name } | Select-Object -Last 1
           "dir=$($dir.FullName)" >> $env:GITHUB_OUTPUT
           "version=$($dir.Name)" >> $env:GITHUB_OUTPUT
+      # The Microsoft Store source asks for an interactive agreement; this
+      # runner only needs the local manifest.
+      - name: Remove the Microsoft Store source
+        run: winget source remove msstore
       - name: Validate manifest
         run: winget validate --manifest "${{ steps.manifest.outputs.dir }}" --disable-interactivity
       - name: Allow local manifests on this runner
@@ -67,7 +71,7 @@ jobs:
           Join-Path $env:USERPROFILE 'scoop/shims' >> $env:GITHUB_PATH
       - name: Install from the bucket manifest
         shell: pwsh
-        run: scoop install ./bucket/followtrail.json
+        run: scoop install (Join-Path $PWD 'bucket/followtrail.json')
       - name: Check the installed files
         shell: pwsh
         run: |

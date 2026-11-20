@@ -59,6 +59,10 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r interface/desktop/backend/requirements.lock.txt -r interface/desktop/backend/build-requirements.lock.txt
       - name: Install interface dependencies
         run: npm ci --prefix interface
+      # npm on the runner does not run install scripts, so fetch Electron's
+      # runtime explicitly; the version comes from package-lock.json.
+      - name: Download Electron runtime
+        run: node interface/node_modules/electron/install.js
       - name: Backend tests
         working-directory: interface/desktop/backend
         run: python -m unittest discover -p "test_*.py"
