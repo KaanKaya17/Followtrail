@@ -1,0 +1,52 @@
+# Weekly dependency updates. Minor and patch updates are grouped per ecosystem
+# so each week produces at most one PR per ecosystem; major updates arrive as
+# their own PRs because they need a real review (Electron, Python, AGP, Kotlin).
+# Every PR runs the same desktop, Android and release checks as any other change.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /interface
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore(desktop)
+    groups:
+      desktop-npm:
+        update-types: [minor, patch]
+
+  # requirements.lock.txt (worker runtime) and build-requirements.lock.txt
+  # (PyInstaller) are exact pins; both are rebuilt and tested in CI.
+  - package-ecosystem: pip
+    directory: /interface/desktop/backend
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore(desktop)
+    groups:
+      worker-python:
+        update-types: [minor, patch]
+
+  # Dependabot updates app/gradle.lockfile together with the build files.
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore(android)
+    groups:
+      android-gradle:
+        update-types: [minor, patch]
