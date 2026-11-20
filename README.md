@@ -6,7 +6,7 @@
 
 Instagram’dan indirdiğin veri arşivini cihazında incele, iki arşivi karşılaştırıp kimin geldiğini ve gittiğini gör. İstersen hesabını bağlayıp takip listelerinin zaman içindeki değişimini kaydet. Kayıtların bilgisayarında şifreli kalır.
 
-[Windows sürümünü indir](https://github.com/KaanKaya17/Followtrail/releases/latest) · [Kullanım kılavuzu](docs/wiki/Home.md) · [ZIP rehberi](docs/wiki/Instagram-Veri-Arsivi.md) · [Sürüm durumu](docs/wiki/Surum-ve-Destek.md)
+[Windows sürümünü indir](https://github.com/KaanKaya17/Followtrail/releases/latest) · [Kurmadan tarayıcıda dene](https://kaankaya17.github.io/Followtrail/) · [Kullanım kılavuzu](docs/wiki/Home.md) · [ZIP rehberi](docs/wiki/Instagram-Veri-Arsivi.md) · [Sürüm durumu](docs/wiki/Surum-ve-Destek.md)
 
 ![Followtrail Windows: Instagram ZIP’ini aç, iki dışa aktarımı karşılaştır, içgörülere bak](docs/wiki/assets/readme-demo.gif)
 
@@ -26,6 +26,8 @@ Yalnız kendi hesabını ve erişim yetkin olan verileri kullan. Başkalarının
 ## Hesap bağlamadan başla
 
 İlk açılışta **Özet → Arşivini incele → Instagram ZIP’ini aç** yolunu izle ve Instagram’dan indirdiğin ZIP’i seç. Takipçilerini, takip ettiklerini, yakın arkadaşlarını, bekleyen isteklerini ve son takipten çıktıklarını görebilir; aynı hesabın iki ZIP’ini karşılaştırıp yeni gelenleri, gidenleri ve muhtemel ad değişikliklerini bulabilirsin. Sonuçları CSV olarak kaydedebilirsin. [ZIP’i alma ve karşılaştırma](docs/wiki/Instagram-Veri-Arsivi.md)
+
+Hiçbir şey kurmadan denemek istersen [tarayıcı görüntüleyicisini](https://kaankaya17.github.io/Followtrail/) kullan: ZIP’i tarayıcında açar, dosyayı hiçbir yere yüklemez ve sayfa ağ isteği yapamaz. Takip listelerini, seni geri takip etmeyenleri ve iki ZIP karşılaştırmasını gösterir; içgörüler ve diğer arşiv bölümleri Windows uygulamasındadır.
 
 ![Windows ilk açılışındaki Arşivini incele kartı](docs/wiki/assets/hesap-baglamadan-zip-ac.png)
 

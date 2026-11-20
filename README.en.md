@@ -6,7 +6,7 @@
 
 Review the data export you download from Instagram on your own device, and compare two exports to see who came and who left. If you choose, connect your account to keep a record of how your follow lists change over time. Your records stay encrypted on your computer.
 
-[Download for Windows](https://github.com/KaanKaya17/Followtrail/releases/latest) · [User guide](docs/wiki/EN-Home.md) · [ZIP guide](docs/wiki/EN-Instagram-Data-Archive.md) · [Release status](docs/wiki/EN-Releases.md)
+[Download for Windows](https://github.com/KaanKaya17/Followtrail/releases/latest) · [Try it in your browser](https://kaankaya17.github.io/Followtrail/) · [User guide](docs/wiki/EN-Home.md) · [ZIP guide](docs/wiki/EN-Instagram-Data-Archive.md) · [Release status](docs/wiki/EN-Releases.md)
 
 ![Followtrail for Windows: open an Instagram ZIP, compare two exports, look at insights](docs/wiki/assets/en/readme-demo.gif)
 
@@ -34,6 +34,8 @@ Use it only with your own account and data you’re authorized to access, and re
 It cannot create history it never recorded, does not show profile visitors, and cannot follow, unfollow, like or send messages.
 
 ## Download
+
+To try Followtrail without installing anything, use the [browser viewer](https://kaankaya17.github.io/Followtrail/): it opens the ZIP in your browser, uploads nothing, and the page cannot make network requests. It shows your follow lists, who doesn’t follow you back and a comparison of two ZIPs; Insights and the other archive sections are in the Windows app.
 
 The [latest Windows release](https://github.com/KaanKaya17/Followtrail/releases/latest) is a portable x64 ZIP. Extract the whole ZIP to its own folder and run **Followtrail.exe** from there. The EXE is unsigned, so Windows SmartScreen may warn you; check the SHA-256 on the release page. Before updating, choose **Quit completely** from the tray icon.
 

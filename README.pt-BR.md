@@ -6,7 +6,7 @@
 
 Veja no seu dispositivo a exportação que você baixa do Instagram e compare duas exportações para saber quem chegou e quem saiu. Se quiser, conecte sua conta para registrar como suas listas mudam com o tempo. Seus registros ficam criptografados no seu computador.
 
-[Baixar para Windows](https://github.com/KaanKaya17/Followtrail/releases/latest) · [Guia em português](docs/wiki/PT-BR-Home.md) · [Guia ilustrado do ZIP](docs/wiki/PT-BR-Instagram-Data-Archive.md)
+[Baixar para Windows](https://github.com/KaanKaya17/Followtrail/releases/latest) · [Testar no navegador (em inglês)](https://kaankaya17.github.io/Followtrail/) · [Guia em português](docs/wiki/PT-BR-Home.md) · [Guia ilustrado do ZIP](docs/wiki/PT-BR-Instagram-Data-Archive.md)
 
 ![Arquivo do Instagram com dados de exemplo no Windows](docs/wiki/assets/pt-BR/zip-arsiv.png)
 
