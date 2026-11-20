@@ -53,7 +53,9 @@ jobs:
           if ($exe.VersionInfo.ProductVersion -ne '${{ steps.manifest.outputs.version }}') { throw "Unexpected version $($exe.VersionInfo.ProductVersion)" }
           "Installed $($exe.FullName) $($exe.VersionInfo.ProductVersion)"
       - name: Uninstall
-        run: winget uninstall --id KaanKaya.Followtrail --disable-interactivity
+        # A package installed from a local manifest is not tied to a source,
+        # so it is removed through the same manifest.
+        run: winget uninstall --manifest "${{ steps.manifest.outputs.dir }}" --disable-interactivity
 
   scoop:
     runs-on: windows-2025
