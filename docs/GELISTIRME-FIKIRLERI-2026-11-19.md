@@ -4,6 +4,22 @@ Windows 0.2.95 / Android 0.1.103 kaynağı, belgeler, CI ve GitHub deposu incele
 
 Ana gözlem: Proje teknik olarak çok olgun (777 dosya, 243 commit, ~60 backend testi, 4 dil, şifreli kasa, istek bütçesi). Ama **dağıtım ve görünürlük** zayıf (1 yıldız, 0 fork, imzasız EXE, otomatik güncelleme yok) ve **en güvenli mod olan ZIP modu** hesap bağlamalı modun yanında hâlâ "tek seferlik görüntüleyici". En yüksek getiri bu iki alanda.
 
+## Durum — 20 Kasım 2026
+
+| Fikir | Durum |
+|---|---|
+| ZIP içgörüleri (etkileşim, etkinlik saatleri, güvenlik, reklam, yıl özeti) | Main’de; yayımlanmamış Windows sürümünde |
+| Release’i CI’da üretme + kaynak kanıtı | Main’de (`release-windows.yml`); ilk etiketli sürümle denenecek |
+| Kod imzalama | SignPath Foundation başvurusu yapıldı, yanıt bekleniyor; yayın hattı imzaya hazır |
+| winget / Scoop | Scoop bucket main’de; winget manifesti hazır, imzalı ilk sürümden sonra gönderilecek |
+| Tarayıcıda çalışan ZIP görüntüleyici | Main’de (`viewer/`); GitHub Pages yayını ayrıca açılır |
+| Dependabot | Main’de; ilk PR’lar inceleniyor |
+| Tanınmayan liste uyarısı + “ZIP biçimi değişti” şablonu | Main’de |
+| ZIP okuyucu fuzz testleri | Main’de; bulduğu bozuk-sıkıştırma hatası düzeltildi |
+| README tanıtım GIF’i | Main’de |
+| Özellik isteği şablonu | Main’de |
+| Çoklu ZIP takip geçmişi, arşiv klasörü izleme, güncelleme bildirimi | Henüz başlanmadı |
+
 ---
 
 ## 1. Öncelik listesi (önerilen sıra)

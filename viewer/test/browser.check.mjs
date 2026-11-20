@@ -70,6 +70,7 @@ try {
   page.on('console', message => { if (message.type() === 'error') failures.push('console: ' + message.text()); });
   await page.goto(origin + '/');
   await page.getByRole('heading', {name: 'Instagram arşivini tarayıcında incele'}).waitFor();
+  assert.match(await page.locator('#guide').getAttribute('href'), /Instagram-Veri-Arsivi\.md$/, 'Turkish guide link');
   assert.equal(await page.locator('#result').isVisible(), false, 'results stay hidden until a ZIP is read');
 
   await page.locator('#file').setInputFiles(file('instagram-ada-2026-11-01-AbCdEf12.zip', newer));
@@ -107,6 +108,7 @@ try {
 
   await page.getByRole('button', {name: 'EN', exact: true}).click();
   await page.getByRole('heading', {name: 'Explore your Instagram archive in your browser'}).waitFor();
+  assert.match(await page.locator('#guide').getAttribute('href'), /EN-Instagram-Data-Archive\.md$/, 'English guide link');
   assert.match(await page.locator('#compare').innerText(), /New followers · 151/);
 
   await page.setViewportSize({width: 375, height: 800});

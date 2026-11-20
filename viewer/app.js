@@ -44,6 +44,7 @@ function applyLanguage() {
   for (const node of document.querySelectorAll('[data-t]')) node.textContent = t(node.dataset.t);
   for (const button of document.querySelectorAll('[data-language]'))
     button.setAttribute('aria-pressed', String(button.dataset.language === language));
+  $('guide').href = t('guideUrl');
   $('search').placeholder = t('search');
   $('search').setAttribute('aria-label', t('search'));
   const order = $('order').value || 'name';
