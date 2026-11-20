@@ -1,0 +1,49 @@
+name: Özellik isteği
+description: Followtrail'e eklenmesini istediğiniz bir şeyi önerin.
+title: "Öneri: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Followtrail salt okuma çalışır ve verileri cihazda tutar. Takip etme veya takipten çıkma otomasyonu, profil ziyaretçisi gösterme ve başkalarının listelerini toplu okuma gibi istekler bu sınırların dışındadır.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Çözmek istediğiniz sorun
+      description: Ne yapmaya çalışıyorsunuz ve şu an neden zor? Örnek kişi veya hesap adı yazmayın.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Önerdiğiniz çözüm
+      description: Ekranda nasıl görünmesini veya nasıl çalışmasını beklersiniz?
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Hangi mod?
+      options:
+        - ZIP modu (hesap bağlamadan)
+        - Hesap bağlamalı mod
+        - İkisi de
+        - Emin değilim
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - Windows
+        - Android
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Denediğiniz alternatifler
+      description: İsteğe bağlı. Şu an bunu nasıl yapıyorsunuz?

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Güvenlik açığı bildir (özel)
+    url: https://github.com/KaanKaya17/Followtrail/security/advisories/new
+    about: Güvenlik açıklarını herkese açık issue yerine buradan özel olarak bildirin. Ayrıntılar SECURITY.md dosyasında.
+  - name: Kullanım kılavuzu ve sık sorulan sorular
+    url: https://github.com/KaanKaya17/Followtrail/blob/main/docs/wiki/Home.md
+    about: Kurulum, ZIP alma, hesap bağlama ve sorun giderme adımları.

@@ -7,8 +7,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Uygulama ve Android sürümü
-      description: Örneğin uygulama 0.1.2, Android 13; hesap adı gerekmez.
+      label: Uygulama sürümü ve platform
+      description: Örneğin Windows 0.2.95 veya Android 0.1.103, Android 13. Hesap adı gerekmez.
     validations:
       required: true
   - type: textarea
