@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import re
 
-from instagram_archive import USERNAME, archive_name
+from instagram_archive import READ_ERRORS, USERNAME, archive_name
 
 MAX_FILE = 24 * 1024**2
 MAX_TOTAL = 96 * 1024**2
@@ -173,7 +173,7 @@ class Reader:
             try:
                 raw = self.browser.read(file, MAX_FILE)
                 root = json.loads(raw.decode('utf-8-sig', errors='replace'), parse_constant=lambda _: None)
-            except (OSError, ValueError, RecursionError):
+            except READ_ERRORS:
                 self.skipped.add(section)
                 continue
             result.extend(rows_of(root)[:MAX_ROWS - len(result)])

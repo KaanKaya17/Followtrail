@@ -12,7 +12,7 @@ from uuid import uuid4
 from zipfile import BadZipFile, ZipFile, _EndRecData, _ECD_SIZE, _ECD_ENTRIES_TOTAL
 
 import csv
-from instagram_archive import ENTRY, archive_name, format_notes, read_relationships
+from instagram_archive import ENTRY, READ_ERRORS, archive_name, format_notes, read_relationships
 import archive_insights
 
 MAX_ARCHIVE = 8 * 1024**3
@@ -23,7 +23,7 @@ MAX_METADATA = 256 * 1024
 MAX_PREVIEW = 32 * 1024**2
 MAX_COPY = 512 * 1024**2
 PAGE = 24_000
-ARCHIVE_ERRORS = (OSError, ValueError, TypeError, AttributeError, RuntimeError, NotImplementedError, BadZipFile, RecursionError)
+ARCHIVE_ERRORS = READ_ERRORS
 # Each metric lists (folder, file stem) pairs: current exports first, then
 # the older layout without the your_instagram_activity/connections prefix.
 SUMMARY_FILES = {

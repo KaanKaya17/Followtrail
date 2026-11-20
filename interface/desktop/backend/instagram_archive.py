@@ -12,6 +12,7 @@ from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlsplit
 from zipfile import BadZipFile, ZipFile
+import zlib
 
 MAX_ZIP = 8 * 1024**3
 MAX_ENTRY = 16 * 1024 * 1024
@@ -191,8 +192,14 @@ def read_archive(path):
         finally:
             archive.close()
             stream.close()
-    except (OSError, ValueError, TypeError, RuntimeError, NotImplementedError, BadZipFile, RecursionError) as exc:
+    except READ_ERRORS as exc:
         raise InvalidArchive(INVALID) from exc
+
+
+# Everything reading one damaged ZIP member can raise. Callers skip that member
+# and report it; one bad member never hides the rest of the archive.
+READ_ERRORS = (OSError, EOFError, ValueError, TypeError, AttributeError, RuntimeError, NotImplementedError,
+               BadZipFile, RecursionError, zlib.error)
 
 
 def safe(item):
@@ -221,7 +228,7 @@ def collect(parts, archive, budget, parse):
     for part in sorted(parts):
         try:
             found, skipped = parse(read_part(archive, parts[part], budget))
-        except (OSError, ValueError, TypeError, RuntimeError, NotImplementedError, BadZipFile, RecursionError, UnicodeError):
+        except READ_ERRORS:
             quality['unreadableParts'] += 1
             continue
         readable = True
