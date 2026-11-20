@@ -12,7 +12,7 @@ from uuid import uuid4
 from zipfile import BadZipFile, ZipFile, _EndRecData, _ECD_SIZE, _ECD_ENTRIES_TOTAL
 
 import csv
-from instagram_archive import ENTRY, archive_name, read_relationships
+from instagram_archive import ENTRY, archive_name, format_notes, read_relationships
 import archive_insights
 
 MAX_ARCHIVE = 8 * 1024**3
@@ -492,8 +492,12 @@ class ExportBrowser:
                     months.clear()
                 continue
             metrics[key] = {'count': count, 'index': matched[0][1]}
+        notes = format_notes(file.filename for file in self.files)
+        if 'elsewhere' in notes and any(scope[name] != 'missing' for name in ('followers', 'following')):
+            # Lists were found in the expected folder; copies elsewhere are not a format change.
+            del notes['elsewhere']
         self.summary_data = {'metrics': metrics, 'months': monthly_likes(months), 'relations': relations,
-                             'scope': scope, 'metadata': self.metadata}
+                             'scope': scope, 'metadata': self.metadata, 'formatNotes': notes}
         return self.summary_data
 
     def read_lists(self):

@@ -12,6 +12,12 @@ On Windows, a read paused this way sends one Windows notification (when general 
 
 A continuation request that receives HTTP 400 or 404 can restart from page one on the next eligible scan. The last complete snapshot is kept. A successful manual read resumes that operation. On Windows, new list scans wait if a fresh profile read is required.
 
+## Instagram may have changed its export format
+
+On **Archive coverage**, this notice means the ZIP has a list file Followtrail does not recognise yet, or the follower/following files are not in the expected `followers_and_following` folder. Recognised lists are read as usual; unrecognised files are left out of the overview and comparison.
+
+**Report on GitHub** opens a prefilled issue that contains only file and folder names, which you can review before sending. Do not attach the ZIP, file contents or usernames. Until the new format is supported, you can open the files in the **File browser**.
+
 ## Sign-in, codes and CAPTCHA
 
 Confirm that a fresh sign-in works in Instagram itself. If it works there but stalls in Followtrail, report the version and redacted diagnostic status. HTTP 200 alone does not establish a completed login. Complete a supported verification challenge in the displayed Instagram page. Submit a code once and wait for the result.

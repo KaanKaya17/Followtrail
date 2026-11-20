@@ -1730,5 +1730,9 @@
   "Paylaşılabilir görsel": "Shareable image",
   "Görselde kullanıcı adı, profil fotoğrafı veya kişi bilgisi yoktur; yalnız sayılar yer alır.": "The image contains no usernames, profile photos or personal details — only numbers.",
   "Instagram yılım, rakamlarla": "My Instagram year in numbers",
-  "Instagram ZIP’inden cihazda hesaplandı": "Calculated on-device from an Instagram ZIP"
+  "Instagram ZIP’inden cihazda hesaplandı": "Calculated on-device from an Instagram ZIP",
+  "Instagram dışa aktarım biçimini değiştirmiş olabilir": "Instagram may have changed its export format",
+  "Bu ZIP’te Followtrail’in henüz tanımadığı liste dosyaları var. Bu listeler özete ve karşılaştırmaya dahil edilmedi.": "This ZIP contains list files Followtrail does not recognise yet. They are not included in the overview or comparison.",
+  "Takipçi veya takip edilen dosyaları beklenen klasörde değil. Instagram klasör adını değiştirmiş olabilir; bu yüzden listeler okunmadı.": "The follower or following files are not in the expected folder. Instagram may have renamed it, so the lists were not read.",
+  "Rapor yalnız dosya ve klasör adlarını içerir; dosya içeriği veya kullanıcı adı gönderilmez.": "The report contains only file and folder names; no file contents or usernames are sent."
 }

@@ -1136,7 +1136,7 @@
       archiveDashboard = null;
     }
     if (root && !archiveDashboard) archiveDashboard = window.TrackerArchiveDashboard.mount(root, {
-      api, t, num, language, openRaw:openExportBrowser, openLists:openInstagramArchive,
+      api, t, num, language, version:data.version, openRaw:openExportBrowser, openLists:openInstagramArchive,
       async readOwnStories() {
         const id = data.account?.id, accountId = data.activeAccountId;
         if (!id || !accountId) return null;

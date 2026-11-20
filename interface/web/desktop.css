@@ -1055,3 +1055,8 @@ summary:focus-visible { outline: 3px solid var(--violet); outline-offset: 4px; }
 .archive-insights-panel { grid-template-columns:minmax(0,1fr); }
 .archive-insights-card { width:min(100%, 360px); border-radius:16px; border:1px solid var(--line); }
 .archive-insights-year .button.primary { justify-self:start; }
+.archive-dashboard-format-note { margin-top:12px; padding:12px 14px; border-radius:12px; border:1px solid var(--gold-text); background:var(--gold-bg); color:var(--ink); display:grid; gap:6px; }
+.archive-dashboard-format-note p { margin:0; }
+.archive-dashboard-format-note ul { margin:0; padding-inline-start:20px; font-family:ui-monospace, "Cascadia Mono", Consolas, monospace; font-size:13px; overflow-wrap:anywhere; }
+.archive-dashboard-format-note small { color:var(--muted); }
+.archive-dashboard-format-note .button { justify-self:start; }

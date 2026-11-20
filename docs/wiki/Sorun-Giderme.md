@@ -14,6 +14,12 @@ Windows’ta bir okuma bu nedenle durduğunda bir kez Windows bildirimi gelir (g
 
 Devam isteği 400 veya 404 alırsa sonraki uygun tarama ilk sayfadan başlar. Son tam kayıt karşılaştırma için saklanır. Duraklatılan okuma elle başarıyla tamamlandığında otomatik kontroller o okuma için devam eder. Windows’ta profil okuması durduysa yeni liste başlangıçları da taze profil bilgisi alana kadar bekler. Profil bilgisi hazır olan devam taramaları sırasını kullanabilir.
 
+## Instagram dışa aktarım biçimini değiştirmiş olabilir
+
+**Arşiv kapsamı** ekranında bu uyarı, ZIP’te Followtrail’in tanımadığı bir liste dosyası olduğunu veya takipçi/takip edilen dosyalarının beklenen `followers_and_following` klasöründe bulunmadığını söyler. Tanınan listeler normal okunur; tanınmayan dosyalar özete ve karşılaştırmaya dahil edilmez.
+
+**GitHub’da bildir** düğmesi, yalnız dosya ve klasör adlarını içeren hazır bir hata kaydı açar. Göndermeden önce içeriği görebilirsin. ZIP’i, dosya içeriğini veya kullanıcı adlarını ekleme. Yeni biçim desteklenene kadar dosyaları **Dosya tarayıcısı** ile açabilirsin.
+
 ## Giriş kabul edilmiyor
 
 Aynı kullanıcı adı ve parolayla normal Instagram'da sıfırdan giriş yapabildiğinizi ayırın. Kayıtlı bir oturumun hâlâ açık olması bu doğrulamayı sağlamaz. Normal Instagram da bilgileri reddediyorsa önce hesap bilgilerini oradan doğrulayın.

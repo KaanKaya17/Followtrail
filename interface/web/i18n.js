@@ -1738,7 +1738,11 @@
     "Paylaşılabilir görsel": "Shareable image",
     "Görselde kullanıcı adı, profil fotoğrafı veya kişi bilgisi yoktur; yalnız sayılar yer alır.": "The image contains no usernames, profile photos or personal details — only numbers.",
     "Instagram yılım, rakamlarla": "My Instagram year in numbers",
-    "Instagram ZIP’inden cihazda hesaplandı": "Calculated on-device from an Instagram ZIP"
+    "Instagram ZIP’inden cihazda hesaplandı": "Calculated on-device from an Instagram ZIP",
+    "Instagram dışa aktarım biçimini değiştirmiş olabilir": "Instagram may have changed its export format",
+    "Bu ZIP’te Followtrail’in henüz tanımadığı liste dosyaları var. Bu listeler özete ve karşılaştırmaya dahil edilmedi.": "This ZIP contains list files Followtrail does not recognise yet. They are not included in the overview or comparison.",
+    "Takipçi veya takip edilen dosyaları beklenen klasörde değil. Instagram klasör adını değiştirmiş olabilir; bu yüzden listeler okunmadı.": "The follower or following files are not in the expected folder. Instagram may have renamed it, so the lists were not read.",
+    "Rapor yalnız dosya ve klasör adlarını içerir; dosya içeriği veya kullanıcı adı gönderilmez.": "The report contains only file and folder names; no file contents or usernames are sent."
   },
   "es": {
     "Satır seçenekleri": "Opciones de la fila",
@@ -3472,7 +3476,11 @@
     "Paylaşılabilir görsel": "Imagen para compartir",
     "Görselde kullanıcı adı, profil fotoğrafı veya kişi bilgisi yoktur; yalnız sayılar yer alır.": "La imagen no contiene nombres de usuario, fotos de perfil ni datos personales; solo números.",
     "Instagram yılım, rakamlarla": "Mi año en Instagram en cifras",
-    "Instagram ZIP’inden cihazda hesaplandı": "Calculado en el dispositivo a partir de un ZIP de Instagram"
+    "Instagram ZIP’inden cihazda hesaplandı": "Calculado en el dispositivo a partir de un ZIP de Instagram",
+    "Instagram dışa aktarım biçimini değiştirmiş olabilir": "Puede que Instagram haya cambiado el formato de exportación",
+    "Bu ZIP’te Followtrail’in henüz tanımadığı liste dosyaları var. Bu listeler özete ve karşılaştırmaya dahil edilmedi.": "Este ZIP contiene archivos de listas que Followtrail aún no reconoce. No se incluyen en el resumen ni en la comparación.",
+    "Takipçi veya takip edilen dosyaları beklenen klasörde değil. Instagram klasör adını değiştirmiş olabilir; bu yüzden listeler okunmadı.": "Los archivos de seguidores o seguidos no están en la carpeta esperada. Puede que Instagram la haya renombrado, así que las listas no se leyeron.",
+    "Rapor yalnız dosya ve klasör adlarını içerir; dosya içeriği veya kullanıcı adı gönderilmez.": "El informe solo contiene nombres de archivos y carpetas; no se envía contenido ni nombres de usuario."
   },
   "pt-BR": {
     "Satır seçenekleri": "Opções da linha",
@@ -5206,7 +5214,11 @@
     "Paylaşılabilir görsel": "Imagem para compartilhar",
     "Görselde kullanıcı adı, profil fotoğrafı veya kişi bilgisi yoktur; yalnız sayılar yer alır.": "A imagem não contém nomes de usuário, fotos de perfil nem dados pessoais — apenas números.",
     "Instagram yılım, rakamlarla": "Meu ano no Instagram em números",
-    "Instagram ZIP’inden cihazda hesaplandı": "Calculado no dispositivo a partir de um ZIP do Instagram"
+    "Instagram ZIP’inden cihazda hesaplandı": "Calculado no dispositivo a partir de um ZIP do Instagram",
+    "Instagram dışa aktarım biçimini değiştirmiş olabilir": "O Instagram pode ter mudado o formato da exportação",
+    "Bu ZIP’te Followtrail’in henüz tanımadığı liste dosyaları var. Bu listeler özete ve karşılaştırmaya dahil edilmedi.": "Este ZIP contém arquivos de listas que o Followtrail ainda não reconhece. Eles não entram no resumo nem na comparação.",
+    "Takipçi veya takip edilen dosyaları beklenen klasörde değil. Instagram klasör adını değiştirmiş olabilir; bu yüzden listeler okunmadı.": "Os arquivos de seguidores ou seguindo não estão na pasta esperada. O Instagram pode tê-la renomeado, então as listas não foram lidas.",
+    "Rapor yalnız dosya ve klasör adlarını içerir; dosya içeriği veya kullanıcı adı gönderilmez.": "O relatório contém apenas nomes de arquivos e pastas; nenhum conteúdo ou nome de usuário é enviado."
   }
 };
   const locales = { tr: 'tr-TR', en: 'en-US', es: 'es-ES', 'pt-BR': 'pt-BR' };

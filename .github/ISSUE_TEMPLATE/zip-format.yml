@@ -1,0 +1,46 @@
+name: Instagram ZIP biçimi değişti
+description: Followtrail bir Instagram dışa aktarımındaki listeyi tanımadığında bildirin. Kişisel veri gerekmez.
+title: "ZIP biçimi: "
+labels: [zip-format]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Followtrail, Instagram ZIP'inde tanımadığı bir liste dosyası veya beklenmedik bir klasör gördüğünde **Arşiv kapsamı** ekranında uyarı gösterir. **GitHub'da bildir** düğmesi aşağıdaki alanları dosya adlarıyla doldurur.
+
+        **Eklemeyin:** ZIP dosyası, dosya içeriği, kullanıcı adları, ekran görüntüsünde görünen kişi adları. Dosya ve klasör adları yeterlidir.
+  - type: input
+    id: app-version
+    attributes:
+      label: Followtrail sürümü
+      description: Ayarlar ekranının altında veya sol alttaki sürüm etiketinde görünür. Örneğin 0.2.96.
+    validations:
+      required: true
+  - type: input
+    id: export-date
+    attributes:
+      label: Dışa aktarım tarihi
+      description: ZIP'in Instagram'dan indirildiği gün (yaklaşık). Biçim değişikliğinin ne zaman başladığını anlamaya yarar.
+  - type: dropdown
+    id: export-format
+    attributes:
+      label: Dışa aktarım biçimi
+      options:
+        - JSON
+        - HTML
+        - Bilmiyorum
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Tanınmayan dosyalar veya klasörler
+      description: Uygulamanın gösterdiği dosya ve klasör adları. Yalnız adlar; içerik yapıştırmayın.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Gözlenen sonuç
+      description: Örneğin "Takipçiler 0 görünüyor" veya "Yakın arkadaşlar kartı yok". Kişi adı yazmayın.

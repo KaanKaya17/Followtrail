@@ -35,6 +35,38 @@ EXTRAS = {
     'removedSuggestions': ('removed_suggestions',),
 }
 EXTRA_ENTRY = re.compile(r'(.+?)(?:_([1-9][0-9]{0,3}))?\.json')
+# Files Instagram puts in the relationships folder that are not account lists.
+NOT_LISTS = {'following_hashtags'}
+LIST_FILE = re.compile(r"([A-Za-z0-9_'.-]{1,80}?)(?:_[1-9][0-9]{0,3})?\.(json|html)")
+MAX_NOTES = 20
+
+
+def format_notes(names):
+    """Signs that Instagram changed the relationship export layout.
+
+    Returns file names only, never contents: list files in the relationships
+    folder that this reader does not recognise, and follower or following
+    files found outside that folder (for example after a folder rename).
+    """
+    known = {stem for stems in EXTRAS.values() for stem in stems} | NOT_LISTS
+    unknown, elsewhere = set(), set()
+    for name in names:
+        relative = PurePosixPath(name)
+        if '..' in relative.parts or relative.is_absolute() or '\\' in name:
+            continue
+        if ENTRY.fullmatch(relative.name):
+            if relative.parent.name != FOLDER and len(str(relative.parent)) <= 160:
+                elsewhere.add(str(relative.parent))
+            continue
+        match = LIST_FILE.fullmatch(relative.name)
+        if relative.parent.name == FOLDER and match and match[1] not in known:
+            unknown.add(match[1] + '.' + match[2])
+    notes = {}
+    if unknown:
+        notes['unrecognized'] = sorted(unknown)[:MAX_NOTES]
+    if elsewhere:
+        notes['elsewhere'] = sorted(elsewhere)[:MAX_NOTES]
+    return notes
 
 
 def archive_name(value):

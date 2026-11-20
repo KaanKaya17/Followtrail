@@ -63,7 +63,7 @@
     return Number.isSafeInteger(seconds) ? seconds : null;
   };
 
-  function mount(root, {api, t, num, language, openRaw, openLists, readOwnStories, readOwnStoryMedia, autoOpen = false}) {
+  function mount(root, {api, t, num, language, version, openRaw, openLists, readOwnStories, readOwnStoryMedia, autoOpen = false}) {
     let archive, closed = false, opening = false, generation = 0, mediaUrl, searchTimer;
     let filesByName = new Map(), filesById = new Map(), groupByFile = new Map();
     const monthsFormat = new Intl.DateTimeFormat(language, {month:"short", year:"numeric", timeZone:"UTC"});
@@ -311,6 +311,8 @@
         for (const [key, label] of Object.entries(relationNames))
           if (result.archiveBrowser.relations?.[key]) relationTiles.append(tile(label, result.archiveBrowser.relations[key]));
         overview.replaceChildren(make("h2", t("Arşiv kapsamı")), make("p", info.join(" · "), "archive-dashboard-file-info"), coverage);
+        const notes = formatNotice(result.archiveBrowser.formatNotes, metadata);
+        if (notes) overview.append(notes);
         if (relationTiles.childElementCount) overview.append(make("h3", t("Takip ilişkileri")), relationTiles);
         if (tiles.childElementCount) overview.append(make("h3", t("Etkinlik")), tiles);
         if (months.length) {
@@ -336,6 +338,35 @@
         }
         overview.hidden = false;
       } catch { /* The selected archive is still available for browsing. */ }
+    }
+
+    // Instagram changes its export layout without notice. File names (never
+    // contents) of lists this reader does not know are shown with a report link.
+    function formatNotice(notes, metadata) {
+      const unrecognized = Array.isArray(notes?.unrecognized) ? notes.unrecognized : [];
+      const elsewhere = Array.isArray(notes?.elsewhere) ? notes.elsewhere : [];
+      if (!unrecognized.length && !elsewhere.length) return null;
+      const box = make("section", "", "archive-dashboard-format-note");
+      box.setAttribute("role", "note");
+      box.append(make("strong", t("Instagram dışa aktarım biçimini değiştirmiş olabilir")));
+      if (unrecognized.length)
+        box.append(make("p", t("Bu ZIP’te Followtrail’in henüz tanımadığı liste dosyaları var. Bu listeler özete ve karşılaştırmaya dahil edilmedi.")));
+      if (elsewhere.length)
+        box.append(make("p", t("Takipçi veya takip edilen dosyaları beklenen klasörde değil. Instagram klasör adını değiştirmiş olabilir; bu yüzden listeler okunmadı.")));
+      const list = make("ul");
+      for (const name of [...unrecognized, ...elsewhere.map(folder => folder + "/")]) list.append(make("li", name));
+      box.append(list, make("small", t("Rapor yalnız dosya ve klasör adlarını içerir; dosya içeriği veya kullanıcı adı gönderilmez.")));
+      const report = new URLSearchParams({
+        template: "zip-format.yml",
+        title: "ZIP biçimi: " + (unrecognized[0] || elsewhere[0] + "/"),
+        "app-version": String(version || ""),
+        "export-date": metadata?.exportedAt?.slice(0, 10) || metadata?.filenameDate || "",
+        files: [...unrecognized, ...elsewhere.map(folder => folder + "/")].join("\n"),
+      });
+      box.append(action(t("GitHub’da bildir"), () => {
+        api.openLink("https://github.com/KaanKaya17/Followtrail/issues/new?" + report).catch(() => {});
+      }));
+      return box;
     }
 
     function toolView(title) {
