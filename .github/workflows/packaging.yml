@@ -52,10 +52,14 @@ jobs:
           }
           if ($exe.VersionInfo.ProductVersion -ne '${{ steps.manifest.outputs.version }}') { throw "Unexpected version $($exe.VersionInfo.ProductVersion)" }
           "Installed $($exe.FullName) $($exe.VersionInfo.ProductVersion)"
+      - name: Show the installed entry
+        run: winget list --name Followtrail --disable-interactivity
       - name: Uninstall
-        # A package installed from a local manifest is not tied to a source,
-        # so it is removed through the same manifest.
-        run: winget uninstall --manifest "${{ steps.manifest.outputs.dir }}" --disable-interactivity
+        # Only cleans up this throwaway runner. winget does not always match a
+        # package installed from a local manifest; users installing from the
+        # winget source uninstall it by id, which this step cannot reproduce.
+        continue-on-error: true
+        run: winget uninstall --name Followtrail --disable-interactivity
 
   scoop:
     runs-on: windows-2025
