@@ -2,7 +2,7 @@
 
 [English](CODE-SIGNING.en.md)
 
-**Durum (20 Kasım 2026):** Windows sürümleri henüz Authenticode ile imzalı değildir. Yayın hattı imzaya hazırdır. [SignPath Foundation](https://signpath.org) başvurusu 20 Kasım 2026’da yapıldı ve yanıt bekleniyor; onaylanırsa sonraki sürümler imzalı yayımlanır. O zamana kadar indirdiğin dosyayı [SHA-256 ve kaynak kanıtıyla](#indirdiğin-dosyayı-doğrula) doğrulayabilirsin.
+**Durum (22 Kasım 2026):** Windows sürümleri Authenticode ile imzalı değildir. 20 Kasım 2026’da yapılan [SignPath Foundation](https://signpath.org) başvurusu kabul edilmedi. Yayın hattındaki imza adımı yerinde duruyor ama yapılandırılmadığı için çalışmaz; sürümler imzasız yayımlanır ve Windows SmartScreen ilk açılışta uyarı gösterebilir. Bu yüzden indirdiğin dosyayı [SHA-256 ve kaynak kanıtıyla](#indirdiğin-dosyayı-doğrula) doğrulayabilirsin.
 
 ## Sürümler nasıl üretilir
 
@@ -58,7 +58,7 @@ Bu cümle onaydan önce yayımlanmaz.
 
 ## Sorumlu için: SignPath kurulumu
 
-1. **Başvuru (20 Kasım 2026’da yapıldı):** <https://signpath.org/apply>. Proje: Followtrail, depo `https://github.com/KaanKaya17/Followtrail`, lisans MIT, yayımlanan dosya `Followtrail-Desktop-X.Y.Z.zip`. Bu sayfayı kod imzalama politikası olarak göster.
+1. **Başvuru (20 Kasım 2026’da yapıldı, kabul edilmedi):** <https://signpath.org/apply>. Proje: Followtrail, depo `https://github.com/KaanKaya17/Followtrail`, lisans MIT, yayımlanan dosya `Followtrail-Desktop-X.Y.Z.zip`. Bu sayfayı kod imzalama politikası olarak göster.
 2. **Dikkat:** SignPath Foundation onayı kendi takdirindedir. Koşullarında kötü amaçlı yazılım ve “güvenlik önlemlerini aşan” araçlar dışlanır. ZIP modu tamamen yereldir. Hesap bağlamalı mod Instagram’ın resmî olmayan arayüzlerini kullanır ve README’de bu açıkça yazar. Başvuruda bunu saklama: uygulamanın salt okuma olduğunu, istek sınırlarını, CAPTCHA’yı veya doğrulamayı aşmadığını ve kullanıcının kendi hesabıyla sınırlı olduğunu belirt.
 3. **SignPath projesi:** Onaydan sonra bir proje, bir *signing policy* ve bu depodaki [artifact configuration](../packaging/signpath/artifact-configuration.xml) oluşturulur. GitHub bağlayıcısı (trusted build system) bu depoya bağlanır. *File metadata restrictions* ürün adını `Followtrail` olarak zorlar.
 4. **GitHub ayarları** (Settings → Secrets and variables → Actions):

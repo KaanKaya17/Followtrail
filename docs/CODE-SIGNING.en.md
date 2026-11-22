@@ -2,7 +2,7 @@
 
 [Türkçe](CODE-SIGNING.md)
 
-**Status (20 November 2026):** Windows releases are not Authenticode-signed yet. The release pipeline is ready for signing. An application to [SignPath Foundation](https://signpath.org) was submitted on 20 November 2026 and is pending; if it is approved, later releases are published signed. Until then you can [verify a download with its SHA-256 and build provenance](#verify-a-download).
+**Status (22 November 2026):** Windows releases are not Authenticode-signed. The application to [SignPath Foundation](https://signpath.org) submitted on 20 November 2026 was not accepted. The signing step in the release pipeline stays in place but does not run because it is not configured; releases are published unsigned and Windows SmartScreen may warn on first launch. That is why you can [verify a download with its SHA-256 and build provenance](#verify-a-download).
 
 ## How releases are built
 

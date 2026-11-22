@@ -41,7 +41,7 @@ The [latest Windows release](https://github.com/KaanKaya17/Followtrail/releases/
 
 With [Scoop](https://scoop.sh): `scoop bucket add followtrail https://github.com/KaanKaya17/Followtrail` and `scoop install followtrail`. [Package managers](packaging/README.md)
 
-**Code signing policy:** Releases are built from this repository on GitHub Actions, tested before publishing and carry a build provenance attestation. An application to SignPath Foundation for Authenticode signing has been submitted and is pending. [How releases are built and verified](docs/CODE-SIGNING.en.md)
+**Code signing policy:** Releases are built from this repository on GitHub Actions, tested before publishing and carry a build provenance attestation. They are not Authenticode-signed (the SignPath Foundation application was not accepted), so SmartScreen may warn on first launch; you can verify a download with its SHA-256 and build provenance. [How releases are built and verified](docs/CODE-SIGNING.en.md)
 
 Current releases: **Windows 0.2.95** and the **Android 0.1.103** preview. Android is developed separately; see [release status](docs/wiki/EN-Releases.md). [All releases](https://github.com/KaanKaya17/Followtrail/releases) · [Changelog](CHANGELOG.md)
 

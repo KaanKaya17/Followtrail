@@ -10,10 +10,10 @@ Ana gözlem: Proje teknik olarak çok olgun (777 dosya, 243 commit, ~60 backend 
 |---|---|
 | ZIP içgörüleri (etkileşim, etkinlik saatleri, güvenlik, reklam, yıl özeti) | Main’de; yayımlanmamış Windows sürümünde |
 | Release’i CI’da üretme + kaynak kanıtı | Main’de (`release-windows.yml`); ilk etiketli sürümle denenecek |
-| Kod imzalama | SignPath Foundation başvurusu yapıldı, yanıt bekleniyor; yayın hattı imzaya hazır |
+| Kod imzalama | SignPath Foundation başvurusu kabul edilmedi (22 Kasım); sürümler imzasız, SHA-256 + kaynak kanıtıyla doğrulanıyor |
 | winget / Scoop | Scoop bucket main’de; winget manifesti hazır, imzalı ilk sürümden sonra gönderilecek |
 | Tarayıcıda çalışan ZIP görüntüleyici | Main’de (`viewer/`); GitHub Pages yayını ayrıca açılır |
-| Dependabot | Main’de; ilk PR’lar inceleniyor |
+| Dependabot | Main’de; ilk 9 PR birleştirildi (22 Kasım), Android AGP 9 / Gradle 9 geçişi bekliyor |
 | Tanınmayan liste uyarısı + “ZIP biçimi değişti” şablonu | Main’de |
 | ZIP okuyucu fuzz testleri | Main’de; bulduğu bozuk-sıkıştırma hatası düzeltildi |
 | README tanıtım GIF’i | Main’de |

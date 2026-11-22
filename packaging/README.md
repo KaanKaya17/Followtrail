@@ -21,7 +21,7 @@ scoop install followtrail
 
 `winget/manifests/k/KaanKaya/Followtrail/<sürüm>/` klasörü [winget-pkgs](https://github.com/microsoft/winget-pkgs) deposunun düzenini izler. Taşınabilir ZIP olarak kurulur; Electron dosyaları EXE’nin yanında kalmak zorunda olduğu için `ArchiveBinariesDependOnPath: true` kullanılır.
 
-**Henüz winget-pkgs’e gönderilmedi.** Önerilen sıra: önce SignPath ile imzalı ilk sürüm ([kod imzalama politikası](../docs/CODE-SIGNING.md)), sonra winget gönderimi. İmzasız paket de kabul edilebilir, ancak Microsoft’un otomatik taramasında takılma olasılığı daha yüksektir.
+**Henüz winget-pkgs’e gönderilmedi.** SignPath başvurusu kabul edilmediği için imzalı sürüm beklenmeyecek ([kod imzalama politikası](../docs/CODE-SIGNING.md)); gönderim CI’da üretilmiş ilk imzasız sürümle yapılır. İmzasız paket kabul edilir, ancak Microsoft’un otomatik taramasında takılma olasılığı daha yüksektir.
 
 Gönderim (sorumlunun GitHub hesabıyla, onayıyla):
 
