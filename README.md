@@ -59,7 +59,7 @@ Uygulama hiç kaydetmediği bir geçmişi üretemez: ilk liste başlangıç kayd
 
 [Scoop](https://scoop.sh) kullanıyorsan: `scoop bucket add followtrail https://github.com/KaanKaya17/Followtrail` ve `scoop install followtrail`. [Paket yöneticileri](packaging/README.md)
 
-**Kod imzalama politikası:** Sürümler GitHub Actions’ta bu depodan üretilir, yayımlanmadan önce test edilir ve kaynak kanıtı taşır. Authenticode imzası için SignPath Foundation’a başvuruldu; yanıt bekleniyor. [Nasıl üretildiğini ve nasıl doğrulanacağını gör](docs/CODE-SIGNING.md)
+**Kod imzalama politikası:** Sürümler GitHub Actions’ta bu depodan üretilir, yayımlanmadan önce test edilir ve kaynak kanıtı taşır. Authenticode imzası yoktur (SignPath Foundation başvurusu kabul edilmedi), bu yüzden SmartScreen ilk açılışta uyarabilir; indirdiğin dosyayı SHA-256 ve kaynak kanıtıyla doğrulayabilirsin. [Nasıl üretildiğini ve nasıl doğrulanacağını gör](docs/CODE-SIGNING.md)
 
 Güncel sürümler: **Windows 0.2.95** ve **Android 0.1.103** önizlemesi. Android ayrı geliştiriliyor; durumu [sürüm sayfasında](docs/wiki/Surum-ve-Destek.md). [Tüm sürümler](https://github.com/KaanKaya17/Followtrail/releases) · [Değişiklik kaydı](CHANGELOG.md)
 

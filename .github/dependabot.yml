@@ -38,6 +38,10 @@ updates:
     groups:
       worker-python:
         update-types: [minor, patch]
+    ignore:
+      # PyInstaller requires pefile!=2024.8.26, so this release cannot install.
+      - dependency-name: pefile
+        versions: ["2024.8.26"]
 
   # Dependabot updates app/gradle.lockfile together with the build files.
   - package-ecosystem: gradle
