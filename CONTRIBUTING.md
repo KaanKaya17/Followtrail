@@ -1,6 +1,6 @@
 # Geliştirme
 
-JDK 21, SDK platform 36 ve build-tools 36.0.0 kullanın. Gradle wrapper sürümü ve SHA-256 değeri repoda sabitlenmiştir. Yerel SDK yolu, imza anahtarı, oturum, APK ve kullanıcı verileri git'e eklenmez. Android bağımlılık sürümleri `app/gradle.lockfile` ile kilitlidir; bağımlılık değişince ilgili kontrol görevlerini `--write-locks` ile çalıştırıp oluşan farkı inceleyin.
+JDK 21, SDK platform 37 ve build-tools 36.0.0 kullanın. Gradle wrapper sürümü ve SHA-256 değeri repoda sabitlenmiştir. Yerel SDK yolu, imza anahtarı, oturum, APK ve kullanıcı verileri git'e eklenmez. Android bağımlılık sürümleri `app/gradle.lockfile` ile kilitlidir; bağımlılık değişince ilgili kontrol görevlerini `--write-locks` ile çalıştırıp oluşan farkı inceleyin.
 
 ```sh
 ./gradlew :app:testDebugUnitTest :app:lintRelease :app:assembleRelease

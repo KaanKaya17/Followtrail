@@ -76,7 +76,7 @@ Güncel sürümler: **Windows 0.2.95** ve **Android 0.1.103** önizlemesi. Andro
 
 Windows uygulaması Electron ve paketlenmiş bir Python worker’dan oluşur. Geliştirme, test ve paketleme adımları [Windows rehberinde](interface/DESKTOP.md), genel kurallar [CONTRIBUTING.md](CONTRIBUTING.md) dosyasındadır. [Teknik dokümantasyon](docs/README.md)
 
-Android: JDK 21, Android SDK platform 36 ve build-tools 36.0.0.
+Android: JDK 21, Android SDK platform 37 ve build-tools 36.0.0.
 
 ```sh
 ./gradlew :app:testDebugUnitTest :app:lintRelease :app:assembleRelease
